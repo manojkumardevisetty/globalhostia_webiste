@@ -21,7 +21,7 @@ export default async function Pages({ searchParams }: { searchParams: Promise<Re
 
   return (
     <>
-      <PageHeader title="Pages & Sections" desc="Every page of the website. Open one to reorder, edit, hide or add sections — with live preview." />
+      <PageHeader title="Pages & Sections" desc="Every page of the website. Open one to reorder, edit, hide or add sections — with live preview." actions={<a href="/v2" target="_blank" className="btn btn-secondary">Preview new v2 homepage ↗</a>} />
       <Flash sp={sp} />
       {usesSlug && <p className="mb-4 text-sm text-slate-500">Pages showing category <b>{usesSlug}</b> · <Link href="/admin/pages" className="text-brand-600">clear</Link></p>}
       <div className="grid gap-6 lg:grid-cols-3">

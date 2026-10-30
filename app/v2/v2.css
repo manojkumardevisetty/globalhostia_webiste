@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Inter", ui-sans-serif, sans-serif;
+  --color-ink: #15123a;
+  --color-ink-2: #4a4870;
+  --color-indigo: #473bf0;
+  --color-indigo-d: #3427d6;
+  --color-lilac: #eeedff;
+  --color-lilac-2: #dcd9ff;
+  --color-mint: #0f9f62;
+  --color-coral: #f4513e;
+  --color-line: #e6e5f2;
+}
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
+body { @apply bg-white font-sans text-ink antialiased; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--color-indigo) 55%, transparent); outline-offset: 3px; border-radius: 6px; }
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+
+@keyframes caret { 50% { opacity: 0; } }
+.caret { animation: caret 1s steps(1) infinite; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+.rise-2 { animation-delay: .12s; } .rise-3 { animation-delay: .24s; }
