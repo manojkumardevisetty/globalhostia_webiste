@@ -29,7 +29,13 @@ export default async function Dashboard() {
   if (whmcsConfigured() && can(s, 'commerce')) {
     try { stats = await getStats(); } catch (e: any) { statsErr = e.message; }
   }
-  const health = !whmcsConfigured() ? ['red', 'Not configured'] : api.n === 0 ? ['gray', 'No calls in 24h'] : api.fail / api.n > 0.2 ? ['red', `${api.fail}/${api.n} calls failed`] : api.fail ? ['yellow', `${api.fail}/${api.n} calls failed`] : ['green', `Healthy · ${api.ms}ms avg`];
+  // judge health on the most recent 20 calls, so old (already fixed) errors don't keep the badge yellow
+  const recent = await db.select().from(schema.apiLogs).orderBy(desc(schema.apiLogs.createdAt)).limit(20);
+  const rFail = recent.filter((r) => !r.ok);
+  const lastErr = (await db.select().from(schema.apiLogs).where(sql`not ${schema.apiLogs.ok}`).orderBy(desc(schema.apiLogs.createdAt)).limit(1))[0];
+  const health = !whmcsConfigured() ? ['red', 'Not configured'] : !recent.length ? ['gray', 'No calls yet']
+    : rFail.length === 0 ? ['green', `Healthy · last ${recent.length} calls OK`]
+    : rFail.length > 5 ? ['red', `${rFail.length} of last ${recent.length} calls failed`] : ['yellow', `${rFail.length} of last ${recent.length} calls failed`];
 
   return (
     <>
@@ -64,7 +70,8 @@ export default async function Dashboard() {
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="WHMCS integration" actions={<Link href="/admin/whmcs" className="text-sm text-brand-600">Open →</Link>}>
-          <div className="mb-3 flex items-center gap-2 text-sm">API health: <Badge tone={health[0]}>{health[1]}</Badge></div>
+          <div className="mb-1 flex items-center gap-2 text-sm">API health: <Badge tone={health[0]}>{health[1]}</Badge></div>
+          <p className="mb-3 text-xs text-slate-500">{lastErr ? <>Last error {fmtDate(lastErr.createdAt)} ({lastErr.action}): <span className="text-slate-600">{lastErr.error.slice(0, 120)}</span> · <Link href="/admin/whmcs?errors=1" className="text-brand-600">all errors</Link></> : 'No errors recorded.'} 24h: {api.n} calls, {api.fail} failed, {api.ms}ms avg.</p>
           {pc.noprice > 0 && <p className="mb-3 text-sm text-amber-700">{pc.noprice} product(s) have no price and won&apos;t show a price on the site.</p>}
           {runs.length ? (
             <table className="table"><thead><tr><th>Sync</th><th>Status</th><th>When</th></tr></thead>
