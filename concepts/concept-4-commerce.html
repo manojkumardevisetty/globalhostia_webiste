@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GlobalHostia Store</title>
+<meta name="description" content="Concept 4 — Conversion-focused commerce direction for GlobalHostia: domain search, deal pricing, faceted catalog, mini-cart and 3-step checkout.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFF7F0; --paper-2:#FFEFE3; --surface:#FFFFFF; --ink:#1F1611; --ink-2:#5B4D44; --ink-3:#8A7A70;
+  --line:#EBDCCF; --line-2:#F5EAE0;
+  --orange:#FF5A1F; --orange-deep:#D9430F; --orange-tint:#FFE9DE;
+  --green:#1A8F5A; --green-tint:#E3F5EC;
+  --blue:#2457D6; --blue-tint:#E7EEFF;
+  --yellow:#FFD15C;
+  --r-sm:8px; --r:12px; --r-lg:18px;
+  --shadow:0 1px 2px rgba(60,30,10,.06),0 8px 24px -12px rgba(120,60,20,.18);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit}
+svg{display:block}
+h1,h2,h3,h4{margin:0;line-height:1.15;letter-spacing:-.02em}
+h1{font-size:clamp(30px,4.4vw,52px);font-weight:800;letter-spacing:-.035em}
+h2{font-size:clamp(22px,2.6vw,32px);font-weight:800;letter-spacing:-.03em}
+h3{font-size:18px;font-weight:700}
+p{margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px}
+@media(min-width:900px){.wrap{padding:0 32px}}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* screens */
+.screen{display:none}
+.screen.active{display:block}
+
+/* utility bar */
+.util{background:var(--ink);color:#F6EDE6;font-size:12.5px}
+.util .wrap{display:flex;justify-content:space-between;align-items:center;height:34px;gap:16px}
+.util span b{color:var(--yellow);font-weight:700}
+.util .right{display:none;gap:18px}
+@media(min-width:760px){.util .right{display:flex}}
+.util select{background:transparent;border:0;color:#F6EDE6;font-size:12.5px}
+
+/* header */
+.hdr{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.hdr .wrap{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;height:66px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:-.03em}
+.logo i{width:30px;height:30px;border-radius:9px;background:var(--orange);display:grid;place-items:center;color:#fff;font-style:normal;font-size:15px}
+.hsearch{display:none;align-items:center;border:2px solid var(--ink);border-radius:999px;height:44px;padding:0 6px 0 16px;background:var(--surface);max-width:560px;width:100%;justify-self:center}
+@media(min-width:900px){.hsearch{display:flex}}
+.hsearch input{flex:1;border:0;outline:0;background:transparent;font-size:14.5px;min-width:0}
+.hsearch button{background:var(--orange);color:#fff;font-weight:700;border-radius:999px;height:32px;padding:0 16px;font-size:13.5px}
+.hsearch button:hover{background:var(--orange-deep)}
+.hacts{display:flex;align-items:center;gap:6px}
+.hbtn{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:var(--r-sm);font-weight:600;font-size:13.5px;position:relative}
+.hbtn:hover{background:var(--paper)}
+.hbtn .cnt{position:absolute;top:2px;right:2px;background:var(--orange);color:#fff;font-size:10.5px;font-weight:800;min-width:18px;height:18px;border-radius:999px;display:grid;place-items:center;padding:0 5px}
+.hbtn.burger{display:flex}
+@media(min-width:900px){.hbtn.burger{display:none}.hbtn .lbl{display:inline}}
+.hbtn .lbl{display:none}
+@media(min-width:600px){.hbtn .lbl{display:inline}}
+
+/* category rail */
+.rail{background:var(--surface);border-bottom:1px solid var(--line);display:none}
+@media(min-width:900px){.rail{display:block}}
+.rail .wrap{display:flex;gap:4px;height:44px;align-items:center;overflow-x:auto}
+.rail a{padding:7px 12px;border-radius:999px;font-weight:600;font-size:13.5px;color:var(--ink-2);white-space:nowrap}
+.rail a:hover,.rail a.on{background:var(--orange-tint);color:var(--orange-deep)}
+.rail a.deal{color:var(--orange-deep);margin-left:auto}
+
+/* hero */
+.hero{padding:40px 0 28px}
+@media(min-width:900px){.hero{padding:56px 0 36px}}
+.hero-grid{display:grid;gap:28px}
+@media(min-width:900px){.hero-grid{grid-template-columns:1.25fr .75fr;align-items:center}}
+.hero p.lead{font-size:17px;color:var(--ink-2);max-width:56ch;margin-top:12px}
+.dsearch{margin-top:24px;background:var(--surface);border:2px solid var(--ink);border-radius:16px;padding:6px;display:flex;gap:6px;box-shadow:var(--shadow)}
+.dsearch .field{flex:1;display:flex;align-items:center;gap:10px;padding:0 10px;min-width:0}
+.dsearch input{flex:1;border:0;outline:0;font-size:17px;font-weight:600;background:transparent;min-width:0;height:48px}
+.dsearch input::placeholder{color:var(--ink-3);font-weight:500}
+.dsearch .go{background:var(--orange);color:#fff;font-weight:800;border-radius:11px;padding:0 22px;height:48px;font-size:15.5px;white-space:nowrap}
+.dsearch .go:hover{background:var(--orange-deep)}
+.tlds{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tlds button{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600}
+.tlds button b{color:var(--orange-deep);font-weight:800;margin-left:4px}
+.tlds button:hover{border-color:var(--ink)}
+.hero-art{display:none}
+@media(min-width:900px){.hero-art{display:block}}
+
+/* deal strip */
+.dealstrip{background:var(--ink);color:#fff;border-radius:var(--r-lg);padding:16px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:8px 0 36px}
+.dealstrip .tag{background:var(--yellow);color:var(--ink);font-weight:800;border-radius:6px;padding:4px 9px;font-size:12.5px}
+.dealstrip .t{font-weight:700;font-size:15.5px}
+.dealstrip .countdown{margin-left:auto;display:flex;gap:6px;font-weight:800;font-variant-numeric:tabular-nums}
+.dealstrip .countdown span{background:rgba(255,255,255,.12);border-radius:6px;padding:4px 8px;font-size:13.5px}
+
+/* trust row */
+.trust{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0 40px}
+@media(min-width:760px){.trust{grid-template-columns:repeat(4,1fr)}}
+.trust div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px;font-weight:600}
+.trust div small{display:block;font-weight:500;color:var(--ink-3);font-size:12px}
+.trust svg{flex:none;color:var(--green)}
+
+/* section head */
+.shead{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:18px}
+.shead p{color:var(--ink-2);margin-top:4px}
+.shead a.more{font-weight:700;color:var(--orange-deep);white-space:nowrap}
+section.block{padding:8px 0 44px}
+
+/* billing toggle */
+.cyc{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.cyc button{padding:7px 14px;border-radius:999px;font-weight:700;font-size:13.5px;color:var(--ink-2)}
+.cyc button.on{background:var(--ink);color:#fff}
+.cyc button em{font-style:normal;color:var(--green);font-size:12px;margin-left:5px}
+.cyc button.on em{color:#8FE3B4}
+
+/* product cards */
+.cards{display:grid;gap:14px}
+@media(min-width:700px){.cards{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;position:relative;display:flex;flex-direction:column}
+.card.hot{border:2px solid var(--orange)}
+.card .badge{position:absolute;top:-11px;left:18px;background:var(--orange);color:#fff;font-weight:800;font-size:11.5px;padding:4px 10px;border-radius:999px}
+.card .badge.g{background:var(--green)}
+.card .badge.b{background:var(--blue)}
+.card h3{font-size:19px}
+.card .sub{color:var(--ink-2);font-size:13.5px;margin-top:4px}
+.price{margin:16px 0 4px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.price .cur{font-weight:700;font-size:16px;align-self:start;margin-top:6px}
+.price .amt{font-size:38px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.price .per{color:var(--ink-2);font-size:14px;font-weight:600}
+.renew{font-size:12.5px;color:var(--ink-3)}
+.renew s{color:var(--ink-3)}
+.renew b{color:var(--green);font-weight:700}
+.save{display:inline-block;background:var(--green-tint);color:var(--green);font-weight:800;font-size:11.5px;padding:3px 8px;border-radius:6px;margin-left:6px}
+.feats{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:8px;font-size:13.5px}
+.feats li{display:flex;gap:8px;align-items:start}
+.feats li svg{color:var(--green);flex:none;margin-top:3px}
+.feats li.dim{color:var(--ink-3)}.feats li.dim svg{color:var(--line)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;border-radius:10px;padding:0 18px;height:46px;font-size:14.5px;transition:background .15s}
+.btn.pri{background:var(--orange);color:#fff}.btn.pri:hover{background:var(--orange-deep)}
+.btn.dark{background:var(--ink);color:#fff}.btn.dark:hover{background:#3a2c24}
+.btn.ghost{border:1.5px solid var(--line);background:var(--surface)}.btn.ghost:hover{border-color:var(--ink)}
+.btn.sm{height:38px;padding:0 14px;font-size:13.5px}
+.btn.full{width:100}
+.card .btn{margin-top:18px;width:100%}
+.locs{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.loc{font-size:11.5px;font-weight:700;border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--ink-2)}
+
+/* category tiles */
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:760px){.tiles{grid-template-columns:repeat(4,1fr)}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;display:flex;flex-direction:column;gap:10px;min-height:150px}
+.tile:hover{border-color:var(--orange)}
+.tile .ic{width:40px;height:40px;border-radius:10px;background:var(--orange-tint);color:var(--orange-deep);display:grid;place-items:center}
+.tile h3{font-size:15.5px}
+.tile .from{margin-top:auto;font-size:13px;color:var(--ink-2)}
+.tile .from b{color:var(--ink);font-weight:800;font-size:15px}
+
+/* category hero */
+.cathero{display:grid;gap:18px;padding:28px 0 20px}
+@media(min-width:900px){.cathero{grid-template-columns:1fr auto;align-items:end}}
+.crumbs{font-size:13px;color:var(--ink-3);margin-bottom:8px}
+.crumbs a:hover{color:var(--orange-deep)}
+.cathero p{color:var(--ink-2);max-width:60ch;margin-top:8px}
+.incl{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.incl span{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;display:flex;gap:6px;align-items:center}
+.incl svg{color:var(--green)}
+
+/* comparison table */
+.cmp{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface)}
+.cmp table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+.cmp th,.cmp td{padding:13px 16px;border-bottom:1px solid var(--line-2);text-align:left}
+.cmp thead th{font-size:13px;color:var(--ink-2);font-weight:600;background:var(--paper)}
+.cmp thead th.hot{color:var(--orange-deep)}
+.cmp td:first-child{font-weight:600;color:var(--ink-2);width:220px}
+.cmp tr:last-child td{border-bottom:0}
+.cmp .yes{color:var(--green);font-weight:700}.cmp .no{color:var(--ink-3)}
+.cmp .pr{font-weight:800;font-size:18px}
+.cmp .pr s{font-weight:500;font-size:13px;color:var(--ink-3);margin-left:6px}
+
+/* listing with facets */
+.listing{display:grid;gap:22px;padding:8px 0 48px}
+@media(min-width:900px){.listing{grid-template-columns:250px 1fr}}
+.facets{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;align-self:start;position:sticky;top:80px}
+.facets h4{font-size:13.5px;margin:0 0 10px;font-weight:700}
+.facets .grp{padding:12px 0;border-top:1px solid var(--line-2)}
+.facets .grp:first-of-type{border-top:0;padding-top:0}
+.facets label{display:flex;align-items:center;gap:9px;font-size:13.5px;padding:4px 0;cursor:pointer}
+.facets label span.n{margin-left:auto;color:var(--ink-3);font-size:12px}
+.facets input[type=checkbox]{accent-color:var(--orange);width:16px;height:16px}
+.facets input[type=range]{width:100%;accent-color:var(--orange)}
+.facets .clear{font-size:12.5px;color:var(--orange-deep);font-weight:700;margin-left:auto}
+.facets .top{display:flex;align-items:center;margin-bottom:6px}
+.facet-mob{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+@media(min-width:900px){.facet-mob{display:none}}
+.facet-mob button{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600}
+.facet-mob button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;font-size:13.5px;color:var(--ink-2)}
+.toolbar select{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--surface);font-size:13.5px}
+.rows{display:grid;gap:10px}
+.prow{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:12px;grid-template-columns:1fr;align-items:center}
+@media(min-width:700px){.prow{grid-template-columns:1.2fr 2fr auto auto;gap:18px}}
+.prow:hover{border-color:var(--ink)}
+.prow .nm{font-weight:800;font-size:15.5px}
+.prow .nm small{display:block;font-weight:500;color:var(--ink-3);font-size:12px}
+.spec{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-2)}
+.spec b{color:var(--ink);font-weight:700;display:block;font-size:13.5px}
+.prow .pp{font-weight:800;font-size:22px;letter-spacing:-.03em;white-space:nowrap}
+.prow .pp small{font-weight:600;font-size:12.5px;color:var(--ink-2);letter-spacing:0}
+.prow .pp .renew{display:block;font-weight:500}
+.os{display:inline-block;font-size:11px;font-weight:800;padding:2px 7px;border-radius:5px;background:var(--blue-tint);color:var(--blue);margin-left:6px;vertical-align:middle}
+.os.win{background:#EAF7F0;color:var(--green)}
+.os.fx{background:var(--orange-tint);color:var(--orange-deep)}
+.pager{display:flex;justify-content:center;gap:6px;margin-top:20px}
+.pager button{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:13.5px}
+.pager button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* product detail */
+.pdp{display:grid;gap:28px;padding:20px 0 60px}
+@media(min-width:900px){.pdp{grid-template-columns:1.4fr 1fr;align-items:start}}
+.pdp .gal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;display:grid;gap:18px}
+.stars{color:#F5A623;font-size:14px;letter-spacing:1px}
+.pdp .buy{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;position:sticky;top:80px}
+.opt{margin-top:16px}
+.opt .lab{font-size:13px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between}
+.opt .lab span{color:var(--ink-3);font-weight:500}
+.segs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.segs button{border:1.5px solid var(--line);border-radius:10px;padding:10px 8px;text-align:left;font-size:13px;font-weight:700;background:var(--surface)}
+.segs button small{display:block;font-weight:500;color:var(--ink-3);font-size:11.5px;margin-top:2px}
+.segs button.on{border-color:var(--orange);background:var(--orange-tint)}
+.segs.two{grid-template-columns:repeat(2,1fr)}
+.addon{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line-2);font-size:13.5px}
+.addon b{margin-left:auto;font-weight:700}
+.addon input{accent-color:var(--orange);width:17px;height:17px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-top:28px}
+.tabs button{padding:10px 14px;font-weight:700;font-size:14px;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-color:var(--orange)}
+.tabp{display:none;padding:20px 0;color:var(--ink-2);max-width:70ch}
+.tabp.on{display:block}
+.tabp ul{padding-left:18px;margin:8px 0}
+.specgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:600px){.specgrid{grid-template-columns:repeat(3,1fr)}}
+.specgrid div{background:var(--paper);border-radius:10px;padding:12px}
+.specgrid small{display:block;color:var(--ink-3);font-size:12px}
+.specgrid b{font-size:15px}
+.stickybar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 30px -12px rgba(60,30,10,.25);z-index:30;transform:translateY(110%);transition:transform .25s}
+.stickybar.show{transform:none}
+.stickybar .wrap{display:flex;align-items:center;gap:14px;height:68px}
+.stickybar .t{font-weight:800;font-size:15px}
+.stickybar .t small{display:block;font-weight:500;color:var(--ink-3);font-size:12px}
+.stickybar .p{margin-left:auto;font-weight:800;font-size:20px;letter-spacing:-.03em;white-space:nowrap}
+.stickybar .p small{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+
+/* pricing page */
+.pricehead{text-align:center;padding:32px 0 24px}
+.pricehead p{color:var(--ink-2);max-width:56ch;margin:10px auto 18px}
+.pills{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
+.pills button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:700;font-size:13.5px}
+.pills button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* domain results */
+.dres{padding:24px 0 60px;display:grid;gap:20px}
+@media(min-width:900px){.dres{grid-template-columns:1fr 340px;align-items:start}}
+.dr{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dr.top{border:2px solid var(--green);background:var(--green-tint)}
+.dr .dn{font-weight:800;font-size:17px;letter-spacing:-.02em;flex:1;min-width:160px}
+.dr .dn small{display:block;font-weight:500;color:var(--ink-3);font-size:12px}
+.dr .st{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px}
+.dr .st.ok{background:var(--green);color:#fff}
+.dr .st.taken{background:var(--line);color:var(--ink-2)}
+.dr .st.prem{background:var(--yellow);color:var(--ink)}
+.dr .dp{font-weight:800;font-size:18px;white-space:nowrap;text-align:right}
+.dr .dp small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:500}
+.dr .dp s{font-weight:500;font-size:13px;color:var(--ink-3)}
+.bundle{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;position:sticky;top:80px}
+.bundle h3{font-size:16px}
+.bundle .ln{display:flex;justify-content:space-between;font-size:13.5px;padding:8px 0;border-top:1px solid var(--line-2)}
+.bundle .ln.tot{font-weight:800;font-size:16px}
+.bundle .ln s{color:var(--ink-3)}
+.sugg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:600px){.sugg{grid-template-columns:repeat(3,1fr)}}
+.sugg button{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700}
+.sugg button small{display:block;color:var(--green);font-weight:700;font-size:12px}
+
+/* checkout */
+.stepper{display:flex;gap:0;margin:28px 0 24px;counter-reset:s}
+.stepper div{flex:1;display:flex;align-items:center;gap:10px;font-weight:700;font-size:13.5px;color:var(--ink-3);position:relative;padding-right:12px}
+.stepper div:before{content:counter(s);counter-increment:s;width:28px;height:28px;border-radius:999px;border:2px solid var(--line);display:grid;place-items:center;font-size:12.5px;flex:none;background:var(--surface)}
+.stepper div.done:before{background:var(--green);border-color:var(--green);color:#fff;content:"✓"}
+.stepper div.cur{color:var(--ink)}
+.stepper div.cur:before{border-color:var(--orange);background:var(--orange);color:#fff}
+.stepper div:not(:last-child):after{content:"";flex:1;height:2px;background:var(--line);margin-left:6px}
+.stepper div.done:not(:last-child):after{background:var(--green)}
+.stepper div span{white-space:nowrap}
+.co{display:grid;gap:20px;padding-bottom:60px}
+@media(min-width:900px){.co{grid-template-columns:1fr 380px;align-items:start}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px}
+.panel+.panel{margin-top:14px}
+.panel h3{display:flex;align-items:center;gap:10px}
+.panel h3 .ok{color:var(--green);font-size:12.5px;font-weight:700;margin-left:auto}
+.form{display:grid;gap:12px;margin-top:16px}
+.form.two{grid-template-columns:1fr 1fr}
+.form label{font-size:12.5px;font-weight:700;display:grid;gap:5px}
+.form input,.form select{border:1.5px solid var(--line);border-radius:9px;padding:11px 12px;font-size:14px;background:var(--surface);width:100%}
+.form input:focus{border-color:var(--ink);outline:0}
+.form .span{grid-column:1/-1}
+.pay{display:grid;gap:8px;margin-top:14px}
+.pay label{border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;cursor:pointer}
+.pay label.on{border-color:var(--orange);background:var(--orange-tint)}
+.pay input{accent-color:var(--orange)}
+.pay .logos{margin-left:auto;display:flex;gap:4px}
+.pay .logos span{font-size:10px;font-weight:800;border:1px solid var(--line);border-radius:4px;padding:2px 5px;background:#fff}
+.summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;position:sticky;top:80px}
+.summary h3{font-size:16px;margin-bottom:8px}
+.sline{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line-2);font-size:13.5px;align-items:start}
+.sline .n{flex:1}.sline .n small{display:block;color:var(--ink-3);font-size:12px}
+.sline .v{font-weight:700;white-space:nowrap}
+.sline .v s{display:block;font-weight:500;color:var(--ink-3);font-size:11.5px;text-align:right}
+.sline.tot{font-weight:800;font-size:17px;border-top:2px solid var(--ink)}
+.sline.disc .v{color:var(--green)}
+.coupon{display:flex;gap:6px;margin:10px 0}
+.coupon input{flex:1;border:1.5px dashed var(--line);border-radius:9px;padding:9px 11px;font-size:13.5px;min-width:0}
+.guarantee{display:flex;gap:10px;align-items:center;font-size:12.5px;color:var(--ink-2);margin-top:14px}
+.guarantee svg{color:var(--green);flex:none}
+.paylogos{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.paylogos span{font-size:10.5px;font-weight:800;border:1px solid var(--line);border-radius:5px;padding:3px 7px;color:var(--ink-2)}
+
+/* mini cart drawer */
+.scrim{position:fixed;inset:0;background:rgba(31,22,17,.45);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--surface);z-index:70;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column}
+.drawer.show{transform:none}
+.drawer .dh{display:flex;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.drawer .dh h3{font-size:17px}
+.drawer .dh button{margin-left:auto;width:34px;height:34px;border-radius:8px;display:grid;place-items:center}
+.drawer .dh button:hover{background:var(--paper)}
+.drawer .db{flex:1;overflow:auto;padding:8px 20px}
+.citem{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.citem .ci{width:44px;height:44px;border-radius:10px;background:var(--orange-tint);color:var(--orange-deep);display:grid;place-items:center;flex:none}
+.citem .cn{flex:1}.citem .cn b{display:block;font-size:14px}.citem .cn small{color:var(--ink-3)}
+.citem .cp{font-weight:800;text-align:right}.citem .cp s{display:block;font-weight:500;font-size:11.5px;color:var(--ink-3)}
+.citem .rm{font-size:12px;color:var(--ink-3);text-decoration:underline;margin-top:4px}
+.drawer .df{padding:18px 20px;border-top:1px solid var(--line);background:var(--paper)}
+.drawer .df .ln{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0}
+.drawer .df .ln.tot{font-weight:800;font-size:18px;padding-top:8px}
+.empty{text-align:center;padding:40px 10px;color:var(--ink-2)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.upsell{margin-top:10px;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;display:flex;gap:10px;align-items:center}
+.upsell b{color:var(--orange-deep)}
+.upsell button{margin-left:auto;font-weight:800;color:var(--orange-deep);white-space:nowrap}
+
+/* mobile nav sheet */
+.mnav{position:fixed;inset:0;z-index:70;background:var(--surface);transform:translateX(-100%);transition:transform .25s;display:flex;flex-direction:column}
+.mnav.show{transform:none}
+.mnav .mh{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.mnav .mh button{margin-left:auto;width:36px;height:36px;border-radius:8px;display:grid;place-items:center}
+.mnav .ms{padding:12px 16px}
+.mnav .ms .dsearch{margin:0;padding:4px;border-radius:12px;box-shadow:none}
+.mnav .ms .dsearch input{height:40px;font-size:15px}
+.mnav .ms .dsearch .go{height:40px;padding:0 14px;font-size:14px}
+.mnav nav{padding:4px 8px;overflow:auto}
+.mnav nav a{display:flex;align-items:center;gap:12px;padding:13px 10px;border-radius:10px;font-weight:700;font-size:15.5px}
+.mnav nav a:hover{background:var(--paper)}
+.mnav nav a .ic{width:34px;height:34px;border-radius:9px;background:var(--orange-tint);color:var(--orange-deep);display:grid;place-items:center}
+.mnav nav a small{margin-left:auto;color:var(--ink-3);font-weight:500;font-size:12.5px}
+.mnav .mf{margin-top:auto;padding:16px;border-top:1px solid var(--line);display:grid;gap:8px}
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);z-index:35;height:60px;padding-bottom:env(safe-area-inset-bottom)}
+@media(min-width:900px){.tabbar{display:none}}
+.tabbar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--ink-3);position:relative}
+.tabbar a.on{color:var(--orange-deep)}
+.tabbar a .cnt{position:absolute;top:8px;right:calc(50% - 20px);background:var(--orange);color:#fff;font-size:9.5px;font-weight:800;min-width:16px;height:16px;border-radius:999px;display:grid;place-items:center}
+@media(max-width:899px){body{padding-bottom:60px}.stickybar{bottom:60px}}
+
+/* dashboard */
+.dash{display:grid;gap:20px;padding:24px 0 60px}
+@media(min-width:900px){.dash{grid-template-columns:220px 1fr}}
+.dnav{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:10px;align-self:start}
+.dnav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;font-weight:600;font-size:14px;color:var(--ink-2)}
+.dnav a.on{background:var(--orange-tint);color:var(--orange-deep)}
+.dnav a:hover{background:var(--paper)}
+.dnav .u{display:flex;gap:10px;align-items:center;padding:10px 12px 14px;border-bottom:1px solid var(--line-2);margin-bottom:8px}
+.dnav .av{width:38px;height:38px;border-radius:999px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800}
+.dnav .u b{display:block;font-size:14px}.dnav .u small{color:var(--ink-3);font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
+@media(min-width:760px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.kpi small{color:var(--ink-3);font-size:12.5px;font-weight:600}
+.kpi b{display:block;font-size:24px;font-weight:800;letter-spacing:-.03em;margin-top:2px}
+.kpi.warn{border-color:#F3C27A;background:#FFF6E8}
+.kpi.warn b{color:#B65E00}
+.svc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.svc .sh{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);gap:10px}
+.svc .sh h3{font-size:15.5px}
+.svc .sh a{margin-left:auto;font-size:13px;font-weight:700;color:var(--orange-deep)}
+.srow{display:grid;grid-template-columns:1fr auto;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line-2);align-items:center;font-size:13.5px}
+@media(min-width:700px){.srow{grid-template-columns:1.5fr 1fr 1fr auto}}
+.srow:last-child{border-bottom:0}
+.srow b{font-size:14.5px;display:block}.srow small{color:var(--ink-3)}
+.dot{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:12.5px}
+.dot:before{content:"";width:8px;height:8px;border-radius:999px;background:var(--green)}
+.dot.warn:before{background:#E59A1B}
+.srow .cell{display:none}
+@media(min-width:700px){.srow .cell{display:block}}
+.renewbox{background:var(--ink);color:#fff;border-radius:var(--r-lg);padding:18px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.renewbox b{font-size:15.5px}.renewbox p{color:#D9CCC2;font-size:13.5px}
+.renewbox .btn{margin-left:auto}
+
+/* footer */
+footer{background:var(--surface);border-top:1px solid var(--line);margin-top:20px;padding:36px 0 28px;font-size:13.5px;color:var(--ink-2)}
+.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+@media(min-width:760px){.fgrid{grid-template-columns:2fr 1fr 1fr 1fr 1fr}}
+footer h4{font-size:13.5px;margin:0 0 10px;color:var(--ink)}
+footer ul{list-style:none;padding:0;margin:0;display:grid;gap:7px}
+footer ul a:hover{color:var(--orange-deep)}
+.fbot{margin-top:28px;padding-top:18px;border-top:1px solid var(--line-2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-3)}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:84px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 16px;border-radius:10px;font-weight:600;font-size:13.5px;opacity:0;transition:.2s;z-index:80;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* mobile preview */
+.mprev{position:fixed;inset:0;z-index:90;background:rgba(31,22,17,.75);display:none;align-items:center;justify-content:center;padding:20px}
+.mprev.show{display:flex}
+.phone{width:395px;max-width:100%;height:min(820px,92vh);background:#111;border-radius:40px;padding:10px;box-shadow:0 30px 80px rgba(0,0,0,.5);position:relative}
+.phone iframe{width:100%;height:100%;border:0;border-radius:32px;background:#fff}
+.phone .notch{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:110px;height:26px;background:#111;border-radius:999px;z-index:2}
+.mprev .close{position:absolute;top:16px;right:16px;background:#fff;border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px}
+.prevbtn{position:fixed;right:16px;bottom:76px;z-index:36;background:var(--ink);color:#fff;border-radius:999px;padding:10px 16px;font-weight:700;font-size:13px;box-shadow:var(--shadow);display:flex;gap:8px;align-items:center}
+@media(min-width:900px){.prevbtn{bottom:20px}}
+body.inframe .prevbtn,body.inframe .util{display:none}
+</style>
+</head>
+<body>
+
+<!-- Utility bar -->
+<div class="util"><div class="wrap">
+  <span>Autumn sale: <b>up to 65% off</b> shared hosting — ends Sunday</span>
+  <div class="right">
+    <span>Support 24/7 · +971 4 000 0000</span>
+    <select aria-label="Currency"><option>USD $</option><option>AED</option><option>EUR €</option><option>INR ₹</option></select>
+    <a href="#dashboard">My account</a>
+  </div>
+</div></div>
+
+<!-- Header -->
+<header class="hdr"><div class="wrap">
+  <a class="logo" href="#home"><i>G</i>GlobalHostia</a>
+  <form class="hsearch" onsubmit="event.preventDefault();goDomains(this.q.value)">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input name="q" placeholder="Find your domain — e.g. mybrand.com" aria-label="Domain search">
+    <button type="submit">Search</button>
+  </form>
+  <div class="hacts">
+    <button class="hbtn burger" onclick="openMnav()" aria-label="Open menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <a class="hbtn" href="#dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span class="lbl">Sign in</span></a>
+    <button class="hbtn" onclick="openCart()" aria-label="Open cart"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h2l2.5 11h11L21 7H7"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg><span class="lbl">Cart</span><span class="cnt" data-cart-count>0</span></button>
+  </div>
+</div></header>
+
+<nav class="rail" aria-label="Categories"><div class="wrap">
+  <a href="#shared" data-nav="shared">Shared hosting</a>
+  <a href="#shared" data-nav="wp">WordPress</a>
+  <a href="#vps" data-nav="vps">VPS</a>
+  <a href="#vps" data-nav="dedicated">Dedicated servers</a>
+  <a href="#vps" data-nav="ai">AI servers</a>
+  <a href="#domains" data-nav="domains">Domains</a>
+  <a href="#pricing" data-nav="ssl">SSL</a>
+  <a href="#pricing" data-nav="email">Email</a>
+  <a href="#pricing" class="deal">Deals</a>
+</div></nav>
+
+<main>
+
+<!-- ===== HOME ===== -->
+<section class="screen" id="s-home">
+  <div class="wrap">
+    <div class="hero">
+      <div class="hero-grid">
+        <div>
+          <h1>Your name on the web, from $1.20. Hosting from $2.99.</h1>
+          <p class="lead">Search a domain, pick a plan, pay once. Servers in Dubai, the US, Singapore and India — set up in under five minutes.</p>
+          <form class="dsearch" onsubmit="event.preventDefault();goDomains(this.q.value)">
+            <div class="field">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input name="q" placeholder="Type a domain name" aria-label="Domain name" value="">
+            </div>
+            <button class="go" type="submit">Search domains</button>
+          </form>
+          <div class="tlds">
+            <button onclick="goDomains('mybrand.com')">.com<b>$13.65</b></button>
+            <button onclick="goDomains('mybrand.shop')">.shop<b>$1.20</b></button>
+            <button onclick="goDomains('mybrand.net')">.net<b>$8.29</b></button>
+            <button onclick="goDomains('mybrand.org')">.org<b>$8.65</b></button>
+            <button onclick="goDomains('mybrand.ae')">.ae</button>
+            <button onclick="goDomains('mybrand.io')">.io</button>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 420 320" width="100%">
+            <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#FF5A1F"/><stop offset="1" stop-color="#FF9A62"/></linearGradient></defs>
+            <rect x="30" y="40" width="360" height="240" rx="22" fill="#fff" stroke="#EBDCCF"/>
+            <rect x="30" y="40" width="360" height="44" rx="22" fill="#FFF7F0"/><rect x="30" y="62" width="360" height="22" fill="#FFF7F0"/>
+            <circle cx="56" cy="62" r="5" fill="#FF5A1F"/><circle cx="74" cy="62" r="5" fill="#FFD15C"/><circle cx="92" cy="62" r="5" fill="#1A8F5A"/>
+            <rect x="60" y="110" width="140" height="14" rx="7" fill="#1F1611"/>
+            <rect x="60" y="134" width="200" height="8" rx="4" fill="#EBDCCF"/>
+            <rect x="60" y="150" width="160" height="8" rx="4" fill="#EBDCCF"/>
+            <rect x="60" y="180" width="120" height="36" rx="10" fill="url(#g1)"/>
+            <rect x="250" y="110" width="110" height="110" rx="14" fill="#FFF7F0" stroke="#EBDCCF"/>
+            <path d="M270 190 l20-30 l18 18 l22-40 l20 52z" fill="#FF5A1F" opacity=".85"/>
+            <rect x="300" y="18" width="130" height="40" rx="12" fill="#1F1611"/>
+            <text x="316" y="43" fill="#fff" font-family="Plus Jakarta Sans" font-weight="800" font-size="14">mybrand.com ✓</text>
+            <rect x="0" y="236" width="150" height="48" rx="12" fill="#fff" stroke="#1A8F5A" stroke-width="2"/>
+            <circle cx="22" cy="260" r="9" fill="#1A8F5A"/><path d="M17 260l4 4 7-8" stroke="#fff" stroke-width="2" fill="none"/>
+            <text x="40" y="256" font-family="Plus Jakarta Sans" font-weight="700" font-size="12" fill="#1F1611">SSL active</text>
+            <text x="40" y="272" font-family="Plus Jakarta Sans" font-size="10.5" fill="#8A7A70">Dubai · 12 ms</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="dealstrip">
+      <span class="tag">DEAL</span>
+      <span class="t">Hostia Ultra — $5.99/mo with free domain on annual plans</span>
+      <div class="countdown" aria-label="Deal ends in"><span>02d</span><span>14h</span><span>36m</span></div>
+      <a class="btn sm pri" href="#product">Shop deal</a>
+    </div>
+
+    <div class="trust">
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><span>30-day money-back<small>On all hosting plans</small></span></div>
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></svg><span>Cards, PayPal, crypto<small>Secure checkout</small></span></div>
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>99.9% uptime SLA<small>Credited if we miss it</small></span></div>
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 18h16M6 18V9l6-4 6 4v9"/></svg><span>Dubai-based, 24/7 help<small>Chat, tickets, phone</small></span></div>
+    </div>
+
+    <section class="block">
+      <div class="shead"><div><h2>Shop by category</h2><p>Everything runs on NVMe and comes with a free SSL.</p></div></div>
+      <div class="tiles">
+        <a class="tile" href="#shared"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg></span><h3>Shared hosting</h3><span class="from">from <b>$2.99</b>/mo</span></a>
+        <a class="tile" href="#shared"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="m7 8 3 8 2-5 2 5 3-8"/></svg></span><h3>Managed WordPress</h3><span class="from">from <b>$12.99</b>/mo</span></a>
+        <a class="tile" href="#vps"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="4" width="16" height="16" rx="3"/><rect x="9" y="9" width="6" height="6"/></svg></span><h3>VPS</h3><span class="from">from <b>$8</b>/mo</span></a>
+        <a class="tile" href="#vps"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M3 15h18"/></svg></span><h3>Dedicated servers</h3><span class="from">from <b>$39.99</b>/mo</span></a>
+        <a class="tile" href="#vps"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="4"/></svg></span><h3>AI / LLM servers</h3><span class="from">from <b>$8.99</b>/mo</span></a>
+        <a class="tile" href="#domains"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span><h3>Domains</h3><span class="from">.shop from <b>$1.20</b></span></a>
+        <a class="tile" href="#pricing"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><h3>SSL certificates</h3><span class="from">from <b>$9.23</b>/yr</span></a>
+        <a class="tile" href="#pricing"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span><h3>Business email</h3><span class="from">Google Workspace</span></a>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="shead"><div><h2>Best-selling hosting plans</h2><p>Pick a term — annual plans include a free domain for the first year.</p></div>
+        <div class="cyc" role="group" aria-label="Billing cycle"><button class="on" data-cyc="annual">Annual<em>save 30%</em></button><button data-cyc="monthly">Monthly</button></div></div>
+      <div class="cards" data-plans></div>
+    </section>
+
+    <section class="block">
+      <div class="shead"><div><h2>What customers say</h2></div></div>
+      <div class="cards">
+        <div class="card"><span class="stars" aria-label="5 stars">★★★★★</span><p style="margin-top:10px">Moved three client stores from a US host to the UAE location. Page loads went from 1.8s to 0.6s for our Gulf customers.</p><p class="sub" style="margin-top:12px"><b>Rania K.</b> · agency owner, Dubai</p></div>
+        <div class="card"><span class="stars" aria-label="5 stars">★★★★★</span><p style="margin-top:10px">Forex VPS has been rock solid for my MT5 bots. Latency to the broker is under 2 ms and support answered a ticket at 3am.</p><p class="sub" style="margin-top:12px"><b>Dev P.</b> · trader, Mumbai</p></div>
+        <div class="card"><span class="stars" aria-label="5 stars">★★★★★</span><p style="margin-top:10px">Bought a .shop for $1.20, put it on Hostia Lite, had a store live the same evening. Checkout was three screens.</p><p class="sub" style="margin-top:12px"><b>Lina A.</b> · founder, Singapore</p></div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- ===== SHARED CATEGORY ===== -->
+<section class="screen" id="s-shared">
+  <div class="wrap">
+    <div class="cathero">
+      <div>
+        <div class="crumbs"><a href="#home">Home</a> › Hosting › Shared hosting</div>
+        <h1 style="font-size:clamp(28px,3.4vw,40px)">Shared hosting</h1>
+        <p>Three plans, three locations, one control panel. Every plan runs on NVMe storage with cPanel, free SSL and daily backups. Pick a term below — the price you see is the price you pay today; the renewal price is shown under it.</p>
+        <div class="incl">
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>cPanel</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>NVMe storage</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>Free SSL</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>Daily backups</span>
+          <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>UAE · USA · Singapore</span>
+        </div>
+      </div>
+      <div class="cyc" role="group" aria-label="Billing cycle"><button class="on" data-cyc="annual">Annual<em>save 30%</em></button><button data-cyc="monthly">Monthly</button></div>
+    </div>
+    <div class="cards" data-plans style="margin-top:22px"></div>
+
+    <section class="block" style="padding-top:44px">
+      <div class="shead"><div><h2>Compare the three plans</h2><p>Same stack, different limits.</p></div></div>
+      <div class="cmp"><table>
+        <thead><tr><th></th><th>Hostia Lite</th><th class="hot">Hostia Ultra</th><th>Hostia Infinity</th></tr></thead>
+        <tbody>
+          <tr><td>Price today</td><td><span class="pr">$2.99<s>$4.99</s></span></td><td><span class="pr">$5.99<s>$8.99</s></span></td><td><span class="pr">$9.99<s>$13.99</s></span></td></tr>
+          <tr><td>Websites</td><td>1</td><td>10</td><td>Unlimited</td></tr>
+          <tr><td>NVMe storage</td><td>10 GB</td><td>50 GB</td><td>100 GB</td></tr>
+          <tr><td>Bandwidth</td><td>Unmetered</td><td>Unmetered</td><td>Unmetered</td></tr>
+          <tr><td>Email accounts</td><td>5</td><td>50</td><td>Unlimited</td></tr>
+          <tr><td>Free domain (annual)</td><td class="no">—</td><td class="yes">Included</td><td class="yes">Included</td></tr>
+          <tr><td>Daily backups</td><td class="yes">7 days</td><td class="yes">14 days</td><td class="yes">30 days</td></tr>
+          <tr><td>Staging site</td><td class="no">—</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+          <tr><td>Priority support</td><td class="no">—</td><td class="no">—</td><td class="yes">Yes</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="block">
+      <div class="shead"><div><h2>Common questions</h2></div></div>
+      <div class="cards">
+        <div class="card"><h3 style="font-size:15.5px">Can I move my site from another host?</h3><p class="sub" style="margin-top:8px">Yes — migration is free on Ultra and Infinity. Open a ticket after checkout with your old cPanel login and we move everything within 24 hours.</p></div>
+        <div class="card"><h3 style="font-size:15.5px">Which location should I pick?</h3><p class="sub" style="margin-top:8px">Choose the one closest to your visitors. Most Gulf businesses pick UAE; global stores pick USA; Southeast Asia picks Singapore. You can change it later.</p></div>
+        <div class="card"><h3 style="font-size:15.5px">What happens at renewal?</h3><p class="sub" style="margin-top:8px">Your plan renews at the standard rate shown under each price. We email you 30 days before and you can cancel from the dashboard any time.</p></div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- ===== VPS LISTING ===== -->
+<section class="screen" id="s-vps">
+  <div class="wrap">
+    <div class="cathero" style="padding-bottom:10px">
+      <div>
+        <div class="crumbs"><a href="#home">Home</a> › Hosting › VPS</div>
+        <h1 style="font-size:clamp(28px,3.4vw,40px)">VPS hosting</h1>
+        <p>Linux, Windows and low-latency Forex servers. Root access, KVM virtualisation, NVMe disks, and a choice of four data centres.</p>
+      </div>
+    </div>
+    <div class="facet-mob" role="group" aria-label="Quick filters">
+      <button class="on" data-mf="all">All (10)</button><button data-mf="linux">Linux</button><button data-mf="windows">Windows</button><button data-mf="forex">Forex</button><button data-mf="uae">UAE</button>
+    </div>
+    <div class="listing">
+      <aside class="facets" aria-label="Filters">
+        <div class="top"><h4>Filters</h4><button class="clear" onclick="clearFacets()">Clear all</button></div>
+        <div class="grp"><h4>Operating system</h4>
+          <label><input type="checkbox" data-f="os" value="linux"> Linux <span class="n">6</span></label>
+          <label><input type="checkbox" data-f="os" value="windows"> Windows <span class="n">4</span></label>
+          <label><input type="checkbox" data-f="os" value="forex"> Forex (MT4/MT5) <span class="n">1</span></label>
+        </div>
+        <div class="grp"><h4>Location</h4>
+          <label><input type="checkbox" data-f="loc" value="UAE"> UAE <span class="n">10</span></label>
+          <label><input type="checkbox" data-f="loc" value="USA"> USA <span class="n">10</span></label>
+          <label><input type="checkbox" data-f="loc" value="SG"> Singapore <span class="n">8</span></label>
+          <label><input type="checkbox" data-f="loc" value="IN"> India <span class="n">6</span></label>
+        </div>
+        <div class="grp"><h4>vCPU</h4>
+          <label><input type="checkbox" data-f="cpu" value="2"> 2 cores <span class="n">3</span></label>
+          <label><input type="checkbox" data-f="cpu" value="4"> 4 cores <span class="n">3</span></label>
+          <label><input type="checkbox" data-f="cpu" value="8"> 8 cores <span class="n">2</span></label>
+          <label><input type="checkbox" data-f="cpu" value="16"> 16 cores <span class="n">2</span></label>
+        </div>
+        <div class="grp"><h4>Max monthly price: $<span data-pmax-lbl>200</span></h4>
+          <input type="range" min="8" max="200" value="200" data-pmax aria-label="Maximum price">
+        </div>
+      </aside>
+      <div>
+        <div class="toolbar"><span><b data-count>10</b> servers</span><label>Sort <select data-sort><option value="price">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="cpu">Most cores</option></select></label></div>
+        <div class="rows" data-vps></div>
+        <div class="pager" aria-label="Pages"><button class="on">1</button><button>2</button><button>3</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRODUCT DETAIL ===== -->
+<section class="screen" id="s-product">
+  <div class="wrap">
+    <div class="crumbs" style="padding-top:20px"><a href="#home">Home</a> › <a href="#shared">Shared hosting</a> › Hostia Ultra</div>
+    <div class="pdp">
+      <div>
+        <div class="gal">
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="badge" style="position:static;background:var(--orange);color:#fff;font-weight:800;font-size:11.5px;padding:4px 10px;border-radius:999px">Best seller</span><span class="stars">★★★★★</span><span style="font-size:13px;color:var(--ink-2)">4.8 · 1,240 reviews</span></div>
+          <h1 style="font-size:clamp(28px,3.4vw,40px)">Hostia Ultra</h1>
+          <p style="color:var(--ink-2);max-width:60ch">Up to 10 websites on 50 GB NVMe, with staging, 50 mailboxes and free migration. Our most popular plan for agencies and small businesses that run more than one site.</p>
+          <svg viewBox="0 0 640 200" width="100%" aria-hidden="true">
+            <rect width="640" height="200" rx="14" fill="#FFF7F0"/>
+            <g font-family="Plus Jakarta Sans" font-weight="800">
+              <rect x="30" y="40" width="170" height="120" rx="12" fill="#fff" stroke="#EBDCCF"/><text x="48" y="80" font-size="34" fill="#1F1611">50<tspan font-size="14" font-weight="600" fill="#8A7A70"> GB</tspan></text><text x="48" y="104" font-size="12" font-weight="600" fill="#5B4D44">NVMe storage</text><rect x="48" y="122" width="134" height="8" rx="4" fill="#EBDCCF"/><rect x="48" y="122" width="88" height="8" rx="4" fill="#FF5A1F"/>
+              <rect x="235" y="40" width="170" height="120" rx="12" fill="#fff" stroke="#EBDCCF"/><text x="253" y="80" font-size="34" fill="#1F1611">10</text><text x="253" y="104" font-size="12" font-weight="600" fill="#5B4D44">Websites</text><g fill="#FF5A1F"><rect x="253" y="122" width="22" height="14" rx="3"/><rect x="281" y="122" width="22" height="14" rx="3"/><rect x="309" y="122" width="22" height="14" rx="3"/><rect x="337" y="122" width="22" height="14" rx="3" opacity=".35"/><rect x="365" y="122" width="22" height="14" rx="3" opacity=".35"/></g>
+              <rect x="440" y="40" width="170" height="120" rx="12" fill="#1F1611"/><text x="458" y="80" font-size="34" fill="#fff">0.6<tspan font-size="14" font-weight="600" fill="#D9CCC2"> s</tspan></text><text x="458" y="104" font-size="12" font-weight="600" fill="#D9CCC2">Avg. load, Dubai</text><path d="M458 140 l20-10 l18 4 l22-14 l20 6 l22-10 l24 4" stroke="#FFD15C" stroke-width="2.5" fill="none"/>
+            </g>
+          </svg>
+          <div class="tabs" role="tablist">
+            <button class="on" data-tab="overview" role="tab">Overview</button><button data-tab="specs" role="tab">Specs</button><button data-tab="included" role="tab">What's included</button><button data-tab="reviews" role="tab">Reviews</button>
+          </div>
+          <div class="tabp on" data-tabp="overview"><p>Ultra sits in the middle of the range and is the plan most customers settle on. It gives you room for up to ten sites, a one-click staging copy of each so you can test updates safely, and 14 days of rolling backups.</p><p style="margin-top:10px">Choose UAE for Gulf audiences, USA for global reach or Singapore for Southeast Asia. All three locations run the same cPanel stack, so moving later is a support ticket, not a rebuild.</p></div>
+          <div class="tabp" data-tabp="specs"><div class="specgrid"><div><small>Websites</small><b>10</b></div><div><small>Storage</small><b>50 GB NVMe</b></div><div><small>Bandwidth</small><b>Unmetered</b></div><div><small>Email accounts</small><b>50</b></div><div><small>Databases</small><b>Unlimited MySQL</b></div><div><small>PHP</small><b>7.4 – 8.3</b></div><div><small>Control panel</small><b>cPanel</b></div><div><small>Backups</small><b>Daily, 14 days</b></div><div><small>SSL</small><b>Free, auto-renewing</b></div></div></div>
+          <div class="tabp" data-tabp="included"><ul><li>Free domain for the first year on annual terms</li><li>Free site migration from any cPanel host</li><li>LiteSpeed web server with LSCache</li><li>Imunify360 malware protection</li><li>Softaculous one-click installers (WordPress, Laravel, Joomla…)</li><li>24/7 chat and ticket support</li></ul></div>
+          <div class="tabp" data-tabp="reviews"><p><b style="color:var(--ink)">Omar S.</b> ★★★★★ — "Staging alone is worth it. Broke a WooCommerce update once; the live site never noticed."</p><p style="margin-top:10px"><b style="color:var(--ink)">Priya N.</b> ★★★★☆ — "Fast in Singapore. Would like more backup retention on this tier."</p></div>
+        </div>
+      </div>
+
+      <aside class="buy" id="buybox">
+        <div style="font-size:13px;color:var(--ink-2);font-weight:600">Hostia Ultra</div>
+        <div class="price"><span class="cur">$</span><span class="amt" data-pdp-amt>5.99</span><span class="per">/mo</span><span class="save">Save 33%</span></div>
+        <div class="renew" data-pdp-renew>Billed $71.88 for 12 months · renews at <s>$8.99</s> $8.99/mo</div>
+        <div class="opt"><div class="lab">Term <span>Longer terms cost less per month</span></div>
+          <div class="segs" data-pdp-term>
+            <button data-term="1">1 month<small>$5.99/mo</small></button>
+            <button class="on" data-term="12">12 months<small>$5.99/mo · free domain</small></button>
+            <button data-term="24">24 months<small>$5.99/mo · free domain</small></button>
+          </div></div>
+        <div class="opt"><div class="lab">Server location</div>
+          <div class="segs" data-pdp-loc>
+            <button class="on">🇦🇪 UAE<small>Dubai</small></button><button>🇺🇸 USA<small>Dallas</small></button><button>🇸🇬 Singapore<small>SG1</small></button>
+          </div></div>
+        <div class="opt"><div class="lab">Add-ons</div>
+          <label class="addon"><input type="checkbox" data-addon="Dedicated IP" data-price="2.00"> Dedicated IP <b>+$2.00/mo</b></label>
+          <label class="addon"><input type="checkbox" data-addon="PositiveSSL DV" data-price="0.77"> PositiveSSL DV certificate <b>+$9.23/yr</b></label>
+          <label class="addon"><input type="checkbox" data-addon="Priority support" data-price="4.00"> Priority support <b>+$4.00/mo</b></label>
+        </div>
+        <button class="btn pri" style="width:100%;margin-top:18px;height:50px" onclick="addPdp()">Add to cart</button>
+        <button class="btn ghost" style="width:100%;margin-top:8px" onclick="addPdp();go('checkout')">Buy now</button>
+        <div class="guarantee"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>30-day money-back guarantee. Cancel from your dashboard.</div>
+        <div class="paylogos"><span>VISA</span><span>Mastercard</span><span>PayPal</span><span>Apple Pay</span><span>USDT</span></div>
+      </aside>
+    </div>
+  </div>
+  <div class="stickybar" id="stickybar"><div class="wrap">
+    <div class="t">Hostia Ultra<small>12 months · UAE</small></div>
+    <div class="p">$<span data-pdp-amt>5.99</span><small>/mo</small></div>
+    <button class="btn pri sm" onclick="addPdp()">Add to cart</button>
+  </div></div>
+</section>
+
+<!-- ===== PRICING COMPARISON ===== -->
+<section class="screen" id="s-pricing">
+  <div class="wrap">
+    <div class="pricehead">
+      <h1 style="font-size:clamp(28px,3.4vw,40px)">All plans, one page</h1>
+      <p>Every price here is synced from billing, so what you see is what you'll be charged. Switch the term to see the per-month rate.</p>
+      <div class="cyc" role="group" aria-label="Billing cycle"><button class="on" data-cyc="annual">Annual<em>save 30%</em></button><button data-cyc="monthly">Monthly</button></div>
+    </div>
+    <div class="pills" role="tablist">
+      <button class="on" data-pill="shared">Shared</button><button data-pill="vps">VPS</button><button data-pill="ai">AI servers</button><button data-pill="ssl">SSL</button><button data-pill="dedicated">Dedicated</button>
+    </div>
+    <div data-pillp="shared"><div class="cards" data-plans></div></div>
+    <div data-pillp="vps" hidden>
+      <div class="cards">
+        <div class="card"><h3>Linux VPS 01</h3><p class="sub">2 vCPU · 4 GB RAM · 80 GB NVMe</p><div class="price"><span class="cur">$</span><span class="amt">8</span><span class="per">/mo</span></div><div class="renew">Renews at $8/mo</div><ul class="feats"><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>Root access, KVM</li><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>1 IPv4, 2 TB transfer</li></ul><button class="btn dark" onclick="addItem('Linux VPS 01',8,8,'/mo')">Add to cart</button></div>
+        <div class="card hot"><span class="badge">Traders' pick</span><h3>Forex VPS</h3><p class="sub">MT4/MT5 ready · &lt;2 ms to major brokers</p><div class="price"><span class="cur">$</span><span class="amt">8</span><span class="per">/mo</span><span class="save">$88/yr · save $8</span></div><div class="renew">Yearly: <s>$96</s> <b>$88</b></div><ul class="feats"><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>Windows Server, RDP</li><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>London / New York / Dubai</li></ul><button class="btn pri" onclick="addItem('Forex VPS (yearly)',88,96,'/yr')">Add yearly — $88</button></div>
+        <div class="card"><h3>Windows VPS 01</h3><p class="sub">2 vCPU · 4 GB RAM · 80 GB NVMe</p><div class="price"><span class="cur">$</span><span class="amt">14</span><span class="per">/mo</span></div><div class="renew">Renews at $14/mo</div><ul class="feats"><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>Windows Server 2022</li><li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>Licence included</li></ul><button class="btn dark" onclick="addItem('Windows VPS 01',14,14,'/mo')">Add to cart</button></div>
+      </div>
+    </div>
+    <div data-pillp="ai" hidden>
+      <div class="cards">
+        <div class="card"><h3>Starter AI</h3><p class="sub">Run 7B models · Ollama preinstalled</p><div class="price"><span class="cur">$</span><span class="amt">8.99</span><span class="per">/mo</span></div><div class="renew">Renews at $8.99/mo</div><button class="btn dark" onclick="addItem('Starter AI',8.99,8.99,'/mo')">Add to cart</button></div>
+        <div class="card hot"><span class="badge b">Most popular</span><h3>Professional AI</h3><p class="sub">Run 13B models · GPU-accelerated inference</p><div class="price"><span class="cur">$</span><span class="amt">18.99</span><span class="per">/mo</span></div><div class="renew">Renews at $18.99/mo</div><button class="btn pri" onclick="addItem('Professional AI',18.99,18.99,'/mo')">Add to cart</button></div>
+        <div class="card"><h3>Enterprise AI</h3><p class="sub">70B models · private endpoint · SSO</p><div class="price"><span class="cur">$</span><span class="amt">25.99</span><span class="per">/mo</span></div><div class="renew">Renews at $25.99/mo</div><button class="btn dark" onclick="addItem('Enterprise AI',25.99,25.99,'/mo')">Add to cart</button></div>
+      </div>
+    </div>
+    <div data-pillp="ssl" hidden>
+      <div class="cmp"><table>
+        <thead><tr><th>Certificate</th><th>Validation</th><th>Covers</th><th>Price / yr</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>PositiveSSL DV</td><td>Domain</td><td>1 domain + www</td><td><span class="pr">$9.23</span></td><td><button class="btn sm dark" onclick="addItem('PositiveSSL DV',9.23,9.23,'/yr')">Add</button></td></tr>
+          <tr><td>Thawte SSL123 Flex</td><td>Domain</td><td>1 domain + www</td><td><span class="pr">$49.22</span></td><td><button class="btn sm dark" onclick="addItem('Thawte SSL123 Flex',49.22,49.22,'/yr')">Add</button></td></tr>
+          <tr><td>EssentialSSL Wildcard</td><td>Domain</td><td>*.yourdomain</td><td><span class="pr">$109.51</span></td><td><button class="btn sm dark" onclick="addItem('EssentialSSL Wildcard',109.51,109.51,'/yr')">Add</button></td></tr>
+          <tr><td>GeoTrust TrueBusinessID Flex</td><td>Organisation</td><td>1 domain + SANs</td><td><span class="pr" style="font-size:14px;color:var(--ink-2)">Get a quote</span></td><td><button class="btn sm ghost">Contact</button></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div data-pillp="dedicated" hidden>
+      <div class="cmp"><table>
+        <thead><tr><th>Server</th><th>CPU</th><th>RAM</th><th>Storage</th><th>Network</th><th>Price / mo</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Hostia Air</td><td>4C / 4T</td><td>16 GB</td><td>160 GB SSD</td><td>1 Gbps · 5 IPs</td><td><span class="pr">$39.99</span></td><td><button class="btn sm dark" onclick="addItem('Hostia Air',39.99,39.99,'/mo')">Add</button></td></tr>
+          <tr><td>Hostia Pocket</td><td>4C / 8T</td><td>32 GB</td><td>2 × 240 GB SSD</td><td>1 Gbps · 5 IPs</td><td><span class="pr" style="font-size:14px;color:var(--ink-2)">See configurator</span></td><td><button class="btn sm ghost">Configure</button></td></tr>
+          <tr><td>Hostia Core</td><td>8C / 16T</td><td>64 GB</td><td>2 × 480 GB SSD</td><td>1 Gbps · 5 IPs</td><td><span class="pr" style="font-size:14px;color:var(--ink-2)">See configurator</span></td><td><button class="btn sm ghost">Configure</button></td></tr>
+          <tr><td>Premium 10G</td><td>32 cores</td><td>256 GB</td><td>2 × 2 TB SSD</td><td>10 Gbps</td><td><span class="pr" style="font-size:14px;color:var(--ink-2)">See configurator</span></td><td><button class="btn sm ghost">Configure</button></td></tr>
+        </tbody>
+      </table></div>
+      <p style="font-size:13px;color:var(--ink-3);margin-top:10px">22 dedicated SKUs in total (Air, Compact, Core, Edge, Flex, Go, Mini, Pocket, Prime, Spark and Plus variants, plus Premium A/B/C and 10G). Showing four.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DOMAINS ===== -->
+<section class="screen" id="s-domains">
+  <div class="wrap">
+    <div style="padding:28px 0 0;max-width:760px">
+      <h1 style="font-size:clamp(28px,3.4vw,40px)">Find a domain</h1>
+      <form class="dsearch" onsubmit="event.preventDefault();goDomains(this.q.value)">
+        <div class="field"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input name="q" data-dq placeholder="Type a domain name" aria-label="Domain name"></div>
+        <button class="go" type="submit">Search</button>
+      </form>
+    </div>
+    <div class="dres">
+      <div>
+        <p style="font-size:13.5px;color:var(--ink-2);margin-bottom:12px">Results for <b data-dq-label style="color:var(--ink)">mybrand</b> · prices are first-year registration; renewal shown below each</p>
+        <div class="rows" data-dresults></div>
+        <h3 style="margin:26px 0 12px">Also available</h3>
+        <div class="sugg" data-dsugg></div>
+      </div>
+      <aside class="bundle">
+        <h3>Starter bundle</h3>
+        <p style="font-size:13px;color:var(--ink-2);margin:4px 0 12px">Domain + Hostia Lite + SSL, ready in minutes.</p>
+        <div class="ln"><span data-dq-dom>mybrand.com</span><span>$13.65</span></div>
+        <div class="ln"><span>Hostia Lite · 12 mo</span><span><s>$59.88</s> $35.88</span></div>
+        <div class="ln"><span>PositiveSSL DV</span><span>$9.23</span></div>
+        <div class="ln tot"><span>Bundle today</span><span>$58.76</span></div>
+        <button class="btn pri" style="width:100%;margin-top:12px" onclick="addBundle()">Add bundle to cart</button>
+        <div class="guarantee"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>Free WHOIS privacy on every domain.</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CART & CHECKOUT ===== -->
+<section class="screen" id="s-checkout">
+  <div class="wrap">
+    <div class="stepper" aria-label="Checkout progress" data-stepper>
+      <div class="cur"><span>Cart</span></div><div><span>Account</span></div><div><span>Payment</span></div>
+    </div>
+    <div class="co">
+      <div>
+        <div data-costep="1">
+          <div class="panel">
+            <h3>Review your cart</h3>
+            <div data-cart-list style="margin-top:6px"></div>
+            <div class="upsell"><span>Add <b>PositiveSSL DV</b> for $9.23/yr and get the padlock on every page.</span><button onclick="addItem('PositiveSSL DV',9.23,9.23,'/yr')">Add</button></div>
+            <div style="display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap"><a class="btn ghost" href="#shared">Keep shopping</a><button class="btn pri" onclick="coStep(2)">Continue to account</button></div>
+          </div>
+        </div>
+        <div data-costep="2" hidden>
+          <div class="panel">
+            <h3>Account details <span class="ok">Already a customer? <a href="#dashboard" style="text-decoration:underline">Sign in</a></span></h3>
+            <form class="form two" onsubmit="event.preventDefault();coStep(3)">
+              <label>First name<input required value="Rania"></label>
+              <label>Last name<input required value="Khalil"></label>
+              <label class="span">Email<input type="email" required value="rania@studio.ae"></label>
+              <label>Phone<input value="+971 50 000 0000"></label>
+              <label>Country<select><option>United Arab Emirates</option><option>United States</option><option>Singapore</option><option>India</option></select></label>
+              <label class="span">Company (optional)<input placeholder="For the invoice"></label>
+              <label class="span" style="flex-direction:row;display:flex;align-items:center;gap:8px;font-weight:500"><input type="checkbox" checked style="width:16px;accent-color:var(--orange)"> Email me renewal reminders and deals</label>
+              <div class="span" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><button type="button" class="btn ghost" onclick="coStep(1)">Back to cart</button><button class="btn pri" type="submit">Continue to payment</button></div>
+            </form>
+          </div>
+        </div>
+        <div data-costep="3" hidden>
+          <div class="panel">
+            <h3>Payment</h3>
+            <div class="pay" role="radiogroup">
+              <label class="on"><input type="radio" name="pay" checked onchange="payPick(this)"> Card <span class="logos"><span>VISA</span><span>MC</span><span>AMEX</span></span></label>
+              <label><input type="radio" name="pay" onchange="payPick(this)"> PayPal <span class="logos"><span>PayPal</span></span></label>
+              <label><input type="radio" name="pay" onchange="payPick(this)"> Crypto (USDT, BTC) <span class="logos"><span>USDT</span><span>BTC</span></span></label>
+              <label><input type="radio" name="pay" onchange="payPick(this)"> Bank transfer (AED) <span class="logos"><span>UAE</span></span></label>
+            </div>
+            <p style="font-size:12.5px;color:var(--ink-3);margin-top:12px">Card details are entered on the secure billing page — we never store card numbers.</p>
+            <div style="display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap"><button class="btn ghost" onclick="coStep(2)">Back</button><button class="btn pri" style="height:50px" onclick="placeOrder()">Pay <span data-cart-total-btn>$0.00</span> and place order</button></div>
+          </div>
+          <div class="panel"><h3 style="font-size:15px">Invoice address</h3><p style="font-size:13.5px;color:var(--ink-2);margin-top:6px">Rania Khalil · rania@studio.ae · United Arab Emirates <button style="color:var(--orange-deep);font-weight:700;margin-left:8px" onclick="coStep(2)">Edit</button></p></div>
+        </div>
+      </div>
+      <aside class="summary">
+        <h3>Order summary</h3>
+        <div data-cart-summary></div>
+        <div class="coupon"><input placeholder="Coupon code" aria-label="Coupon code"><button class="btn sm dark">Apply</button></div>
+        <div class="sline disc"><span class="n">Autumn sale</span><span class="v" data-cart-disc>−$0.00</span></div>
+        <div class="sline"><span class="n">VAT (5%, UAE)</span><span class="v" data-cart-vat>$0.00</span></div>
+        <div class="sline tot"><span class="n">Due today</span><span class="v" data-cart-total>$0.00</span></div>
+        <p style="font-size:12px;color:var(--ink-3);margin-top:8px" data-cart-renewnote></p>
+        <div class="guarantee"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>30-day money-back on hosting. Domains are non-refundable.</div>
+        <div class="paylogos"><span>VISA</span><span>Mastercard</span><span>PayPal</span><span>Apple Pay</span><span>USDT</span></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DASHBOARD ===== -->
+<section class="screen" id="s-dashboard">
+  <div class="wrap">
+    <div class="dash">
+      <aside class="dnav">
+        <div class="u"><span class="av">RK</span><span><b>Rania Khalil</b><small>Studio Rania · #10482</small></span></div>
+        <a href="#dashboard" class="on">Overview</a><a href="#dashboard">Hosting</a><a href="#dashboard">Domains</a><a href="#dashboard">SSL</a><a href="#dashboard">Invoices</a><a href="#dashboard">Support tickets</a><a href="#dashboard">Account settings</a>
+      </aside>
+      <div>
+        <div class="renewbox"><div><b>mybrand.com renews in 12 days</b><p>$16.99 on 11 Nov 2026 · auto-renew is on. Turn it off any time before then.</p></div><a class="btn pri sm" href="#dashboard">Renew now</a></div>
+        <div class="kpis">
+          <div class="kpi"><small>Active services</small><b>4</b></div>
+          <div class="kpi"><small>Domains</small><b>3</b></div>
+          <div class="kpi warn"><small>Unpaid invoices</small><b>1 · $16.99</b></div>
+          <div class="kpi"><small>Open tickets</small><b>0</b></div>
+        </div>
+        <div class="svc">
+          <div class="sh"><h3>Hosting</h3><a href="#shared">Add a plan</a></div>
+          <div class="srow"><div><b>Hostia Ultra</b><small>studio-rania.ae · UAE</small></div><div class="cell"><span class="dot">Active</span></div><div class="cell">Renews 4 Mar 2027</div><div><a class="btn sm ghost" href="#dashboard">Manage</a></div></div>
+          <div class="srow"><div><b>Forex VPS</b><small>fx-01 · Dubai · Windows</small></div><div class="cell"><span class="dot">Active</span></div><div class="cell">Renews 18 Jan 2027</div><div><a class="btn sm ghost" href="#dashboard">Manage</a></div></div>
+          <div class="srow"><div><b>Hostia Lite</b><small>liniashop.shop · Singapore</small></div><div class="cell"><span class="dot warn">Disk 92% used</span></div><div class="cell">Renews 2 Jun 2027</div><div><a class="btn sm pri" href="#product">Upgrade</a></div></div>
+        </div>
+        <div class="svc" style="margin-top:14px">
+          <div class="sh"><h3>Domains</h3><a href="#domains">Register another</a></div>
+          <div class="srow"><div><b>mybrand.com</b><small>Auto-renew on · WHOIS privacy</small></div><div class="cell"><span class="dot warn">Renews in 12 days</span></div><div class="cell">$16.99 / yr</div><div><a class="btn sm ghost" href="#dashboard">DNS</a></div></div>
+          <div class="srow"><div><b>studio-rania.ae</b><small>Auto-renew on</small></div><div class="cell"><span class="dot">Active</span></div><div class="cell">Renews 9 Aug 2027</div><div><a class="btn sm ghost" href="#dashboard">DNS</a></div></div>
+          <div class="srow"><div><b>liniashop.shop</b><small>Auto-renew on</small></div><div class="cell"><span class="dot">Active</span></div><div class="cell">Renews 30 May 2027</div><div><a class="btn sm ghost" href="#dashboard">DNS</a></div></div>
+        </div>
+        <div class="svc" style="margin-top:14px">
+          <div class="sh"><h3>Recent invoices</h3><a href="#dashboard">See all</a></div>
+          <div class="srow"><div><b>#INV-20931</b><small>mybrand.com renewal</small></div><div class="cell"><span class="dot warn">Unpaid</span></div><div class="cell">$16.99</div><div><a class="btn sm pri" href="#checkout">Pay</a></div></div>
+          <div class="srow"><div><b>#INV-20877</b><small>Forex VPS · yearly</small></div><div class="cell"><span class="dot">Paid</span></div><div class="cell">$88.00</div><div><a class="btn sm ghost" href="#dashboard">PDF</a></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div><a class="logo" href="#home"><i>G</i>GlobalHostia</a><p style="margin-top:10px;max-width:34ch">Hosting and domains from Dubai, with servers in the UAE, USA, Singapore and India.</p><div class="paylogos"><span>VISA</span><span>Mastercard</span><span>PayPal</span><span>USDT</span></div></div>
+    <div><h4>Hosting</h4><ul><li><a href="#shared">Shared hosting</a></li><li><a href="#shared">Managed WordPress</a></li><li><a href="#vps">VPS</a></li><li><a href="#pricing">Dedicated servers</a></li><li><a href="#pricing">AI servers</a></li><li><a href="#pricing">cPanel reseller <small style="color:var(--orange-deep)">soon</small></a></li></ul></div>
+    <div><h4>Domains</h4><ul><li><a href="#domains">Search domains</a></li><li><a href="#domains">Transfer a domain</a></li><li><a href="#pricing">TLD pricing</a></li><li><a href="#pricing">SSL certificates</a></li><li><a href="#pricing">Business email</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="#home">About</a></li><li><a href="#home">Data centres</a></li><li><a href="#home">Affiliates</a></li><li><a href="#home">Contact</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="#dashboard">My account</a></li><li><a href="#dashboard">Knowledge base</a></li><li><a href="#dashboard">Open a ticket</a></li><li><a href="#home">Status</a></li></ul></div>
+  </div>
+  <div class="fbot"><span>© 2026 GlobalHostia · Desert Tech Cloud Services LLC, Dubai, UAE.</span><span>Terms · Privacy · Refund policy · Concept 4 of 5</span></div>
+</div></footer>
+
+<!-- Mobile tab bar -->
+<nav class="tabbar" aria-label="Mobile navigation">
+  <a href="#home" data-tab-home><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 11 9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+  <a href="#shared"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg>Hosting</a>
+  <a href="#domains"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Domains</a>
+  <a href="#checkout"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 4h2l2.5 11h11L21 7H7"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg>Cart<span class="cnt" data-cart-count>0</span></a>
+  <a href="#dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Account</a>
+</nav>
+
+<!-- Mobile nav sheet -->
+<div class="mnav" id="mnav" aria-hidden="true">
+  <div class="mh"><a class="logo" href="#home"><i>G</i>GlobalHostia</a><button onclick="closeMnav()" aria-label="Close menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="ms"><form class="dsearch" onsubmit="event.preventDefault();closeMnav();goDomains(this.q.value)"><div class="field"><input name="q" placeholder="Search domains" aria-label="Domain name"></div><button class="go" type="submit">Go</button></form></div>
+  <nav>
+    <a href="#shared" onclick="closeMnav()"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg></span>Shared hosting<small>from $2.99</small></a>
+    <a href="#shared" onclick="closeMnav()"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="m7 8 3 8 2-5 2 5 3-8"/></svg></span>Managed WordPress<small>from $12.99</small></a>
+    <a href="#vps" onclick="closeMnav()"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="4" width="16" height="16" rx="3"/><rect x="9" y="9" width="6" height="6"/></svg></span>VPS<small>from $8</small></a>
+    <a href="#pricing" onclick="closeMnav()"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M3 15h18"/></svg></span>Dedicated servers<small>from $39.99</small></a>
+    <a href="#pricing" onclick="closeMnav()"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></span>AI servers<small>from $8.99</small></a>
+    <a href="#domains" onclick="closeMnav()"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/></svg></span>Domains<small>.shop $1.20</small></a>
+    <a href="#pricing" onclick="closeMnav()"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>SSL certificates<small>from $9.23/yr</small></a>
+    <a href="#pricing" onclick="closeMnav()"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>Business email</a>
+  </nav>
+  <div class="mf"><a class="btn pri" href="#pricing" onclick="closeMnav()">See all deals</a><a class="btn ghost" href="#dashboard" onclick="closeMnav()">Sign in</a></div>
+</div>
+
+<!-- Mini cart -->
+<div class="scrim" id="scrim" onclick="closeAll()"></div>
+<aside class="drawer" id="drawer" aria-label="Cart" aria-hidden="true">
+  <div class="dh"><h3>Your cart <span style="color:var(--ink-3);font-weight:600;font-size:14px">(<span data-cart-count>0</span>)</span></h3><button onclick="closeAll()" aria-label="Close cart"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="db" data-cart-list></div>
+  <div class="df">
+    <div class="upsell" style="margin:0 0 12px"><span>Add a <b>.com for $13.65</b> and get free WHOIS privacy.</span><button onclick="goDomains('mybrand.com');closeAll()">Find one</button></div>
+    <div class="ln"><span>Subtotal</span><span data-cart-sub>$0.00</span></div>
+    <div class="ln" style="color:var(--green)"><span>Autumn sale</span><span data-cart-disc>−$0.00</span></div>
+    <div class="ln tot"><span>Due today</span><span data-cart-total>$0.00</span></div>
+    <a class="btn pri" style="width:100%;margin-top:12px;height:50px" href="#checkout" onclick="closeAll()">Checkout</a>
+    <button class="btn ghost" style="width:100%;margin-top:8px" onclick="closeAll()">Keep shopping</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<button class="prevbtn" onclick="openPreview()" aria-label="Open mobile preview"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>Mobile preview</button>
+<div class="mprev" id="mprev"><button class="close" onclick="closePreview()">Close preview</button><div class="phone"><div class="notch"></div><iframe id="mframe" title="Mobile preview at 375px"></iframe></div></div>
+
+<script>
+/* ---------- data (prices from brief; strikethrough "regular" prices are sample promo values to be replaced by WHMCS pricing) ---------- */
+const PLANS=[
+  {id:'lite',name:'Hostia Lite',sub:'1 website · 10 GB NVMe',price:2.99,reg:4.99,feats:['1 website','10 GB NVMe storage','5 email accounts','Free SSL · cPanel','Daily backups (7 days)'],dim:['Free domain','Staging site']},
+  {id:'ultra',name:'Hostia Ultra',sub:'10 websites · 50 GB NVMe',price:5.99,reg:8.99,hot:true,badge:'Best seller',feats:['10 websites','50 GB NVMe storage','50 email accounts','Free domain on annual','Staging site','Daily backups (14 days)'],dim:[]},
+  {id:'infinity',name:'Hostia Infinity',sub:'Unlimited sites · 100 GB NVMe',price:9.99,reg:13.99,badge:'Best value',badgeCls:'g',feats:['Unlimited websites','100 GB NVMe storage','Unlimited email','Free domain on annual','Staging + priority support','Daily backups (30 days)'],dim:[]},
+];
+const VPS=[
+  {name:'Linux VPS 01',os:'linux',cpu:2,ram:4,disk:'80 GB NVMe',price:8,locs:['UAE','USA','SG','IN']},
+  {name:'Linux VPS 02',os:'linux',cpu:4,ram:8,disk:'160 GB NVMe',price:16,locs:['UAE','USA','SG','IN']},
+  {name:'Linux VPS 03',os:'linux',cpu:4,ram:16,disk:'240 GB NVMe',price:28,locs:['UAE','USA','SG','IN']},
+  {name:'Linux VPS 04',os:'linux',cpu:8,ram:32,disk:'400 GB NVMe',price:52,locs:['UAE','USA','SG']},
+  {name:'Linux VPS 05',os:'linux',cpu:16,ram:48,disk:'640 GB NVMe',price:96,locs:['UAE','USA','SG']},
+  {name:'Linux VPS 06',os:'linux',cpu:16,ram:64,disk:'800 GB NVMe',price:128,locs:['UAE','USA']},
+  {name:'Windows VPS 01',os:'windows',cpu:2,ram:4,disk:'80 GB NVMe',price:14,locs:['UAE','USA','SG','IN']},
+  {name:'Windows VPS 02',os:'windows',cpu:4,ram:8,disk:'160 GB NVMe',price:24,locs:['UAE','USA','SG','IN']},
+  {name:'Windows VPS 03',os:'windows',cpu:8,ram:16,disk:'320 GB NVMe',price:44,locs:['UAE','USA','SG']},
+  {name:'Forex VPS',os:'forex',cpu:2,ram:4,disk:'60 GB NVMe',price:8,yearly:88,locs:['UAE','USA']},
+];
+const TLDS=[{t:'.com',p:13.65,r:16.99},{t:'.shop',p:1.20,r:34.99},{t:'.net',p:8.29,r:15.49},{t:'.org',p:8.65,r:14.99},{t:'.ae',p:null},{t:'.io',p:null}];
+const CHECK='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 4 4 10-10"/></svg>';
+const money=n=>'$'+n.toFixed(2);
+let cycle='annual';
+
+/* ---------- plan cards ---------- */
+function renderPlans(){
+  document.querySelectorAll('[data-plans]').forEach(el=>{
+    el.innerHTML=PLANS.map(p=>{
+      const annual=cycle==='annual';
+      const billed=annual?`Billed ${money(p.price*12)} for 12 months`:`Billed monthly`;
+      const save=Math.round((1-p.price/p.reg)*100);
+      return `<div class="card ${p.hot?'hot':''}">${p.badge?`<span class="badge ${p.badgeCls||''}">${p.badge}</span>`:''}
+        <h3>${p.name}</h3><p class="sub">${p.sub}</p>
+        <div class="price"><span class="cur">$</span><span class="amt">${p.price.toFixed(2)}</span><span class="per">/mo</span><span class="save">Save ${save}%</span></div>
+        <div class="renew">${billed} · renews at <s>${money(p.reg)}</s>/mo</div>
+        <div class="locs"><span class="loc">UAE</span><span class="loc">USA</span><span class="loc">SG</span></div>
+        <ul class="feats">${p.feats.map(f=>`<li>${CHECK}${f}</li>`).join('')}${p.dim.map(f=>`<li class="dim">${CHECK}${f}</li>`).join('')}</ul>
+        <button class="btn ${p.hot?'pri':'dark'}" onclick="addPlan('${p.id}')">Add to cart</button>
+        ${p.id==='ultra'?'<a href="#product" style="text-align:center;font-size:13px;font-weight:700;color:var(--orange-deep);margin-top:10px">See details</a>':''}
+      </div>`}).join('');
+  });
+}
+function addPlan(id){const p=PLANS.find(x=>x.id===id);const annual=cycle==='annual';
+  addItem(p.name,annual?p.price*12:p.price,annual?p.reg*12:p.reg,annual?'/12 mo':'/mo',annual?'12 months · UAE':'1 month · UAE');}
+document.querySelectorAll('[data-cyc]').forEach(b=>b.addEventListener('click',()=>{cycle=b.dataset.cyc;
+  document.querySelectorAll('[data-cyc]').forEach(x=>x.classList.toggle('on',x.dataset.cyc===cycle));renderPlans();}));
+
+/* ---------- VPS listing with facets ---------- */
+const F={os:new Set(),loc:new Set(),cpu:new Set(),pmax:200,sort:'price'};
+function renderVps(){
+  let list=VPS.filter(v=>(!F.os.size||F.os.has(v.os))&&(!F.loc.size||[...F.loc].some(l=>v.locs.includes(l)))&&(!F.cpu.size||F.cpu.has(String(v.cpu)))&&v.price<=F.pmax);
+  if(F.sort==='price')list.sort((a,b)=>a.price-b.price);if(F.sort==='price-desc')list.sort((a,b)=>b.price-a.price);if(F.sort==='cpu')list.sort((a,b)=>b.cpu-a.cpu);
+  document.querySelector('[data-count]').textContent=list.length;
+  const el=document.querySelector('[data-vps]');
+  if(!list.length){el.innerHTML='<div class="empty"><b>No servers match these filters</b>Clear a filter or raise the price limit to see more.</div>';return;}
+  el.innerHTML=list.map(v=>`<div class="prow">
+    <div class="nm">${v.name}<span class="os ${v.os==='windows'?'win':v.os==='forex'?'fx':''}">${v.os==='forex'?'MT4/MT5':v.os==='windows'?'Windows':'Linux'}</span><small>${v.locs.join(' · ')}</small></div>
+    <div class="spec"><span><b>${v.cpu} vCPU</b>cores</span><span><b>${v.ram} GB</b>RAM</span><span><b>${v.disk}</b>storage</span><span><b>Unmetered</b>bandwidth</span></div>
+    <div class="pp">$${v.price}<small>/mo</small>${v.yearly?`<span class="renew">or <s>$${v.price*12}</s> <b>$${v.yearly}/yr</b></span>`:`<span class="renew">renews at $${v.price}/mo</span>`}</div>
+    <button class="btn sm ${v.os==='forex'?'pri':'dark'}" onclick="addItem('${v.name}',${v.price},${v.price},'/mo','${v.locs[0]}')">Add</button>
+  </div>`).join('');
+}
+document.querySelectorAll('[data-f]').forEach(c=>c.addEventListener('change',()=>{const s=F[c.dataset.f];c.checked?s.add(c.value):s.delete(c.value);renderVps();}));
+document.querySelector('[data-pmax]').addEventListener('input',e=>{F.pmax=+e.target.value;document.querySelector('[data-pmax-lbl]').textContent=e.target.value;renderVps();});
+document.querySelector('[data-sort]').addEventListener('change',e=>{F.sort=e.target.value;renderVps();});
+document.querySelectorAll('[data-mf]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-mf]').forEach(x=>x.classList.toggle('on',x===b));
+  F.os.clear();F.loc.clear();const m=b.dataset.mf;if(['linux','windows','forex'].includes(m))F.os.add(m);if(m==='uae')F.loc.add('UAE');
+  document.querySelectorAll('[data-f]').forEach(c=>c.checked=(c.dataset.f==='os'&&F.os.has(c.value))||(c.dataset.f==='loc'&&F.loc.has(c.value)));renderVps();}));
+function clearFacets(){F.os.clear();F.loc.clear();F.cpu.clear();F.pmax=200;document.querySelectorAll('[data-f]').forEach(c=>c.checked=false);document.querySelector('[data-pmax]').value=200;document.querySelector('[data-pmax-lbl]').textContent='200';renderVps();}
+
+/* ---------- product detail ---------- */
+const PDP={term:12,loc:'UAE'};
+document.querySelectorAll('[data-pdp-term] button').forEach(b=>b.addEventListener('click',()=>{PDP.term=+b.dataset.term;document.querySelectorAll('[data-pdp-term] button').forEach(x=>x.classList.toggle('on',x===b));updPdp();}));
+document.querySelectorAll('[data-pdp-loc] button').forEach(b=>b.addEventListener('click',()=>{PDP.loc=b.textContent.trim().split(/\s/)[1]||'UAE';document.querySelectorAll('[data-pdp-loc] button').forEach(x=>x.classList.toggle('on',x===b));updPdp();}));
+function updPdp(){const t=PDP.term;const base=5.99;const r=document.querySelector('[data-pdp-renew]');
+  r.innerHTML=t===1?`Billed ${money(base)} monthly · renews at <s>$8.99</s>/mo`:`Billed ${money(base*t)} for ${t} months · renews at <s>$8.99</s>/mo · free domain`;
+  document.querySelector('#stickybar .t small').textContent=`${t} month${t>1?'s':''} · ${PDP.loc}`;}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('[data-tabp]').forEach(p=>p.classList.toggle('on',p.dataset.tabp===b.dataset.tab));}));
+function addPdp(){const t=PDP.term;addItem('Hostia Ultra',5.99*t,8.99*t,t===1?'/mo':`/${t} mo`,`${t} month${t>1?'s':''} · ${PDP.loc}`);
+  document.querySelectorAll('[data-addon]:checked').forEach(a=>{const m=+a.dataset.price;addItem(a.dataset.addon,m*t,m*t,t===1?'/mo':`/${t} mo`,'Add-on for Hostia Ultra',true);});}
+/* sticky bar visibility */
+const bb=document.getElementById('buybox');const sb=document.getElementById('stickybar');
+if('IntersectionObserver' in window){new IntersectionObserver(([e])=>{sb.classList.toggle('show',!e.isIntersecting&&location.hash==='#product');},{threshold:0}).observe(bb);}
+
+/* ---------- pricing pills ---------- */
+document.querySelectorAll('[data-pill]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-pill]').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('[data-pillp]').forEach(p=>p.hidden=p.dataset.pillp!==b.dataset.pill);}));
+
+/* ---------- domains ---------- */
+let dq='mybrand';
+function goDomains(q){q=(q||'mybrand').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/.*$/,'');dq=q.split('.')[0]||'mybrand';const want=q.includes('.')?'.'+q.split('.').slice(1).join('.'):'.com';renderDomains(want);location.hash='#domains';window.scrollTo(0,0);}
+function renderDomains(want){
+  document.querySelector('[data-dq-label]').textContent=dq+(want||'');document.querySelector('[data-dq]').value=dq+(want||'.com');document.querySelector('[data-dq-dom]').textContent=dq+'.com';
+  const order=[...TLDS].sort((a,b)=>(a.t===want?-1:b.t===want?1:0));
+  const taken=t=>(dq.length+t.length)%4===0;
+  document.querySelector('[data-dresults]').innerHTML=order.map((x,i)=>{const isT=taken(x.t)&&i!==0;const prem=x.t==='.io'&&!isT;
+    return `<div class="dr ${i===0&&!isT?'top':''}">
+      <div class="dn">${dq}<span style="color:var(--orange-deep)">${x.t}</span>${i===0&&!isT?'<small>Exact match · WHOIS privacy included</small>':x.t==='.ae'?'<small>UAE residents and companies</small>':''}</div>
+      <span class="st ${isT?'taken':prem?'prem':'ok'}">${isT?'Taken':prem?'Premium':'Available'}</span>
+      ${isT?'<button class="btn sm ghost">Make an offer</button>':x.p?`<div class="dp">${money(x.p)}<small>1st year · renews ${money(x.r)}</small></div><button class="btn sm ${i===0?'pri':'dark'}" onclick="addItem('${dq}${x.t}',${x.p},${x.r},'/yr','1 year · WHOIS privacy')">Add</button>`:`<div class="dp" style="font-size:14px;color:var(--ink-2)">Price on checkout<small>Registry rate · synced live</small></div><button class="btn sm dark" onclick="addItem('${dq}${x.t}',0,0,'/yr','Price confirmed at checkout')">Add</button>`}
+    </div>`}).join('');
+  const alts=['get'+dq+'.com','my'+dq+'.shop',dq+'hq.com',dq+'.online',dq+'app.io',dq+'.store'];
+  document.querySelector('[data-dsugg]').innerHTML=alts.map(a=>`<button onclick="addItem('${a}',${a.endsWith('.shop')?1.20:a.endsWith('.com')?13.65:8.29},${a.endsWith('.shop')?34.99:16.99},'/yr','1 year')">${a}<small>${a.endsWith('.shop')?'$1.20':a.endsWith('.com')?'$13.65':'$8.29'}/yr</small></button>`).join('');
+}
+function addBundle(){addItem(dq+'.com',13.65,16.99,'/yr','1 year · WHOIS privacy');addItem('Hostia Lite',35.88,59.88,'/12 mo','12 months · UAE');addItem('PositiveSSL DV',9.23,9.23,'/yr','1 year');}
+
+/* ---------- cart ---------- */
+let cart=[];
+function addItem(name,price,reg,per,meta,silent){
+  const ex=cart.find(c=>c.name===name);if(ex){ex.qty++;}else cart.push({name,price,reg,per,meta:meta||'',qty:1});
+  renderCart();if(!silent){toast(`Added ${name} to cart`);openCart();}
+}
+function removeItem(i){cart.splice(i,1);renderCart();}
+function renderCart(){
+  const n=cart.reduce((a,c)=>a+c.qty,0);document.querySelectorAll('[data-cart-count]').forEach(e=>e.textContent=n);
+  const sub=cart.reduce((a,c)=>a+c.price*c.qty,0);const regSum=cart.reduce((a,c)=>a+c.reg*c.qty,0);const disc=regSum-sub;const vat=sub*0.05;const tot=sub+vat;
+  const list=cart.length?cart.map((c,i)=>`<div class="citem"><span class="ci"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg></span>
+    <div class="cn"><b>${c.name}${c.qty>1?` × ${c.qty}`:''}</b><small>${c.meta}</small><br><button class="rm" onclick="removeItem(${i})">Remove</button></div>
+    <div class="cp">${c.price?money(c.price*c.qty):'TBC'}<small style="font-weight:500;font-size:11px;color:var(--ink-3)">${c.per}</small>${c.reg>c.price?`<s>${money(c.reg*c.qty)}</s>`:''}</div></div>`).join('')
+    :'<div class="empty"><b>Your cart is empty</b>Add a plan or search for a domain to get started.</div>';
+  document.querySelectorAll('[data-cart-list]').forEach(e=>e.innerHTML=list);
+  document.querySelectorAll('[data-cart-sub]').forEach(e=>e.textContent=money(sub));
+  document.querySelectorAll('[data-cart-disc]').forEach(e=>e.textContent='−'+money(disc));
+  document.querySelectorAll('[data-cart-vat]').forEach(e=>e.textContent=money(vat));
+  document.querySelectorAll('[data-cart-total]').forEach(e=>e.textContent=money(tot));
+  document.querySelectorAll('[data-cart-total-btn]').forEach(e=>e.textContent=money(tot));
+  const sum=document.querySelector('[data-cart-summary]');
+  sum.innerHTML=cart.length?cart.map(c=>`<div class="sline"><span class="n">${c.name}${c.qty>1?` × ${c.qty}`:''}<small>${c.meta}</small></span><span class="v">${c.price?money(c.price*c.qty):'TBC'}${c.reg>c.price?`<s>${money(c.reg*c.qty)}</s>`:''}</span></div>`).join('')+`<div class="sline"><span class="n">Subtotal</span><span class="v">${money(sub)}</span></div>`:'<div class="sline"><span class="n" style="color:var(--ink-3)">Nothing in the cart yet</span></div>';
+  const rn=document.querySelector('[data-cart-renewnote]');rn.textContent=cart.length?`After the first term, items renew at the standard rate: ${money(regSum)} in total. You'll get a reminder 30 days before.`:'';
+}
+function openCart(){document.getElementById('drawer').classList.add('show');document.getElementById('scrim').classList.add('show');document.getElementById('drawer').setAttribute('aria-hidden','false');}
+function closeAll(){document.getElementById('drawer').classList.remove('show');document.getElementById('scrim').classList.remove('show');document.getElementById('drawer').setAttribute('aria-hidden','true');closeMnav();}
+function openMnav(){document.getElementById('mnav').classList.add('show');document.getElementById('mnav').setAttribute('aria-hidden','false');}
+function closeMnav(){document.getElementById('mnav').classList.remove('show');document.getElementById('mnav').setAttribute('aria-hidden','true');}
+let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1800);}
+
+/* ---------- checkout ---------- */
+function coStep(n){document.querySelectorAll('[data-costep]').forEach(p=>p.hidden=+p.dataset.costep!==n);
+  document.querySelectorAll('[data-stepper] div').forEach((d,i)=>{d.classList.toggle('done',i+1<n);d.classList.toggle('cur',i+1===n);});window.scrollTo({top:0});}
+function payPick(r){document.querySelectorAll('.pay label').forEach(l=>l.classList.toggle('on',l.contains(r)));}
+function placeOrder(){if(!cart.length){toast('Your cart is empty');return;}toast('Order placed — invoice sent to rania@studio.ae');cart=[];renderCart();setTimeout(()=>{location.hash='#dashboard';coStep(1);},900);}
+
+/* ---------- router ---------- */
+const SCREENS=['home','shared','vps','product','pricing','domains','checkout','dashboard'];
+function go(id){location.hash='#'+id;}
+function route(){let h=(location.hash||'#home').slice(1);if(!SCREENS.includes(h))h='home';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='s-'+h));
+  document.querySelectorAll('.tabbar a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+h));
+  document.querySelectorAll('.rail a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+h&&!a.classList.contains('deal')));
+  if(h!=='product')sb.classList.remove('show');
+  document.title={home:'GlobalHostia Store',shared:'Shared hosting',vps:'VPS hosting',product:'Hostia Ultra',pricing:'All plans',domains:'Find a domain',checkout:'Checkout',dashboard:'My account'}[h]+' · GlobalHostia';
+  window.scrollTo(0,0);closeAll();}
+window.addEventListener('hashchange',route);
+
+/* ---------- mobile preview ---------- */
+function openPreview(){const f=document.getElementById('mframe');const base=location.href.split('#')[0].split('?')[0];f.src=base+'?frame=1'+(location.hash||'#home');document.getElementById('mprev').classList.add('show');}
+function closePreview(){document.getElementById('mprev').classList.remove('show');document.getElementById('mframe').src='about:blank';}
+if(location.search.includes('frame=1'))document.body.classList.add('inframe');
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAll();closePreview();}});
+
+/* init */
+renderPlans();renderVps();renderDomains('.com');renderCart();updPdp();route();
+</script>
+</body>
+</html>
