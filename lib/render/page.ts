@@ -31,7 +31,11 @@ async function loadPage(slug: string, preview: boolean) {
         preview ? undefined : or(isNull(schema.products.publishAt), lte(schema.products.publishAt, now)),
       )).orderBy(asc(schema.products.sortOrder), asc(schema.products.name));
       const prices = rows.length ? await db.select().from(schema.productPrices).where(inArray(schema.productPrices.productId, rows.map((r) => r.id))) : [];
-      prods = rows.map((r) => ({ ...r, features: r.features || [], attributes: r.attributes || {}, prices: prices.filter((p) => p.productId === r.id) }));
+      const cur = (await getSettings()).currency || 'USD';
+      const headline = (id: string) => { const p = prices.filter((x) => x.productId === id && x.currency === cur); const m = p.find((x) => x.cycle === 'monthly') || p[0]; return m ? parseFloat(String(m.price)) / Math.max(1, ({ quarterly: 3, semiannually: 6, annually: 12, biennially: 24, triennially: 36 } as Record<string, number>)[m.cycle] || 1) : 1e9; };
+      // admin sort order first, then cheapest first (natural pricing ladder)
+      prods = rows.map((r) => ({ ...r, features: r.features || [], attributes: r.attributes || {}, prices: prices.filter((p) => p.productId === r.id) }))
+        .sort((a, b) => a.sortOrder - b.sortOrder || headline(a.id) - headline(b.id));
     }
   }
   const needTlds = secs.some((s) => ['domain_results', 'tld_pricing'].includes(s.type));

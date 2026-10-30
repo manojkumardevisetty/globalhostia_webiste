@@ -108,6 +108,101 @@ try {
         }
       }
     },
+    // 5. real GlobalHostia copy instead of theme placeholders / template brand names / Envato FAQs
+    '005-real-content': async (tx) => {
+      // 5a. sections rewritten by scripts/write-content.py (only if still untouched placeholder text)
+      const rewritten = JSON.parse(fs.readFileSync('legacy/content-005.json', 'utf8'));
+      for (const [slug, secs] of Object.entries(rewritten)) {
+        for (const [name, html] of Object.entries(secs)) {
+          await tx`update sections set html = ${html} where name = ${name} and html ~* '(lorem ipsum|dummy text)' and page_id = (select id from pages where slug = ${slug})`;
+        }
+      }
+      // 5b. template brand leftovers everywhere (sections + blocks)
+      const swaps = [
+        ['Customers visit Albino every month to get their service done.', 'Customers trust GlobalHostia every month to keep their websites online.'],
+        ['Join over 18.000 satisfied customers already using coodiv.net and make your content load faster..', 'Join the businesses already hosting with GlobalHostia and make your content load faster.'],
+        ['All Coodiv cloulds hosting options.', 'All GlobalHostia cloud hosting options.'],
+        ['Holy guacamole! coodiv.net is Registered', 'Sorry — this domain is already registered'],
+        ['Copyright © 2022 EMYUI AWS theme demo. All Rights Reserved., Made with', 'Copyright © {{year}} GlobalHostia · {{company}}. All rights reserved.'],
+        ['support@coodiv.net', '{{email}}'], ['Branding Design at Coodiv', 'Hosting tips from GlobalHostia'], ['Branding Design at coodiv', 'Hosting tips from GlobalHostia'],
+        ['Coodiv-Cache', 'GlobalHostia Cache'], ['coodiv.net', 'globalhostia.com'], ['Albino', 'GlobalHostia'],
+      ];
+      for (const [a, b] of swaps) {
+        await tx`update sections set html = replace(html, ${a}, ${b}) where html like ${'%' + a + '%'}`;
+        await tx`update blocks set html = replace(html, ${a}, ${b}) where html like ${'%' + a + '%'}`;
+      }
+      // 5c. template FAQ (wrong questions, empty answers) -> the real homepage FAQ, same design
+      const [home] = await tx`select s.html from sections s join pages p on p.id = s.page_id where p.slug = 'index' and s.name = 'faq section' limit 1`;
+      if (home) await tx`update sections set html = ${home.html} where html like '%how can i order new host ?%' and html like '%Search for quastions here%'`;
+      // 5d. Envato licence FAQs -> hide, add page-specific live FAQ (with Google FAQ schema)
+      const faqs = JSON.parse(fs.readFileSync('legacy/faq-content.json', 'utf8'));
+      for (const [slug, f] of Object.entries(faqs)) {
+        const [pg] = await tx`select id from pages where slug = ${slug}`;
+        if (!pg) continue;
+        const [old] = await tx`select id, sort_order from sections where page_id = ${pg.id} and html like '%Envato%' limit 1`;
+        if (!old) continue;
+        await tx`update sections set visible = false, name = ${'template FAQ (hidden)'} where id = ${old.id}`;
+        await tx`update sections set sort_order = sort_order + 1 where page_id = ${pg.id} and sort_order > ${old.sort_order}`;
+        await tx`insert into sections (id,page_id,type,name,sort_order,data) values (${id()},${pg.id},'faq','FAQ',${old.sort_order + 1},${JSON.stringify({ ...f, wrapperClass: 'pt-15 pb-15' })}::jsonb)`;
+      }
+      // 5e. fake team member (template author) and demo blog -> hidden; demo blog URLs -> Help Center
+      await tx`update sections set visible = false where name = 'our team section' and html like '%Nedjai%'`;
+      await tx`update pages set status = 'DRAFT', in_sitemap = false where slug in ('blog','blog-2','blog-3','blog-single','blog-single-2')`;
+      for (const s of ['blog', 'blog-2', 'blog-3', 'blog-single', 'blog-single-2']) {
+        await tx`insert into redirects (id,"from","to",code) values (${id()},${'/' + s},'/help-center',302) on conflict ("from") do nothing`;
+      }
+    },
+    '006-more-leftovers': async (tx) => {
+      for (const [a, b] of [['EMYUI EMAIL SERVICES', 'GLOBALHOSTIA EMAIL SERVICES'], ['EMYUI', 'GlobalHostia']]) {
+        await tx`update sections set html = replace(html, ${a}, ${b}) where html like ${'%' + a + '%'}`;
+        await tx`update blocks set html = replace(html, ${a}, ${b}) where html like ${'%' + a + '%'}`;
+      }
+      const f = JSON.parse(fs.readFileSync('legacy/faq-content.json', 'utf8')).about;
+      const [pg] = await tx`select id from pages where slug = 'about'`;
+      const [old] = pg ? await tx`select id, sort_order from sections where page_id = ${pg.id} and html like '%Envato%' and visible limit 1` : [];
+      if (old) {
+        await tx`update sections set visible = false, name = 'template FAQ (hidden)' where id = ${old.id}`;
+        await tx`update sections set sort_order = sort_order + 1 where page_id = ${pg.id} and sort_order > ${old.sort_order}`;
+        await tx`insert into sections (id,page_id,type,name,sort_order,data) values (${id()},${pg.id},'faq','FAQ',${old.sort_order + 1},${JSON.stringify({ ...f, wrapperClass: 'pt-15 pb-15' })}::jsonb)`;
+      }
+    },
+    // 7. template pricing tables with fake prices -> hidden; live WHMCS product sections instead
+    '007-fake-prices': async (tx) => {
+      const FAKE = `(Hatchling|Renews Nov\\. 2025|287\\.64|\\$2\\.75/mo|free for 14 days|€)`;
+      const plan = [
+        ['web-hosting', 'tables section', null], ['ssl-certificate', 'services iformations wrapper', null],
+        ['shared-hosting', 'tables section', [['hostia-shared', 'hosting-usa', 'hosting-singapore'], 'plan-card', 'Shared hosting plans']],
+        ['cloudvps-hosting', 'tables section', [['hostiavps'], 'plan-card', 'Cloud VPS plans']],
+        ['vps-2', 'tables section', [['hostiavps'], 'plan-card', 'VPS plans']],
+        ['aws-pro-vps-hosting', 'page section', [['hostiavps', 'forex-vps'], 'plan-card', 'VPS hosting plans']],
+        ['aws-pro-vps-hosting', 'services iformations wrapper', null],
+        ['aws-pro-cpanel-hosting', 'page section', [['hostia-shared', 'hosting-usa', 'hosting-singapore'], 'plan-card', 'cPanel hosting plans']],
+        ['aws-pro-dedicated-server', 'services iformations wrapper', [['dedicated-servers', 'premiumdedicated-servers'], 'server-row', 'Dedicated servers']],
+      ];
+      for (const [slug, name, dyn] of plan) {
+        const [pg] = await tx`select id from pages where slug = ${slug}`;
+        if (!pg) continue;
+        const [sec] = await tx`select id, sort_order from sections where page_id = ${pg.id} and name = ${name} and visible and html ~* ${FAKE} limit 1`;
+        if (!sec) continue;
+        await tx`update sections set visible = false, name = ${name + ' (template prices — hidden)'} where id = ${sec.id}`;
+        if (dyn) {
+          const [cats, template, title] = dyn;
+          await tx`update sections set sort_order = sort_order + 1 where page_id = ${pg.id} and sort_order > ${sec.sort_order}`;
+          await tx`insert into sections (id,page_id,type,name,sort_order,data) values (${id()},${pg.id},'products',${'Products: ' + cats.join(', ')},${sec.sort_order + 1},
+            ${JSON.stringify({ categories: cats, template, layout: 'auto', title, subtitle: 'Live prices from our billing system', wrapperClass: 'pt-15 pb-15', fallbackHtml: '' })}::jsonb)`;
+        }
+      }
+    },
+    '008-fake-contacts': async (tx) => {
+      for (const [a, b] of [['+123 456 78 90 11', '{{phone}}'], ['experience batter !', 'experience better!'], ['experience batter!', 'experience better!']]) {
+        await tx`update sections set html = replace(html, ${a}, ${b}) where html like ${'%' + a + '%'}`;
+        await tx`update blocks set html = replace(html, ${a}, ${b}) where html like ${'%' + a + '%'}`;
+      }
+    },
+    '009-fake-phone-2': async (tx) => {
+      await tx`update sections set html = replace(html, '+123-456-6788-99', '{{phone}}') where html like '%+123-456-6788-99%'`;
+      await tx`update blocks set html = replace(html, '+123-456-6788-99', '{{phone}}') where html like '%+123-456-6788-99%'`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

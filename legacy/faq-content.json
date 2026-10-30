@@ -1,0 +1,198 @@
+{
+ "ssl-certificate": {
+  "title": "SSL certificate questions",
+  "items": [
+   {
+    "q": "Which SSL certificate do I need?",
+    "a": "For a blog, portfolio or small business site a Domain Validated certificate such as PositiveSSL DV is enough. If you run several subdomains (shop., mail., app.) choose a Wildcard certificate. Choose a business-validated certificate such as GeoTrust True BusinessID when you want your verified company name shown in the certificate details."
+   },
+   {
+    "q": "Is SSL already included with my hosting?",
+    "a": "Yes \u2014 every GlobalHostia hosting plan includes a free SSL certificate. Paid certificates add higher warranty, organisation validation, wildcard coverage and a site seal for extra customer trust."
+   },
+   {
+    "q": "How long does it take to issue a certificate?",
+    "a": "Domain Validated certificates are usually issued within minutes after you confirm domain ownership by email, DNS or file. Organisation validation takes longer because the certificate authority verifies your company details."
+   },
+   {
+    "q": "Can you install the certificate for me?",
+    "a": "Yes. If your website is hosted with us our support team can install and configure the certificate for you. For sites hosted elsewhere we send you the files and step-by-step instructions."
+   },
+   {
+    "q": "What happens when my certificate expires?",
+    "a": "We remind you before expiry. Renew from your client area and the new certificate is issued and installed so visitors never see a security warning."
+   }
+  ]
+ },
+ "network": {
+  "title": "Network questions",
+  "items": [
+   {
+    "q": "Where are your servers located?",
+    "a": "We operate services in several regions including the UAE, USA and Singapore, plus additional locations listed on this page. You choose the location when you order so your service runs close to your customers."
+   },
+   {
+    "q": "Are your servers protected against DDoS attacks?",
+    "a": "Yes. Our network includes DDoS protection and server-level firewalls, and our team monitors the infrastructure 24/7."
+   },
+   {
+    "q": "Can I test the speed of a location before ordering?",
+    "a": "Contact our support team and we will share test IPs for the locations you are considering so you can measure latency from your own network."
+   },
+   {
+    "q": "Can I move my service to another location later?",
+    "a": "Yes \u2014 open a ticket and our team will help you migrate your website or server to another region."
+   }
+  ]
+ },
+ "start-vpn": {
+  "title": "VPS & VPN server questions",
+  "items": [
+   {
+    "q": "Do I get full root access?",
+    "a": "Yes. Every VPS includes full root / administrator access so you can install the software, VPN or applications you need."
+   },
+   {
+    "q": "Which operating systems can I choose?",
+    "a": "Choose from popular Linux distributions or Windows Server when you order. You can reinstall or change the operating system later from your client area."
+   },
+   {
+    "q": "How fast is my server ready?",
+    "a": "Most VPS orders are provisioned automatically within minutes after payment. Your login details are sent to you by email."
+   },
+   {
+    "q": "Can I upgrade CPU, RAM or storage later?",
+    "a": "Yes \u2014 upgrade to a bigger plan at any time from your client area as your project grows."
+   },
+   {
+    "q": "Is there a money-back guarantee?",
+    "a": "VPS and dedicated server plans include a 7-day money-back guarantee."
+   }
+  ]
+ },
+ "aws-pro-cpanel-hosting": {
+  "title": "cPanel hosting questions",
+  "items": [
+   {
+    "q": "Is cPanel included with my plan?",
+    "a": "Yes. Every cPanel hosting plan includes the full cPanel control panel to manage websites, email accounts, databases, files and SSL in one place."
+   },
+   {
+    "q": "Can you move my website from another host?",
+    "a": "Yes. Our support team helps you migrate websites, email and databases from your previous provider."
+   },
+   {
+    "q": "Do you take backups?",
+    "a": "Yes \u2014 our hosting includes automated daily backups with 30-day retention, and you can create your own backups from cPanel at any time."
+   },
+   {
+    "q": "Can I upgrade later?",
+    "a": "Absolutely. Upgrade to a bigger plan from your client area whenever you need more resources."
+   },
+   {
+    "q": "Is there a money-back guarantee?",
+    "a": "Yes \u2014 shared and WordPress hosting plans come with a 30-day money-back guarantee."
+   }
+  ]
+ },
+ "aws-pro-dedicated-server": {
+  "title": "Dedicated server questions",
+  "items": [
+   {
+    "q": "What is the difference between a VPS and a dedicated server?",
+    "a": "A VPS gives you guaranteed resources on a shared physical machine. A dedicated server gives you the entire physical server, with all CPU, RAM, storage and bandwidth reserved for you \u2014 ideal for high-traffic websites and resource-intensive applications."
+   },
+   {
+    "q": "Do I get root access and IPMI?",
+    "a": "You get full root / administrator access. Ask our team about remote management options for the server model you choose."
+   },
+   {
+    "q": "How long does setup take?",
+    "a": "Many dedicated servers are deployed within hours; custom configurations can take longer. We keep you updated by email until your server is ready."
+   },
+   {
+    "q": "Can I add a control panel?",
+    "a": "Yes \u2014 cPanel/WHM, DirectAdmin or Plesk can be added to your server. Ask support if you are not sure which fits best."
+   },
+   {
+    "q": "Is there a money-back guarantee?",
+    "a": "Dedicated servers include a 7-day money-back guarantee."
+   }
+  ]
+ },
+ "aws-pro-vps-hosting": {
+  "title": "VPS hosting questions",
+  "items": [
+   {
+    "q": "Do I get full root access?",
+    "a": "Yes. Every VPS includes full root / administrator access so you can install any software you need."
+   },
+   {
+    "q": "Linux or Windows?",
+    "a": "Both are available. Pick a Linux distribution or Windows Server when you order; you can reinstall later from your client area."
+   },
+   {
+    "q": "How fast is my VPS ready?",
+    "a": "Most VPS orders are activated automatically within minutes after payment."
+   },
+   {
+    "q": "Can I upgrade later?",
+    "a": "Yes \u2014 move to a bigger plan at any time as your project grows."
+   },
+   {
+    "q": "Is there a money-back guarantee?",
+    "a": "VPS plans include a 7-day money-back guarantee."
+   }
+  ]
+ },
+ "aws-pro-wordpress-ecommerce": {
+  "title": "WordPress & WooCommerce questions",
+  "items": [
+   {
+    "q": "Is WordPress pre-installed?",
+    "a": "WordPress installs in one click, and our Managed WordPress plans come pre-configured and optimised so your site is online in minutes."
+   },
+   {
+    "q": "Can I run an online store with WooCommerce?",
+    "a": "Yes. Our WordPress hosting is optimised for WooCommerce stores, with free SSL included so checkout is secure for your customers."
+   },
+   {
+    "q": "Do you update WordPress for me?",
+    "a": "Managed WordPress plans include automatic updates and WordPress-specific caching. Our support team can also help with migrations, themes and plugins."
+   },
+   {
+    "q": "Do you take backups?",
+    "a": "Yes \u2014 automated daily backups with 30-day retention are included."
+   },
+   {
+    "q": "Is there a money-back guarantee?",
+    "a": "Yes \u2014 WordPress hosting comes with a 30-day money-back guarantee."
+   }
+  ]
+ },
+ "about": {
+  "title": "About GlobalHostia",
+  "items": [
+   {
+    "q": "Who is behind GlobalHostia?",
+    "a": "GlobalHostia is operated by Desert Tech Cloud Services LLC, based in Dubai, United Arab Emirates. We provide web hosting, servers, SSL certificates and domains to customers around the world."
+   },
+   {
+    "q": "Where are your servers located?",
+    "a": "We run services in several regions including the UAE, USA and Singapore. You choose the location when you order so your website runs close to your customers."
+   },
+   {
+    "q": "How can I contact support?",
+    "a": "Our support team is available 24/7 by live chat, support ticket and email at support@globalhostia.com."
+   },
+   {
+    "q": "Which payment methods do you accept?",
+    "a": "Major credit and debit cards, PayPal and selected cryptocurrencies (Bitcoin, Ethereum, USDT). All payments are processed through secure gateways."
+   },
+   {
+    "q": "Do you offer a money-back guarantee?",
+    "a": "Yes \u2014 30 days on shared and WordPress hosting and 7 days on VPS and dedicated servers. Domain registrations and SSL certificates are non-refundable."
+   }
+  ]
+ }
+}
