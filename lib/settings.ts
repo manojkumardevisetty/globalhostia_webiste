@@ -11,7 +11,7 @@ export type Settings = {
 export const getSettings = unstable_cache(async (): Promise<Settings> => {
   const rows = await db.select().from(schema.settings);
   return Object.fromEntries(rows.map((r) => [r.key, r.value])) as Settings;
-}, ['settings'], { tags: ['site'] });
+}, ['settings', process.env.VERCEL_GIT_COMMIT_SHA || 'dev'], { tags: ['site'] });
 
 export async function setSetting(key: string, value: unknown) {
   await db.insert(schema.settings).values({ key, value: value as any }).onConflictDoUpdate({ target: schema.settings.key, set: { value: value as any } });

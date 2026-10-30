@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 const redirectMap = unstable_cache(async () => {
   const rows = await db.select().from(schema.redirects);
   return Object.fromEntries(rows.map((r) => [r.from.toLowerCase(), [r.to, r.code] as const]));
-}, ['redirects'], { tags: ['site'], revalidate: 3600 });
+}, ['redirects', process.env.VERCEL_GIT_COMMIT_SHA || 'dev'], { tags: ['site'], revalidate: 3600 });
 
 const html = (body: string, status = 200, cache = true) => new NextResponse(body, {
   status,

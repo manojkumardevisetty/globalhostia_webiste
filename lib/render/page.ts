@@ -39,7 +39,7 @@ async function loadPage(slug: string, preview: boolean) {
   return { page, secs, blocks, cats, prods, tlds };
 }
 
-const cachedPage = unstable_cache((slug: string) => loadPage(slug, false), ['page'], { tags: ['site'], revalidate: 3600 });
+const cachedPage = unstable_cache((slug: string) => loadPage(slug, false), ['page', process.env.VERCEL_GIT_COMMIT_SHA || 'dev'], { tags: ['site'], revalidate: 3600 });
 
 export async function renderPage(slug: string, opts: { preview: boolean; query: URLSearchParams; ip: string; path: string }) {
   const data = opts.preview ? await loadPage(slug, true) : await cachedPage(slug);
