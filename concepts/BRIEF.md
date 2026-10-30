@@ -24,8 +24,8 @@ Brand: **GlobalHostia** (globalhostia.com) — Dubai-based hosting & domains com
 - Footer: © 2026 GlobalHostia · Desert Tech Cloud Services LLC, Dubai, UAE.
 - Keep file ≤ 250KB.
 
-## DIRECTION (v2, approved reference: GoDaddy)
-All 5 themes follow the GoDaddy design language — inspired, not copied (no GoDaddy logo, name, fonts or exact colours):
+## DIRECTION B — GoDaddy-style themes (concepts 6, 7, 8 only)
+Themes 1–5 keep their own original directions. Themes 6–8 follow the GoDaddy design language — inspired, not copied (no GoDaddy logo, name, fonts or exact colours):
 - White background, lots of air, **very bold black display headlines** (use a heavy geometric sans: e.g. "Outfit" 800/900 or "Figtree" 900), medium-weight body.
 - Hero = giant domain search bar (rounded, dark button) with TLD price chips underneath.
 - Product cards: white, 1px light border, soft shadow on hover, "Starting at $X.XX/mo" with "renews at $Y" small text, green/teal "Save %" pill, solid dark CTA button.
