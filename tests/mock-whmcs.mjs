@@ -30,6 +30,9 @@ const handlers = {
   GetTickets: () => ({ tickets: { ticket: [] } }),
   GetPromotions: () => ({ promotions: { promotion: [{ id: 1, code: 'WELCOME10', type: 'Percentage', value: '10.00', uses: 4, maxuses: 0, expirationdate: '0000-00-00' }] } }),
   AddProduct: () => ({ pid: 999 }),
+  GetClientsDetails: () => ({ client: { id: 7, firstname: 'Test', lastname: 'Client', email: 'test@example.com', companyname: 'ACME', country: 'AE', city: 'Dubai', status: 'Active', currency_code: 'USD' } }),
+  GetInvoices: () => ({ invoices: { invoice: [{ id: 90, invoicenum: '', date: '2026-10-01', total: '5.99', status: 'Paid' }] } }),
+  GetClientsDomains: () => ({ domains: { domain: [{ id: 3, domainname: 'acme.ae', expirydate: '2027-10-01', status: 'Active' }] } }),
 };
 
 http.createServer((req, res) => {

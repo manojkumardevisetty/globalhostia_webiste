@@ -7,6 +7,7 @@ import { getSettings, type Settings } from '../settings';
 import { renderProducts, type RProduct, type RCategory } from './products';
 import { domainSearchForm, domainResults, tldTable, faq } from './domains';
 import { esc, tokens } from './util';
+import { compileDesign } from '../design';
 
 async function loadPage(slug: string, preview: boolean) {
   const [page] = await db.select().from(schema.pages).where(eq(schema.pages.slug, slug)).limit(1);
@@ -83,6 +84,7 @@ export async function renderPage(slug: string, opts: { preview: boolean; query: 
 <meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="${esc(title)}" /><meta name="twitter:description" content="${esc(page.seoDescription)}" />
 ${slug === 'index' ? `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: s.site_name, url: s.site_url, telephone: s.phone, email: s.email, legalName: s.company }).replace(/</g, '\\u003c')}</script>` : ''}`;
   const T = (h?: string) => tokens(h || '', vars);
+  const design = compileDesign(s.design || {});
   const previewBar = opts.preview ? `<div class="gh-preview-bar"><span>Preview — ${esc(page.status)}${page.status !== 'PUBLISHED' ? ' (not public)' : ''}. Hidden sections are outlined.</span><a href="/admin/pages/${page.id}">Back to editor →</a></div>` : '';
 
   return `<!DOCTYPE html>
@@ -92,7 +94,8 @@ ${T(blocks[page.headBlock])}
 ${seo}
 ${T(page.headExtra)}
 <link rel="stylesheet" href="/gh/site.css" />
-${s.custom_head || ''}${s.custom_css ? `<style>${s.custom_css}</style>` : ''}
+${design.fontsHref ? `<link rel="stylesheet" href="${esc(design.fontsHref)}" />` : ''}${design.css ? `<style id="gh-design">${design.css}</style>` : ''}
+${s.custom_head || ''}${s.custom_css ? `<style id="gh-custom">${s.custom_css}</style>` : ''}
 </head>
 <body${page.bodyClass ? ` class="${esc(page.bodyClass)}"` : ''}>
 ${T(blocks[page.bodyStartBlock])}
