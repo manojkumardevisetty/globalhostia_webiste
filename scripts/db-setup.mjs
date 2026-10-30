@@ -59,6 +59,63 @@ try {
     });
     console.log(`[db-setup] seeded ${seed.pages.length} pages from legacy site`);
   }
+
+  // ---- one-time content patches (idempotent, tracked in settings.patches) ----
+  const [pr] = await sql`select value from settings where key = 'patches'`;
+  const applied = new Set(pr?.value || []);
+  const PATCHES = {
+    // 1. hard-coded WHMCS URLs -> {{whmcs_url}} token, so moving WHMCS (e.g. my.globalhostia.com) is one setting
+    '001-whmcs-url-token': async (tx) => {
+      for (const u of ['https://www.globalhostia.com/secure', 'https://globalhostia.com/secure', 'http://globalhostia.com/secure', 'http://www.globalhostia.com/secure']) {
+        await tx`update sections set html = replace(html, ${u}, '{{whmcs_url}}'), data = replace(data::text, ${u}, '{{whmcs_url}}')::jsonb`;
+        await tx`update blocks set html = replace(html, ${u}, '{{whmcs_url}}')`;
+      }
+    },
+    // 2. broken domain search forms -> live WHMCS availability results on the same page
+    '002-domain-search': async (tx) => {
+      const fixes = [
+        ['domains-registration', `action="#" method="GET"`, `action="/domains-registration" method="GET"`],
+        ['aws-pro-domains-search', `method="post" action="https://emyui.coodiv.net/whmcs-aws/domainchecker.php"`, `method="get" action="/aws-pro-domains-search"`],
+      ];
+      for (const [slug, from, to] of fixes) {
+        const [pg] = await tx`select id from pages where slug = ${slug}`;
+        if (!pg) continue;
+        const [sec] = await tx`select id, sort_order from sections where page_id = ${pg.id} and html like ${'%' + from + '%'} limit 1`;
+        if (!sec) continue;
+        await tx`update sections set html = replace(replace(html, ${from}, ${to}), '<input type="hidden" name="plid" value="587345">', '') where id = ${sec.id}`;
+        const [has] = await tx`select id from sections where page_id = ${pg.id} and type = 'domain_results'`;
+        if (!has) {
+          await tx`update sections set sort_order = sort_order + 1 where page_id = ${pg.id} and sort_order > ${sec.sort_order}`;
+          await tx`insert into sections (id,page_id,type,name,sort_order,data) values (${id()},${pg.id},'domain_results','Domain search results (live WHMCS)',${sec.sort_order + 1},${JSON.stringify({ wrapperClass: 'pt-10 pb-15' })}::jsonb)`;
+        }
+      }
+    },
+    // 3. template "add to cart" forms that posted nowhere -> WHMCS store
+    '003-dead-cart-forms': async (tx) => {
+      await tx`update sections set html = regexp_replace(html, '<form class="rstore-add-to-cart-form" method="POST" action="[^"]*">', '<form class="rstore-add-to-cart-form" method="GET" action="{{whmcs_url}}/cart.php">', 'g')`;
+    },
+    // 4. placeholder text in support popup; template TLD slider with fake prices -> real WHMCS TLD price table
+    '004-placeholders': async (tx) => {
+      await tx`update blocks set html = replace(html, 'Lorem ipsum dolor sit amet consectetur adipisicing elit', 'Leave us a message or open a ticket and we will reply as soon as possible.')`;
+      await tx`update blocks set html = replace(html, 'All of our support team are busy right now :(', 'Our team is helping other customers right now')`;
+      const [pg] = await tx`select id from pages where slug = 'domains-registration'`;
+      if (pg) {
+        const [sl] = await tx`select id, sort_order from sections where page_id = ${pg.id} and html ~* 'dummy text' and name = 'single slide boxes' limit 1`;
+        if (sl) {
+          await tx`update sections set visible = false, name = 'single slide boxes (template prices — hidden)' where id = ${sl.id}`;
+          await tx`update sections set sort_order = sort_order + 1 where page_id = ${pg.id} and sort_order > ${sl.sort_order}`;
+          await tx`insert into sections (id,page_id,type,name,sort_order,data) values (${id()},${pg.id},'tld_pricing','Domain prices (live WHMCS)',${sl.sort_order + 1},${JSON.stringify({ title: 'Domain extension pricing', limit: 40, wrapperClass: 'pt-13 pb-15 bg-default-4' })}::jsonb)`;
+        }
+      }
+    },
+  };
+  for (const [key, fn] of Object.entries(PATCHES)) {
+    if (applied.has(key)) continue;
+    await sql.begin(fn);
+    applied.add(key);
+    await sql`insert into settings (key,value) values ('patches', ${JSON.stringify([...applied])}::jsonb) on conflict (key) do update set value = excluded.value`;
+    console.log('[db-setup] patch applied:', key);
+  }
 } catch (e) {
   console.error('[db-setup] FAILED', e);
   process.exitCode = 1;

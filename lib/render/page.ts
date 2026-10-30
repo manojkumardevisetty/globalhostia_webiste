@@ -94,6 +94,7 @@ ${T(blocks[page.headBlock])}
 ${seo}
 ${T(page.headExtra)}
 <link rel="stylesheet" href="/gh/site.css" />
+${s.design?.polish === false ? '' : '<link rel="stylesheet" href="/gh/polish.css" />'}
 ${design.fontsHref ? `<link rel="stylesheet" href="${esc(design.fontsHref)}" />` : ''}${design.css ? `<style id="gh-design">${design.css}</style>` : ''}
 ${s.custom_head || ''}${s.custom_css ? `<style id="gh-custom">${s.custom_css}</style>` : ''}
 </head>

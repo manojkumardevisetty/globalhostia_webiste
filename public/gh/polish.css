@@ -1,0 +1,59 @@
+/* GlobalHostia "smooth" polish layer — refines the original theme without changing its look.
+   Toggle in Admin → Design → "Smooth modern polish". */
+
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; -webkit-tap-highlight-color: transparent; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* 1. No more long white screen: the loader disappears after 0.6s even if images/video are still loading */
+.preloader { animation: gh-loader-out .35s ease .6s forwards; }
+@keyframes gh-loader-out { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+
+/* 2. Snappier scroll-in animations (theme used up to 1.2s) */
+[data-aos] { transition-duration: .55s !important; transition-timing-function: cubic-bezier(.2,.7,.2,1) !important; }
+[data-aos^="fade"][data-aos^="fade"] { transform: translate3d(0, 14px, 0); }
+[data-aos^="fade"][data-aos^="fade"].aos-animate { transform: none; }
+
+/* 3. Cards & plans: gentle lift with soft depth */
+.pricing-plan-two, .pricing-plan, .single-slide, .blog-card, .feature-box, .services-box, .aws-services-box, .single-service, .card {
+  transition: transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s ease, border-color .25s ease !important;
+}
+.pricing-plan-two:hover, .pricing-plan:hover, .aws-services-box:hover, .blog-card:hover {
+  transform: translateY(-4px); box-shadow: 0 22px 48px -22px rgba(22, 28, 45, .22) !important; border-color: rgba(71, 59, 240, .25) !important;
+}
+.servers-table tbody tr { transition: background-color .15s ease, box-shadow .15s ease; }
+
+/* 4. Buttons: smooth hover/press + visible keyboard focus */
+.btn, .btn-order, .btn-buy, .search-btn, button { transition: transform .15s ease, box-shadow .2s ease, background-color .2s ease, color .2s ease, border-color .2s ease !important; }
+.btn:hover, .btn-buy:hover, .btn-order:hover { transform: translateY(-1px); }
+.btn:active, .btn-buy:active, .btn-order:active { transform: translateY(0) scale(.98); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .btn:focus-visible {
+  outline: 3px solid rgba(71, 59, 240, .45) !important; outline-offset: 2px; box-shadow: none;
+}
+
+/* 5. Sticky header: frosted glass once it reveals on scroll */
+.site-header--sticky.reveal-header { background: rgba(255,255,255,.86) !important; -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px); }
+.site-header--sticky.reveal-header.dark-mode-texts { background: rgba(14, 18, 40, .82) !important; }
+
+/* 6. Inputs (domain search etc.): soft focus glow */
+input[type="text"], input[type="search"], input[type="email"], .inputdomainsearch, .domain-search-input-header {
+  transition: box-shadow .2s ease, border-color .2s ease;
+}
+.inputdomainsearch:focus, .domain-search-input-header:focus { box-shadow: 0 0 0 4px rgba(71, 59, 240, .15) !important; outline: none; }
+
+/* 7. Mobile comfort: 44px tap targets, no accidental sideways scroll */
+@media (max-width: 767px) {
+  .btn, .btn-order, .btn-buy, .nav-link { min-height: 44px; }
+  body { overflow-x: hidden; }
+}
+
+/* 8. Images fade instead of popping in */
+@media (prefers-reduced-motion: no-preference) {
+  img[loading="lazy"] { animation: gh-img-in .4s ease both; }
+  @keyframes gh-img-in { from { opacity: 0; } }
+}
+
+/* Respect users who turn animations off */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  [data-aos] { opacity: 1 !important; transform: none !important; }
+}

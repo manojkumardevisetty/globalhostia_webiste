@@ -12,13 +12,14 @@ export async function saveDesign(fd: FormData) {
     await audit(s, 'reset', 'design', null, { previous: old.design });
     done('/admin/design', 'Design reset to the original theme');
   }
-  const design: Record<string, string> = {};
+  const design: Record<string, any> = {};
   for (const k of Object.keys(DEFAULT_TOKENS)) {
     const hex = str(fd, `${k}_hex`), pick = str(fd, k);
     const v = (/^#[0-9a-f]{6}$/i.test(hex) ? hex : pick).toLowerCase();
     if (/^#[0-9a-f]{6}$/.test(v) && v !== DEFAULT_TOKENS[k]) design[k] = v;
   }
   for (const k of ['bodyFont', 'headingFont', 'radius', 'buttonRadius']) { const v = str(fd, k); if (v && v !== 'Inter') design[k] = v; }
+  if (fd.get('polish') !== 'on') (design as any).polish = false;
   await setSetting('design', design);
   await setSetting('custom_css', String(fd.get('custom_css') ?? '').replace(/<\/style/gi, ''));
   await audit(s, 'update', 'design', null, design);

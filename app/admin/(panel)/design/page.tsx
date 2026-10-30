@@ -28,6 +28,10 @@ export default async function Design({ searchParams }: { searchParams: Promise<R
               ))}
             </div>
           </Card>
+          <Card title="Smooth modern polish">
+            <label className="flex items-start gap-3 text-sm"><input type="checkbox" name="polish" defaultChecked={d.polish !== false} className="mt-0.5" />
+              <span><b>On (recommended)</b> — loader disappears fast, smoother hover/scroll animations, frosted sticky header, clearer keyboard focus and bigger mobile tap targets. Your design and colours stay the same.</span></label>
+          </Card>
           <Card title="Typography & shape">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Body font"><select name="bodyFont" defaultValue={d.bodyFont || 'Inter'} className="input">{FONTS.map((f) => <option key={f}>{f}</option>)}</select></Field>
