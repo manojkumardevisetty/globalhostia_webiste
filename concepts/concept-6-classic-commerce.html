@@ -1,0 +1,1071 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GlobalHostia — Concept 6 Classic Commerce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#ffffff;--ink:#111111;--body:#4a5059;--mute:#7b818a;
+  --line:#e6e8eb;--line-2:#d5d9de;--tint:#f5f6f7;
+  --teal:#0ea5a0;--teal-deep:#0b7f7b;--teal-tint:#e6f7f5;--teal-ink:#07605c;
+  --charcoal:#1f2429;--charcoal-2:#2a3036;
+  --amber:#f59e0b;--amber-tint:#fff5e0;
+  --r:10px;--r-lg:14px;--r-pill:999px;
+  --shadow:0 12px 28px rgba(17,17,17,.08),0 2px 6px rgba(17,17,17,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',system-ui,sans-serif;font-weight:500;font-size:16px;line-height:1.5;color:var(--ink);background:var(--white);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit}
+ul{list-style:none}
+svg{display:block}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px;border-radius:6px}
+.wrap{width:min(1200px,100% - 40px);margin-inline:auto}
+h1,h2,h3{font-weight:900;letter-spacing:-.02em;line-height:1.05;color:var(--ink)}
+h1{font-size:clamp(40px,7vw,76px);letter-spacing:-.035em}
+h2{font-size:clamp(30px,4.2vw,44px)}
+h3{font-size:22px;letter-spacing:-.01em}
+p{color:var(--body)}
+.lead{font-size:19px;color:var(--body);font-weight:500}
+.screen{display:none}
+.screen.on{display:block}
+
+/* preview chrome */
+.previewbar{position:fixed;top:0;left:0;right:0;z-index:90;display:flex;gap:8px;align-items:center;justify-content:center;padding:8px 12px;background:var(--charcoal);color:#fff;font-size:13px;transform:translateY(-100%);transition:transform .2s}
+.previewbar.show,body.framed .previewbar{transform:none}
+.previewbar button{border:1px solid #475058;border-radius:var(--r-pill);padding:5px 12px;font-weight:600;color:#fff}
+.previewbar button.on{background:var(--teal);border-color:var(--teal)}
+.framebtn{position:fixed;right:16px;bottom:16px;z-index:70;background:var(--ink);color:#fff;border-radius:var(--r-pill);padding:10px 16px;font-size:13px;font-weight:700;display:flex;gap:8px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+body.framed{background:#e9ebee;padding:52px 0 32px;display:flex;justify-content:center;min-height:100vh}
+body.framed .site{width:375px;height:780px;overflow:auto;border-radius:40px;box-shadow:0 0 0 12px #1a1d21,0 0 0 14px #3a3f45,0 40px 80px rgba(0,0,0,.35);scrollbar-width:none;background:#fff;position:relative}
+body.framed .site::-webkit-scrollbar{display:none}
+body.framed .framebtn{display:none}
+body.framed .topbar{position:sticky}
+
+/* top nav */
+.topbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:28px;height:68px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-.03em}
+.logo i{width:30px;height:30px;border-radius:9px;background:var(--teal);display:grid;place-items:center}
+.menu{display:flex;gap:4px;flex:1}
+.menu>li{position:relative}
+.menu>li>a,.menu>li>button{display:flex;align-items:center;gap:5px;padding:9px 13px;border-radius:8px;font-weight:600;font-size:15px}
+.menu>li>a:hover,.menu>li>button:hover,.menu>li>button[aria-expanded="true"]{background:var(--tint)}
+.menu>li>button svg{transition:transform .15s}
+.menu>li>button[aria-expanded="true"] svg{transform:rotate(180deg)}
+.navright{display:flex;align-items:center;gap:6px;margin-left:auto}
+.navright a,.navright button{display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:8px;font-weight:600;font-size:15px}
+.navright a:hover,.navright button:hover{background:var(--tint)}
+.cartcount{min-width:18px;height:18px;border-radius:9px;background:var(--teal);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 5px}
+.burger{display:none;width:42px;height:42px;border-radius:8px;place-items:center}
+/* mega menu */
+.mega{position:absolute;left:0;top:calc(100% + 10px);width:880px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:0 24px 60px rgba(17,17,17,.14);padding:26px 26px 20px;display:none;z-index:60}
+.mega.open{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.mega h4{font-size:12px;font-weight:800;color:var(--teal-ink);letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px}
+.mega li a{display:flex;flex-direction:column;padding:7px 8px;margin-left:-8px;border-radius:8px;font-weight:600;font-size:14px}
+.mega li a small{font-weight:500;color:var(--mute);font-size:12.5px}
+.mega li a:hover{background:var(--teal-tint)}
+.mega li a b{color:var(--teal-deep);font-weight:700;font-size:12.5px}
+.megafoot{grid-column:1/-1;border-top:1px solid var(--line);padding-top:14px;display:flex;gap:12px;align-items:center;font-size:13px;color:var(--mute)}
+.megafoot a{color:var(--teal-deep);font-weight:700}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--r);padding:13px 22px;font-weight:700;font-size:15px;line-height:1;transition:background .15s,transform .1s;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn.dark{background:var(--ink);color:#fff}
+.btn.dark:hover{background:#000}
+.btn.teal{background:var(--teal);color:#fff}
+.btn.teal:hover{background:var(--teal-deep)}
+.btn.ghost{border:2px solid var(--line-2);background:#fff}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.sm{padding:9px 14px;font-size:14px;border-radius:8px}
+.btn.wide{width:100%}
+.link{color:var(--teal-deep);font-weight:700}
+.link:hover{text-decoration:underline}
+
+/* pills */
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:var(--r-pill);padding:4px 10px;font-size:12.5px;font-weight:700;line-height:1.2}
+.pill.save{background:var(--teal-tint);color:var(--teal-ink)}
+.pill.hot{background:var(--ink);color:#fff}
+.pill.amber{background:var(--amber-tint);color:#9a5b00}
+.loc{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--body);background:var(--tint);border-radius:6px;padding:3px 7px}
+
+/* hero */
+.hero{padding:72px 0 44px;text-align:center}
+.hero h1{max-width:900px;margin:0 auto 14px}
+.hero .lead{max-width:640px;margin:0 auto 34px}
+.search{display:flex;max-width:820px;margin:0 auto;background:#fff;border:2px solid var(--ink);border-radius:var(--r-pill);padding:6px 6px 6px 26px;box-shadow:0 18px 44px rgba(17,17,17,.12);align-items:center;gap:10px}
+.search input{flex:1;border:0;outline:0;font-size:19px;font-weight:600;min-width:0;background:transparent;padding:12px 0}
+.search input::placeholder{color:#9aa0a8;font-weight:500}
+.search .btn{border-radius:var(--r-pill);padding:16px 30px;font-size:17px}
+.tlds{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:20px auto 0}
+.tld{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--line);border-radius:var(--r-pill);padding:8px 14px;font-weight:800;font-size:14px;background:#fff;transition:border-color .15s}
+.tld span{font-weight:600;color:var(--teal-deep);font-size:13px}
+.tld:hover{border-color:var(--ink)}
+.tld.sale{border-color:var(--teal);background:var(--teal-tint)}
+.hero small.note{display:block;margin-top:16px;color:var(--mute);font-size:13px}
+
+/* trust row */
+.trust{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--tint)}
+.trust .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:18px 0}
+.trust div{display:flex;align-items:center;gap:12px;font-weight:600;font-size:14.5px}
+.trust div span{color:var(--mute);font-weight:500;display:block;font-size:13px}
+.trust svg{flex:none}
+
+/* section */
+.sec{padding:64px 0}
+.sec.tinted{background:var(--tint)}
+.sechead{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:28px}
+.sechead p{margin-top:8px;max-width:560px}
+.row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;scrollbar-width:thin}
+.row.four{grid-auto-columns:minmax(250px,1fr)}
+.card{scroll-snap-align:start;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;display:flex;flex-direction:column;gap:12px;transition:box-shadow .18s,transform .18s,border-color .18s;position:relative}
+.card:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:var(--line-2)}
+.card.featured{border:2px solid var(--teal)}
+.card .ill{height:84px;display:flex;align-items:center}
+.card h3{font-size:21px}
+.card .sub{font-size:14px;color:var(--body);min-height:42px}
+.card .from{font-size:13px;color:var(--mute);font-weight:600}
+.card .price{display:flex;align-items:baseline;gap:3px;color:var(--ink)}
+.card .price b{font-size:36px;font-weight:900;letter-spacing:-.03em;line-height:1}
+.card .price i{font-style:normal;font-size:16px;font-weight:700;color:var(--body)}
+.card .renew{font-size:12.5px;color:var(--mute)}
+.card .feats{display:flex;flex-direction:column;gap:7px;font-size:14px;color:var(--body);padding:6px 0 4px;border-top:1px solid var(--line)}
+.card .feats li{display:flex;gap:8px;align-items:flex-start}
+.card .feats svg{flex:none;margin-top:3px}
+.card .locs{display:flex;gap:5px;flex-wrap:wrap}
+.card .btn{margin-top:auto}
+.card .topline{display:flex;justify-content:space-between;align-items:center}
+.card.compact{padding:18px}
+.card.compact h3{font-size:18px}
+
+/* billing toggle */
+.toggle{display:inline-flex;background:var(--tint);border-radius:var(--r-pill);padding:4px;gap:2px}
+.toggle button{border-radius:var(--r-pill);padding:8px 16px;font-weight:700;font-size:14px;color:var(--body)}
+.toggle button.on{background:var(--ink);color:#fff}
+.toggle button .pill{margin-left:6px;padding:2px 7px;font-size:11px}
+
+/* teal band */
+.band{background:var(--teal);color:#fff;padding:56px 0}
+.band h2,.band p{color:#fff}
+.band .wrap{display:flex;align-items:center;justify-content:space-between;gap:32px}
+.band .btn{background:#fff;color:var(--ink)}
+.band .btn:hover{background:var(--teal-tint)}
+
+/* why grid */
+.why{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.why div{padding:26px;border:1px solid var(--line);border-radius:var(--r-lg)}
+.why h3{margin:14px 0 6px;font-size:19px}
+.why p{font-size:14.5px}
+
+/* page header */
+.pagehead{padding:48px 0 28px}
+.crumbs{font-size:13px;color:var(--mute);margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap}
+.crumbs a:hover{color:var(--ink)}
+.pagehead h1{font-size:clamp(34px,5vw,56px);max-width:760px}
+.pagehead .lead{margin-top:10px;max-width:620px}
+
+/* compare table */
+.table{border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:620px}
+th,td{padding:14px 16px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-weight:800;background:var(--tint);font-size:13px}
+th.col{text-align:center;font-size:17px;font-weight:900;background:#fff;border-left:1px solid var(--line)}
+th.col.hl{background:var(--teal-tint)}
+td.c{text-align:center;border-left:1px solid var(--line)}
+td.c.hl{background:#f3fbfa}
+tr:last-child td{border-bottom:0}
+td.c svg{margin:0 auto}
+.dash{color:var(--line-2);font-weight:800}
+
+/* VPS listing */
+.listing{display:grid;grid-template-columns:260px 1fr;gap:32px;align-items:start}
+.filters{position:sticky;top:88px;border:1px solid var(--line);border-radius:var(--r-lg);padding:20px}
+.filters h4{font-weight:800;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--mute);margin:14px 0 8px}
+.filters h4:first-child{margin-top:0}
+.filters label{display:flex;align-items:center;gap:9px;font-size:14.5px;padding:5px 0;cursor:pointer}
+.filters input[type=checkbox],.filters input[type=radio]{accent-color:var(--teal);width:17px;height:17px}
+.filters input[type=range]{width:100%;accent-color:var(--teal)}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar select{border:1px solid var(--line-2);border-radius:8px;padding:8px 12px;font-weight:600;background:#fff}
+.vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.vcard{border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;display:grid;grid-template-columns:1fr auto;gap:8px 16px;transition:box-shadow .18s,border-color .18s}
+.vcard:hover{box-shadow:var(--shadow);border-color:var(--line-2)}
+.vcard h3{font-size:19px}
+.vcard .specs{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:13.5px;color:var(--body);grid-column:1/-1;margin:6px 0}
+.vcard .specs b{color:var(--ink);font-weight:700}
+.vcard .price{text-align:right}
+.vcard .price b{font-size:28px;font-weight:900;letter-spacing:-.03em}
+.vcard .price small{display:block;font-size:12px;color:var(--mute)}
+.vcard .foot{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.empty{text-align:center;padding:60px 20px;border:1px dashed var(--line-2);border-radius:var(--r-lg);grid-column:1/-1}
+
+/* product detail */
+.pdp{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;align-items:start}
+.pdp .hd h1{font-size:clamp(34px,4.6vw,54px)}
+.pdp .gallery{background:var(--tint);border-radius:var(--r-lg);padding:30px;margin:24px 0}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:28px 0 20px}
+.tabs button{padding:10px 14px;font-weight:700;color:var(--body);border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-color:var(--teal)}
+.tabpane{display:none}
+.tabpane.on{display:block}
+.speclist{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px}
+.speclist div{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.speclist div span:last-child{font-weight:700}
+.faq details{border-bottom:1px solid var(--line);padding:14px 0}
+.faq summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between}
+.faq summary::after{content:"+";font-weight:900;color:var(--teal-deep)}
+.faq details[open] summary::after{content:"–"}
+.faq p{margin-top:8px;font-size:14.5px}
+.buybox{position:sticky;top:88px;border:2px solid var(--ink);border-radius:var(--r-lg);padding:26px;display:flex;flex-direction:column;gap:14px}
+.buybox .bigprice{display:flex;align-items:baseline;gap:4px}
+.buybox .bigprice b{font-size:48px;font-weight:900;letter-spacing:-.04em;line-height:1}
+.terms{display:grid;gap:8px}
+.terms label{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line-2);border-radius:var(--r);padding:12px 14px;cursor:pointer;font-weight:600;font-size:14.5px}
+.terms label:has(input:checked){border-color:var(--teal);background:var(--teal-tint)}
+.terms input{accent-color:var(--teal)}
+.terms small{color:var(--mute);font-weight:500;display:block;font-size:12.5px}
+.locpick{display:flex;gap:6px}
+.locpick button{flex:1;border:1px solid var(--line-2);border-radius:8px;padding:9px 6px;font-weight:700;font-size:13.5px}
+.locpick button.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.guar{display:flex;gap:10px;font-size:13px;color:var(--body);align-items:center}
+
+/* domains results */
+.dsearch{padding:40px 0 20px}
+.dsearch .search{max-width:100%}
+.dres{display:grid;grid-template-columns:1fr 320px;gap:28px;align-items:start;margin-top:28px}
+.dmain .r{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--line);border-radius:var(--r);padding:16px 20px;margin-bottom:10px;background:#fff}
+.dmain .r.best{border:2px solid var(--teal);background:var(--teal-tint)}
+.dmain .r .n{font-weight:800;font-size:20px;letter-spacing:-.02em}
+.dmain .r .n small{display:block;font-size:13px;color:var(--teal-ink);font-weight:600}
+.dmain .r .n small.t{color:var(--mute)}
+.dmain .r .p{text-align:right;white-space:nowrap}
+.dmain .r .p b{font-size:20px;font-weight:900}
+.dmain .r .p s{color:var(--mute);font-weight:500;font-size:13px;margin-right:6px}
+.dmain .r .p small{display:block;font-size:12px;color:var(--mute)}
+.dmain .r.taken{opacity:.75}
+.dside{border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;position:sticky;top:88px}
+.dside h3{font-size:18px;margin-bottom:12px}
+.dside .bundle{display:flex;flex-direction:column;gap:8px}
+.dside .bundle label{display:flex;gap:10px;align-items:center;font-size:14px;padding:9px 10px;border:1px solid var(--line);border-radius:8px}
+.dside .bundle input{accent-color:var(--teal)}
+.dside .bundle label span:last-child{margin-left:auto;font-weight:700}
+
+/* cart */
+.cartgrid{display:grid;grid-template-columns:1fr 380px;gap:32px;align-items:start}
+.steps{display:flex;gap:10px;margin-bottom:26px;font-size:14px;font-weight:700}
+.steps span{display:flex;align-items:center;gap:8px;color:var(--mute)}
+.steps span i{width:26px;height:26px;border-radius:50%;border:2px solid var(--line-2);display:grid;place-items:center;font-style:normal;font-size:13px}
+.steps span.on{color:var(--ink)}
+.steps span.on i{background:var(--ink);border-color:var(--ink);color:#fff}
+.steps span.done i{background:var(--teal);border-color:var(--teal);color:#fff}
+.item{display:grid;grid-template-columns:52px 1fr auto;gap:16px;border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;margin-bottom:12px;align-items:center}
+.item .ic{width:52px;height:52px;border-radius:12px;background:var(--teal-tint);display:grid;place-items:center}
+.item h3{font-size:17px}
+.item p{font-size:13.5px}
+.item select{border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;font-size:13.5px;font-weight:600;margin-top:8px}
+.item .p{text-align:right;font-weight:900;font-size:20px}
+.item .p small{display:block;font-size:12px;color:var(--mute);font-weight:500}
+.item .rm{font-size:12.5px;color:var(--mute);text-decoration:underline;margin-top:6px;display:block}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.form label{display:flex;flex-direction:column;gap:6px;font-size:13.5px;font-weight:700}
+.form label.full{grid-column:1/-1}
+.form input,.form select{border:1px solid var(--line-2);border-radius:8px;padding:11px 12px;font-weight:500;font-size:15px}
+.form input:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+.summary{border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;position:sticky;top:88px}
+.summary h3{font-size:19px;margin-bottom:14px}
+.summary .l{display:flex;justify-content:space-between;font-size:14.5px;padding:7px 0;color:var(--body)}
+.summary .l.tot{border-top:2px solid var(--ink);margin-top:8px;padding-top:12px;color:var(--ink);font-weight:900;font-size:22px}
+.coupon{display:flex;gap:6px;margin:12px 0}
+.coupon input{flex:1;border:1px solid var(--line-2);border-radius:8px;padding:9px 12px;min-width:0}
+.pay{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.pay span{border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:800;color:var(--body)}
+
+/* dashboard */
+.dash{display:grid;grid-template-columns:230px 1fr;gap:28px;align-items:start;padding:32px 0 64px}
+.dnav{border:1px solid var(--line);border-radius:var(--r-lg);padding:12px;position:sticky;top:88px}
+.dnav .me{display:flex;gap:10px;align-items:center;padding:8px 10px 14px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.dnav .me i{width:36px;height:36px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:900}
+.dnav .me small{display:block;color:var(--mute);font-size:12px;font-weight:500}
+.dnav a{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:8px;font-weight:600;font-size:14.5px}
+.dnav a.on{background:var(--ink);color:#fff}
+.dnav a:not(.on):hover{background:var(--tint)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi{border:1px solid var(--line);border-radius:var(--r-lg);padding:18px}
+.kpi small{color:var(--mute);font-weight:600;font-size:13px}
+.kpi b{display:block;font-size:30px;font-weight:900;letter-spacing:-.03em;margin-top:4px}
+.kpi em{font-style:normal;font-size:12.5px;color:var(--teal-ink);font-weight:700}
+.panel{border:1px solid var(--line);border-radius:var(--r-lg);margin-bottom:18px;overflow:hidden}
+.panel .ph{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+.panel .ph h3{font-size:18px}
+.svc{display:grid;grid-template-columns:1fr auto auto auto;gap:16px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);font-size:14.5px}
+.svc:last-child{border-bottom:0}
+.svc b{display:block}
+.svc small{color:var(--mute)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:var(--r-pill)}
+.st.ok{background:var(--teal-tint);color:var(--teal-ink)}
+.st.due{background:var(--amber-tint);color:#9a5b00}
+.st.ok::before,.st.due::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.notice{display:flex;gap:12px;align-items:center;background:var(--amber-tint);border:1px solid #fde3b0;border-radius:var(--r);padding:12px 16px;font-size:14px;margin-bottom:18px}
+.notice .btn{margin-left:auto}
+.usage{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:18px 20px}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:4px}
+.usage small{font-size:13px;color:var(--body);display:flex;justify-content:space-between;font-weight:600}
+
+/* footer */
+footer{background:var(--charcoal);color:#c7ccd1;padding:56px 0 28px;margin-top:40px}
+.fgrid{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:28px;padding-bottom:36px;border-bottom:1px solid var(--charcoal-2)}
+.fgrid h5{color:#fff;font-weight:800;font-size:14px;margin-bottom:12px}
+.fgrid li{font-size:14px;margin-bottom:8px}
+.fgrid li a:hover{color:#fff}
+.fgrid .logo{color:#fff;margin-bottom:12px}
+.fgrid p{color:#9aa1a8;font-size:14px;max-width:280px}
+.fbottom{display:flex;justify-content:space-between;gap:16px;padding-top:22px;font-size:13px;color:#9aa1a8;flex-wrap:wrap;align-items:center}
+.fbottom .flag{display:inline-flex;gap:8px}
+.fbottom .flag span{border:1px solid var(--charcoal-2);border-radius:6px;padding:3px 8px;font-weight:700;color:#c7ccd1}
+
+/* mobile drawer */
+.drawerbg{position:fixed;inset:0;background:rgba(17,17,17,.45);z-index:80;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(360px,88%);background:#fff;z-index:81;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;overflow:auto}
+body.drawer-open .drawerbg{display:block}
+body.drawer-open .drawer{transform:none}
+body.framed .drawerbg,body.framed .drawer{position:absolute}
+.drawer .dh{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
+.drawer .dh button{width:40px;height:40px;border-radius:8px;display:grid;place-items:center}
+.drawer details{border-bottom:1px solid var(--line)}
+.drawer summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:16px 18px;font-weight:800;font-size:17px;cursor:pointer}
+.drawer summary::after{content:"";width:10px;height:10px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:rotate(45deg);transition:transform .15s}
+.drawer details[open] summary::after{transform:rotate(-135deg)}
+.drawer details a{display:block;padding:10px 18px 10px 26px;font-weight:600;font-size:15px;color:var(--body)}
+.drawer details a:hover{color:var(--ink);background:var(--tint)}
+.drawer>a.plain{padding:16px 18px;font-weight:800;font-size:17px;border-bottom:1px solid var(--line)}
+.drawer .dfoot{margin-top:auto;padding:18px;display:grid;gap:10px}
+.drawer .dfoot small{color:var(--mute);font-size:12.5px;text-align:center}
+
+@media(max-width:1000px){
+  .trust .wrap{grid-template-columns:1fr 1fr}
+  .why{grid-template-columns:1fr}
+  .listing{grid-template-columns:1fr}
+  .filters{position:static}
+  .pdp,.dres,.cartgrid,.dash{grid-template-columns:1fr}
+  .buybox,.dside,.summary,.dnav{position:static}
+  .kpis{grid-template-columns:1fr 1fr}
+  .fgrid{grid-template-columns:1fr 1fr}
+  .band .wrap{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:760px),(max-width:400px){
+  .menu,.navright .label{display:none}
+  .burger{display:grid}
+  .nav{height:60px;gap:12px}
+  .hero{padding:40px 0 32px;text-align:left}
+  .hero h1{font-size:clamp(38px,11vw,50px)}
+  .hero .lead{margin:0 0 22px;font-size:17px}
+  .search{padding:5px 5px 5px 16px;border-radius:18px;flex-wrap:wrap}
+  .search input{font-size:17px;flex:1 1 100%;padding:12px 0 8px}
+  .search .btn{width:100%;border-radius:12px;padding:14px}
+  .tlds{justify-content:flex-start}
+  .trust .wrap{grid-template-columns:1fr 1fr;gap:10px}
+  .trust div{font-size:13px}
+  .sec{padding:40px 0}
+  .sechead{flex-direction:column;align-items:flex-start;gap:12px}
+  .row{grid-auto-columns:82%}
+  .vgrid{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .form{grid-template-columns:1fr}
+  .speclist{grid-template-columns:1fr}
+  .usage{grid-template-columns:1fr}
+  .svc{grid-template-columns:1fr auto}
+  .svc .hide-m{display:none}
+  .fgrid{grid-template-columns:1fr 1fr}
+  .dmain .r{flex-wrap:wrap}
+  .dmain .r .p{text-align:left;width:100%;display:flex;justify-content:space-between;align-items:center}
+  .dmain .r .btn{width:100%}
+  .item{grid-template-columns:44px 1fr}
+  .item .p{grid-column:2;text-align:left}
+}
+body.framed .menu,body.framed .navright .label{display:none}
+body.framed .burger{display:grid}
+body.framed .nav{height:60px;gap:12px}
+body.framed .hero{padding:40px 0 32px;text-align:left}
+body.framed .hero h1{font-size:44px}
+body.framed .hero .lead{margin:0 0 22px;font-size:17px}
+body.framed .search{padding:5px 5px 5px 16px;border-radius:18px;flex-wrap:wrap}
+body.framed .search input{font-size:17px;flex:1 1 100%;padding:12px 0 8px}
+body.framed .search .btn{width:100%;border-radius:12px;padding:14px}
+body.framed .tlds{justify-content:flex-start}
+body.framed .trust .wrap{grid-template-columns:1fr 1fr;gap:10px}
+body.framed .why,body.framed .listing,body.framed .pdp,body.framed .dres,body.framed .cartgrid,body.framed .dash,body.framed .vgrid,body.framed .form,body.framed .speclist,body.framed .usage{grid-template-columns:1fr}
+body.framed .filters,body.framed .buybox,body.framed .dside,body.framed .summary,body.framed .dnav{position:static}
+body.framed .kpis,body.framed .fgrid{grid-template-columns:1fr 1fr}
+body.framed .sec{padding:40px 0}
+body.framed .sechead{flex-direction:column;align-items:flex-start;gap:12px}
+body.framed .row{grid-auto-columns:82%}
+body.framed .svc{grid-template-columns:1fr auto}
+body.framed .svc .hide-m{display:none}
+body.framed .band .wrap{flex-direction:column;align-items:flex-start}
+body.framed .dmain .r{flex-wrap:wrap}
+body.framed .dmain .r .p{text-align:left;width:100%;display:flex;justify-content:space-between;align-items:center}
+body.framed .dmain .r .btn{width:100%}
+body.framed .item{grid-template-columns:44px 1fr}
+body.framed .item .p{grid-column:2;text-align:left}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="previewbar" id="previewbar">
+  <span>Preview:</span>
+  <button id="pv-desktop">Desktop</button>
+  <button id="pv-mobile">375 px phone frame</button>
+  <span style="opacity:.6;margin-left:8px">Concept 6 · Classic Commerce</span>
+</div>
+<button class="framebtn" id="framebtn" aria-label="Preview in a 375px phone frame">
+  <svg width="14" height="18" viewBox="0 0 14 18" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="12" height="16" rx="2.5"/><circle cx="7" cy="14" r=".8" fill="currentColor"/></svg>
+  Mobile preview
+</button>
+
+<div class="site" id="site">
+
+<!-- ===== TOP NAV ===== -->
+<header class="topbar">
+  <div class="wrap nav">
+    <a href="#home" class="logo" aria-label="GlobalHostia home"><i><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2.2 2 2.2 10 0 12M8 2c-2.2 2-2.2 10 0 12"/></svg></i>GlobalHostia</a>
+    <ul class="menu">
+      <li><a href="#domains">Domains</a></li>
+      <li><a href="#shared">Websites &amp; Hosting</a></li>
+      <li><a href="#shared">Email</a></li>
+      <li><a href="#pricing">Security</a></li>
+      <li>
+        <button id="megabtn" aria-expanded="false" aria-controls="mega">Pricing <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4l4 4 4-4"/></svg></button>
+        <div class="mega" id="mega" role="region" aria-label="All products">
+          <div><h4>Domains</h4><ul>
+            <li><a href="#domains">Domain search <b>.com $13.65/yr</b></a></li>
+            <li><a href="#domains">Transfer a domain <small>Keep your time left</small></a></li>
+            <li><a href="#domains">.ae domains <small>UAE presence</small></a></li>
+            <li><a href="#domains">Domain bundles <small>Save with .com + .net</small></a></li>
+          </ul></div>
+          <div><h4>Websites &amp; hosting</h4><ul>
+            <li><a href="#shared">Shared hosting <b>from $2.99/mo</b></a></li>
+            <li><a href="#shared">Managed WordPress <b>from $12.99/mo</b></a></li>
+            <li><a href="#vps">VPS hosting <b>from $8/mo</b></a></li>
+            <li><a href="#vps">Dedicated servers <b>from $39.99/mo</b></a></li>
+            <li><a href="#vps">AI / LLM servers <b>from $8.99/mo</b></a></li>
+          </ul></div>
+          <div><h4>Email &amp; tools</h4><ul>
+            <li><a href="#pricing">Business email <small>Your name @ your domain</small></a></li>
+            <li><a href="#pricing">Google Workspace <small>Gmail, Drive, Meet</small></a></li>
+            <li><a href="#pricing">n8n automation <small>Pro and Elite</small></a></li>
+            <li><a href="#pricing">cPanel reseller <small>Coming soon</small></a></li>
+          </ul></div>
+          <div><h4>Security</h4><ul>
+            <li><a href="#pricing">PositiveSSL DV <b>$9.23/yr</b></a></li>
+            <li><a href="#pricing">Thawte SSL123 Flex <b>$49.22/yr</b></a></li>
+            <li><a href="#pricing">EssentialSSL Wildcard <b>$109.51/yr</b></a></li>
+            <li><a href="#pricing">GeoTrust TrueBusinessID <small>Extended validation</small></a></li>
+          </ul></div>
+          <div class="megafoot">All prices in USD. Renewal prices shown on each product. <a href="#pricing">Compare all plans</a></div>
+        </div>
+      </li>
+    </ul>
+    <div class="navright">
+      <a href="#dashboard"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="6.5" r="3.5"/><path d="M2.5 16c1-3.5 3.5-5 6.5-5s5.5 1.5 6.5 5"/></svg><span class="label">Sign in</span></a>
+      <a href="#cart" aria-label="Cart"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1.5 2h2.3l2 9.5h8.4l1.6-6.5H5"/><circle cx="7" cy="15" r="1.3"/><circle cx="13" cy="15" r="1.3"/></svg><span class="cartcount" id="cartcount">2</span></a>
+      <button class="burger" id="burger" aria-label="Open menu"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h16M3 11h16M3 16h16"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<!-- mobile drawer -->
+<div class="drawerbg" id="drawerbg"></div>
+<nav class="drawer" id="drawer" aria-label="Mobile menu">
+  <div class="dh"><span class="logo"><i><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2.2 2 2.2 10 0 12M8 2c-2.2 2-2.2 10 0 12"/></svg></i>GlobalHostia</span><button id="drawerclose" aria-label="Close menu"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4l12 12M16 4L4 16"/></svg></button></div>
+  <details open><summary>Domains</summary><a href="#domains">Domain search</a><a href="#domains">Transfer a domain</a><a href="#domains">.ae domains</a></details>
+  <details><summary>Websites &amp; Hosting</summary><a href="#shared">Shared hosting</a><a href="#shared">Managed WordPress</a><a href="#vps">VPS hosting</a><a href="#vps">Dedicated servers</a><a href="#vps">AI / LLM servers</a></details>
+  <details><summary>Email</summary><a href="#pricing">Business email</a><a href="#pricing">Google Workspace</a></details>
+  <details><summary>Security</summary><a href="#pricing">SSL certificates</a></details>
+  <a class="plain" href="#pricing">Pricing</a>
+  <a class="plain" href="#dashboard">My account</a>
+  <div class="dfoot"><a class="btn dark wide" href="#dashboard">Sign in</a><a class="btn ghost wide" href="#cart">View cart (2)</a><small>24/7 support · Dubai, UAE</small></div>
+</nav>
+
+<!-- ===== 1. HOME ===== -->
+<section class="screen" id="home">
+  <div class="wrap hero">
+    <h1>Your name. Your site. All in one place.</h1>
+    <p class="lead">Find a domain, pick a hosting plan and go live today — servers in the UAE, USA and Singapore.</p>
+    <form class="search" onsubmit="return doSearch(this, 'home-q')">
+      <input id="home-q" type="text" placeholder="Type the domain you want" aria-label="Domain name">
+      <button class="btn dark" type="submit">Search domain</button>
+    </form>
+    <div class="tlds">
+      <a class="tld sale" href="#domains">.shop <span>$1.20</span></a>
+      <a class="tld" href="#domains">.com <span>$13.65</span></a>
+      <a class="tld" href="#domains">.net <span>$8.29</span></a>
+      <a class="tld" href="#domains">.org <span>$8.65</span></a>
+      <a class="tld" href="#domains">.ae <span>from $19</span></a>
+      <a class="tld" href="#domains">.io <span>from $39</span></a>
+    </div>
+    <small class="note">First-year prices. .ae and .io shown from live registry rate at checkout.</small>
+  </div>
+
+  <div class="trust"><div class="wrap">
+    <div><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#0ea5a0" stroke-width="2"><circle cx="15" cy="15" r="12"/><path d="M15 8v7l5 3"/></svg><p>24/7 support<span>Live chat, phone and tickets</span></p></div>
+    <div><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#0ea5a0" stroke-width="2"><path d="M4 15a11 11 0 1 0 3-7.5"/><path d="M4 5v6h6"/><path d="M11 15l3 3 6-6"/></svg><p>30-day money-back<span>On shared and WordPress plans</span></p></div>
+    <div><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#0ea5a0" stroke-width="2"><path d="M3 20l6-8 5 5 5-9 8 12"/><path d="M3 24h24"/></svg><p>99.9% uptime<span>Backed by our SLA</span></p></div>
+    <div><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#0ea5a0" stroke-width="2"><circle cx="15" cy="15" r="12"/><path d="M3 15h24M15 3c4 3.5 4 20.5 0 24M15 3c-4 3.5-4 20.5 0 24"/></svg><p>UAE · USA · SG · IN<span>Choose where your data lives</span></p></div>
+  </div></div>
+
+  <div class="wrap sec">
+    <div class="sechead"><div><h2>Hosting that fits the job</h2><p>Every plan comes with free SSL, NVMe storage and the same 24/7 team.</p></div><a class="link" href="#pricing">Compare all plans</a></div>
+    <div class="row four">
+      <div class="card">
+        <div class="ill"><svg width="92" height="70" viewBox="0 0 92 70" fill="none"><rect x="6" y="8" width="80" height="54" rx="8" fill="#e6f7f5"/><rect x="14" y="18" width="40" height="6" rx="3" fill="#0ea5a0"/><rect x="14" y="30" width="64" height="4" rx="2" fill="#b8e6e2"/><rect x="14" y="40" width="52" height="4" rx="2" fill="#b8e6e2"/><rect x="14" y="50" width="24" height="6" rx="3" fill="#111"/></svg></div>
+        <h3>Shared hosting</h3><p class="sub">Websites, blogs and small shops on cPanel.</p>
+        <span class="from">Starting at</span><div class="price"><i>$</i><b>2.99</b><i>/mo</i></div>
+        <span class="renew">Renews at $4.99/mo</span>
+        <a class="btn dark" href="#shared">See plans</a>
+      </div>
+      <div class="card">
+        <div class="ill"><svg width="92" height="70" viewBox="0 0 92 70" fill="none"><circle cx="46" cy="35" r="30" fill="#e6f7f5"/><circle cx="46" cy="35" r="18" fill="none" stroke="#0ea5a0" stroke-width="5"/><path d="M34 29l5 14 7-10 7 10 5-14" stroke="#111" stroke-width="3" fill="none" stroke-linejoin="round"/></svg></div>
+        <h3>Managed WordPress</h3><p class="sub">Updates, caching and backups handled for you.</p>
+        <span class="from">Starting at</span><div class="price"><i>$</i><b>12.99</b><i>/mo</i></div>
+        <span class="renew">Renews at $12.99/mo</span>
+        <a class="btn dark" href="#shared">See plans</a>
+      </div>
+      <div class="card">
+        <div class="ill"><svg width="92" height="70" viewBox="0 0 92 70" fill="none"><rect x="12" y="6" width="68" height="16" rx="4" fill="#e6f7f5"/><rect x="12" y="27" width="68" height="16" rx="4" fill="#e6f7f5"/><rect x="12" y="48" width="68" height="16" rx="4" fill="#e6f7f5"/><circle cx="22" cy="14" r="3" fill="#0ea5a0"/><circle cx="22" cy="35" r="3" fill="#0ea5a0"/><circle cx="22" cy="56" r="3" fill="#0ea5a0"/><rect x="32" y="12" width="36" height="4" rx="2" fill="#111"/><rect x="32" y="33" width="26" height="4" rx="2" fill="#b8e6e2"/><rect x="32" y="54" width="30" height="4" rx="2" fill="#b8e6e2"/></svg></div>
+        <h3>VPS hosting</h3><p class="sub">Root access on Linux or Windows, scale when you need.</p>
+        <span class="from">Starting at</span><div class="price"><i>$</i><b>8</b><i>/mo</i></div>
+        <span class="renew">Renews at $8/mo</span>
+        <a class="btn dark" href="#vps">See plans</a>
+      </div>
+      <div class="card">
+        <div class="ill"><svg width="92" height="70" viewBox="0 0 92 70" fill="none"><rect x="10" y="10" width="72" height="50" rx="8" fill="#e6f7f5"/><rect x="20" y="20" width="52" height="30" rx="4" fill="#fff" stroke="#0ea5a0" stroke-width="2"/><path d="M30 30h8v8h-8zM46 30h8v8h-8z" fill="#111"/><path d="M38 34h8" stroke="#0ea5a0" stroke-width="2"/></svg></div>
+        <h3>Dedicated servers</h3><p class="sub">22 bare-metal configurations up to 32 cores / 10 Gbps.</p>
+        <span class="from">Starting at</span><div class="price"><i>$</i><b>39.99</b><i>/mo</i></div>
+        <span class="renew">Renews at $39.99/mo</span>
+        <a class="btn dark" href="#vps">See servers</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec tinted"><div class="wrap">
+    <div class="sechead"><div><h2>Run AI and automations on your own box</h2><p>GPU-ready LLM servers and hosted n8n, billed monthly, no contracts.</p></div><a class="link" href="#vps">All server plans</a></div>
+    <div class="row">
+      <div class="card compact"><div class="topline"><h3>Starter AI</h3><span class="pill save">Popular</span></div><p class="sub">Run 7B models, chat and embeddings for one app.</p><span class="from">Starting at</span><div class="price"><i>$</i><b>8.99</b><i>/mo</i></div><span class="renew">Renews at $8.99/mo</span><a class="btn ghost" href="#cart">Add to cart</a></div>
+      <div class="card compact"><h3>Professional AI</h3><p class="sub">13B–30B models, vector DB included.</p><span class="from">Starting at</span><div class="price"><i>$</i><b>18.99</b><i>/mo</i></div><span class="renew">Renews at $18.99/mo</span><a class="btn ghost" href="#cart">Add to cart</a></div>
+      <div class="card compact"><h3>Enterprise AI</h3><p class="sub">70B models, dedicated GPU slice and SLA.</p><span class="from">Starting at</span><div class="price"><i>$</i><b>25.99</b><i>/mo</i></div><span class="renew">Renews at $25.99/mo</span><a class="btn ghost" href="#cart">Add to cart</a></div>
+      <div class="card compact"><h3>n8n Pro</h3><p class="sub">Hosted n8n with SSL, backups and unlimited workflows.</p><span class="from">Quote</span><div class="price"><b style="font-size:22px">Contact sales</b></div><span class="renew">n8n Elite also available</span><a class="btn ghost" href="#cart">Talk to us</a></div>
+    </div>
+  </div></div>
+
+  <div class="wrap sec">
+    <div class="sechead"><div><h2>Why people host with us</h2></div></div>
+    <div class="why">
+      <div><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#0ea5a0" stroke-width="2.2"><path d="M20 4l13 5v10c0 8-5.5 14-13 17-7.5-3-13-9-13-17V9z"/><path d="M14 20l4 4 8-8"/></svg><h3>Free SSL on every plan</h3><p>Certificates install and renew by themselves. Pay only if you need wildcard or business validation.</p></div>
+      <div><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#0ea5a0" stroke-width="2.2"><rect x="5" y="8" width="30" height="24" rx="4"/><path d="M5 16h30M12 24h8"/></svg><h3>One bill, one login</h3><p>Domains, hosting, email and SSL on a single invoice. Renew everything from one dashboard.</p></div>
+      <div><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#0ea5a0" stroke-width="2.2"><circle cx="20" cy="20" r="15"/><path d="M20 11v9l6 4"/></svg><h3>Humans answer in minutes</h3><p>Our Dubai team covers every time zone. Median first reply: 4 minutes on chat.</p></div>
+    </div>
+  </div>
+
+  <div class="band"><div class="wrap">
+    <div><h2>Moving from another host?</h2><p style="margin-top:8px;font-size:17px">We migrate your site, email and DNS for free on any annual plan.</p></div>
+    <a class="btn" href="#shared">Start a free migration</a>
+  </div></div>
+</section>
+
+<!-- ===== 2. SHARED HOSTING CATEGORY ===== -->
+<section class="screen" id="shared">
+  <div class="wrap pagehead">
+    <div class="crumbs"><a href="#home">Home</a><span>/</span><span>Websites &amp; Hosting</span><span>/</span><span>Shared hosting</span></div>
+    <h1>Shared hosting on NVMe, with cPanel</h1>
+    <p class="lead">Three plans, all with free SSL, daily backups and a free domain on annual billing. Pick a data centre at checkout.</p>
+  </div>
+  <div class="wrap">
+    <div class="sechead" style="margin-bottom:18px">
+      <div class="toggle" role="group" aria-label="Billing cycle">
+        <button class="on" data-cycle="annual" onclick="setCycle('annual',this)">Annual <span class="pill save">Save up to 40%</span></button>
+        <button data-cycle="monthly" onclick="setCycle('monthly',this)">Monthly</button>
+      </div>
+      <div style="display:flex;gap:6px"><span class="loc">UAE</span><span class="loc">USA</span><span class="loc">SG</span></div>
+    </div>
+    <div class="row" id="sharedrow"></div>
+  </div>
+  <div class="wrap sec">
+    <div class="sechead"><div><h2>Every plan includes</h2></div></div>
+    <div class="why">
+      <div><h3 style="margin-top:0">cPanel &amp; Softaculous</h3><p>One-click WordPress, Joomla, Laravel and 400+ apps. Full file manager, cron, PHP selector.</p></div>
+      <div><h3 style="margin-top:0">Daily backups</h3><p>Seven rolling restore points. Restore a file, a database or the whole account yourself.</p></div>
+      <div><h3 style="margin-top:0">Free email</h3><p>POP/IMAP mailboxes on your domain with webmail and spam filtering, no extra charge.</p></div>
+    </div>
+  </div>
+  <div class="wrap sec" style="padding-top:0">
+    <div class="sechead"><div><h2>Need WordPress handled for you?</h2><p>Managed WordPress adds staging, automatic core updates and object caching.</p></div></div>
+    <div class="card featured" style="max-width:520px">
+      <div class="topline"><h3>Managed WordPress</h3><span class="pill save">1 site · 25 GB NVMe</span></div>
+      <p class="sub">Free SSL, staging site, automatic updates and nightly off-site backups.</p>
+      <span class="from">Starting at</span><div class="price"><i>$</i><b>12.99</b><i>/mo</i></div>
+      <span class="renew">Renews at $12.99/mo · billed annually</span>
+      <a class="btn teal" href="#cart" onclick="addItem('Managed WordPress','1 site · 25 GB NVMe · annual',12.99,12.99)">Add to cart</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 3. VPS LISTING ===== -->
+<section class="screen" id="vps">
+  <div class="wrap pagehead">
+    <div class="crumbs"><a href="#home">Home</a><span>/</span><span>Websites &amp; Hosting</span><span>/</span><span>VPS hosting</span></div>
+    <h1>VPS hosting with root access</h1>
+    <p class="lead">Ten configurations across Linux, Windows and low-latency Forex VPS. Deployed in under 60 seconds.</p>
+  </div>
+  <div class="wrap listing" style="padding-bottom:64px">
+    <aside class="filters" aria-label="Filters">
+      <h4>Operating system</h4>
+      <label><input type="checkbox" class="f-os" value="linux" checked> Linux</label>
+      <label><input type="checkbox" class="f-os" value="windows" checked> Windows</label>
+      <label><input type="checkbox" class="f-os" value="forex" checked> Forex (MT4/MT5)</label>
+      <h4>Minimum memory</h4>
+      <input type="range" id="f-ram" min="0" max="64" step="4" value="0" oninput="document.getElementById('f-ramv').textContent=this.value+' GB';renderVps()">
+      <small style="font-size:13px;color:var(--mute)">At least <span id="f-ramv">0 GB</span></small>
+      <h4>Location</h4>
+      <label><input type="radio" name="f-loc" value="" checked> Any</label>
+      <label><input type="radio" name="f-loc" value="UAE"> UAE</label>
+      <label><input type="radio" name="f-loc" value="USA"> USA</label>
+      <label><input type="radio" name="f-loc" value="SG"> Singapore</label>
+      <label><input type="radio" name="f-loc" value="IN"> India</label>
+      <h4>Budget</h4>
+      <label><input type="radio" name="f-bud" value="999" checked> Any</label>
+      <label><input type="radio" name="f-bud" value="20"> Under $20/mo</label>
+      <label><input type="radio" name="f-bud" value="60"> Under $60/mo</label>
+    </aside>
+    <div>
+      <div class="toolbar">
+        <span style="font-weight:700" id="vpscount">10 plans</span>
+        <label style="font-size:14px;font-weight:600">Sort <select id="vpssort" onchange="renderVps()"><option value="price">Price, low to high</option><option value="price-desc">Price, high to low</option><option value="ram">Memory</option></select></label>
+      </div>
+      <div class="vgrid" id="vpsgrid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 4. PRODUCT DETAIL ===== -->
+<section class="screen" id="product">
+  <div class="wrap pagehead" style="padding-bottom:0">
+    <div class="crumbs"><a href="#home">Home</a><span>/</span><a href="#shared">Shared hosting</a><span>/</span><span>Hostia Ultra</span></div>
+  </div>
+  <div class="wrap pdp" style="padding-bottom:64px">
+    <div>
+      <div class="hd"><span class="pill hot">Most popular</span><h1 style="margin-top:12px">Hostia Ultra</h1><p class="lead" style="margin-top:8px">Ten websites, 50 GB NVMe and a free domain. The plan most of our customers land on.</p></div>
+      <div class="gallery">
+        <svg viewBox="0 0 640 260" width="100%" height="auto" fill="none" role="img" aria-label="Illustration of websites hosted on one plan">
+          <rect x="40" y="30" width="260" height="170" rx="12" fill="#fff" stroke="#d5d9de"/><rect x="40" y="30" width="260" height="28" rx="12" fill="#f5f6f7"/><circle cx="58" cy="44" r="4" fill="#0ea5a0"/><circle cx="72" cy="44" r="4" fill="#b8e6e2"/><rect x="60" y="76" width="120" height="12" rx="6" fill="#111"/><rect x="60" y="98" width="200" height="6" rx="3" fill="#d5d9de"/><rect x="60" y="112" width="160" height="6" rx="3" fill="#d5d9de"/><rect x="60" y="140" width="80" height="26" rx="8" fill="#0ea5a0"/>
+          <rect x="330" y="70" width="260" height="170" rx="12" fill="#fff" stroke="#d5d9de"/><rect x="330" y="70" width="260" height="28" rx="12" fill="#f5f6f7"/><circle cx="348" cy="84" r="4" fill="#0ea5a0"/><rect x="350" y="116" width="90" height="12" rx="6" fill="#111"/><rect x="350" y="140" width="220" height="60" rx="8" fill="#e6f7f5"/>
+          <rect x="170" y="190" width="200" height="50" rx="10" fill="#111"/><text x="270" y="221" fill="#fff" font-family="Outfit" font-weight="800" font-size="16" text-anchor="middle">10 sites · 1 plan</text>
+        </svg>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="on" onclick="showTab('over',this)">Overview</button>
+        <button onclick="showTab('spec',this)">Specs</button>
+        <button onclick="showTab('loc',this)">Locations</button>
+        <button onclick="showTab('faq',this)">FAQ</button>
+      </div>
+      <div class="tabpane on" id="t-over">
+        <ul class="feats" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;font-size:15px;color:var(--body)">
+          <li>10 websites on one account</li><li>50 GB NVMe storage</li><li>Unmetered bandwidth</li><li>Free domain for 1 year (annual)</li><li>Free SSL, auto-renewing</li><li>100 email accounts</li><li>Daily backups, 7 restore points</li><li>cPanel, LiteSpeed, PHP 7.4–8.3</li>
+        </ul>
+        <p style="margin-top:18px">Ultra sits on LiteSpeed Enterprise with LSCache, which means WordPress and WooCommerce pages are served from cache without a plugin fight. Accounts are limited to 3 GB RAM and 2 CPU per process so one busy site can't slow your others.</p>
+      </div>
+      <div class="tabpane" id="t-spec"><div class="speclist">
+        <div><span>Storage</span><span>50 GB NVMe</span></div><div><span>Websites</span><span>10</span></div><div><span>Bandwidth</span><span>Unmetered</span></div><div><span>Email accounts</span><span>100</span></div><div><span>Databases</span><span>50 MySQL / MariaDB</span></div><div><span>Control panel</span><span>cPanel</span></div><div><span>Web server</span><span>LiteSpeed Enterprise</span></div><div><span>PHP</span><span>7.4 – 8.3 selectable</span></div><div><span>Memory per process</span><span>3 GB</span></div><div><span>Inodes</span><span>500,000</span></div><div><span>Backups</span><span>Daily, 7 days</span></div><div><span>SSH / Git</span><span>Included</span></div>
+      </div></div>
+      <div class="tabpane" id="t-loc">
+        <div class="why">
+          <div><span class="loc">UAE</span><h3>Dubai</h3><p>Lowest latency for GCC visitors. .ae domain friendly.</p></div>
+          <div><span class="loc">USA</span><h3>Dallas</h3><p>Central US, good for North and South American traffic.</p></div>
+          <div><span class="loc">SG</span><h3>Singapore</h3><p>South-East Asia and Australia within 60 ms.</p></div>
+        </div>
+      </div>
+      <div class="tabpane faq" id="t-faq">
+        <details open><summary>What happens at renewal?</summary><p>Ultra renews at $8.99/mo on the same billing cycle. We email you 30 days before and you can cancel from the dashboard at any time.</p></details>
+        <details><summary>Can I move up to Infinity later?</summary><p>Yes, upgrades are prorated and take effect immediately. No migration needed.</p></details>
+        <details><summary>Is the free domain mine to keep?</summary><p>Yes. It's registered in your name and renews at the normal rate after year one.</p></details>
+        <details><summary>Do you refund?</summary><p>Full refund within 30 days on shared plans. Domain registrations are non-refundable.</p></details>
+      </div>
+    </div>
+    <aside class="buybox">
+      <div><span class="from" style="font-size:13px;color:var(--mute);font-weight:600">Starting at</span><div class="bigprice"><i style="font-style:normal;font-weight:700;font-size:20px">$</i><b id="pdp-amt">5.99</b><i style="font-style:normal;font-weight:700;color:var(--body)">/mo</i><span class="pill save" style="margin-left:10px">Save 33%</span></div><span class="renew" style="font-size:13px;color:var(--mute)" id="pdp-renew">Billed $71.88 today · renews at $8.99/mo</span></div>
+      <div class="terms" role="radiogroup" aria-label="Term">
+        <label><span>12 months<small>Free domain included</small></span><span>$5.99/mo <input type="radio" name="term" value="12" checked onchange="setTerm(12)"></span></label>
+        <label><span>24 months<small>Free domain, price locked</small></span><span>$5.99/mo <input type="radio" name="term" value="24" onchange="setTerm(24)"></span></label>
+        <label><span>1 month<small>No free domain</small></span><span>$8.99/mo <input type="radio" name="term" value="1" onchange="setTerm(1)"></span></label>
+      </div>
+      <div><small style="font-weight:700;font-size:13px;display:block;margin-bottom:6px">Data centre</small><div class="locpick"><button class="on" onclick="pickLoc(this)">UAE</button><button onclick="pickLoc(this)">USA</button><button onclick="pickLoc(this)">Singapore</button></div></div>
+      <a class="btn teal wide" href="#cart" onclick="addItem('Hostia Ultra','10 sites · 50 GB NVMe · '+curTerm+' mo',curTerm===1?8.99:5.99,8.99)">Add to cart</a>
+      <div class="guar"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#0ea5a0" stroke-width="2"><path d="M11 2l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V5z"/><path d="M7.5 11l2.5 2.5 4.5-4.5"/></svg>30-day money-back guarantee · cancel any time</div>
+    </aside>
+  </div>
+</section>
+
+<!-- ===== 5. PRICING COMPARISON ===== -->
+<section class="screen" id="pricing">
+  <div class="wrap pagehead">
+    <div class="crumbs"><a href="#home">Home</a><span>/</span><span>Pricing</span></div>
+    <h1>Compare shared hosting plans</h1>
+    <p class="lead">Same hardware, same support. The difference is how many sites you run and how much room they need.</p>
+  </div>
+  <div class="wrap" style="padding-bottom:64px">
+    <div class="sechead" style="margin-bottom:18px">
+      <div class="toggle" role="group" aria-label="Billing cycle">
+        <button class="on" data-cycle="annual" onclick="setCycle('annual',this)">Annual <span class="pill save">Save up to 40%</span></button>
+        <button data-cycle="monthly" onclick="setCycle('monthly',this)">Monthly</button>
+      </div>
+      <span style="font-size:13.5px;color:var(--mute)">Prices in USD. Renewal shown under each plan.</span>
+    </div>
+    <div class="table"><table id="cmp">
+      <thead><tr><th style="width:30%">Plan</th><th class="col">Hostia Lite</th><th class="col hl">Hostia Ultra</th><th class="col">Hostia Infinity</th></tr></thead>
+      <tbody>
+        <tr><th>Price</th>
+          <td class="c"><b style="font-size:26px;font-weight:900" data-p="2.99">$2.99</b>/mo<br><small style="color:var(--mute)">renews at $4.99/mo</small></td>
+          <td class="c hl"><b style="font-size:26px;font-weight:900" data-p="5.99">$5.99</b>/mo<br><small style="color:var(--mute)">renews at $8.99/mo</small></td>
+          <td class="c"><b style="font-size:26px;font-weight:900" data-p="9.99">$9.99</b>/mo<br><small style="color:var(--mute)">renews at $13.99/mo</small></td></tr>
+        <tr><th>Websites</th><td class="c">1</td><td class="c hl">10</td><td class="c">Unlimited</td></tr>
+        <tr><th>NVMe storage</th><td class="c">10 GB</td><td class="c hl">50 GB</td><td class="c">100 GB</td></tr>
+        <tr><th>Bandwidth</th><td class="c">100 GB</td><td class="c hl">Unmetered</td><td class="c">Unmetered</td></tr>
+        <tr><th>Email accounts</th><td class="c">5</td><td class="c hl">100</td><td class="c">Unlimited</td></tr>
+        <tr><th>Free domain (annual)</th><td class="c"><span class="dash">—</span></td><td class="c hl"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#0ea5a0" stroke-width="2.4"><path d="M3 9.5l4 4 8-8"/></svg></td><td class="c"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#0ea5a0" stroke-width="2.4"><path d="M3 9.5l4 4 8-8"/></svg></td></tr>
+        <tr><th>Free SSL</th><td class="c"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#0ea5a0" stroke-width="2.4"><path d="M3 9.5l4 4 8-8"/></svg></td><td class="c hl"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#0ea5a0" stroke-width="2.4"><path d="M3 9.5l4 4 8-8"/></svg></td><td class="c"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#0ea5a0" stroke-width="2.4"><path d="M3 9.5l4 4 8-8"/></svg></td></tr>
+        <tr><th>Daily backups</th><td class="c">Weekly</td><td class="c hl">Daily</td><td class="c">Daily + on-demand</td></tr>
+        <tr><th>LiteSpeed cache</th><td class="c"><span class="dash">—</span></td><td class="c hl"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#0ea5a0" stroke-width="2.4"><path d="M3 9.5l4 4 8-8"/></svg></td><td class="c"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#0ea5a0" stroke-width="2.4"><path d="M3 9.5l4 4 8-8"/></svg></td></tr>
+        <tr><th>Priority support</th><td class="c"><span class="dash">—</span></td><td class="c hl"><span class="dash">—</span></td><td class="c"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#0ea5a0" stroke-width="2.4"><path d="M3 9.5l4 4 8-8"/></svg></td></tr>
+        <tr><th>Locations</th><td class="c">UAE · USA · SG</td><td class="c hl">UAE · USA · SG</td><td class="c">UAE · USA · SG</td></tr>
+        <tr><th></th>
+          <td class="c"><a class="btn ghost sm" href="#cart" onclick="addItem('Hostia Lite','1 site · 10 GB NVMe · annual',2.99,4.99)">Choose Lite</a></td>
+          <td class="c hl"><a class="btn teal sm" href="#cart" onclick="addItem('Hostia Ultra','10 sites · 50 GB NVMe · annual',5.99,8.99)">Choose Ultra</a></td>
+          <td class="c"><a class="btn dark sm" href="#cart" onclick="addItem('Hostia Infinity','Unlimited sites · 100 GB NVMe · annual',9.99,13.99)">Choose Infinity</a></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="sechead" style="margin-top:56px"><div><h2>SSL certificates</h2><p>Free SSL covers most sites. These add wildcard coverage or business validation.</p></div></div>
+    <div class="row four">
+      <div class="card compact"><h3>PositiveSSL DV</h3><p class="sub">Domain validated, issued in minutes.</p><div class="price"><i>$</i><b>9.23</b><i>/yr</i></div><span class="renew">Renews at $9.23/yr</span><a class="btn ghost sm" href="#cart" onclick="addItem('PositiveSSL DV','1 year',9.23,9.23)">Add to cart</a></div>
+      <div class="card compact"><h3>Thawte SSL123 Flex</h3><p class="sub">DV with Thawte site seal, www included.</p><div class="price"><i>$</i><b>49.22</b><i>/yr</i></div><span class="renew">Renews at $49.22/yr</span><a class="btn ghost sm" href="#cart" onclick="addItem('Thawte SSL123 Flex','1 year',49.22,49.22)">Add to cart</a></div>
+      <div class="card compact"><div class="topline"><h3>EssentialSSL Wildcard</h3><span class="pill save">*.domain</span></div><p class="sub">Covers every subdomain on one cert.</p><div class="price"><i>$</i><b>109.51</b><i>/yr</i></div><span class="renew">Renews at $109.51/yr</span><a class="btn ghost sm" href="#cart" onclick="addItem('EssentialSSL Wildcard','1 year',109.51,109.51)">Add to cart</a></div>
+      <div class="card compact"><h3>GeoTrust TrueBusinessID Flex</h3><p class="sub">Organisation validated, shows company name.</p><div class="price"><b style="font-size:22px">Get a quote</b></div><span class="renew">Priced per validation</span><a class="btn ghost sm" href="#cart">Talk to us</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 6. DOMAIN SEARCH ===== -->
+<section class="screen" id="domains">
+  <div class="wrap dsearch">
+    <div class="crumbs"><a href="#home">Home</a><span>/</span><span>Domains</span></div>
+    <h1 style="font-size:clamp(34px,5vw,56px);margin-bottom:18px">Find your domain</h1>
+    <form class="search" onsubmit="return doSearch(this,'dq')">
+      <input id="dq" type="text" placeholder="e.g. desertcoffee" aria-label="Domain name">
+      <button class="btn dark" type="submit">Search</button>
+    </form>
+    <div class="tlds" style="justify-content:flex-start">
+      <button class="tld sale" onclick="quick('.shop')">.shop <span>$1.20</span></button>
+      <button class="tld" onclick="quick('.com')">.com <span>$13.65</span></button>
+      <button class="tld" onclick="quick('.net')">.net <span>$8.29</span></button>
+      <button class="tld" onclick="quick('.org')">.org <span>$8.65</span></button>
+      <button class="tld" onclick="quick('.ae')">.ae <span>from $19</span></button>
+      <button class="tld" onclick="quick('.io')">.io <span>from $39</span></button>
+    </div>
+    <div class="dres">
+      <div class="dmain">
+        <h2 style="font-size:22px;margin-bottom:14px" id="dres-title">Results for <span style="color:var(--teal-deep)">desertcoffee</span></h2>
+        <div id="dres"></div>
+        <p style="font-size:13px;margin-top:10px">Prices are first-year registration. .ae and .io renew at the registry rate shown at checkout. ICANN fee included.</p>
+      </div>
+      <aside class="dside">
+        <h3>Add to your domain</h3>
+        <div class="bundle">
+          <label><input type="checkbox" checked> <span>Privacy protection</span><span>Free</span></label>
+          <label><input type="checkbox"> <span>Business email, 1 mailbox</span><span>$1.99/mo</span></label>
+          <label><input type="checkbox"> <span>Hostia Lite hosting</span><span>$2.99/mo</span></label>
+          <label><input type="checkbox"> <span>PositiveSSL DV</span><span>$9.23/yr</span></label>
+        </div>
+        <p style="font-size:13px;margin-top:14px">Free domain with any annual Ultra or Infinity plan. <a class="link" href="#shared">See plans</a></p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 7. CART & CHECKOUT ===== -->
+<section class="screen" id="cart">
+  <div class="wrap pagehead" style="padding-bottom:16px">
+    <h1 style="font-size:clamp(32px,4.5vw,48px)">Checkout</h1>
+  </div>
+  <div class="wrap cartgrid" style="padding-bottom:64px">
+    <div>
+      <div class="steps"><span class="done"><i>✓</i>Cart</span><span class="on"><i>2</i>Your details</span><span><i>3</i>Payment</span></div>
+      <div id="cartitems"></div>
+      <div class="empty" id="cartempty" style="display:none"><h3>Your cart is empty</h3><p style="margin:8px 0 16px">Start with a domain or a hosting plan.</p><a class="btn dark" href="#domains">Search a domain</a></div>
+      <h2 style="font-size:24px;margin:30px 0 4px">Your details</h2>
+      <p style="font-size:14px">Already have an account? <a class="link" href="#dashboard">Sign in</a> to prefill this.</p>
+      <form class="form" onsubmit="return false">
+        <label>First name<input type="text" placeholder="Aisha"></label>
+        <label>Last name<input type="text" placeholder="Al Mansoori"></label>
+        <label class="full">Email<input type="email" placeholder="you@company.ae"></label>
+        <label>Phone<input type="tel" placeholder="+971 50 000 0000"></label>
+        <label>Country<select><option>United Arab Emirates</option><option>Saudi Arabia</option><option>India</option><option>United States</option><option>Singapore</option></select></label>
+        <label class="full">Company (optional)<input type="text" placeholder="Desert Coffee Trading LLC"></label>
+      </form>
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn dark" href="#dashboard">Continue to payment</a><a class="btn ghost" href="#shared">Keep shopping</a></div>
+    </div>
+    <aside class="summary">
+      <h3>Order summary</h3>
+      <div class="l"><span>Subtotal</span><span id="sum-sub">$0.00</span></div>
+      <div class="l"><span>Discount</span><span id="sum-disc" style="color:var(--teal-ink);font-weight:700">–$0.00</span></div>
+      <div class="l"><span>VAT (5%, UAE)</span><span id="sum-vat">$0.00</span></div>
+      <div class="l tot"><span>Due today</span><span id="sum-tot">$0.00</span></div>
+      <div class="coupon"><input type="text" placeholder="Coupon code" id="coupon"><button class="btn ghost sm" onclick="applyCoupon()">Apply</button></div>
+      <small style="font-size:12.5px;color:var(--mute);display:block" id="coupon-msg">Try WELCOME10 for 10% off hosting.</small>
+      <a class="btn teal wide" href="#dashboard" style="margin-top:14px">Continue to payment</a>
+      <div class="pay"><span>VISA</span><span>MASTERCARD</span><span>APPLE PAY</span><span>PAYPAL</span><span>CRYPTO</span></div>
+      <p style="font-size:12.5px;margin-top:12px">Billing is handled securely by our client portal. Card details never touch this site.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ===== 8. CUSTOMER DASHBOARD ===== -->
+<section class="screen" id="dashboard">
+  <div class="wrap dash">
+    <nav class="dnav" aria-label="Account">
+      <div class="me"><i>A</i><div><b>Aisha Al Mansoori</b><small>Client #10482</small></div></div>
+      <a class="on" href="#dashboard"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Overview</a>
+      <a href="#dashboard">My products</a><a href="#dashboard">Domains</a><a href="#dashboard">Invoices</a><a href="#dashboard">Support tickets</a><a href="#dashboard">Account settings</a>
+    </nav>
+    <div>
+      <div class="notice"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#9a5b00" stroke-width="2"><circle cx="10" cy="10" r="8"/><path d="M10 6v5M10 14h.01"/></svg><span><b>desertcoffee.ae</b> renews in 12 days. Turn on auto-renew so it never lapses.</span><a class="btn dark sm" href="#dashboard">Renew now</a></div>
+      <div class="kpis">
+        <div class="kpi"><small>Active services</small><b>4</b><em>All running</em></div>
+        <div class="kpi"><small>Domains</small><b>3</b><em>1 renewing soon</em></div>
+        <div class="kpi"><small>Unpaid invoices</small><b>1</b><em>$19.00 due 11 Nov</em></div>
+        <div class="kpi"><small>Open tickets</small><b>0</b><em>Avg reply 4 min</em></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Your services</h3><a class="link" href="#shared" style="font-size:14px">Add a service</a></div>
+        <div class="svc"><div><b>Hostia Ultra</b><small>desertcoffee.com · UAE</small></div><span class="hide-m" style="color:var(--mute)">Renews 14 Mar 2027 · $8.99/mo</span><span class="st ok">Active</span><a class="btn ghost sm hide-m" href="#dashboard">Open cPanel</a></div>
+        <div class="svc"><div><b>Linux VPS 02</b><small>4 vCPU · 8 GB · Singapore</small></div><span class="hide-m" style="color:var(--mute)">Renews 1 Dec 2026 · $16/mo</span><span class="st ok">Active</span><a class="btn ghost sm hide-m" href="#dashboard">Console</a></div>
+        <div class="svc"><div><b>Business Email</b><small>3 mailboxes @desertcoffee.com</small></div><span class="hide-m" style="color:var(--mute)">Renews 1 Dec 2026</span><span class="st ok">Active</span><a class="btn ghost sm hide-m" href="#dashboard">Webmail</a></div>
+        <div class="svc"><div><b>desertcoffee.ae</b><small>Domain · auto-renew off</small></div><span class="hide-m" style="color:var(--mute)">Expires 11 Nov 2026</span><span class="st due">Renew soon</span><a class="btn dark sm hide-m" href="#dashboard">Renew</a></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Hostia Ultra usage</h3><span style="font-size:13px;color:var(--mute)">Updated 5 min ago</span></div>
+        <div class="usage">
+          <div><small><span>Storage</span><span>18.2 / 50 GB</span></small><div class="bar"><i style="width:36%"></i></div></div>
+          <div><small><span>Websites</span><span>4 / 10</span></small><div class="bar"><i style="width:40%"></i></div></div>
+          <div><small><span>Email accounts</span><span>3 / 100</span></small><div class="bar"><i style="width:3%"></i></div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Recent invoices</h3><a class="link" href="#dashboard" style="font-size:14px">All invoices</a></div>
+        <div class="svc"><div><b>#INV-20931</b><small>desertcoffee.ae renewal</small></div><span class="hide-m" style="color:var(--mute)">Due 11 Nov 2026</span><span class="st due">Unpaid · $19.00</span><a class="btn teal sm hide-m" href="#dashboard">Pay now</a></div>
+        <div class="svc"><div><b>#INV-20644</b><small>Linux VPS 02 · monthly</small></div><span class="hide-m" style="color:var(--mute)">Paid 1 Oct 2026</span><span class="st ok">Paid · $16.00</span><a class="btn ghost sm hide-m" href="#dashboard">PDF</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div><div class="logo"><i><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2.2 2 2.2 10 0 12M8 2c-2.2 2-2.2 10 0 12"/></svg></i>GlobalHostia</div><p>Domains, hosting and servers for businesses in the Gulf and beyond. Support around the clock from Dubai.</p></div>
+      <div><h5>Domains</h5><ul><li><a href="#domains">Domain search</a></li><li><a href="#domains">Transfer</a></li><li><a href="#domains">.ae domains</a></li><li><a href="#domains">WHOIS</a></li></ul></div>
+      <div><h5>Hosting</h5><ul><li><a href="#shared">Shared hosting</a></li><li><a href="#shared">Managed WordPress</a></li><li><a href="#vps">VPS</a></li><li><a href="#vps">Dedicated servers</a></li><li><a href="#vps">AI servers</a></li></ul></div>
+      <div><h5>Company</h5><ul><li><a href="#home">About</a></li><li><a href="#home">Data centres</a></li><li><a href="#home">Affiliates</a></li><li><a href="#home">Contact</a></li></ul></div>
+      <div><h5>Help</h5><ul><li><a href="#dashboard">Client area</a></li><li><a href="#dashboard">Knowledge base</a></li><li><a href="#dashboard">Open a ticket</a></li><li><a href="#home">Status</a></li></ul></div>
+    </div>
+    <div class="fbottom">
+      <span>© 2026 GlobalHostia · Desert Tech Cloud Services LLC, Dubai, UAE.</span>
+      <span class="flag"><span>UAE</span><span>USA</span><span>SG</span><span>IN</span></span>
+      <span><a href="#home">Terms</a> · <a href="#home">Privacy</a> · <a href="#home">Refunds</a></span>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /site -->
+
+<script>
+(function(){
+  'use strict';
+  var $=function(s,c){return (c||document).querySelector(s)};
+  var $$=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))};
+  var money=function(n){return '$'+n.toFixed(2)};
+  var CHECK='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#0ea5a0" stroke-width="2.4"><path d="M2 7.5l3 3 7-7"/></svg>';
+
+  /* ---------- router ---------- */
+  var SCREENS=['home','shared','vps','product','pricing','domains','cart','dashboard'];
+  function route(){
+    var h=(location.hash||'#home').slice(1);
+    if(SCREENS.indexOf(h)<0)h='home';
+    $$('.screen').forEach(function(s){s.classList.toggle('on',s.id===h)});
+    closeMega();closeDrawer();
+    var site=$('#site');
+    if(document.body.classList.contains('framed'))site.scrollTop=0;else window.scrollTo(0,0);
+    if(h==='cart')renderCart();
+    if(h==='vps')renderVps();
+    if(h==='domains'&&!$('#dres').children.length)runDomain('desertcoffee');
+  }
+  window.addEventListener('hashchange',route);
+
+  /* ---------- mega menu ---------- */
+  var megabtn=$('#megabtn'),mega=$('#mega');
+  function closeMega(){mega.classList.remove('open');megabtn.setAttribute('aria-expanded','false')}
+  megabtn.addEventListener('click',function(e){e.stopPropagation();var o=!mega.classList.contains('open');mega.classList.toggle('open',o);megabtn.setAttribute('aria-expanded',o?'true':'false')});
+  megabtn.parentElement.addEventListener('mouseenter',function(){if(window.innerWidth>760){mega.classList.add('open');megabtn.setAttribute('aria-expanded','true')}});
+  megabtn.parentElement.addEventListener('mouseleave',closeMega);
+  document.addEventListener('click',function(e){if(!mega.contains(e.target)&&e.target!==megabtn)closeMega()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeMega();closeDrawer()}});
+
+  /* ---------- mobile drawer ---------- */
+  function closeDrawer(){document.body.classList.remove('drawer-open')}
+  $('#burger').addEventListener('click',function(){document.body.classList.add('drawer-open')});
+  $('#drawerclose').addEventListener('click',closeDrawer);
+  $('#drawerbg').addEventListener('click',closeDrawer);
+  $$('#drawer a').forEach(function(a){a.addEventListener('click',closeDrawer)});
+
+  /* ---------- preview frame ---------- */
+  function setFrame(on){document.body.classList.toggle('framed',on);$('#pv-mobile').classList.toggle('on',on);$('#pv-desktop').classList.toggle('on',!on);$('#previewbar').classList.toggle('show',true)}
+  $('#framebtn').addEventListener('click',function(){setFrame(true)});
+  $('#pv-mobile').addEventListener('click',function(){setFrame(true)});
+  $('#pv-desktop').addEventListener('click',function(){setFrame(false)});
+
+  /* ---------- shared hosting plans ---------- */
+  var PLANS=[
+    {id:'lite',name:'Hostia Lite',sub:'1 website · 10 GB NVMe · 5 mailboxes',price:2.99,reg:4.99,feats:['1 website','10 GB NVMe storage','100 GB bandwidth','Free SSL','Weekly backups']},
+    {id:'ultra',name:'Hostia Ultra',sub:'10 websites · 50 GB NVMe · 100 mailboxes',price:5.99,reg:8.99,hot:true,feats:['10 websites','50 GB NVMe storage','Unmetered bandwidth','Free domain for 1 year','Free SSL','Daily backups','LiteSpeed cache']},
+    {id:'infinity',name:'Hostia Infinity',sub:'Unlimited websites · 100 GB NVMe',price:9.99,reg:13.99,feats:['Unlimited websites','100 GB NVMe storage','Unmetered bandwidth','Free domain for 1 year','Free SSL','Daily + on-demand backups','Priority support']}
+  ];
+  var cycle='annual';
+  function renderShared(){
+    $('#sharedrow').innerHTML=PLANS.map(function(p){
+      var annual=cycle==='annual',price=annual?p.price:p.reg;
+      var save=Math.round((1-p.price/p.reg)*100);
+      return '<div class="card'+(p.hot?' featured':'')+'">'+
+        '<div class="topline"><h3>'+p.name+'</h3>'+(p.hot?'<span class="pill hot">Most popular</span>':'')+'</div>'+
+        '<p class="sub">'+p.sub+'</p>'+
+        '<span class="from">Starting at</span><div class="price"><i>$</i><b>'+price.toFixed(2)+'</b><i>/mo</i>'+(annual?'<span class="pill save" style="margin-left:10px">Save '+save+'%</span>':'')+'</div>'+
+        '<span class="renew">'+(annual?'Billed '+money(p.price*12)+' for 12 months · renews at '+money(p.reg)+'/mo':'Billed monthly · renews at '+money(p.reg)+'/mo')+'</span>'+
+        '<ul class="feats">'+p.feats.map(function(f){return '<li>'+CHECK+f+'</li>'}).join('')+'</ul>'+
+        '<div class="locs"><span class="loc">UAE</span><span class="loc">USA</span><span class="loc">SG</span></div>'+
+        '<a class="btn '+(p.hot?'teal':'dark')+'" href="#cart" data-add="'+p.id+'">Add to cart</a>'+
+        (p.id==='ultra'?'<a class="link" href="#product" style="text-align:center;font-size:14px">See full details</a>':'')+
+      '</div>'}).join('');
+    $$('#sharedrow [data-add]').forEach(function(a){a.addEventListener('click',function(){var p=PLANS.filter(function(x){return x.id===a.getAttribute('data-add')})[0];var annual=cycle==='annual';window.addItem(p.name,p.sub+' · '+(annual?'annual':'monthly'),annual?p.price:p.reg,p.reg)})});
+  }
+  window.setCycle=function(c,btn){cycle=c;$$('.toggle button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-cycle')===c)});renderShared();
+    $$('#cmp [data-p]').forEach(function(b){var base=parseFloat(b.getAttribute('data-p'));var reg={2.99:4.99,5.99:8.99,9.99:13.99}[base];b.textContent='$'+(c==='annual'?base:reg).toFixed(2)})};
+
+  /* ---------- VPS ---------- */
+  var VPS=[
+    {name:'Linux VPS 01',os:'linux',cpu:2,ram:4,disk:'80 GB NVMe',price:8,locs:['UAE','USA','SG','IN']},
+    {name:'Linux VPS 02',os:'linux',cpu:4,ram:8,disk:'160 GB NVMe',price:16,locs:['UAE','USA','SG','IN']},
+    {name:'Linux VPS 03',os:'linux',cpu:4,ram:16,disk:'240 GB NVMe',price:28,locs:['UAE','USA','SG','IN']},
+    {name:'Linux VPS 04',os:'linux',cpu:8,ram:32,disk:'400 GB NVMe',price:52,locs:['UAE','USA','SG']},
+    {name:'Linux VPS 05',os:'linux',cpu:16,ram:48,disk:'640 GB NVMe',price:96,locs:['UAE','USA','SG']},
+    {name:'Linux VPS 06',os:'linux',cpu:16,ram:64,disk:'800 GB NVMe',price:128,locs:['UAE','USA']},
+    {name:'Windows VPS 01',os:'windows',cpu:2,ram:4,disk:'80 GB NVMe',price:14,locs:['UAE','USA','SG','IN']},
+    {name:'Windows VPS 02',os:'windows',cpu:4,ram:8,disk:'160 GB NVMe',price:24,locs:['UAE','USA','SG','IN']},
+    {name:'Windows VPS 03',os:'windows',cpu:8,ram:16,disk:'320 GB NVMe',price:44,locs:['UAE','USA','SG']},
+    {name:'Forex VPS',os:'forex',cpu:2,ram:4,disk:'60 GB NVMe',price:8,yr:88,locs:['UAE','USA','SG','IN'],note:'MT4/MT5 ready · <1 ms to broker'}
+  ];
+  window.renderVps=function(){
+    var oss=$$('.f-os:checked').map(function(c){return c.value});
+    var ram=parseInt($('#f-ram').value,10);
+    var loc=($('input[name=f-loc]:checked')||{}).value||'';
+    var bud=parseFloat(($('input[name=f-bud]:checked')||{}).value||'999');
+    var sort=$('#vpssort').value;
+    var list=VPS.filter(function(v){return oss.indexOf(v.os)>=0&&v.ram>=ram&&(!loc||v.locs.indexOf(loc)>=0)&&v.price<=bud});
+    list.sort(function(a,b){return sort==='price'?a.price-b.price:sort==='price-desc'?b.price-a.price:b.ram-a.ram});
+    $('#vpscount').textContent=list.length+' of '+VPS.length+' plans';
+    $('#vpsgrid').innerHTML=list.length?list.map(function(v){
+      var osl=v.os==='linux'?'Linux':v.os==='windows'?'Windows':'Forex';
+      return '<div class="vcard"><div><span class="pill '+(v.os==='forex'?'amber':'save')+'">'+osl+'</span><h3 style="margin-top:8px">'+v.name+'</h3></div>'+
+        '<div class="price"><b>$'+v.price+'</b><span style="font-weight:700;color:var(--body)">/mo</span><small>'+(v.yr?'or $'+v.yr+'/yr · ':'')+'renews at $'+v.price+'/mo</small></div>'+
+        '<div class="specs"><span><b>'+v.cpu+' vCPU</b></span><span><b>'+v.ram+' GB</b> RAM</span><span><b>'+v.disk+'</b></span><span><b>1 Gbps</b> port</span></div>'+
+        (v.note?'<p style="grid-column:1/-1;font-size:13px;color:var(--teal-ink);font-weight:600">'+v.note+'</p>':'')+
+        '<div class="foot"><div class="locs" style="display:flex;gap:5px">'+v.locs.map(function(l){return '<span class="loc">'+l+'</span>'}).join('')+'</div>'+
+        '<a class="btn dark sm" href="#cart" data-vps="'+v.name+'">Add to cart</a></div></div>'}).join('')
+      :'<div class="empty"><h3>No plans match these filters</h3><p style="margin:8px 0 16px">Try a lower memory floor or a different location.</p><button class="btn ghost" onclick="resetVps()">Clear filters</button></div>';
+    $$('#vpsgrid [data-vps]').forEach(function(a){a.addEventListener('click',function(){var v=VPS.filter(function(x){return x.name===a.getAttribute('data-vps')})[0];window.addItem(v.name,v.cpu+' vCPU · '+v.ram+' GB · '+v.disk+' · monthly',v.price,v.price)})});
+  };
+  window.resetVps=function(){$$('.f-os').forEach(function(c){c.checked=true});$('#f-ram').value=0;$('#f-ramv').textContent='0 GB';$('input[name=f-loc][value=""]').checked=true;$('input[name=f-bud][value="999"]').checked=true;renderVps()};
+  $$('.f-os, input[name=f-loc], input[name=f-bud]').forEach(function(i){i.addEventListener('change',renderVps)});
+
+  /* ---------- product detail ---------- */
+  window.curTerm=12;
+  window.showTab=function(id,btn){$$('.tabs button').forEach(function(b){b.classList.toggle('on',b===btn)});$$('.tabpane').forEach(function(p){p.classList.toggle('on',p.id==='t-'+id)})};
+  window.setTerm=function(t){window.curTerm=t;var amt=$('#pdp-amt'),r=$('#pdp-renew');
+    if(t===1){amt.textContent='8.99';r.textContent='Billed $8.99 monthly · renews at $8.99/mo'}
+    else{amt.textContent='5.99';r.textContent='Billed '+money(5.99*t)+' today · renews at $8.99/mo'}};
+  window.pickLoc=function(b){$$('.locpick button').forEach(function(x){x.classList.toggle('on',x===b)})};
+
+  /* ---------- domains ---------- */
+  var TLDS=[['.com',13.65],['.shop',1.20,4.99],['.net',8.29],['.org',8.65],['.ae',19.00],['.io',39.00],['.store',2.99,19.99],['.co',9.99]];
+  var TAKEN={'.com':0.35,'.net':0.15,'.ae':0.2};
+  function seeded(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return function(){h=(h*1103515245+12345)>>>0;return (h%1000)/1000}};
+  window.runDomain=function(q){
+    q=(q||'').toLowerCase().replace(/[^a-z0-9-]/g,'')||'desertcoffee';
+    var rnd=seeded(q);
+    $('#dres-title').innerHTML='Results for <span style="color:var(--teal-deep)">'+q+'</span>';
+    var html='',first=true;
+    TLDS.forEach(function(t){
+      var taken=rnd()<(TAKEN[t[0]]||0.05);
+      var name=q+t[0];
+      if(taken){html+='<div class="r taken"><div class="n">'+name+'<small class="t">Taken · registered elsewhere</small></div><div class="p"><small>Make an offer or try a WHOIS lookup</small><a class="btn ghost sm" href="#domains">WHOIS</a></div></div>';return}
+      var cls=first?'r best':'r';
+      html+='<div class="'+cls+'"><div class="n">'+name+'<small>'+(first?'Available — our top pick':'Available')+'</small></div>'+
+        '<div class="p"><div>'+(t[2]?'<s>$'+t[2].toFixed(2)+'</s>':'')+'<b>$'+t[1].toFixed(2)+'</b> <span style="font-size:13px;color:var(--body)">/1st yr</span><small>renews at $'+(t[2]||t[1]).toFixed(2)+'/yr</small></div>'+
+        '<a class="btn '+(first?'teal':'dark')+' sm" href="#cart" data-dom="'+name+'" data-p="'+t[1]+'" data-r="'+(t[2]||t[1])+'">Add to cart</a></div></div>';
+      first=false;
+    });
+    $('#dres').innerHTML=html;
+    $$('#dres [data-dom]').forEach(function(a){a.addEventListener('click',function(){window.addItem(a.getAttribute('data-dom'),'Domain · 1 year · privacy included',parseFloat(a.getAttribute('data-p')),parseFloat(a.getAttribute('data-r')),'/yr')})});
+  };
+  window.doSearch=function(form,id){var v=$('#'+id).value.trim();if(v){var dq=$('#dq');if(dq)dq.value=v.replace(/\..*$/,'');runDomain(v.replace(/\..*$/,''))}else if(!$('#dres').children.length)runDomain('desertcoffee');location.hash='domains';return false};
+  window.quick=function(t){var v=$('#dq').value.trim()||'desertcoffee';runDomain(v.replace(/\..*$/,''));var row=$$('#dres .r').filter(function(r){return r.querySelector('.n').textContent.indexOf(t)>=0})[0];if(row){row.scrollIntoView({block:'center'})}};
+
+  /* ---------- cart ---------- */
+  var CART=[
+    {name:'Hostia Ultra',sub:'10 sites · 50 GB NVMe · 12 months · UAE',price:5.99,reg:8.99,unit:'/mo',qty:12},
+    {name:'desertcoffee.com',sub:'Domain · 1 year · privacy included',price:13.65,reg:13.65,unit:'/yr',qty:1}
+  ];
+  var discount=0;
+  window.addItem=function(name,sub,price,reg,unit){
+    CART.push({name:name,sub:sub,price:price,reg:reg,unit:unit||'/mo',qty:unit==='/yr'?1:(/annual|12 mo/.test(sub)?12:1)});
+    $('#cartcount').textContent=CART.length;renderCart();
+  };
+  window.removeItem=function(i){CART.splice(i,1);$('#cartcount').textContent=CART.length;renderCart()};
+  window.applyCoupon=function(){var c=$('#coupon').value.trim().toUpperCase();if(c==='WELCOME10'){discount=.1;$('#coupon-msg').textContent='WELCOME10 applied: 10% off hosting items.'}else{discount=0;$('#coupon-msg').textContent=c?'That code isn’t valid. Check the spelling or try WELCOME10.':'Try WELCOME10 for 10% off hosting.'}renderCart()};
+  window.renderCart=function(){
+    var box=$('#cartitems');$('#cartempty').style.display=CART.length?'none':'block';
+    box.innerHTML=CART.map(function(it,i){
+      var line=it.price*it.qty;
+      return '<div class="item"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0b7f7b" stroke-width="2">'+(it.unit==='/yr'?'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>':'<rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><circle cx="7" cy="7" r="1" fill="#0b7f7b"/><circle cx="7" cy="17" r="1" fill="#0b7f7b"/>')+'</svg></div>'+
+        '<div><h3>'+it.name+'</h3><p>'+it.sub+'</p>'+(it.unit==='/mo'?'<select onchange="CARTQTY('+i+',this.value)"><option value="1"'+(it.qty===1?' selected':'')+'>1 month · $'+it.reg.toFixed(2)+'/mo</option><option value="12"'+(it.qty===12?' selected':'')+'>12 months · $'+it.price.toFixed(2)+'/mo</option><option value="24"'+(it.qty===24?' selected':'')+'>24 months · $'+it.price.toFixed(2)+'/mo</option></select>':'')+'<a class="rm" href="#cart" onclick="removeItem('+i+');return false">Remove</a></div>'+
+        '<div class="p">'+money(it.qty===1&&it.unit==='/mo'?it.reg:line)+'<small>renews at '+money(it.reg)+it.unit+'</small></div></div>'}).join('');
+    var sub=CART.reduce(function(s,it){return s+(it.qty===1&&it.unit==='/mo'?it.reg:it.price*it.qty)},0);
+    var disc=CART.reduce(function(s,it){return s+(it.unit==='/mo'?(it.qty===1?it.reg:it.price*it.qty)*discount:0)},0);
+    var vat=(sub-disc)*.05;
+    $('#sum-sub').textContent=money(sub);$('#sum-disc').textContent='–'+money(disc);$('#sum-vat').textContent=money(vat);$('#sum-tot').textContent=money(sub-disc+vat);
+  };
+  window.CARTQTY=function(i,q){CART[i].qty=parseInt(q,10);renderCart()};
+
+  /* ---------- init ---------- */
+  renderShared();
+  route();
+})();
+</script>
+</body>
+</html>
