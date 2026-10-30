@@ -1,0 +1,32 @@
+# GlobalHostia robots.txt
+User-agent: *
+Allow: /
+
+# Allow AI crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# Block sensitive areas only
+Disallow: /mailer/
+Disallow: /cgi-bin/
+Disallow: /secure/clientarea.php
+Disallow: /secure/login.php
+Disallow: /secure/register.php
+Disallow: /secure/cart.php
+Disallow: /secure/invoice.php
+
+# Allow public secure pages
+Allow: /secure/store/
+Allow: /secure/knowledgebase
+Allow: /secure/submitticket.php
+
+Sitemap: https://globalhostia.com/sitemap.xml

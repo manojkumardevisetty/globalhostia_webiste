@@ -1,0 +1,846 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+        <meta name="description" content="emyUI Premium UI kit for web services and hosting provides & WHMCS hosting template" />
+        <meta property="og:site_name" content="emyUI" />
+        <meta property="og:url" content="https://coodiv.net" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="emyUI: Multipurpose UI Kit for Web Hosting providers with WHMCS Template" />
+        <meta name="author" content="coodiv.net (nedjai mohamed)" />
+        <title>emyUI | Multipurpose UI Kit for Web Hosting providers with WHMCS Template</title>
+
+        <!-- favicon -->
+        <link rel="shortcut icon" href="image/favicon/favicon.png" type="image/x-icon" />
+
+        <!-- Bootstrap & icons  -->
+        <link rel="stylesheet" href="css/bootstrap.css" />
+        <link rel="stylesheet" href="fonts/fontawesome-5/css/all.css" />
+		
+		<!-- Google webfont  -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+        <!-- Plugin'stylesheets  -->
+        <link rel="stylesheet" href="plugins/slick/slick.min.css" />
+        <link rel="stylesheet" href="plugins/fancybox/jquery.fancybox.min.css" />
+        <link rel="stylesheet" href="plugins/aos/aos.min.css" />
+        <link rel="stylesheet" href="plugins/nice-select/nice-select.min.css" />
+
+        <!-- Vendor stylesheets  -->
+        <link rel="stylesheet" href="css/main.css" />
+
+        <!-- you can add your custom stylesheet in this file -->
+        <link rel="stylesheet" href="css/custom.css" />
+    </head>
+
+    <body>
+        <!-- DELETE THIS IF YOU WANT TO REMOVE PAGELOADER ANIMATION -->
+        <div class="preloader">
+            <div class="preloader-container">
+                <div class="lds-ring">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+                <span data-i18n="[html]genaral.loading" class="coodiv-text-10 color-blackish-blue"></span>
+            </div>
+        </div>
+        <!-- DELETE THIS IF YOU WANT TO REMOVE PAGELOADER ANIMATION -->
+
+        <!-- START site wrapper -->
+        <div class="site-wrapper overflow-hidden">
+            <!-- START template header -->
+            <header class="site-header header-with-right-menu dark-mode-texts site-header--absolute fixed-header-layout border-bottom">
+                <div class="container">
+                    <!-- START navbar -->
+                    <nav class="navbar site-navbar offcanvas-active navbar-expand-lg px-0">
+                        <!-- START Logo header -->
+                        <div class="brand-logo mr-8">
+                            <a href="index.html">
+                                <!-- light version logo (logo must be black)-->
+                                <img src="image/logo-main-black.png" alt="" class="light-version-logo" />
+                                <!-- Dark version logo (logo must be White)-->
+                                <img src="image/logo-main-white.png" alt="" class="dark-version-logo" />
+                            </a>
+                        </div>
+                        <!-- END Logo header -->
+
+                        <!-- START language area header -->
+                        <div id="languagesystem" class="header-lang dropdown show position-static coodiv-z-index-1">
+                            <a class="coodiv-text-10 btn-header-lang position-relative" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="feather icon-globe mr-2"></i><span data-i18n="[html]systems.langname"></span>
+                            </a>
+                            <div id="languagesystem-slector" class="header-lang-container dropdown-menu px-8 py-7 px-lg-15 py-lg-15 overflow-scroll-y" aria-labelledby="dropdownMenuLink"></div>
+                        </div>
+                        <!-- END language area header -->
+
+                        <!-- START header main navbar -->
+                        <div class="collapse navbar-collapse" id="mobile-menu">
+                            <div class="navbar-nav-wrapper">
+                                <ul id="header-navbar-links-vpn" class="navbar-nav main-menu"></ul>
+                                <!-- Main header navbar -->
+                            </div>
+                        </div>
+                        <!-- END header main navbar -->
+
+                        <!-- START header left buttons -->
+                        <div class="header-btn ml-auto ml-lg-10 mr-5 d-none d-xs-block position-relative">
+                            <a class="btn btn-outline-light btn-auto-min-width px-7 coodiv-text-9 mr-2" href="#">Log In</a>
+                            <a class="btn btn-warning btn-auto-min-width px-7 coodiv-text-9" href="#">Get Started</a>
+                        </div>
+                        <!-- START header left buttons -->
+
+                        <!-- Mobile Menu Buttons-->
+                        <button
+                            class="navbar-toggler btn-close-off-canvas hamburger-icon border-0"
+                            type="button"
+                            data-toggle="collapse"
+                            data-target="#mobile-menu"
+                            aria-controls="mobile-menu"
+                            aria-expanded="false"
+                            aria-label="Toggle navigation"
+                        >
+                            <span class="hamburger hamburger--squeeze js-hamburger">
+                                <span class="hamburger-box">
+                                    <i class="feather icon-menu"></i>
+                                    <i class="feather icon-x"></i>
+                                </span>
+                            </span>
+                        </button>
+                        <!--/ END Mobile Menu Buttons -->
+                    </nav>
+                    <!-- end navbar -->
+                </div>
+            </header>
+            <!-- END template header -->
+
+            <div class="min-header-links-container position-absolute dark-mode-texts">
+                <div class="container">
+                    <div class="row justify-content-lg-between justify-content-center align-items-center mx-0">
+                        <h5 class="coodiv-text-12 d-lg-block d-none">OUR PRICES</h5>
+                        <div class="min-header-links d-flex">
+                            <a class="active" href="#">Overview</a>
+                            <a href="#">DDoS Protection</a>
+                            <a href="#">SmartEdge™</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- START HERO AREA -->
+            <div class="hero-area-coodiv vpn-version position-relative overflow-hidden pb-0 shadow">
+                <!-- START hero area animations -->
+                <div class="header-hero-backgrounds">
+                    <div class="vpn-space-bg"><img src="image/header/vpn-version/bg.jpg" alt="" /></div>
+                    <div id="particles-bg"></div>
+                    <div class="animated__header__items__inner" id="js-scene">
+                        <div class="items__layer layer vpn-space-rocks-img" data-depth="0.2"><img src="image/header/vpn-version/space-men-rocks.svg" alt="" /></div>
+                        <div class="items__layer layer t-first" data-depth="0.1"><img src="image/header/sunset-version/moon.png" alt="" /></div>
+                    </div>
+                    <span class="vpn-version-ovellay-background"></span>
+                </div>
+
+                <div class="shape-1 coodiv-abs-tr" data-aos="fade-up" data-aos-duration="500" data-aos-once="true"><img src="image/header/helf-circle-01.png" alt="" /></div>
+                <div class="shape-2 coodiv-abs-tr" data-aos="fade-down-left" data-aos-duration="800" data-aos-delay="300" data-aos-once="true"><img src="image/header/helf-circle-02.png" alt="" /></div>
+                <div class="shape-3 coodiv-abs-tr" data-aos="fade-down-left" data-aos-duration="1100" data-aos-delay="600" data-aos-once="true"><img src="image/header/helf-circle-03.png" alt="" /></div>
+                <!-- END hero area animations -->
+
+                <div class="container position-relative coodiv-z-index-2">
+                    <!-- END HERO MAIN CONTENTS -->
+                    <div class="row justify-content-center">
+                        <!-- row -->
+                        <div class="col-md-9 col-lg-7 col-xl-7">
+                            <!-- column -->
+                            <!-- START MAIN CONTENTS -->
+                            <div class="hero-content dark-mode-texts text-center pb-15 pt-20 mb-lg-4">
+                                <h1 class="coodiv-text-3 text-white d-block mb-10">Try our service for free.</h1>
+                                <p class="coodiv-text-8 mb-0 coodiv-color-white-opacity-8 mb-10">
+                                    Supercharge your content with one of the fastest networks in the world.<br />
+                                    With 74 PoPs and our SmartEdge routing engine we're always just a hop away.
+                                </p>
+                            </div>
+                            <!-- END MAIN CONTENTS -->
+                        </div>
+                        <!-- END column -->
+                    </div>
+                    <!-- END row -->
+
+                    <div class="row justify-content-center mb-20">
+                        <div class="col-12">
+                            <div class="network-start-vpn">
+                                <div class="network-start-vpn-illustrations position-relative">
+                                    <img class="wires" src="image/header/vpn-version/wires.svg" alt="" />
+                                    <img class="servers" src="image/header/vpn-version/world-protected.svg" alt="" />
+                                </div>
+                                <a class="network-start-vpn-start-now coodiv-hover-y" href="#"><span>START NOW</span></a>
+                                <ul class="network-start-vpn-countries">
+                                    <li class="active"><i class="img-flag usa"></i> <span class="coodiv-text-12 font-weight-bold">USA, California</span></li>
+                                    <li><i class="img-flag algeria"></i> <span class="coodiv-text-12 font-weight-bold">Algeria, Oran</span></li>
+
+                                    <li><i class="img-flag brazil"></i> <span class="coodiv-text-12 font-weight-bold">Brazil, Brasília</span></li>
+                                    <li><i class="img-flag france"></i> <span class="coodiv-text-12 font-weight-bold">France, Paris</span></li>
+
+                                    <li><i class="img-flag uae"></i> <span class="coodiv-text-12 font-weight-bold">UAE, Dubai</span></li>
+                                    <li><i class="img-flag japen"></i> <span class="coodiv-text-12 font-weight-bold">Japan , Tokyo</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- END hero MAIN CONTENTS -->
+
+                <div class="counter-server-header-section py-9 coodiv-bg-blackish-blue-opacity-opacity-4 position-relative mt-30">
+                    <div class="container">
+                        <div class="row dark-mode-texts justify-content-center mb-n9">
+                            <div class="col-lg-4 col-md-6 col-sm-6 mb-9">
+                                <div class="single-fact d-flex px-9 px-sm-0 px-xl-9">
+                                    <h3 class="coodiv-text-3 mr-9">1.4M+</h3>
+                                    <p class="coodiv-text-9 mb-0">Requests Per Second</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6 col-sm-6 mb-9">
+                                <div class="single-fact d-flex px-9 px-sm-0 px-xl-9">
+                                    <h3 class="coodiv-text-3 mr-9"><span class="counter">105</span>+</h3>
+                                    <p class="coodiv-text-9 mb-0">Data Centers around the world</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6 col-sm-6 mb-9">
+                                <div class="single-fact d-flex px-9 px-sm-0 px-xl-9">
+                                    <h3 class="coodiv-text-3 mr-9"><span class="counter">40</span></h3>
+                                    <p class="coodiv-text-9 mb-0">Gbit AUplink Per Server countet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END HERO AREA -->
+
+            <div class="why-section-companies pt-11 pb-9 pt-lg-24 pb-lg-24 bg-default-2">
+                <div class="container">
+                    <div class="row justify-content-center align-items-center">
+                        <div class="col-md-10-col-lg-9 col-xl-8">
+                            <div class="section-title text-center mb-7 mb-lg-11">
+                                <h2 class="title coodiv-text-4 mb-9">We've helped amazing companies to grow up faster!</h2>
+                                <p class="coodiv-text-8 px-lg-8 mb-0">
+                                    Optimizer automatically minifies, compresses and optimizes your static files on the fly and provides a powerful image processing API to resize, crop and manipulate images in real-time.
+                                </p>
+                                <p></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-center">
+                        <div class="col-lg-12">
+                            <div class="mb-15 mb-lg-5 white-bg text-center position-relative shadow-2 mt-9 rounded-20 coodiv-z-index-1 row mx-lg-0 mx-1">
+                                <div class="col-md-4 border-right py-10 border-lg-bottom-0 border-bottom">
+                                    <h5 class="coodiv-text-6">Business Starter</h5>
+                                    <div class="price">
+                                        <div class="value coodiv-text-3 font-weight-light text-blue">$6 <small class="coodiv-text-8">USD</small></div>
+                                        <div class="clarifications coodiv-text-10 color-blackish-blue-opacity">for the month</div>
+                                    </div>
+
+                                    <div class="action mt-5">
+                                        <a class="btn btn-warning coodiv-text-11 font-weight-light rounded-20 px-2 py-3" href="#">Get started</a>
+                                    </div>
+
+                                    <div class="separte-or position-relative text-center pb-0 pt-0 my-7">
+                                        <span>Plan features</span>
+                                    </div>
+
+                                    <ul class="features px-0 mx-auto mb-0 card-list list-style-check text-center justify-content-center-li">
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Custom and secure businessemail</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>100 participant videomeetings</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>30 GB cloud storage peruser</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Security and managementcontrols</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Standard Support</span></li>
+                                    </ul>
+                                </div>
+
+                                <div class="col-md-4 border-right py-10 border-lg-bottom-0 border-bottom">
+                                    <h5 class="coodiv-text-6">Business Standard</h5>
+                                    <div class="price">
+                                        <div class="value coodiv-text-3 font-weight-light text-blue">$12 <small class="coodiv-text-8">USD</small></div>
+                                        <div class="clarifications coodiv-text-10 color-blackish-blue-opacity">for the month</div>
+                                    </div>
+
+                                    <div class="action mt-5">
+                                        <a class="btn btn-warning coodiv-text-11 font-weight-light rounded-20 px-2 py-3" href="#">Get started</a>
+                                    </div>
+
+                                    <div class="separte-or position-relative text-center pb-0 pt-0 my-7">
+                                        <span>Plan features</span>
+                                    </div>
+
+                                    <ul class="features px-0 mx-auto mb-0 card-list list-style-check text-center justify-content-center-li">
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Custom and secure businessemail</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>100 participant videomeetings</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>30 GB cloud storage peruser</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Security and managementcontrols</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Standard Support</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>paid upgrade to Enhanced Support</span></li>
+                                    </ul>
+                                </div>
+
+                                <div class="col-md-4 py-10">
+                                    <h5 class="coodiv-text-6">Business Plus</h5>
+                                    <div class="price">
+                                        <div class="value coodiv-text-3 font-weight-light text-blue">$18 <small class="coodiv-text-8">USD</small></div>
+                                        <div class="clarifications coodiv-text-10 color-blackish-blue-opacity">for the month</div>
+                                    </div>
+
+                                    <div class="action mt-5">
+                                        <a class="btn btn-warning coodiv-text-11 font-weight-light rounded-20 px-2 py-3" href="#">Get started</a>
+                                    </div>
+
+                                    <div class="separte-or position-relative text-center pb-0 pt-0 my-7">
+                                        <span>Plan features</span>
+                                    </div>
+
+                                    <ul class="features px-0 mx-auto mb-0 card-list list-style-check text-center justify-content-center-li">
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Custom and secure businessemail</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>100 participant videomeetings</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>30 GB cloud storage peruser</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Security and managementcontrols</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Standard Support</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>Enhanced security and management</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>paid upgrade to Enhanced Support</span></li>
+                                        <li class="coodiv-text-11"><i class="feather icon-check"></i> <span>30 GB cloud storage peruser</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-center mt-10">
+                        <div class="col-12 col-md-11 col-lg-10 col-xl-9">
+                            <div class="brand-logos d-flex justify-content-center align-items-center mx-n9 flex-wrap">
+                                <div class="single-brand mx-9 py-7 coodiv-opacity-8 aos-init aos-animate" data-aos="zoom-in-right" data-aos-duration="500" data-aos-once="true">
+                                    <img src="image/demo/customers/logo-01.png" alt="#" />
+                                </div>
+                                <div class="single-brand mx-9 py-7 coodiv-opacity-8 aos-init aos-animate" data-aos="zoom-in-right" data-aos-duration="700" data-aos-once="true">
+                                    <img src="image/demo/customers/logo-02.png" alt="#" />
+                                </div>
+                                <div class="single-brand mx-9 py-7 coodiv-opacity-8 aos-init aos-animate" data-aos="zoom-in-right" data-aos-duration="900" data-aos-once="true">
+                                    <img src="image/demo/customers/logo-03.png" alt="#" />
+                                </div>
+                                <div class="single-brand mx-9 py-7 coodiv-opacity-8 aos-init aos-animate" data-aos="zoom-in-right" data-aos-duration="1100" data-aos-once="true">
+                                    <img src="image/demo/customers/logo-04.png" alt="#" />
+                                </div>
+                                <div class="single-brand mx-9 py-7 coodiv-opacity-8 aos-init aos-animate" data-aos="zoom-in-right" data-aos-duration="1300" data-aos-once="true">
+                                    <img src="image/demo/customers/logo-05.png" alt="#" />
+                                </div>
+                                <div class="single-brand mx-9 py-7 coodiv-opacity-8 aos-init aos-animate" data-aos="zoom-in-right" data-aos-duration="1500" data-aos-once="true">
+                                    <img src="image/demo/customers/logo-06.png" alt="#" />
+                                </div>
+                                <div class="single-brand mx-9 py-7 coodiv-opacity-8 aos-init aos-animate" data-aos="zoom-in-right" data-aos-duration="1500" data-aos-once="true">
+                                    <img src="image/demo/customers/logo-07.png" alt="#" />
+                                </div>
+                                <div class="single-brand mx-9 py-7 coodiv-opacity-8 aos-init aos-animate" data-aos="zoom-in-right" data-aos-duration="1500" data-aos-once="true">
+                                    <img src="image/demo/customers/logo-08.png" alt="#" />
+                                </div>
+                                <div class="single-brand mx-9 py-7 coodiv-opacity-8 aos-init aos-animate" data-aos="zoom-in-right" data-aos-duration="1500" data-aos-once="true">
+                                    <img src="image/demo/customers/logo-09.png" alt="#" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="why-us-section pt-15 pb-0 pt-lg-25 position-relative">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-xl-6 col-lg-7 col-md-8">
+                            <div class="section-title text-center mb-13 mb-lg-15">
+                                <h4 class="pre-title coodiv-text-12 text-red text-uppercase mb-7">Deliver exceptional performance. For every request. Every time.</h4>
+                                <h2 class="title coodiv-text-4">Never Make Your Users Wait Again.</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="number-features-conteiner position-relative row align-items-center mb-25">
+                        <div class="col-md-4 col-lg-4" data-aos="fade-left" data-aos-duration="900" data-aos-once="true">
+                            <div class="number-features-box my-9">
+                                <span class="number coodiv-text-3 font-weight-bold">01</span>
+                                <div>
+                                    <h3 class="coodiv-text-8 mb-0">Scalable By Design</h3>
+                                    <p class="coodiv-text-10 font-weight-light mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-lg-4" data-aos="fade-left" data-aos-duration="900" data-aos-once="true">
+                            <div class="number-features-box my-9 text-center">
+                                <span class="number coodiv-text-3 font-weight-bold">02</span>
+                                <div>
+                                    <h3 class="coodiv-text-8 mb-0">Tier 1 Global Network</h3>
+                                    <p class="coodiv-text-10 font-weight-light mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-lg-4" data-aos="fade-left" data-aos-duration="900" data-aos-once="true">
+                            <div class="number-features-box my-9 text-right">
+                                <span class="number coodiv-text-3 font-weight-bold">03</span>
+                                <div>
+                                    <h3 class="coodiv-text-8 mb-0">NVMe + SSD Powered Servers</h3>
+                                    <p class="coodiv-text-10 font-weight-light mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-center">
+                        <div class="col-lg-5 col-12 mb-lg-0 mb-15">
+                            <div class="vpn-special-features-box white-bg shadow-2 rounded-25 py-8 px-8 text-center border">
+                                <h3 class="coodiv-text-5 mb-0">Coodiv-Cache</h3>
+                                <p class="coodiv-text-9 font-weight-light">Permanent Cache. Permanent Performance.</p>
+                                <img class="px-17 my-15" src="image/whoosh/png/coding.png" alt="" />
+                                <p class="coodiv-text-9 font-weight-light">
+                                    <strong class="font-weight-bold">Coodiv-Cache</strong> allows you to permanently store a copy of your files on our edge storage for a 100% cache HIT ratio. Experience maximum performance, even with
+                                    uncached content.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-5 col-12">
+                            <div class="vpn-special-features-box white-bg shadow-2 rounded-25 py-8 px-8 text-center border">
+                                <h3 class="coodiv-text-5 mb-0">SmartEdge</h3>
+                                <p class="coodiv-text-9 font-weight-light">Bringing users where it matters.</p>
+                                <img class="px-17 my-15" src="image/whoosh/png/coding-2.png" alt="" />
+                                <p class="coodiv-text-9 font-weight-light">
+                                    <strong class="font-weight-bold">SmartEdge™</strong> routing engine uses real-time analytics based on your content and network metrics to make sure your users always end up at the most optimal
+                                    destination.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-default-2 pt-35 pb-15 mt-n35">
+                <svg style="visibility: hidden; position: absolute;" width="0" height="0" xmlns="http://www.w3.org/2000/svg" version="1.1">
+                    <defs>
+                        <filter id="roundedsvg">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+                            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+                            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+                        </filter>
+                    </defs>
+                </svg>
+
+                <div class="container">
+                    <div class="row justify-content-lg-start justify-content-center mt-20">
+                        <div class="col-xl-6 col-lg-7 col-md-8">
+                            <div class="section-title text-lg-left text-center mb-13 mb-lg-15">
+                                <h4 class="pre-title coodiv-text-12 text-red text-uppercase mb-4">Deliver exceptional performance. For every request. Every time.</h4>
+                                <h2 class="title coodiv-text-4">Never Make Your Users Wait Again.</h2>
+                                <p class="coodiv-text-8 mb-0">Optimizer automatically minifies, compresses and optimizes your static files on the fly and provides.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-center">
+                        <div class="col-lg-4 col-12 px-lg-10">
+                            <div class="transfer-wp-box mx-auto ml-lg-0 mr-lg-auto position-relative d-block mb-7">
+                                <span class="shape-hexagon position-absolute"></span>
+                                <i class="icon fas fa-key position-absolute"></i>
+                            </div>
+
+                            <div class="d-block text-lg-left text-center mb-9 mb-lg-13">
+                                <h2 class="title coodiv-text-7 mb-4">Easy Let's Encrypt SSL!</h2>
+                                <p class="coodiv-text-10 mb-0">Get a free SSL certificate with a click of a button using our simple Let's Encrypt integration.</p>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-12 px-lg-10">
+                            <div class="transfer-wp-box mx-auto ml-lg-0 mr-lg-auto position-relative d-block mb-7">
+                                <span class="shape-hexagon position-absolute"></span>
+                                <i class="icon fas fa-tasks position-absolute"></i>
+                            </div>
+
+                            <div class="d-block text-lg-left text-center mb-9 mb-lg-13">
+                                <h2 class="title coodiv-text-7 mb-4">Real-time Log Forwarding</h2>
+                                <p class="coodiv-text-10 mb-0">Real-time logging allow you to gain complete visibility into your content and make data-driven business decisions.</p>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-12 px-lg-10">
+                            <div class="transfer-wp-box mx-auto ml-lg-0 mr-lg-auto position-relative d-block mb-7">
+                                <span class="shape-hexagon position-absolute"></span>
+                                <i class="icon fab fa-wordpress position-absolute"></i>
+                            </div>
+
+                            <div class="d-block text-lg-left text-center mb-9 mb-lg-13">
+                                <h2 class="title coodiv-text-7 mb-4">Real-Time Monitoring</h2>
+                                <p class="coodiv-text-10 mb-0">Get full insight into your traffic using our next generation real-time monitoring dashboard.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="light-mode-texts pt-13 pt-md-25 pb-13 pb-md-25">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 col-lg-6 mb-lg-n15 mb-6 mb-lg-0" data-aos="zoom-in-down" data-aos-duration="1100" data-aos-once="true">
+                            <div class="content-img-svg-with-bg text-left pr-xl-13 ml-lg-n8 position-relative">
+                                <span></span>
+                                <img src="image/whoosh/png/login-2.png" alt="" class="w-100 position-relative" />
+                            </div>
+                        </div>
+                        <div class="col-xs-11 col-sm-12 col-md-6 col-lg-5 col-xl-5">
+                            <div class="pl-lg-3 pl-xl-12 mt-12 mt-md-0 text-center text-lg-left">
+                                <h4 class="pre-title coodiv-text-12 text-green text-uppercase mb-0">Content Delivery Network</h4>
+                                <h2 class="title coodiv-text-4 mb-7">Optimize and transform your images on the fly.</h2>
+                                <p class="coodiv-text-8 coodiv-text-color-opacity">
+                                    Optimizer automatically minifies, compresses and optimizes your static files on the fly and provides a powerful image processing API to resize, crop and manipulate images in real-time
+                                </p>
+                                <div class="pt-7">
+                                    <a href="" class="btn btn-warning with-icon text-white coodiv-text-9 px-10 font-weight-bold rounded-20">See More<i class="feather icon-arrow-right font-weight-bold"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-section pt-18 pb-30 pt-lg-21 pb-lg-30">
+                <div class="container">
+                    <div class="row align-items-center justify-content-center">
+                        <div class="col-lg-5 pr-lg-9 col-sm-10">
+                            <div class="content-text text-center text-lg-left">
+                                <h4 class="pre-title coodiv-text-12 text-green text-uppercase mb-0">Edge Storage</h4>
+                                <h2 class="coodiv--text-4 mb-8">Replicate and store your files on the edge!</h2>
+                                <p class="coodiv--text-8 pr-4 mb-11">Thanks to global replication across 4 continents, Edge Storage offers up to 5X faster download speeds and latencies compared to traditional cloud storage.</p>
+                                <div class="content-btn">
+                                    <a href="" class="btn btn-warning with-icon text-white coodiv-text-9 px-10 font-weight-bold rounded-20">Explore Edge Storage<i class="feather icon-arrow-right font-weight-bold"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 offset-lg-1 col-sm-10 mt-20 mt-lg-0">
+                            <div class="content-img-svg-with-bg-2 img-coodiv-oup-1 position-relative px-lg-0 px-10" data-aos="zoom-in" data-aos-duration="500" data-aos-once="true">
+                                <span></span>
+                                <img src="image/whoosh/png/social-2.png" alt="" class="w-100 position-relative" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section pt-20 pb-md-25 pt-lg-25 pb-15 pb-lg-32 white-mode-texts with-planet-bg overflow-hidden position-relative border-top">
+                <svg class="bg-wave-box-end-z1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                    <defs>
+                        <linearGradient id="footer-gradient">
+                            <stop offset="0%" stop-color="#131829" />
+                            <stop offset="39%" stop-color="#131829" />
+                            <stop offset="100%" stop-color="#131829" />
+                        </linearGradient>
+                    </defs>
+                    <path
+                        fill="url(#footer-gradient)"
+                        fill-opacity="1"
+                        d="M0,128L80,138.7C160,149,320,171,480,192C640,213,800,235,960,234.7C1120,235,1280,213,1360,202.7L1440,192L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"
+                    ></path>
+                </svg>
+
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-xl-8 col-lg-9">
+                            <div class="px-md-12 text-center mb-9 mb-lg-13">
+                                <h2 class="title coodiv-text-4 mb-8">FREQUENTLY ASKED QUESTIONS</h2>
+                                <p class="coodiv-text-8 mb-0">Below you'll find answers to the questions we get asked the most about our services.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./section-title Ends-->
+                    <div class="row justify-content-center">
+                        <div class="col-xl-8 col-lg-9">
+                            <div class="accordion" id="accordionExample">
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-1">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-1"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-1"
+                                        >
+                                            Do I need to relicense an item each time I use it?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-1" class="collapse" aria-labelledby="heading4-1" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            Yes you do. You need a license for each end project. This ensures contributors are paid for your usage of each asset & you and your clients have the legal right to use the item.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-2">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-2"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-2"
+                                        >
+                                            Do I need to relicense Fonts or Addons each time I use them in a project?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-2" class="collapse" aria-labelledby="heading4-2" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            No, you do not need to relicense fonts or addons for each project. You only need to register them once for the installation on your device. If registering a font or addon to another computer you
+                                            use, you need to issue a new license for that installation.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-3">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-3"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-3"
+                                        >
+                                            Do I need to credit the author of the item?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-3" class="collapse" aria-labelledby="heading4-3" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            No, it's not mandatory to give the author credit. But we do encourage that if your end product has credits as part of its design (such as a film or TV show), please credit the author and Envato.
+                                            Also, as the author retains ownership of the item, you shouldn't claim copyright in the item.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-4">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-4"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-4"
+                                        >
+                                            Can I mix two Envato Elements website templates together?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-4" class="collapse" aria-labelledby="heading4-4" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            Yes, you can modify the items you download on Elements to create a customised implementation of the item. The license starts when you Register your use of the item and the license is only valid if
+                                            you complete the End Product while your subscription is active. Then the license continues for the life of the End Product (even if your subscription ends).
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-5">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-5"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-5"
+                                        >
+                                            When I use a font in Merchandising, must I combine with another asset?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-5" class="collapse" aria-labelledby="heading4-5" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            No you do not. Fonts can be used on their own, so long as you do not redistribute the font itself to any other person.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reviews-overview text-center mt-9 mb-0">
+                            <p class="color-blackish-blue-opacity coodiv-text-10 d-lg-flex align-items-center justify-content-center">
+                                <img class="website-logo" src="image/logo-main-black.png" alt="main logo" /> is rated <strong>Excellent</strong>
+                                <span class="reviews-stars ml-5">
+                                    <i class="feather icon-star-on"></i> <i class="feather icon-star-on"></i> <i class="feather icon-star-on"></i> <i class="feather icon-star-on"></i> <i class="feather icon-star-on"></i>
+                                </span>
+                                <strong>4.89</strong>&nbsp;out of 5 based on <strong>3,432 reviews</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="free-trial-section py-12 py-lg-30 dark-mode-texts bg-mirage position-relative">
+                <div class="vpn-space-men-img-section"><img src="image/whoosh/png/payment-processed.png" alt="" /></div>
+                <div class="container">
+                    <div class="row align-items-center align-items-center position-relative coodiv-z-index-2">
+                        <div class="col-lg-6">
+                            <div class="section-title free-trial-text pr-lg-5 text-lg-left text-center">
+                                <h2 class="coodiv-text-5 mb-7">Start Your 14 Day Free Trial</h2>
+                                <p class="coodiv-text-8 mb-0">Join over 18.000 satisfied customers already using coodiv.net and make your content load faster..</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 offset-xl-1 col-xl-5 mt-lg-0 mt-10">
+                            <div class="mt-5 mt-lg-0 text-lg-right text-center">
+                                <a href="#" class="btn btn-red with-icon coodiv-hover-y rounded-25 mb-5">Start 14 Day for Free <i class="feather icon-arrow-right font-weight-bold"></i></a>
+                                <p class="coodiv-text-9">No credit card required – Get started in seconds.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dark-mode-texts footer-gradient-default-2 overflow-hidden bg-pattern pattern-5 position-relative pt-lg-25 pt-5">
+                <span class="footer-with-svg-buttom-illustration"></span>
+                <svg class="bg-wave-box-end" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                    <path
+                        fill="#414f7b"
+                        fill-opacity="1"
+                        d="M0,64L80,101.3C160,139,320,213,480,213.3C640,213,800,139,960,117.3C1120,96,1280,128,1360,144L1440,160L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"
+                    ></path>
+                </svg>
+                <div class="container">
+                    <!-- container -->
+                    <div class="footer-section light-mode-texts">
+                        <!-- footer section -->
+                        <div id="footer-wrap-links" class="footer-top pt-15 pt-lg-5 pb-lg-19"></div>
+                        <!-- footer wrap -->
+                        <!-- footer Copyright section -->
+                        <div class="bottom-footer-area pt-9 pb-8">
+                            <div class="row align-items-center">
+                                <div class="col-lg-8">
+                                    <p class="copyright-text coodiv-text-11 mb-6 mb-lg-0 coodiv-text-color-opacity text-center text-lg-left">
+                                        © 2022 Copyright, All Right Reserved, Made with <i class="coodiv-color-red-opacity-visible feather icon-heart-on mx-1"></i> by <a href="https://coodiv.net/">coodiv</a> with a lots of coffee
+                                        <i class="icon icon-heart-2-2 text-sky-blue align-middle ml-2"></i>
+                                    </p>
+                                </div>
+                                <div class="col-lg-4 text-center text-lg-right">
+                                    <ul class="payment-getway list-unstyled mb-0">
+                                        <li class="ml-1"><img src="image/payment/visa.png" alt="" /></li>
+                                        <li class="ml-1"><img src="image/payment/mastercard.png" alt="" /></li>
+                                        <li class="ml-1"><img src="image/payment/discover.png" alt="" /></li>
+                                        <li class="ml-1"><img src="image/payment/amex.png" alt="" /></li>
+                                        <li class="ml-1"><img src="image/payment/jcb.png" alt="" /></li>
+                                        <li class="ml-1"><img src="image/payment/maestro.png" alt="" /></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- END footer Copyright section -->
+                    </div>
+                    <!-- END footer section -->
+                </div>
+                <!-- END container -->
+            </div>
+            <!-- END template footer -->
+        </div>
+        <!-- END site wrapper -->
+
+        <!-- START LIVE SUPPORT FIXED HEAD -->
+        <a class="live-support-trigger" href="#" data-toggle="modal" data-target="#errormodal">
+            <div class="support-agent"><img class="profile-pic" src="image/team/3.jpg" alt="support agent" /></div>
+            <div class="live-support-welcome coodiv-text-12 font-weight-light shadow">How can i help you?</div>
+        </a>
+        <!-- END LIVE SUPPORT FIXED HEAD -->
+
+        <!-- START GDPR BADGE -->
+        <div id="popuppfirsttime" class="gbpr-badge-fixed rounded-20 shadow dark-mode-texts alert alert-dismissible fade show not-accepted" role="alert">
+            <div class="gbpr-badge-cercled-stars">
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+                <i class="feather icon-star-on"></i>
+            </div>
+            <h5 class="coodiv-text-7 font-weight-bold mb-0">GBPR</h5>
+            <a class="gbpr-model-button coodiv-text-11 font-weight-light mt-n2 mb-0 white-text text-underline d-block" data-toggle="modal" data-target="#gbprmodal">ready</a>
+            <a id="gbpr-badge-close" class="gbpr-badge-close" href="#" data-dismiss="alert" aria-label="Close"><i class="feather icon-x"></i></a>
+        </div>
+        <!-- END GDPR BADGE -->
+
+        <!-- START GDPR MODEL -->
+        <div class="modal fade bd-example-modal-lg" id="gbprmodal" role="dialog" aria-labelledby="gbprmodal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content rounded-20 border-opacity">
+                    <div class="modal-body px-10 py-10">
+                        <h3 class="coodiv-text-6">What is GDPR?</h3>
+                        <p class="coodiv-text-10 font-weight-light text-muted">
+                            The GDPR (General Data Protection Regulation) is the most important development of Data Protection Law for decades. It will strengthen and ultimately replace the existing Data Protection Act (1998) and is
+                            designed to protect the personal data and privacy of citizens across Europe. GDPR will not be affected by the UK’s exit from the EU and the Regulation comes fully into effect on 25 May 2018.
+                        </p>
+                        <div class="d-block mt-9 text-center">
+                            <button type="button" class="btn btn-primary btn-curved mb-0 w-50 rounded-20">okay</button>
+                            <button type="button" class="btn text-primary mb-0 rounded-20" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END GDPR MODEL -->
+
+        <!-- START LIVE SUPPORT MODEL -->
+        <div class="modal fade" id="errormodal" role="dialog" aria-labelledby="errormodal" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-20 border-opacity">
+                    <div class="modal-body px-10 py-10 text-center">
+                        <h3 class="coodiv-text-6">All of our support team are busy right now :(</h3>
+                        <p class="coodiv-text-9 font-weight-light text-muted">Lorem ipsum dolor sit amet consectetur adipisicing elit</p>
+                        <div class="d-block mt-13">
+                            <button type="button" class="btn btn-primary btn-curved mb-0 w-50 rounded-20">okay</button>
+                            <button type="button" class="btn text-primary mb-0 rounded-20" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END LIVE SUPPORT MODEL -->
+
+        <!-- Vendor Scripts -->
+        <script src="js/vendor.min.js"></script>
+        <!-- Plugin's Scripts -->
+        <script src="plugins/fancybox/jquery.fancybox.min.js"></script>
+        <script src="plugins/nice-select/jquery.nice-select.min.js"></script>
+        <script src="plugins/aos/aos.min.js"></script>
+        <script src="plugins/slick/slick.min.js"></script>
+        <script src="plugins/typed/typed.min.js"></script>
+        <script src="plugins/waypoints/jquery.waypoints.min.js"></script>
+
+        <script src="plugins/particles/particles-code.js"></script>
+        <script src="plugins/particles/particles.js"></script>
+        <script src="plugins/parallax/parallax.js"></script>
+
+        <script src="plugins/smoothscroll/smoothscroll.js"></script>
+
+        <script src="plugins/lordicon/lord-icon-2.1.0.min.js"></script>
+
+        <!-- Translate Scripts -->
+        <script src="plugins/i18next/i18next.min.js"></script>
+        <script src="plugins/i18next/i18nextXHRBackend.min.js"></script>
+        <script src="plugins/i18next/jquery-i18next.min.js"></script>
+
+        <!-- Activation Script -->
+        <script src="js/custom.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                $scene = $("#js-scene");
+
+                $scene.parallax();
+            });
+        </script>
+    </body>
+</html>

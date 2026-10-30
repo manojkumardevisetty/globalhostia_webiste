@@ -1,0 +1,89 @@
+# BEGIN WHMCS
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# Redirect HTTP to HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Redirect www to non-www
+RewriteCond %{HTTP_HOST} ^www\.globalhostia\.com [NC]
+RewriteRule ^(.*)$ https://globalhostia.com/$1 [L,R=301]
+
+# Remove index.html from URLs
+RewriteCond %{THE_REQUEST} /index\.html[\s?] [NC]
+RewriteRule ^(.*)index\.html$ /$1 [R=301,L]
+
+# Remove index.php from URLs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?/$1 [L,QSA]
+</IfModule>
+# END WHMCS
+
+# ── PERFORMANCE ──────────────────────────────────
+
+# Browser caching
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType image/jpg "access plus 1 year"
+ExpiresByType image/jpeg "access plus 1 year"
+ExpiresByType image/gif "access plus 1 year"
+ExpiresByType image/png "access plus 1 year"
+ExpiresByType image/webp "access plus 1 year"
+ExpiresByType image/svg+xml "access plus 1 year"
+ExpiresByType image/x-icon "access plus 1 year"
+ExpiresByType text/css "access plus 1 month"
+ExpiresByType text/javascript "access plus 1 month"
+ExpiresByType application/javascript "access plus 1 month"
+ExpiresByType application/x-font-woff "access plus 1 year"
+ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# GZIP compression
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE text/javascript
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/json
+AddOutputFilterByType DEFLATE image/svg+xml
+AddOutputFilterByType DEFLATE font/woff2
+</IfModule>
+
+# ── SECURITY ─────────────────────────────────────
+
+# Security headers
+<IfModule mod_headers.c>
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Block bad bots
+<IfModule mod_rewrite.c>
+RewriteCond %{HTTP_USER_AGENT} (AhrefsBot|SemrushBot|MJ12bot|DotBot) [NC]
+RewriteRule .* - [F,L]
+</IfModule>
+
+# Disable directory browsing
+Options -Indexes
+
+# Protect .htaccess itself
+<Files .htaccess>
+Order allow,deny
+Deny from all
+</Files>
+
+# ── PHP ───────────────────────────────────────────
+
+<IfModule mod_php7.c>
+php_value session.gc_maxlifetime 7200
+php_value max_execution_time 600
+php_value memory_limit 256M
+php_value max_input_vars 9000
+php_value post_max_size 10M
+php_admin_value open_basedir "/home/ofgizflz/:/tmp/:/var/tmp/:/opt/alt/php74/usr/share/pear/:/dev/urandom/:/usr/local/lib/php/:/usr/local/php74/lib/php/"
+</IfModule>

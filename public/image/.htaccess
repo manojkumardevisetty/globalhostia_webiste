@@ -1,0 +1,232 @@
+# ============================================
+# GlobalHostia Optimized .htaccess for WHMCS
+# Security + Performance + SEO
+# ============================================
+
+# ============================================
+# SECURITY HEADERS
+# ============================================
+
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
+</IfModule>
+
+# ============================================
+# ENABLE REWRITE ENGINE
+# ============================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # ========================================
+    # FORCE HTTPS
+    # ========================================
+
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+    # ========================================
+    # WWW TO NON-WWW
+    # ========================================
+
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+    # ========================================
+    # REMOVE TRAILING SLASH
+    # ========================================
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.+)/$ /$1 [R=301,L]
+
+    # ========================================
+    # BLOCK PHP EXECUTION IN WHMCS FOLDERS
+    # ========================================
+
+    RewriteRule ^(attachments|downloads|templates_c)/.*\.(php|php3|php4|php5|phtml)$ - [F,L,NC]
+
+    # ========================================
+    # HOTLINK PROTECTION
+    # ========================================
+
+    RewriteCond %{HTTP_REFERER} !^$
+    RewriteCond %{HTTP_REFERER} !^https://(www\.)?globalhostia\.com [NC]
+    RewriteCond %{REQUEST_URI} \.(gif|jpg|jpeg|png|webp|svg|ico)$ [NC]
+    RewriteRule .* - [F,L]
+
+    # ========================================
+    # BLOCK BAD BOTS
+    # ========================================
+
+    RewriteCond %{HTTP_USER_AGENT} (MJ12bot|SemrushBot|AhrefsBot|DotBot|MegaIndex) [NC]
+    RewriteRule .* - [F,L]
+
+</IfModule>
+
+# ============================================
+# CUSTOM ERROR PAGES
+# ============================================
+
+ErrorDocument 404 /404.html
+
+# ============================================
+# COMPRESSION (GZIP)
+# ============================================
+
+<IfModule mod_deflate.c>
+
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE image/svg+xml
+
+</IfModule>
+
+# ============================================
+# BROWSER CACHING
+# ============================================
+
+<IfModule mod_expires.c>
+
+    ExpiresActive On
+
+    # Images
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+
+    # CSS and JS
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+
+    # Fonts
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+
+    # Default
+    ExpiresDefault "access plus 2 days"
+
+</IfModule>
+
+# ============================================
+# CACHE CONTROL
+# ============================================
+
+<IfModule mod_headers.c>
+
+    <FilesMatch "\.(ico|jpg|jpeg|png|gif|webp|svg|css|js|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "max-age=31536000, public"
+    </FilesMatch>
+
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "max-age=7200, public, must-revalidate"
+    </FilesMatch>
+
+</IfModule>
+
+# ============================================
+# FILE PROTECTION
+# ============================================
+
+# Protect sensitive files
+<FilesMatch "^(\.htaccess|\.htpasswd|\.git|\.env|composer\.json|package\.json|composer\.lock)$">
+
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+
+</FilesMatch>
+
+# Disable directory browsing
+Options -Indexes
+
+# ============================================
+# CHARACTER ENCODING
+# ============================================
+
+AddDefaultCharset UTF-8
+
+# ============================================
+# CORS FOR FONTS
+# ============================================
+
+<IfModule mod_headers.c>
+
+    <FilesMatch "\.(ttf|ttc|otf|eot|woff|woff2)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+
+</IfModule>
+
+# ============================================
+# PHP SETTINGS
+# ============================================
+
+<IfModule mod_php.c>
+    php_value upload_max_filesize 128M
+    php_value post_max_size 128M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
+
+# ============================================
+# MIME TYPES
+# ============================================
+
+<IfModule mod_mime.c>
+
+    AddType application/javascript .js
+    AddType application/json .json
+
+    AddType font/otf .otf
+    AddType application/font-woff .woff
+    AddType application/font-woff2 .woff2
+    AddType application/vnd.ms-fontobject .eot
+    AddType application/x-font-ttf .ttf
+
+    AddType image/webp .webp
+    AddType image/svg+xml .svg .svgz
+
+    AddEncoding gzip .svgz
+
+</IfModule>
+
+# ============================================
+# PERFORMANCE OPTIMIZATION
+# ============================================
+
+<IfModule mod_headers.c>
+    Header unset ETag
+</IfModule>
+
+FileETag None
+
+# ============================================
+# REQUEST SIZE LIMIT
+# ============================================
+
+LimitRequestBody 10485760

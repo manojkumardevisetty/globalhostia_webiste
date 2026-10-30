@@ -1,0 +1,826 @@
+<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="76302826-caa8-41ea-a71b-451fa2019ad5";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+		<link rel="canonical" href="https://globalhostia.com/">
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+        <meta name="description" content="GlobalHostia PM - open source, self-hosted project management for teams & agencies. Gantt charts, Kanban boards, sprints and dedicated client workspaces from $39.99/month." />
+        <meta property="og:site_name" content="GlobalHostia PM" />
+        <meta property="og:url" content="https://globalhostia.com" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="GlobalHostia PM - Open Source Project Management for Teams & Agencies" />
+        <meta name="author" content="GlobalHostia" />
+        <title>GlobalHostia PM | Open Source Project Management (Powered by OpenProject)</title>
+
+        <!-- favicon -->
+        <link rel="shortcut icon" href="image/favicon/favicon.png" type="image/x-icon" />
+
+        <!-- Bootstrap & icons  -->
+        <link rel="stylesheet" href="css/bootstrap.css" />
+        <link rel="stylesheet" href="fonts/fontawesome-5/css/all.css" />
+		
+		<!-- Google webfont  -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+        <!-- Plugin'stylesheets  -->
+        <link rel="stylesheet" href="plugins/slick/slick.min.css" />
+        <link rel="stylesheet" href="plugins/fancybox/jquery.fancybox.min.css" />
+        <link rel="stylesheet" href="plugins/aos/aos.min.css" />
+        <link rel="stylesheet" href="plugins/nice-select/nice-select.min.css" />
+
+        <!-- Vendor stylesheets  -->
+        <link rel="stylesheet" href="css/main.css" />
+
+        <!-- you can add your custom stylesheet in this file -->
+        <link rel="stylesheet" href="css/custom.css" />
+    </head>
+
+    <body>
+        <!-- DELETE THIS IF YOU WANT TO REMOVE PAGELOADER ANIMATION -->
+        <div class="preloader">
+            <div class="preloader-container">
+                <div class="lds-ring">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+                <span class="coodiv-text-10">loading...</span>
+            </div>
+        </div>
+        <!-- DELETE THIS IF YOU WANT TO REMOVE PAGELOADER ANIMATION -->
+
+        <!-- start site-wrapper -->
+        <div class="site-wrapper overflow-hidden">
+            <!-- Header Area -->
+            <header class="site-header header-with-right-menu light-mode-texts site-header--absolute fixed-header-layout light-color-header">
+                <div class="container-fluid pr-lg-9 pl-lg-9">
+                    <nav class="navbar site-navbar offcanvas-active navbar-expand-lg px-0">
+                        <!-- Brand Logo-->
+                        <div class="brand-logo mr-8">
+                            <a href="index.html">
+                                <!-- light version logo (logo must be black)-->
+                                <img src="image/logo-main-black.png" alt="" class="light-version-logo" />
+                                <!-- Dark version logo (logo must be White)-->
+                                <img src="image/logo-main-white.png" alt="" class="dark-version-logo" />
+                            </a>
+                        </div>
+
+                        <!-- START language area header -->
+						<div id="languagesystem" class="header-lang dropdown show position-static coodiv-z-index-1">
+						<a class="coodiv-text-10 btn-header-lang position-relative" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="feather icon-globe mr-2"></i><span data-i18n="[html]systems.langname"></span> </a>
+						<div id="languagesystem-slector" class="header-lang-container dropdown-menu px-8 py-7 px-lg-15 py-lg-15 overflow-scroll-y" aria-labelledby="dropdownMenuLink"></div>
+						</div>
+                        <!-- END language area header -->
+
+                        <!-- START header main navbar -->
+                        <div class="collapse navbar-collapse" id="mobile-menu">
+                            <div class="navbar-nav-wrapper">
+                                <ul id="header-navbar-links" class="navbar-nav main-menu"></ul><!-- Main header navbar -->
+                            </div>
+                        </div>
+						<!-- END header main navbar -->
+						
+						
+                        <!-- START header left buttons -->
+                        <div class="header-btn ml-auto ml-lg-10 mr-5 d-none d-xs-block position-relative">
+                            <a class="btn btn-red coodiv-text-9" href="https://globalhostia.com/secure/login">Sign Up / Sign In</a>
+                            <a class="headerphone-number">(+971) 50-7341578</a>
+                        </div>
+						<!-- START header left buttons -->
+						
+						
+                        <!-- Mobile Menu Buttons-->
+                        <button class="navbar-toggler btn-close-off-canvas hamburger-icon border-0" type="button" data-toggle="collapse" data-target="#mobile-menu" aria-controls="mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="hamburger hamburger--squeeze js-hamburger">
+                                <span class="hamburger-box">
+                                <i class="feather icon-menu"></i>
+								<i class="feather icon-x"></i>
+                                </span>
+                            </span>
+                        </button>
+                        <!--/ END Mobile Menu Buttons -->
+                    </nav>
+                </div>
+            </header>
+            <!-- navbar-dark -->
+
+            <!-- Hero Area -->
+            <div class="hero-area-coodiv light-color-hero-area position-relative">
+                <div class="shape-1 coodiv-abs-tr" data-aos="fade-down-left" data-aos-duration="500" data-aos-once="true"><img src="image/header/helf-circle-01.png" alt="" /></div>
+                <div class="shape-2 coodiv-abs-tr" data-aos="fade-down-left" data-aos-duration="800" data-aos-delay="300" data-aos-once="true"><img src="image/header/helf-circle-02.png" alt="" /></div>
+                <div class="shape-3 coodiv-abs-tr" data-aos="fade-down-left" data-aos-duration="1100" data-aos-delay="600" data-aos-once="true"><img src="image/header/helf-circle-03.png" alt="" /></div>
+
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-md-9 col-lg-5 pr-lg-10">
+                            <div class="hero-content dark-mode-texts mb-15 mb-lg-5 text-center text-md-left pt-10 position-relative coodiv-z-index-1">
+                                <h4 class="pre-title text-green coodiv-text-12 text-uppercase mb-3">Open Source Project Management</h4>
+                                <h1 class="coodiv-text-3 mb-8 color-blackish-blue">Manage Every Project, Sprint & Client in One Place</h1>
+                                <p class="coodiv-text-9 px-7 pl-md-0 pr-md-11 mb-0 color-blackish-blue">GlobalHostia PM gives your team a fully hosted, open source project management workspace with Gantt charts, Kanban boards, sprints and roadmaps - deployed on your own dedicated instance, not a shared black box.</p>
+                                <div class="hero-helf-2-btns mt-11">
+                                    <a href="#plans" class="btn btn-warning rounded-20 coodiv-text-10 font-weight-light d-block coodiv-hover-y">View Plans</a>
+                                    <a href="#features" class="btn btn-primary rounded-20 coodiv-text-10 font-weight-light d-block coodiv-hover-y">Learn More</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-9 col-lg-7" data-aos="fade-up" data-aos-duration="2000" data-aos-once="true">
+                            <div class="hero-img position-relative" style="margin-right: -60px;">
+                                <video class="w-100" autoplay loop muted playsinline
+                                    style="border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.35), 0 0 40px rgba(59,130,246,0.25); transform: scale(1.08);">
+                                    <source src="https://globalhostia.com/globalhsotia-workflow-animation-1080p.mp4" type="video/mp4" />
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wave-shape-bottom">
+                    <svg class="w-100 light-shape default-shape" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                        <path
+                            fill="#fff"
+                            fill-opacity="1"
+                            d="M0,32L60,80C120,128,240,224,360,229.3C480,235,600,149,720,138.7C840,128,960,192,1080,197.3C1200,203,1320,149,1380,122.7L1440,96L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"
+                        ></path>
+                    </svg>
+                </div>
+            </div>
+            <!-- <div class="" > -->
+
+            <div id="plans" class="plans-section bg-default-4 pb-7 pt-lg-15 pb-lg-24 white-bg position-relative">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <h2 class="coodiv-text-4 mb-7 text-center">
+                            Choose Your GlobalHostia PM Plan <br class="d-none d-lg-block" />
+                            Start Managing Projects Today
+                        </h2>
+                        <p class="coodiv-text-8 mb-13 text-center">Self-hosted, open source project management infrastructure built for agencies and teams who need reliability, isolation, and full data control.</p>
+                    </div>
+
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <div class="minecraft-plans rounded-20 white-bg shadow-1 px-10 py-10 border text-center mb-lg-0 mb-10">
+                                <h5 class="title coodiv-text-7 mb-0">GlobalHostia PM Shared</h5>
+                                <p class="sub-title coodiv-text-11">Perfect for small teams & startups</p>
+                                <p class="price coodiv-text-3 font-weight-bold color1">$39<small class="coodiv-text-9">.99</small><span class="coodiv-text-10 d-block mt-2">Monthly</span></p>
+                                <div class="plan-progress-bar color1"><span style="width: 60%;"></span> <small>Shared Infrastructure</small></div>
+
+                                <ul class="features px-0 mx-auto mb-0 card-list list-style-check text-center justify-content-center-li mt-15">
+                                    <li class="coodiv-text-11"><span>*Unlimited Users(10 GB storage)</span></li>
+									<li class="coodiv-text-11"><span>app.globalhostia.com/yourcompany</span></li>
+                                    <li class="coodiv-text-11"><span>Kanban & Agile Boards</span></li>
+                                    <li class="coodiv-text-11"><span>Multi-Project Workspace</span></li>
+                                    <li class="coodiv-text-11"><span>Team Roles & Permissions</span></li>
+                                    <li class="coodiv-text-11"><span>Time Tracking & Reporting</span></li>
+                                    <li class="coodiv-text-11"><span>Wiki & Document Sharing</span></li>
+                                    <li class="coodiv-text-11"><span>Shared High-Speed Infrastructure</span></li>
+                                </ul>
+
+                                <a class="d-block btn btn-info coodiv-text-11 font-weight-bold rounded-20 mt-8" href="https://globalhostia.com/secure/store/project-management/globalhostia-pm-shared-workspace">Order Now</a>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="minecraft-plans rounded-20 white-bg shadow-1 px-10 py-10 border text-center position-relative">
+                                <span class="badge badge-pill badge-warning coodiv-text-11 py-2 px-7 position-absolute" style="top: 15px; right: 15px;">Most Popular</span>
+                                <h5 class="title coodiv-text-7 mb-0">GlobalHostia PM Dedicated</h5>
+                                <p class="sub-title coodiv-text-11">For agencies managing multiple clients</p>
+                                <p class="price coodiv-text-3 font-weight-bold color2">$59<small class="coodiv-text-9">.99</small><span class="coodiv-text-10 d-block mt-2">Monthly</span></p>
+                                <div class="plan-progress-bar color2"><span style="width: 100%;"></span> <small>Dedicated Resources</small></div>
+
+                                <ul class="features px-0 mx-auto mb-0 card-list list-style-check text-center justify-content-center-li mt-15">
+                                    <li class="coodiv-text-11"><span>Unlimited users(100GB storage)</span></li>
+                                    <li class="coodiv-text-11"><span>Your Own app.yourcompany.com</span></li>
+                                    <li class="coodiv-text-11"><span>Projects, Clients & Sub-Projects</span></li>
+                                    <li class="coodiv-text-11"><span>Custom Branding & Logo</span></li>
+                                    <li class="coodiv-text-11"><span>Client Portal Access (Read/Comment Roles)</span></li>
+                                    <li class="coodiv-text-11"><span>Priority Performance & Isolation</span></li>
+                                    <li class="coodiv-text-11"><span>Daily Automated Backups</span></li>
+                                    <li class="coodiv-text-11"><span>Best for Agencies & Growing Teams</span></li>
+                                </ul>
+
+                                <a class="d-block btn btn-info coodiv-text-11 font-weight-bold rounded-20 mt-8" href="https://globalhostia.com/secure/store/project-management/globalhostia-pm-dedicated-workspace">Order Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-center mt-10">
+                        <div class="col-md-10 col-lg-8 text-center">
+                            <div class="pricing-notes bg-light rounded-10 px-8 py-6">
+                                <p class="coodiv-text-10 mb-3">
+                                    <strong class="color-blackish-blue">Setup Fee:</strong> <span class="text-success font-weight-bold">$4.99</span> one-time (includes workspace provisioning & onboarding assistance)
+                                </p>
+                                <p class="coodiv-text-10 mb-0">
+                                    <span class="badge badge-warning py-2 px-5 coodiv-text-11">Save 10% with Annual Billing</span> 
+                                    <span class="ml-3">Shared: <strong>$35.99/mo</strong> • Dedicated: <strong>$53.99/mo</strong></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-center mt-14">
+    <div class="col-12 col-md-11 col-lg-10 col-xl-9">
+        <div class="brand-logos d-flex justify-content-center align-items-center mx-n9 flex-wrap">
+            <div class="single-brand mx-9 py-7 d-flex align-items-center justify-content-center" style="height:60px;" data-aos="zoom-in-right" data-aos-duration="500" data-aos-once="true">
+                <img src="https://www.openproject.org/assets/images/logos/openproject-customer-siemens-fd70815c.svg" alt="" style="max-height:40px; width:auto;" />
+            </div>
+            <div class="single-brand mx-9 py-7 d-flex align-items-center justify-content-center" style="height:60px;" data-aos="zoom-in-right" data-aos-duration="900" data-aos-once="true">
+                <img src="https://www.openproject.org/assets/images/logos/openproject-customer-amg-5c500afa.svg" alt="" style="max-height:20px; width:auto;" />
+            </div>
+            <div class="single-brand mx-9 py-7 d-flex align-items-center justify-content-center" style="height:60px;">
+                <img src="https://www.openproject.org/assets/images/logos/openproject-customer-deutsche-bahn-7e8b5301.svg" alt="" style="max-height:40px; width:auto;" />
+            </div>
+            <div class="single-brand mx-9 py-7 d-flex align-items-center justify-content-center" style="height:60px;" data-aos="zoom-in-left" data-aos-duration="900" data-aos-once="true">
+                <img src="https://www.openproject.org/assets/images/logos/openproject-customer-greenpeace-7529f077.svg" alt="" style="max-height:40px; width:auto;" />
+            </div>
+            <div class="single-brand mx-9 py-7 d-flex align-items-center justify-content-center" style="height:60px;" data-aos="zoom-in-left" data-aos-duration="500" data-aos-once="true">
+                <img src="https://www.openproject.org/assets/images/logos/openproject-customer-linux-foundation-5ddd1925.svg" alt="" style="max-height:40px; width:auto;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+            <div id="features" class="leaderboards-section pt-15 pb-14 py-lg-25 bg-default-2 position-relative coodiv-z-index-1">
+                <svg class="bg-wave-box-end-z1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                    <path
+                        fill="#ffffff"
+                        fill-opacity="1"
+                        d="M0,160L26.7,170.7C53.3,181,107,203,160,229.3C213.3,256,267,288,320,293.3C373.3,299,427,277,480,229.3C533.3,181,587,107,640,106.7C693.3,107,747,181,800,208C853.3,235,907,213,960,186.7C1013.3,160,1067,128,1120,106.7C1173.3,85,1227,75,1280,64C1333.3,53,1387,43,1413,37.3L1440,32L1440,320L1413.3,320C1386.7,320,1333,320,1280,320C1226.7,320,1173,320,1120,320C1066.7,320,1013,320,960,320C906.7,320,853,320,800,320C746.7,320,693,320,640,320C586.7,320,533,320,480,320C426.7,320,373,320,320,320C266.7,320,213,320,160,320C106.7,320,53,320,27,320L0,320Z"
+                    ></path>
+                </svg>
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="section-title col-lg-6 text-center mb-11 mb-lg-10">
+                            <h2 class="coodiv-text-5 mb-0">What You Get with GlobalHostia PM</h2>
+                            <p class="coodiv-text-10">Open source project management features designed to keep your team, sprints and clients organized in one place</p>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-start">
+                        <div class="col-md-4">
+                            <h4 class="coodiv-text-8 text-center d-block bg-gradient-purple white-text px-8 py-5 rounded-20 position-relative coodiv-z-index-1 mb-0">PROJECT POWER</h4>
+
+                            <div class="player-score-box-container white-bg shadow-1 rounded-20 px-4 px-md-6 pb-7 pt-15 mt-n10 mb-lg-0 mb-10">
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 border-bottom py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Gantt Charts & Roadmaps</span>
+                                    <p class="coodiv-text-11 mb-0">Plan milestones, link dependencies and visualize your full project timeline with drag-and-drop scheduling</p>
+                                </div>
+
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 border-bottom py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Kanban & Agile Boards</span>
+                                    <p class="coodiv-text-11 mb-0">Visualize workflow status, run Scrum sprints, and manage backlogs across every project</p>
+                                </div>
+
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 border-bottom py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Multi-Project Workspace</span>
+                                    <p class="coodiv-text-11 mb-0">Run unlimited projects and sub-projects side by side, each with its own boards and timelines</p>
+                                </div>
+
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Work Package Tracking</span>
+                                    <p class="coodiv-text-11 mb-0">Tasks, bugs, features, phases and milestones - all tracked with custom statuses and priorities</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <h4 class="coodiv-text-8 text-center d-block bg-gradient-orange white-text px-8 px-md-4 py-5 rounded-20 position-relative coodiv-z-index-1 mb-0">COLLABORATION & CONTROL</h4>
+ 
+                            <div class="player-score-box-container white-bg shadow-1 rounded-20 px-4 px-md-6 pb-7 pt-15 mt-n10 mb-lg-0 mb-10">
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 border-bottom py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Dedicated Workspace</span>
+                                    <p class="coodiv-text-11 mb-0">Your own isolated Docker instance and database - not a shared multi-tenant environment</p>
+                                </div>
+
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 border-bottom py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Roles & Permissions</span>
+                                    <p class="coodiv-text-11 mb-0">Give clients read/comment-only access while your team keeps full edit control</p>
+                                </div>
+
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Your Data, Your Control</span>
+                                    <p class="coodiv-text-11 mb-0">100% open source under the hood - export your data anytime, no vendor lock-in</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <h4 class="coodiv-text-8 text-center d-block bg-gradient-info white-text px-8 px-md-4 py-5 rounded-20 position-relative coodiv-z-index-1 mb-0">AUTOMATION & INSIGHTS</h4>
+
+                            <div class="player-score-box-container white-bg shadow-1 rounded-20 px-4 px-md-6 pb-7 pt-15 mt-n10 mb-lg-0 mb-10">
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 border-bottom py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Time & Cost Tracking</span>
+                                    <p class="coodiv-text-11 mb-0">Log hours against tasks, track budgets, and export cost reports for every project</p>
+                                </div>
+
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 border-bottom py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Wiki & Document Hub</span>
+                                    <p class="coodiv-text-11 mb-0">Centralize project docs, meeting notes and specs in a shared, searchable wiki</p>
+                                </div>
+
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 border-bottom py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Custom Reporting</span>
+                                    <p class="coodiv-text-11 mb-0">Filter by status, priority or due date and export progress reports in XLS, CSV or PDF</p>
+                                </div>
+
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 border-bottom py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">Notifications & Alerts</span>
+                                    <p class="coodiv-text-11 mb-0">Automatic email alerts for due dates, mentions and status changes keep everyone on track</p>
+                                </div>
+
+                                <div class="player-score-box align-items-start d-flex flex-column position-relative pl-5 pl-md-10 py-7">
+                                    <span class="coodiv-text-9 color-blackish-blue font-weight-bold mb-2">AI-Assisted Workflows</span>
+                                    <p class="coodiv-text-11 mb-0">Built-in AI tooling to draft descriptions, refine text and speed up routine project admin</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Fact Counter section -->
+
+            <div class="content-section bg-default-1 pt-13 pt-lg-5 pb-13 pb-lg-25">
+                <div class="container">
+                    <div class="row align-items-center justify-content-start">
+                        <div class="col-12 col-lg-6">
+                            <div class="section-title content-text mb-13 text-lg-left text-center">
+                                <h2 class="title coodiv-text-6 mb-0">Why Choose GlobalHostia PM?</h2>
+                                <p class="coodiv-text-9">We host the most reliable and flexible open source project management infrastructure, built specifically for agencies and teams who want full control without compromising on isolation or performance.</p>
+                            </div>
+                            <div class="content-widget text-lg-left text-center">
+                                <div class="row mb-n9">
+                                    <div class="col-md-12 col-lg-12 col-xl-12 aos-init aos-animate" data-aos="fade-right" data-aos-duration="500" data-aos-once="true">
+                                        <div class="single-widget mb-9">
+                                            <h3 class="w-title coodiv-text-9">Battle-Tested Infrastructure</h3>
+                                            <p class="coodiv-text-10 mb-0">Our hosting stack runs on proven Docker infrastructure with dedicated databases per client. We've handled the scaling and reliability so you don't have to.</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 col-lg-12 col-xl-12 aos-init aos-animate" data-aos="fade-right" data-aos-duration="800" data-aos-once="true">
+                                        <div class="single-widget mb-9">
+                                            <h3 class="w-title coodiv-text-9">Built by Hosting Experts</h3>
+                                            <p class="coodiv-text-10 mb-0">We run our own hosting and infrastructure business. GlobalHostia PM includes the isolation, backups and support we'd want as a client ourselves.</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 col-lg-12 col-xl-12 aos-init aos-animate" data-aos="fade-right" data-aos-duration="1100" data-aos-once="true">
+                                        <div class="single-widget mb-9">
+                                            <h3 class="w-title coodiv-text-9">No Lock-In, Full Transparency</h3>
+                                            <p class="coodiv-text-10 mb-0">100% open source under the hood. Cancel anytime and export your full project data - we provide the hosting, you keep full ownership.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="content-img-group text-center mb-8 mb-lg-0 mt-lg-0 mt-10">
+                                <div class="main-image w-xs-75 w-lg-85 w-xl-75 mx-auto position-relative coodiv-z-index-1">
+                                    <img class="rounded-10 w-100" src="image/demo/img027.png" alt="" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="big-banner dark-mode-texts bg-blackish-blue bg-pattern pattern-7">
+                <span class="section-side-shadow-black-white"></span>
+                <div class="container">
+                    <div class="cta-wrapper pt-14 pb-14 py-lg-25 border-bottom position-relative coodiv-z-index-2">
+                        <div class="row align-items-center justify-content-center text-lg-left text-center">
+                            <div class="col-lg-6 col-md-10">
+                                <div class="cta-text section-title">
+                                    <h2 class="title coodiv-text-5 mb-2 text-white">Start Managing Projects Today</h2>
+                                    <p class="coodiv-text-8 coodiv-color-white-opacity-7 mb-8 mb-lg-0">
+                                        Join agencies and teams already using GlobalHostia PM to plan sprints, track budgets, and keep every client project on schedule.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 offset-lg-2 col-md-10">
+                                <div class="cta-btn text-lg-right">
+                                    <a href="https://globalhostia.com/secure/store/mcps" class="btn btn-warning rounded-20 coodiv-text-10 coodiv-hover-y">Get Started - $39.99/mo</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="why-us-section pt-12 pb-6 pt-lg-25 pb-lg-24 overflow-hidden">
+                <div class="container">
+                    <div class="row justify-content-center align-items-center">
+                        <div class="col-lg-8 col-xl-7">
+                            <div class="section-title mb-7 mb-lg-16 text-center">
+                                <h2 class="title coodiv-text-4 mb-7">How It Works</h2>
+                                <p class="coodiv-text-8 mb-0">
+                                    Get up and running in minutes with our<br class="d-none d-lg-block" />
+                                    simple, straightforward setup process
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="features-box-3 row justify-content-center px-5 py-lg-5 py-0 position-relative white-bg rounded-20 shadow-custom mt-20 mt-lg-10">
+                        <div class="col-lg-3 col-md-6 col-6 text-center px-lg-8 px-4 pb-8 pt-15 border-right-separate mb-lg-0 mb-15 border-all-mobile border-radius-all-mobile-20">
+                            <img class="img shadow-3" src="image/5g-pack/005-antenna.svg" alt="">
+                            <h5 class="coodiv-text-9 mb-0">1. Subscribe to a Plan</h5>
+                            <p class="coodiv-text-11 mb-0">Choose Shared or Dedicated based on your team size and how many client projects you manage.</p>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 col-6 text-center px-lg-8 px-4 pb-8 pt-15 border-right-separate mb-lg-0 mb-15 border-all-mobile border-radius-all-mobile-20">
+                            <img class="img shadow-3" src="image/5g-pack/008-cctv.svg" alt="">
+                            <h5 class="coodiv-text-9 mb-0">2. We Provision Your Workspace</h5>
+                            <p class="coodiv-text-11 mb-0">We spin up your dedicated OpenProject instance at your own workspace URL, ready in minutes.</p>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 col-6 text-center px-lg-8 px-4 pb-8 pt-15 border-right-separate border-all-mobile border-radius-all-mobile-20">
+                            <img class="img shadow-3" src="image/5g-pack/041-tablet.svg" alt="">
+                            <h5 class="coodiv-text-9 mb-0">3. Invite Your Team</h5>
+                            <p class="coodiv-text-11 mb-0">Add teammates and clients with the right roles - full access for staff, view/comment for clients.</p>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 col-6 text-center px-lg-8 px-4 pb-8 pt-15 border-all-mobile border-radius-all-mobile-20">
+                            <img class="img shadow-3" src="image/5g-pack/032-controlpanel.svg" alt="">
+                            <h5 class="coodiv-text-9 mb-0">4. Start Managing</h5>
+                            <p class="coodiv-text-11 mb-0">Create projects, boards and Gantt timelines - and keep every task, sprint and client on track.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="helf-img-section pt-0 pt-lg-0 pb-10 pb-lg-0 mt-15 white-bg position-relative border-bottom border-top">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12 col-lg-6 p-0 features-image-bg full-screen-mobile" style="background-image: url(image/demo/features-page.jpg);"></div>
+                        <div class="col-12 col-lg-6 d-flex flex-column justify-content-center">
+                            <div class="row justify-content-center justify-content-lg-between">
+                                <div class="col-12 col-xl-8 col-lg-10 col-sm-10">
+                                    <div class="mb-20 mt-15 pl-lg-15">
+                                        <div class="card-holder mb-16">
+                                            <div class="text-h-meteorite-dark text-center text-lg-left">
+                                                <h5 class="mb-5 coodiv-text-7">Enterprise-Grade Infrastructure</h5>
+                                                <p class="coodiv-text-10">Our servers run on high-performance infrastructure with redundant connections, ensuring your project workspace stays online when your team and clients need it most.</p>
+                                            </div>
+                                        </div>
+                                        <div class="card-holder mb-16">
+                                            <div class="text-h-meteorite-dark text-center text-lg-left">
+                                                <h5 class="mb-5 coodiv-text-7">Proven Open Source Core <span class="badge badge-pill badge-warning coodiv-text-10 py-1 px-6 ml-2">Battle Tested</span></h5>
+                                                <p class="coodiv-text-10">GlobalHostia PM is built on OpenProject, a mature open source platform used by teams worldwide for Gantt charts, agile boards, budgeting and roadmap planning.</p>
+                                            </div>
+                                        </div>
+                                        <div class="card-holder mb-0">
+                                            <div class="text-h-meteorite-dark text-center text-lg-left">
+                                                <h5 class="mb-5 coodiv-text-7">Transparent & Honest Service</h5>
+                                                <p class="coodiv-text-10">No hidden fees, no vendor lock-in, no data custody games. We provide the hosting infrastructure - you maintain full ownership and control of your project data at all times.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section pt-20 pb-md-25 pt-lg-25 pb-15 pb-lg-32 white-mode-texts with-planet-bg overflow-hidden position-relative">
+                <svg class="bg-wave-box-end-z1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                    <defs>
+                        <linearGradient id="footer-gradient">
+                            <stop offset="0%" stop-color="#212433" />
+                            <stop offset="39%" stop-color="#242837" />
+                            <stop offset="100%" stop-color="#0e1019" />
+                        </linearGradient>
+                    </defs>
+                    <path
+                        fill="url(#footer-gradient)"
+                        fill-opacity="1"
+                        d="M0,128L80,138.7C160,149,320,171,480,192C640,213,800,235,960,234.7C1120,235,1280,213,1360,202.7L1440,192L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"
+                    ></path>
+                </svg>
+
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-xl-8 col-lg-9">
+                            <div class="px-md-12 text-center mb-9 mb-lg-13">
+                                <h2 class="title coodiv-text-4 mb-8">FREQUENTLY ASKED QUESTIONS</h2>
+                                <p class="coodiv-text-8 mb-0">Everything you need to know about GlobalHostia PM</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./section-title Ends-->
+                    <div class="row justify-content-center">
+                        <div class="col-xl-8 col-lg-9">
+                            <div class="accordion" id="accordionExample">
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-1">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-1"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-1"
+                                        >
+                                            Is my project data isolated from other clients?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-1" class="collapse" aria-labelledby="heading4-1" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            On the Dedicated plan, yes - each client gets their own Docker container and database, fully isolated from every other client. Shared plan projects run on shared infrastructure with private, permission-controlled access.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-2">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-2"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-2"
+                                        >
+                                            What's the difference between Shared and Dedicated?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-2" class="collapse" aria-labelledby="heading4-2" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            Shared ($39.99/mo) runs on shared server resources and is perfect for small teams. Dedicated ($59.99/mo) gives you your own isolated Docker instance and database at your own workspace URL, ideal for agencies managing multiple client projects. Both plans include the full set of core project management features.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-3">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-3"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-3"
+                                        >
+                                            What features are included in the Community edition?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-3" class="collapse" aria-labelledby="heading4-3" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            GlobalHostia PM is built on the OpenProject Community edition: Gantt charts, Kanban boards, work packages, time tracking, budgeting and cost reporting, wikis, calendars, and admin/role controls - all included on every plan.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-4">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-4"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-4"
+                                        >
+                                            Can I migrate from Jira, Trello or Asana?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-4" class="collapse" aria-labelledby="heading4-4" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            Yes. Work packages support CSV/XLS import, and our onboarding team can help map your existing boards, tasks and statuses over to your new GlobalHostia PM workspace.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-5">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-5"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-5"
+                                        >
+                                            What happens if the server goes down?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-5" class="collapse" aria-labelledby="heading4-5" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            Your data stays safe - each workspace runs on its own Postgres database with daily automated backups. Shared plans target 99.5% uptime with monitoring and rapid recovery. Dedicated plans include a 99.9% SLA with priority restore from backup.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-6">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-6"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-6"
+                                        >
+                                            What's included in the $4.99 setup fee?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-6" class="collapse" aria-labelledby="heading4-6" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            The one-time setup fee covers provisioning your workspace, initial project structure, and onboarding assistance for your first project. Once set up, you only pay the monthly subscription with no hidden fees.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-7">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-7"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-7"
+                                        >
+                                            Can I upgrade from Shared to Dedicated later?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-7" class="collapse" aria-labelledby="heading4-7" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            Yes! You can upgrade anytime from your account dashboard. The price difference is prorated, and we migrate your projects to your new dedicated instance with minimal downtime.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-20 shadow-custom mb-3 bg-white overflow-hidden">
+                                    <div class="mb-0 py-8 pl-9 pr-7 border-bottom-0 bg-white" id="heading4-8">
+                                        <button
+                                            class="btn-reset coodiv-text-10 text-left text-blackish-blue p-0 accordion-trigger arrow-icon w-100"
+                                            type="button"
+                                            data-toggle="collapse"
+                                            data-target="#collapse4-8"
+                                            aria-expanded="false"
+                                            aria-controls="collapse4-8"
+                                        >
+                                            Is GlobalHostia PM really open source?
+                                        </button>
+                                    </div>
+                                    <div id="collapse4-8" class="collapse" aria-labelledby="heading4-8" data-parent="#accordionExample">
+                                        <div class="card-body coodiv-color-blackish-blue-opacity-7 pt-0 pl-9 pr-15 coodiv-text-10 pb-9">
+                                            Yes. GlobalHostia PM is built on OpenProject Community edition, which is open source. You can export your project data at any time, and there is no vendor lock-in.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reviews-overview text-center mt-9 mb-0">
+                            <p class="color-blackish-blue-opacity coodiv-text-10 d-lg-flex align-items-center justify-content-center">
+                                <img class="website-logo" src="image/logo-main-black.png" alt="main logo" /> Trusted by Agencies & Project Teams
+                                <span class="reviews-stars ml-5">
+                                    <i class="feather icon-star-on"></i> <i class="feather icon-star-on"></i> <i class="feather icon-star-on"></i> <i class="feather icon-star-on"></i> <i class="feather icon-star-on"></i>
+                                </span>
+                                Built by hosting experts, for growing teams
+                            </p>
+                        </div>
+                    </div>
+
+    
+                </div>
+            </div>
+
+            <div class="dark-mode-texts footer-gradient-default overflow-hidden position-relative">
+                <svg class="bg-wave-box-end" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                    <path
+                        fill="#fff"
+                        fill-opacity="1"
+                        d="M0,64L80,101.3C160,139,320,213,480,213.3C640,213,800,139,960,117.3C1120,96,1280,128,1360,144L1440,160L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"
+                    ></path>
+                </svg>
+                <div class="container">
+                    <div class="footer-section dark-mode-texts">
+                        <div class="container">
+                            <div class="footer-top pt-15 pt-lg-5 pb-lg-19">
+                                <div class="row">
+                                    <div class="col-6 col-lg-4">
+                                        <div class="footer-block mb-13 mb-lg-9">
+                                            <div class="brand-logo mb-10">
+                                                <a href="#"><img src="image/logo-main-white.png" alt="" class="dark-version-logo" /></a>
+                                            </div>
+                                            <p>Open source, self-hosted project management infrastructure for agencies and teams who want full control without compromising on isolation, reliability, or support.</p>
+                                            <ul class="footer-contact-list list-unstyled">
+                                                <li>
+                                                    <span class="badge coodiv-badge badge-warning rounded-pill coodiv-text-12 position-relative"><i class="far fa-envelope"></i> support@globalhostia.com</span>
+                                                </li>
+                                                <li>
+                                                    <span class="badge coodiv-badge badge badge-info rounded-pill coodiv-text-12 position-relative"><i class="fas fa-phone"></i> 24/7 Support Available</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-6 col-lg-2">
+                                        <div class="footer-block mb-13 mb-lg-9">
+                                            <h4 class="block-title coodiv-text-7 mb-7 position-relative">Services</h4>
+                                            <ul class="footer-list list-unstyled">
+                                                <li class="py-2"><a class="footer-list-link" href="">GlobalHostia PM</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Shared Workspace</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Dedicated Workspace</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Custom Onboarding</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-6 col-lg-3 pl-lg-15">
+                                        <div class="footer-block mb-13 mb-lg-9">
+                                            <h4 class="block-title coodiv-text-7 mb-7 position-relative">Resources</h4>
+                                            <ul class="footer-list list-unstyled">
+                                                <li class="py-2"><a class="footer-list-link" href="">Documentation</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Setup Guide</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">API Reference</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Migration Guide</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Roadmap</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Status Page</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-6 col-lg-3 pl-lg-15">
+                                        <div class="footer-block mb-13 mb-lg-9">
+                                            <h4 class="block-title coodiv-text-7 mb-7 position-relative">Company</h4>
+                                            <ul class="footer-list list-unstyled">
+                                                <li class="py-2"><a class="footer-list-link" href="">About Us</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Our Technology</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Privacy Policy</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Terms of Service</a></li>
+                                                <li class="py-2"><a class="footer-list-link" href="">Contact Support</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bottom-footer-area border-top pt-9 pb-8">
+                                <div class="row align-items-center">
+                                    <div class="col-lg-8">
+                                        <p class="copyright-text coodiv-text-11 mb-6 mb-lg-0 coodiv-text-color-opacity text-center text-lg-left">
+                                            © 2026 GlobalHostia PM. All Rights Reserved. Built on OpenProject Community edition (open source, GNU GPL v3).
+                                        </p>
+                                    </div>
+                                    <div class="col-lg-4 text-center text-lg-right">
+                                        <ul class="payment-getway list-unstyled mb-0">
+                                            <li class="ml-1"><img src="image/payment/visa.png" alt="" /></li>
+                                            <li class="ml-1"><img src="image/payment/mastercard.png" alt="" /></li>
+                                            <li class="ml-1"><img src="image/payment/discover.png" alt="" /></li>
+                                            <li class="ml-1"><img src="image/payment/amex.png" alt="" /></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+		
+		<!-- START LIVE SUPPORT FIXED HEAD -->
+		<a class="live-support-trigger" href="#" data-toggle="modal" data-target="#errormodal">
+		<div class="support-agent"><img class="profile-pic" src="image/team/3.jpg" alt="support agent"></div>
+		<div class="live-support-welcome coodiv-text-12 font-weight-light shadow">Need help getting started?</div>
+		</a>
+		<!-- END LIVE SUPPORT FIXED HEAD -->
+		
+		<!-- START LIVE SUPPORT MODEL -->
+		<div class="modal fade" id="errormodal" role="dialog" aria-labelledby="errormodal" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-20 border-opacity">
+                    <div class="modal-body px-10 py-10 text-center">
+                        <h3 class="coodiv-text-6">Get in Touch</h3>
+                        <p class="coodiv-text-9 font-weight-light text-muted">Our support team is available 24/7 to help you set up your GlobalHostia PM workspace and get your team started.</p>
+                        <div class="d-block mt-13">
+                            <button type="button" class="btn btn-primary btn-curved mb-0 w-50 rounded-20">Contact Support</button>
+                            <button type="button" class="btn text-primary mb-0 rounded-20" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<!-- END LIVE SUPPORT MODEL -->
+
+        <!-- Vendor Scripts -->
+        <script src="js/vendor.min.js"></script>
+        <!-- Plugin's Scripts -->
+        <script src="plugins/fancybox/jquery.fancybox.min.js"></script>
+        <script src="plugins/nice-select/jquery.nice-select.min.js"></script>
+        <script src="plugins/aos/aos.min.js"></script>
+        <script src="plugins/slick/slick.min.js"></script>
+        <script src="plugins/typed/typed.min.js"></script>
+        <script src="plugins/waypoints/jquery.waypoints.min.js"></script>
+
+        <script src="plugins/particles/particles-code.js"></script>
+        <script src="plugins/particles/particles.js"></script>
+        <script src="plugins/parallax/parallax.js"></script>
+		
+		<!-- Translate Scripts -->
+        <script src="plugins/i18next/i18next.min.js"></script>
+		<script src="plugins/i18next/i18nextXHRBackend.min.js"></script>
+		<script src="plugins/i18next/jquery-i18next.min.js"></script>
+
+        <!-- Activation Script -->
+        <script src="js/custom.js"></script>
+    </body>
+</html>
