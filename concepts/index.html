@@ -16,7 +16,7 @@ iframe{border:1px solid #2a2f3a;border-radius:10px;background:#fff}
 .meta{padding:0 32px 24px;color:var(--mut);font-size:13px}
 @media(max-width:900px){.view{flex-direction:column}.mob{width:100%}}
 </style></head><body>
-<header><h1>GlobalHostia — 5 Theme Concepts</h1><p>Each becomes a selectable theme in Admin → Design Manager. Click a tab; desktop view left, mobile view right. Use the in-page nav to walk Home → Hosting → VPS → Product → Pricing → Domains → Checkout → Dashboard.</p></header>
+<header><h1>GlobalHostia — 8 Theme Concepts</h1><p>Each becomes a selectable theme in Admin → Design Manager. Click a tab; desktop view left, mobile view right. Use the in-page nav to walk Home → Hosting → VPS → Product → Pricing → Domains → Checkout → Dashboard.</p></header>
 <div class="tabs" id="tabs"></div>
 <div class="view"><iframe class="desk" id="d"></iframe><iframe class="mob" id="m"></iframe></div>
 <div class="meta" id="meta"></div>
@@ -26,7 +26,10 @@ const C=[
 ["2","Modern Technology","concept-2-modern-tech.html","Dark, gradient glass cards, left-rail nav."],
 ["3","Enterprise Professional","concept-3-enterprise.html","B2B spec tables, Plex Mono, breadcrumbs + tabs, talk-to-sales."],
 ["4","Conversion Commerce","concept-4-commerce.html","Store chrome, mini-cart drawer, deal badges, 3-step checkout."],
-["5","Bold Next-Gen","concept-5-bold.html","Unbounded display type, bento grid, lime accent, server configurator slider."]];
+["5","Bold Next-Gen","concept-5-bold.html","Unbounded display type, bento grid, lime accent, server configurator slider."],
+["6","Classic Commerce","concept-6-classic-commerce.html","GoDaddy-style: white, bold headlines, teal accent, big domain search, 4-col mega-menu."],
+["7","Friendly Commerce","concept-7-friendly-commerce.html","GoDaddy-style warm: coral accent, split hero with illustration, full-width icon mega-menu."],
+["8","Pro Commerce","concept-8-pro-commerce.html","GoDaddy-style cool: blue accent, centered hero, 3-up spec cards, tabbed mega-menu."]];
 const tabs=document.getElementById('tabs');
 C.forEach(([n,t,f,d],i)=>{const b=document.createElement('button');b.textContent=n+' · '+t;b.onclick=()=>show(i);tabs.appendChild(b);
 fetch(f,{method:'HEAD'}).then(r=>{if(!r.ok)b.disabled=true}).catch(()=>b.disabled=true)});
