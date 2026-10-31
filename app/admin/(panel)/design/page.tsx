@@ -32,6 +32,12 @@ export default async function Design({ searchParams }: { searchParams: Promise<R
             <label className="flex items-start gap-3 text-sm"><input type="checkbox" name="polish" defaultChecked={d.polish !== false} className="mt-0.5" />
               <span><b>On (recommended)</b> — loader disappears fast, smoother hover/scroll animations, frosted sticky header, clearer keyboard focus and bigger mobile tap targets. Your design and colours stay the same.</span></label>
           </Card>
+          <Card title="Site theme">
+            <label className="block text-sm"><span className="mb-1.5 block text-slate-600">Hostpen Modern rebuilds every product page, sign in/up and contact in your logo colours. Preview the whole site first: <a className="text-brand-600 underline" href="/?theme=hostpen" target="_blank">open Hostpen Modern</a> · <a className="text-brand-600 underline" href="/?theme=original" target="_blank">open Original</a>. Pages not yet redesigned keep the original theme.</span>
+              <select name="site_theme" defaultValue={s.site_theme || 'original'} className="input max-w-xs">
+                <option value="original">Original theme (live now)</option><option value="hostpen">Hostpen Modern</option>
+              </select></label>
+          </Card>
           <Card title="Site look (on top of your theme)">
             <label className="block text-sm"><span className="mb-1.5 block text-slate-600">Preview first: open <a className="text-brand-600 underline" href="/?look=a" target="_blank">Clean</a> · <a className="text-brand-600 underline" href="/?look=b" target="_blank">Soft glow</a> · <a className="text-brand-600 underline" href="/?look=c" target="_blank">Midnight</a> · <a className="text-brand-600 underline" href="/?look=off" target="_blank">Original</a></span>
               <select name="look" defaultValue={d.look || 'off'} className="input max-w-xs">

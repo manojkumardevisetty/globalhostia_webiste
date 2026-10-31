@@ -23,6 +23,7 @@ export async function saveDesign(fd: FormData) {
   { const a = str(fd, 'ambient'); if (a && a !== 'auto') (design as any).ambient = a; }
   if (fd.get('polish') !== 'on') (design as any).polish = false;
   await setSetting('design', design);
+  { const t = str(fd, 'site_theme'); if (t === 'hostpen' || t === 'original') await setSetting('site_theme', t); }
   await setSetting('custom_css', String(fd.get('custom_css') ?? '').replace(/<\/style/gi, ''));
   await audit(s, 'update', 'design', null, design);
   done('/admin/design', 'Design saved — the website is updated');
