@@ -104,7 +104,9 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const { currency, base } = cat;
   const site = String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
   const mcp = ctx.slug === 'binance';
-  const products = available(productsFor(cat, ctx.route.categories)).map((p) => ({ ...p, name: displayName(p, mcp ? 'MCP Engine' : 'n8n Server') }));
+  // The WHMCS group "mcps" holds both the n8n servers and the Binance MCP engines: split them by name/slug.
+  const isBinance = (p: TProduct) => /binance|mcp|engine/i.test(`${p.name} ${p.slug}`);
+  const products = available(productsFor(cat, ctx.route.categories)).filter((p) => (mcp ? isBinance(p) : !isBinance(p))).map((p) => ({ ...p, name: displayName(p, mcp ? 'MCP Engine' : 'n8n Server') }));
   const specs = products.map((p) => deriveSpecs(p.features, p.attributes));
   const cpus = specs.map((s) => +((s.cpu || '').match(/(\d+)/)?.[1] || 0)).filter(Boolean);
   const rams = specs.map((s) => +((s.ram || '').match(/(\d+)/)?.[1] || 0)).filter(Boolean);

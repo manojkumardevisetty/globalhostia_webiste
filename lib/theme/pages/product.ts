@@ -248,7 +248,7 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
   const name = displayName(p);
   const catRow = categoryBySlug(cat, p.categorySlug);
   const kind = kindOf(p.categorySlug);
-  const route = routeFor(p.categorySlug);
+  const route = /binance|mcp|engine/i.test(`${p.name} ${p.slug}`) && ROUTES.binance ? { slug: 'binance', title: ROUTES.binance.title, categories: ROUTES.binance.categories! } : routeFor(p.categorySlug);
   const specs = specsOf(p);
   const cs = cycles(p, currency).filter((c) => Number.isFinite(c.price) && c.cycle !== 'onetime');
   const best = cs.length ? cs.reduce((a, b) => (b.perMonth < a.perMonth ? b : a)) : null;
@@ -261,13 +261,16 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
   const per = (x: TProduct) => fromPrice(x, currency)?.amount ?? 1e9;
   const pool0 = cat.products.filter((x) => (route ? route.categories.includes(x.categorySlug) : x.categorySlug === p!.categorySlug));
   const pool = available(pool0);
-  const sameCat = pool.filter((x) => x.categorySlug === p!.categorySlug).sort((a, b) => per(a) - per(b) || a.sortOrder - b.sortOrder);
+  // n8n servers and Binance MCP engines share one WHMCS group: never mix them in comparisons
+  const mcpKind = (x: { name: string; slug: string }) => /binance|mcp|engine/i.test(`${x.name} ${x.slug}`);
+  const poolK = pool.filter((x) => mcpKind(x) === mcpKind(p!));
+  const sameCat = poolK.filter((x) => x.categorySlug === p!.categorySlug).sort((a, b) => per(a) - per(b) || a.sortOrder - b.sortOrder);
   if (!sameCat.some((x) => x.id === p!.id)) sameCat.unshift(p);
   // a window of up to 6 plans around this one
   const idx = sameCat.findIndex((x) => x.id === p!.id);
   const start = Math.max(0, Math.min(idx - 2, sameCat.length - 6));
   const peers = sameCat.slice(start, start + 6);
-  const related = available(pool.filter((x) => x.id !== p!.id))
+  const related = available(poolK.filter((x) => x.id !== p!.id))
     .sort((a, b) => Math.abs(per(a) - per(p!)) - Math.abs(per(b) - per(p!)) || (a.categorySlug === p!.categorySlug ? -1 : 1))
     .slice(0, 3).sort((a, b) => per(a) - per(b));
 
