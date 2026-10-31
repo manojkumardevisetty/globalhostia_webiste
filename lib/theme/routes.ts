@@ -33,6 +33,17 @@ export const ROUTES: Record<string, RouteDef> = {
   'sign-in': { kind: 'auth', title: 'Sign in', description: 'Sign in to your Globalhostia client area.' },
   'sign-up': { kind: 'auth', title: 'Create your account', description: 'Create your Globalhostia account.' },
   'forget-password': { kind: 'auth', title: 'Reset your password', description: 'Reset your Globalhostia password.' },
+  about: { kind: 'content', title: 'About Globalhostia', description: 'Who we are: a Dubai-based hosting company running six datacenters on four continents.' },
+  'help-center': { kind: 'content', title: 'Help Center', description: 'Guides and answers for hosting, domains, email and servers.' },
+  'all-topics': { kind: 'content', title: 'All support topics', description: 'Browse every support topic.' },
+  'status-page': { kind: 'content', title: 'System status', description: 'Live status of Globalhostia services and datacenters.' },
+  'incident-history': { kind: 'content', title: 'Incident history', description: 'Past incidents and maintenance.' },
+  'incident-post': { kind: 'content', title: 'Incident report', description: 'Incident details.' },
+  network: { kind: 'content', title: 'Our network', description: 'Datacenters and CDN locations.' },
+  'privacy-policy': { kind: 'content', title: 'Privacy policy', description: 'How Globalhostia handles your data.' },
+  'terms-conditions': { kind: 'content', title: 'Terms & conditions', description: 'Terms of service.' },
+  'website-builder': { kind: 'content', title: 'Website Builder', description: 'Build your website with drag and drop.' },
+  'start-vpn': { kind: 'content', title: 'VPN', description: 'Private, fast VPN.' },
   contact: { kind: 'contact', title: 'Contact us', description: 'Talk to Globalhostia sales or support by phone, email or ticket.' },
 };
 
