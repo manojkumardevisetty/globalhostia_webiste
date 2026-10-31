@@ -5,14 +5,12 @@ import { money } from '../../pricing';
 import { getCatalog, productsFor, minFrom, pricedTlds, currencyPrefix, deriveSpecs, type TProduct, type FromPrice } from '../data';
 import { page } from '../shell';
 import {
-  heroSlider, domainSearch, sectionHead, bigTabs, planCards, plansNote, link, statRow, barChart, dcMap, splitHead, featureGrid,
-  ctaBand, colHead, testimonials, faq, articleList, logosStrip, available, ld,
+  domainSearch, sectionHead, bigTabs, planCards, plansNote, link, statRow, barChart, dcMap, splitHead, featureGrid,
+  ctaBand, colHead, testimonials, faq, articleList, logosStrip, available, ld, button, icon,
 } from '../ui';
 
 const H = ['hosting-usa', 'hostia-shared', 'hosting-singapore'];
 const D = ['dedicated-servers', 'premiumdedicated-servers'];
-const PER: Record<string, string> = { monthly: 'a month', quarterly: 'a quarter', semiannually: 'every 6 months', annually: 'a year', biennially: 'every 2 years', triennially: 'every 3 years' };
-const PER_B: Record<string, string> = { monthly: 'per month', quarterly: 'per quarter', semiannually: 'every 6 months', annually: 'per year, billed annually', biennially: 'every 2 years', triennially: 'every 3 years' };
 const UNIT: Record<string, string> = { monthly: '/ month', annually: '/ year', quarterly: '/ quarter', semiannually: '/ 6 months', biennially: '/ 2 years', triennially: '/ 3 years' };
 /** billed price of a FromPrice ("$29.99") */
 const billed = (f: FromPrice) => money(f.price, f.prefix);
@@ -36,16 +34,58 @@ function showcase(ps: TProduct[], currency: string) {
   return [first, hot, third].filter((p, i, a): p is TProduct => !!p && a.indexOf(p) === i).sort((a, b) => per(a) - per(b));
 }
 
+/* ---------------- signature hero ---------------- */
+type HeroDC = [label: string, place: string, lat: number, lon: number];
+const HERO_DCS: HeroDC[] = [
+  ['Ashburn', 'Ashburn, USA', 39.04, -77.49], ['São Paulo', 'São Paulo, Brazil', -23.55, -46.63], ['Algiers', 'Algiers, Algeria', 36.75, 3.06],
+  ['Johannesburg', 'Johannesburg, South Africa', -26.2, 28.05], ['Mumbai', 'Mumbai, India', 19.08, 72.88], ['Moscow', 'Moscow, Russia', 55.76, 37.62],
+];
+const HERO_HQ: HeroDC = ['Dubai HQ', 'Dubai, United Arab Emirates', 25.2, 55.27];
+const HERO_WORDS = ['websites', 'online store', 'apps', 'AI agents'];
+/** Illustrative product events shown in the floating cards (no customer data). Each slot cycles its own list. */
+const HERO_EVENTS: { i: string; t: string; s: string }[][] = [
+  [{ i: 'lock', t: 'SSL issued', s: 'yourbrand.com' }, { i: 'globe', t: 'Domain registered', s: 'yourstore.shop' }, { i: 'mail', t: 'Mailbox ready', s: 'hello@yourbrand.com' }],
+  [{ i: 'server', t: 'Server online', s: 'Dedicated, 10Gbps port' }, { i: 'cloud', t: 'Cloud VPS deployed', s: 'Linux, SSD storage' }, { i: 'wp', t: 'WordPress installed', s: 'NVMe web hosting' }],
+  [{ i: 'archive', t: 'Backup completed', s: 'Daily snapshot, 02:00' }, { i: 'shield', t: 'Malware scan clean', s: 'Shared hosting' }, { i: 'transfer', t: 'Domain transfer done', s: 'Moved in, no downtime' }],
+];
+const PER_SHORT: Record<string, string> = { monthly: '/mo', quarterly: '/qtr', semiannually: '/6 mo', annually: '/yr', biennially: '/2 yr', triennially: '/3 yr' };
+
+function globeHero(prices: { label: string; f: FromPrice | null }[]) {
+  const list = (a: string[]) => (a.length > 1 ? `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}` : a.join(''));
+  const trust = prices.filter((p) => p.f).map((p) =>
+    `<div><dt>${esc(p.label)}</dt><dd>from <b class="num">${esc(billed(p.f!))}</b><span>${esc(PER_SHORT[p.f!.cycle] || '')}</span></dd></div>`).join('');
+  const card = (slot: number) => { const e = HERO_EVENTS[slot][0];
+    return `<div class="hx-card hx-card--${slot + 1}" data-slot="${slot}"><div class="hx-card__in"><span class="hx-card__ico">${icon(e.i)}</span><span class="hx-card__txt"><b>${esc(e.t)}</b><small>${esc(e.s)}</small></span><span class="hx-card__ok">${icon('check')}</span></div></div>`; };
+  const dcs = [...HERO_DCS, HERO_HQ].map(([label, , lat, lon], k) => [label, lat, lon, k === HERO_DCS.length ? 1 : 0]);
+  return `<section class="hx-hero" aria-labelledby="hx-h1" data-hx>
+  <div class="hx-stage" aria-hidden="true"><i class="hx-hex"></i><canvas class="hx-aurora" width="192" height="108"></canvas></div>
+  <div class="hp-container hx-grid">
+    <div class="hx-copy">
+      <p class="hx-eyebrow"><i aria-hidden="true"></i>Hosting · Servers · Domains</p>
+      <h1 id="hx-h1" class="hx-h1"><span class="hx-l"><span>Fast, secure</span></span> <span class="hx-l"><span>hosting for your</span></span> <span class="hx-l hx-l--rot"><span class="hx-rot" data-hx-rot aria-hidden="true">${HERO_WORDS.map((w, i) => `<span class="hx-rot__w${i ? '' : ' is-on'}">${esc(w)}</span>`).join('')}</span><span class="sr-only">${esc(list(HERO_WORDS))}</span></span></h1>
+      <p class="hx-lead">NVMe web hosting, cloud VPS and 10Gbps dedicated servers in six datacenters, with free SSL, daily backups and engineers on call 24/7.</p>
+      <div class="hx-cta">${button({ label: 'View plans', href: '#plans' })}${button({ label: 'Talk to sales', href: '/contact', variant: 'outline' })}</div>
+      ${trust ? `<dl class="hx-trust">${trust}</dl>` : ''}
+    </div>
+    <div class="hx-visual">
+      <div class="hx-globe" data-hx-globe data-dcs="${esc(JSON.stringify(dcs))}">
+        <i class="hx-globe__atmo" aria-hidden="true"></i><i class="hx-globe__body" aria-hidden="true"></i><canvas aria-hidden="true"></canvas>
+      </div>
+      <p class="sr-only">Globe showing our datacenters in ${esc(list(HERO_DCS.map((d) => d[1])))}, each linked to our headquarters in ${esc(HERO_HQ[1])}.</p>
+      <div class="hx-cards" aria-hidden="true" data-hx-events="${esc(JSON.stringify(HERO_EVENTS))}">${card(0)}${card(1)}${card(2)}<span class="hx-chip"><i></i>Live-style preview</span></div>
+    </div>
+  </div>
+</section>`;
+}
+
 export default async function render(ctx: PageCtx): Promise<string> {
   const cat = await getCatalog();
   const { currency, base } = cat;
   const prefix = currencyPrefix(cat) || '$';
   const hosting = productsFor(cat, H), vps = productsFor(cat, ['hostiavps']), ded = productsFor(cat, D);
   const hostFrom = minFrom(available(hosting), currency);
-  const hostCheapest = available(hosting).find((p) => { const f = minFrom([p], currency); return f && hostFrom && f.amount === hostFrom.amount; });
   const dedFrom = minFrom(available(ded), currency);
   const tlds = pricedTlds(cat);
-  const cheapTld = [...tlds].sort((a, b) => a.register! - b.register!)[0];
   const locations = [...new Set(hosting.map((p) => deriveSpecs(p.features, p.attributes).location).filter(Boolean))];
   const theLoc = (l: string) => (/^(USA|UK|UAE|Netherlands|United States)$/i.test(l) ? `the ${l}` : l);
   const locText = locations.length > 1 ? `${locations.slice(0, -1).map(theLoc).join(', ')} and ${locations[locations.length - 1]}` : locations[0] ? theLoc(locations[0]) : '';
@@ -58,29 +98,12 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const short = shared ? planNames.map((n, i) => (i ? n.slice(firstWord.length + 1) : n)) : planNames;
   const planText = short.length > 1 ? `${short.slice(0, -1).join(', ')} and ${short[short.length - 1]}` : short[0] || 'Shared hosting';
 
-  /* ---------------- hero ---------------- */
-  const hero = heroSlider([
-    {
-      kicker: 'Web hosting', dot: 'Web hosting', image: '/hp/img/hero-hosting.jpg', imageH: 1280,
-      title: hostFrom ? `Fast NVMe web hosting, from ${billed(hostFrom)} ${PER[hostFrom.cycle] || ''}.`.replace(/\s+\./, '.') : 'Fast NVMe web hosting for every website.',
-      text: `${planText} plans${locText ? ` in ${locText}` : ''}. Free SSL, daily and weekly backups, and engineers on call around the clock.`,
-      ctas: [{ label: 'View hosting plans', href: '#plans' }, { label: 'How it works', href: '/web-hosting', variant: 'ghost' }],
-      fromHtml: hostFrom ? `${esc(hostCheapest?.name.replace(/\s+(USA|US|MY|SG)$/i, '') || 'Hosting')} from <b class="num">${esc(billed(hostFrom))}</b> ${esc(PER_B[hostFrom.cycle] || '')}` : undefined,
-    },
-    {
-      kicker: 'Cloud VPS and dedicated', dot: 'Cloud VPS and dedicated', image: '/hp/img/hero-servers.jpg', imageH: 1260,
-      title: 'Servers that stay up while you grow.',
-      text: 'Managed SSD cloud VPS for Linux or Windows, and dedicated servers up to 64 threads with 10Gbps ports, across six datacenters at 99.93% uptime.',
-      ctas: [{ label: 'Explore dedicated servers', href: '/dedicated-servers' }, { label: 'Cloud VPS', href: '/cloudvps-hosting', variant: 'ghost' }],
-      fromHtml: dedFrom ? `Dedicated servers from <b class="num">${esc(billed(dedFrom))}</b> ${esc(PER_B[dedFrom.cycle] || '')}` : undefined,
-    },
-    {
-      kicker: 'Domains and SSL', dot: 'Domains and SSL', image: '/hp/img/hero-domains.jpg', imageH: 1080,
-      title: 'Claim your name and secure it the same day.',
-      text: 'Register .com, .shop, .org and more, transfer existing domains for free, and add an SSL certificate that is issued in minutes.',
-      ctas: [{ label: 'Search for a domain', href: '#domain-q', attrs: 'data-focus-domain' }, { label: 'SSL certificates', href: '/ssl-certificate', variant: 'ghost' }],
-      fromHtml: cheapTld ? `${esc(cheapTld.tld)} domains from <b class="num">${esc(money(cheapTld.register!, prefix))}</b> for the first year` : undefined,
-    },
+  /* ---------------- hero: globe stage ---------------- */
+  const vpsFrom = minFrom(available(vps), currency);
+  const hero = globeHero([
+    { label: 'Web hosting', f: hostFrom },
+    { label: 'Cloud VPS', f: vpsFrom },
+    { label: 'Dedicated', f: dedFrom },
   ]);
 
   /* ---------------- domain search ---------------- */
@@ -194,7 +217,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   return page({
     ctx, catalog: cat, path: '/', title: ctx.route.title, description: ctx.route.description,
-    preload: ['/hp/img/hero-hosting.jpg'], jsonLd: webSite,
+    css: ['home'], js: ['home'], jsonLd: webSite,
     body: [hero, domain, plans, infra, features, cta, trio, logosStrip()].join('\n'),
   });
 }
