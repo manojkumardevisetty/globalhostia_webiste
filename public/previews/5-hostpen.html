@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Globalhostia — Web hosting, servers and domains</title>
+<meta name="description" content="NVMe web hosting, managed cloud VPS, dedicated servers up to 10Gbps, domains and SSL from Globalhostia, Dubai.">
+<link rel="icon" href="/image/favicon/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="/previews/hostpen/hero-hosting.jpg">
+<style>
+:root{
+  --ink:#23313d; --deep:#16212b; --deep-2:#1c2a36;
+  --brand:#c5386f; --brand-d:#a6225f; --brand-l:#e14c7f; --brand-tint:#fbeef3;
+  --gold:#fdd700;
+  --tint:#f6f7f9; --line:#e6e9ee; --line-2:#d5dae1; --muted:#5a6774; --white:#fff;
+  --on-dark:#e9edf1; --on-dark-mute:#a9b4bf;
+  --head:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --container:1200px; --gutter:32px;
+  --r-sm:8px; --r:12px; --r-lg:18px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --header-h:76px;
+  --shadow:0 30px 60px -32px rgba(22,33,43,.42);
+  --hex:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100M28 0L28 34L0 50L0 84L28 100L56 84L56 50L28 34' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");
+  --hex-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100M28 0L28 34L0 50L0 84L28 100L56 84L56 50L28 34' fill='none' stroke='%2323313d' stroke-width='1'/%3E%3C/svg%3E");
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--white);color:var(--ink);font:400 16px/1.6 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+h1,h2,h3,h4{font-family:var(--head);margin:0;color:var(--ink);font-weight:700;letter-spacing:-.02em;text-wrap:balance}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px;border-radius:6px}
+.on-dark :focus-visible,.util :focus-visible,.hero :focus-visible,.foot-bottom :focus-visible,.contact-card :focus-visible,.cta :focus-visible{outline-color:var(--gold)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip{position:absolute;left:16px;top:-80px;z-index:100;background:var(--deep);color:#fff;padding:12px 16px;border-radius:var(--r-sm)}
+.skip:focus{top:12px}
+.container{max-width:var(--container);margin:0 auto;padding:0 var(--gutter)}
+.ico{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.hexi{display:inline-flex;align-items:center;justify-content:center;flex:none;width:44px;height:48px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:var(--brand-tint);color:var(--brand-d)}
+.hexi .ico{width:20px;height:20px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:var(--r-sm);font:600 15px/1 var(--body);border:1px solid transparent;transition:background-color .18s,border-color .18s,color .18s;white-space:nowrap}
+.btn .ico{width:18px;height:18px}
+.btn-brand{background:var(--brand);color:#fff}
+.btn-brand:hover{background:var(--brand-d)}
+.btn-ghost{border-color:var(--line-2);background:#fff;color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-dark:hover{background:var(--deep)}
+.btn-light{background:#fff;color:var(--brand-d)}
+.btn-light:hover{background:var(--tint)}
+.link{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--brand-d);font-weight:600}
+.link:hover{text-decoration:underline;text-underline-offset:4px}
+.link .ico{width:16px;height:16px;transition:transform .2s var(--ease)}
+.link:hover .ico{transform:translateX(3px)}
+
+/* Utility bar */
+.util{background:var(--deep);color:var(--on-dark-mute);font-size:13.5px}
+.util .container{display:flex;align-items:center;gap:8px;min-height:44px}
+.util a,.util .u-item{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 6px;color:var(--on-dark-mute);transition:color .15s}
+.util a:hover{color:#fff}
+.util .ico{width:15px;height:15px;color:var(--gold)}
+.util .u-right{margin-left:auto;display:flex;align-items:center;gap:4px}
+.util .sep{width:1px;height:16px;background:rgba(255,255,255,.14);margin:0 6px}
+.util b{color:var(--on-dark);font-weight:500}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:50;height:var(--header-h)}
+.site-header::before{content:"";position:absolute;inset:0;background:#fff;border-bottom:1px solid var(--line);transition:background-color .25s,box-shadow .25s}
+.site-header.scrolled::before{background:rgba(255,255,255,.8);-webkit-backdrop-filter:saturate(1.6) blur(16px);backdrop-filter:saturate(1.6) blur(16px);box-shadow:0 10px 30px -20px rgba(22,33,43,.35)}
+.site-header.menu-open::before{background:#fff}
+.header-inner{position:relative;height:100%;display:flex;align-items:center;gap:20px}
+.brand{display:flex;align-items:center;min-height:44px}
+.brand img{height:34px;width:auto}
+.nav{display:flex;align-items:center;gap:2px;margin-left:12px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 12px;border-radius:var(--r-sm);font:600 15px/1 var(--body);color:var(--ink);transition:color .15s,background-color .15s;position:relative}
+.nav-btn .ico{width:14px;height:14px;color:var(--muted);transition:transform .2s var(--ease)}
+.nav-btn::after{content:"";position:absolute;left:12px;right:12px;bottom:4px;height:2px;background:var(--brand);transform:scaleX(0);transform-origin:left;transition:transform .2s var(--ease)}
+.nav-btn:hover,.nav-btn[aria-expanded="true"]{color:var(--brand-d)}
+.nav-btn[aria-expanded="true"]::after{transform:scaleX(1)}
+.nav-btn[aria-expanded="true"] .ico{transform:rotate(180deg)}
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.burger{display:none;width:46px;height:46px;align-items:center;justify-content:center;border-radius:var(--r-sm);border:1px solid var(--line-2)}
+
+/* Mega */
+.mega{position:absolute;left:0;right:0;top:var(--header-h);padding:0 var(--gutter);pointer-events:none;opacity:0;transform:translateY(-8px);visibility:hidden;transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s}
+.mega.open{pointer-events:auto;opacity:1;transform:none;visibility:visible;transition-delay:0s}
+.mega-panel{max-width:calc(var(--container) - 2*var(--gutter));margin:0 auto;background:#fff;border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-lg) var(--r-lg);box-shadow:0 40px 70px -40px rgba(22,33,43,.5);display:grid;grid-template-columns:1fr 300px;overflow:hidden}
+.mega-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 24px;padding:28px}
+.mega-group h3{font:700 13px/1.3 var(--head);color:var(--muted);letter-spacing:0;margin:0 0 8px 10px}
+.mega-link{display:flex;gap:14px;align-items:flex-start;padding:10px;border-radius:var(--r);transition:background-color .15s}
+.mega-link:hover,.mega-link:focus-visible{background:var(--tint)}
+.mega-link .hexi{width:40px;height:44px}
+.mega-link .hexi .ico{width:18px;height:18px}
+.mega-link strong{display:block;font:700 15px/1.3 var(--head);color:var(--ink)}
+.mega-link span{display:block;font-size:13.5px;line-height:1.45;color:var(--muted);margin-top:2px}
+.mega-link .soon{display:inline-block;margin-left:6px;font:600 11px/1 var(--body);color:var(--ink);background:var(--gold);padding:3px 6px;border-radius:4px;vertical-align:2px}
+.mega-feat{position:relative;background:var(--ink);color:var(--on-dark);padding:28px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.mega-feat::before{content:"";position:absolute;inset:0;background:var(--hex);opacity:.06}
+.mega-feat>*{position:relative}
+.mega-feat h4{color:#fff;font-size:18px;line-height:1.3}
+.mega-feat p{font-size:14px;color:var(--on-dark-mute);line-height:1.55}
+.mega-feat .big{font:800 30px/1 var(--head);color:#fff;letter-spacing:-.02em}
+.mega-feat .big small{font:500 14px var(--body);color:var(--on-dark-mute);margin-left:4px;letter-spacing:0}
+.mega-feat .tag{align-self:flex-start;font:600 12px/1 var(--body);background:var(--gold);color:var(--deep);padding:6px 8px;border-radius:5px}
+.mega-feat .link{color:#fff;margin-top:auto}
+.mega-feat ul.tl li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:14px}
+.mega-feat ul.tl b{font-family:var(--head);color:#fff}
+
+/* Drawer */
+.drawer{position:fixed;inset:0;z-index:80;visibility:hidden;transition:visibility 0s linear .3s}
+.drawer.open{visibility:visible;transition-delay:0s}
+.drawer-scrim{position:absolute;inset:0;background:rgba(22,33,43,.55);opacity:0;transition:opacity .3s var(--ease)}
+.drawer.open .drawer-scrim{opacity:1}
+.drawer-sheet{position:absolute;top:0;right:0;bottom:0;width:min(420px,100%);background:#fff;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s var(--ease)}
+.drawer.open .drawer-sheet{transform:none}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);min-height:68px}
+.drawer-head img{height:28px;width:auto}
+.drawer-head button{width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);border:1px solid var(--line-2)}
+.drawer-body{flex:1;overflow-y:auto;padding:8px 16px}
+.acc-btn{display:flex;width:100%;align-items:center;justify-content:space-between;min-height:56px;font:700 17px/1 var(--head);border-bottom:1px solid var(--line)}
+.acc-btn .ico{transition:transform .2s var(--ease);color:var(--muted)}
+.acc-btn[aria-expanded="true"] .ico{transform:rotate(180deg)}
+.acc-panel{display:none}
+.acc-panel.open{display:block;animation:fadeIn .25s var(--ease)}
+.acc-panel a{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 4px;color:var(--ink);font-weight:500}
+.acc-panel a .ico{color:var(--brand)}
+.acc-panel ul{padding:6px 0 12px}
+.drawer-foot{padding:16px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.drawer-foot .contact{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;color:var(--muted)}
+.drawer-foot .contact a{display:inline-flex;align-items:center;gap:6px;min-height:44px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* Hero */
+.hero{position:relative;height:clamp(620px,84vh,740px);background:var(--deep);overflow:hidden;color:#fff}
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .9s var(--ease),visibility 0s linear .9s}
+.slide.is-active{opacity:1;visibility:visible;transition-delay:0s}
+.slide-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.02);transform-origin:70% 50%}
+.slide.is-active .slide-img{transform:scale(1.1);transition:transform 9s linear}
+.slide::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(22,33,43,.92) 0%,rgba(22,33,43,.72) 34%,rgba(22,33,43,.25) 70%,rgba(22,33,43,.1) 100%),linear-gradient(0deg,rgba(22,33,43,.75) 0%,rgba(22,33,43,0) 38%)}
+.hero-hex{position:absolute;inset:0;background:var(--hex);opacity:.05;z-index:1;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,#000 0%,transparent 55%);mask-image:linear-gradient(90deg,#000 0%,transparent 55%)}
+.slide-inner{position:relative;z-index:2;height:100%;display:flex;align-items:center;padding-bottom:110px}
+.hcard{position:relative;max-width:540px;background:#fff;color:var(--ink);border-radius:var(--r-lg);padding:40px 40px 34px;box-shadow:0 40px 80px -40px rgba(0,0,0,.6);opacity:0;transform:translateY(14px);transition:opacity .6s var(--ease) .25s,transform .6s var(--ease) .25s}
+.hcard::before{content:"";position:absolute;left:0;top:28px;bottom:28px;width:4px;border-radius:0 4px 4px 0;background:linear-gradient(180deg,var(--brand-l),var(--brand-d))}
+.slide.is-active .hcard{opacity:1;transform:none}
+.hkicker{display:inline-flex;align-items:center;gap:8px;font:600 14px/1 var(--body);color:var(--brand-d);margin-bottom:16px}
+.hkicker i{width:10px;height:11px;background:var(--gold);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.hcard h1,.hcard h2{font:800 clamp(30px,3.4vw,44px)/1.08 var(--head);letter-spacing:-.03em}
+.hcard p{margin-top:16px;color:var(--muted);font-size:17px;line-height:1.6;max-width:44ch}
+.hcard .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.hcard .from{margin-top:22px;padding-top:18px;border-top:1px solid var(--line);font-size:14px;color:var(--muted);display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.hcard .from b{font:800 18px/1 var(--head);color:var(--ink)}
+.hnav{position:absolute;z-index:3;left:0;right:0;bottom:118px;pointer-events:none}
+.hnav .container{display:flex;justify-content:flex-end}
+.hnav ol{display:flex;gap:6px;pointer-events:auto;background:rgba(22,33,43,.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:6px;border-radius:var(--r);border:1px solid rgba(255,255,255,.1)}
+.hdot{display:flex;flex-direction:column;justify-content:center;gap:9px;width:178px;min-height:52px;padding:8px 12px;border-radius:8px;text-align:left;color:var(--on-dark-mute);font:600 13.5px/1.2 var(--body);transition:color .2s,background-color .2s}
+.hdot:hover{color:#fff;background:rgba(255,255,255,.06)}
+.hdot[aria-current="true"]{color:#fff}
+.hdot .track{display:block;height:3px;background:rgba(255,255,255,.18);border-radius:3px;overflow:hidden}
+.hdot .fill{display:block;height:100%;background:linear-gradient(90deg,var(--brand-l),var(--gold));transform:scaleX(0);transform-origin:left}
+.hdot[aria-current="true"] .fill{animation:fill var(--dur,7s) linear forwards}
+.hdot.done .fill{transform:scaleX(1)}
+.hero.paused .hdot .fill{animation-play-state:paused}
+.hero.static .hdot[aria-current="true"] .fill{animation:none;transform:scaleX(1)}
+@keyframes fill{to{transform:scaleX(1)}}
+
+/* Domain panel */
+.domain{position:relative;z-index:6;margin-top:-92px}
+.dpanel{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow),0 0 0 1px var(--line);padding:26px 28px 22px;position:relative;overflow:hidden}
+.dpanel::after{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--brand-l),var(--brand-d) 70%,var(--gold))}
+.dhead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.dhead h2{font-size:20px}
+.dhead .link{font-size:14.5px}
+.dform{display:flex;gap:10px}
+.dfield{flex:1;position:relative}
+.dfield .ico{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.dfield input{width:100%;height:58px;border:1.5px solid var(--line-2);border-radius:var(--r);padding:0 18px 0 50px;font:500 17px var(--body);color:var(--ink);background:var(--tint);transition:border-color .15s,background-color .15s}
+.dfield input::placeholder{color:#7a8692}
+.dfield input:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px rgba(197,56,111,.14)}
+.dform .btn{height:58px;padding:0 28px;font-size:16px}
+.tlds{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
+.tlds .lbl{font-size:13.5px;color:var(--muted);margin-right:4px}
+.tld{position:relative}
+.tld input{position:absolute;opacity:0;width:1px;height:1px}
+.tld label{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px 0 10px;border:1px solid var(--line-2);border-radius:999px;font-size:14px;cursor:pointer;transition:border-color .15s,background-color .15s;user-select:none}
+.tld label .bx{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line-2);display:inline-flex;align-items:center;justify-content:center;transition:background-color .15s,border-color .15s}
+.tld label .bx .ico{width:12px;height:12px;stroke-width:3;color:#fff;opacity:0;transform:scale(.6);transition:opacity .15s,transform .15s}
+.tld label b{font:700 14.5px var(--head)}
+.tld label span.p{color:var(--muted)}
+.tld input:checked+label{border-color:var(--brand);background:var(--brand-tint)}
+.tld input:checked+label .bx{background:var(--brand);border-color:var(--brand)}
+.tld input:checked+label .bx .ico{opacity:1;transform:none}
+.tld input:focus-visible+label{outline:3px solid var(--brand);outline-offset:2px}
+.dnote{font-size:13px;color:var(--muted);margin-top:10px}
+
+/* Section scaffolding */
+.section{padding:104px 0}
+.sec-head{max-width:680px;margin:0 auto 44px;text-align:center}
+.sec-head h2{font:800 clamp(28px,3vw,40px)/1.12 var(--head);letter-spacing:-.03em}
+.sec-head p{margin-top:12px;color:var(--muted);font-size:17px}
+
+/* Tabs */
+.tabs{position:relative;display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:var(--r-lg);background:#fff;padding:6px;margin-bottom:56px}
+.tab-ind{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/3);border-radius:var(--r);background:linear-gradient(135deg,var(--brand),var(--brand-d));transition:transform .45s var(--ease);box-shadow:0 14px 26px -16px rgba(166,34,95,.8)}
+.tab-ind::after{content:"";position:absolute;left:50%;bottom:-8px;width:16px;height:16px;background:var(--brand-d);transform:translateX(-50%) rotate(45deg);border-radius:0 0 3px 0;z-index:-1}
+.tab{position:relative;z-index:1;display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:var(--r);text-align:left;min-height:76px;transition:color .3s}
+.tab .t-ico{width:44px;height:48px;flex:none;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:var(--tint);color:var(--brand-d);transition:background-color .3s,color .3s}
+.tab strong{display:block;font:700 17px/1.2 var(--head)}
+.tab small{display:block;font-size:13.5px;color:var(--muted);margin-top:4px;transition:color .3s}
+.tab[aria-selected="true"]{color:#fff}
+.tab[aria-selected="true"] small{color:rgba(255,255,255,.88)}
+.tab[aria-selected="true"] .t-ico{background:rgba(255,255,255,.16);color:#fff}
+.tab:not([aria-selected="true"]):hover strong{color:var(--brand-d)}
+.panel-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.panel-bar p{color:var(--muted);font-size:15px;max-width:60ch}
+.seg{position:relative;display:inline-flex;background:var(--tint);border:1px solid var(--line);border-radius:999px;padding:4px}
+.seg-thumb{position:absolute;top:4px;bottom:4px;left:0;border-radius:999px;background:#fff;box-shadow:0 2px 8px -2px rgba(22,33,43,.25),0 0 0 1px var(--line);transition:transform .35s var(--ease),width .35s var(--ease)}
+.seg button{position:relative;z-index:1;min-height:40px;padding:0 18px;border-radius:999px;font:600 14px var(--body);color:var(--muted);transition:color .2s}
+.seg button[aria-checked="true"]{color:var(--ink)}
+.tabpanel[hidden]{display:none}
+.tabpanel.enter{animation:fadeIn .35s var(--ease)}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch}
+.plan{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;transition:box-shadow .25s var(--ease)}
+.plan:hover{box-shadow:var(--shadow)}
+.plan-top{padding:28px 28px 24px;background:var(--tint);border-bottom:1px solid var(--line);position:relative}
+.plan h3{font-size:21px}
+.plan .sub{font-size:14px;color:var(--muted);margin-top:4px;min-height:22px}
+.price{display:flex;align-items:baseline;gap:4px;margin-top:20px}
+.price .cur{font:700 20px/1 var(--head);align-self:flex-start;margin-top:6px}
+.price .amt{font:800 46px/1 var(--head);letter-spacing:-.035em}
+.price .per{font-size:15px;color:var(--muted);margin-left:4px}
+.price.spec .amt{font-size:38px}
+.plan .meta{font-size:13px;color:var(--muted);margin-top:8px}
+.plan-body{padding:24px 28px;flex:1}
+.feat li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;font-size:15px}
+.feat .ico{width:18px;height:18px;color:var(--brand);margin-top:3px;stroke-width:2.4}
+.plan-foot{padding:0 28px 28px}
+.plan-foot .btn{width:100%}
+.plan.hl{border-color:transparent;box-shadow:var(--shadow);transform:translateY(-14px)}
+.plan.hl .plan-top{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-d) 100%);border-bottom:0;color:#fff}
+.plan.hl .plan-top::before{content:"";position:absolute;inset:0;background:var(--hex);opacity:.08}
+.plan.hl .plan-top>*{position:relative}
+.plan.hl h3,.plan.hl .price .amt,.plan.hl .price .cur{color:#fff}
+.plan.hl .sub,.plan.hl .price .per,.plan.hl .meta{color:rgba(255,255,255,.9)}
+.badge{position:absolute;top:24px;right:22px;font:700 12px/1 var(--body);padding:6px 9px;border-radius:5px;background:var(--gold);color:var(--deep);z-index:1}
+.badge.soft{background:#fff;color:var(--ink);border:1px solid var(--line-2)}
+.plans-note{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:28px;font-size:14px;color:var(--muted);align-items:center}
+.plans-note .live{display:inline-flex;align-items:center;gap:8px}
+.plans-note .live i{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 4px rgba(22,163,74,.15)}
+
+/* Infrastructure */
+.infra{position:relative;background:var(--deep);color:var(--on-dark);overflow:hidden}
+.infra::before{content:"";position:absolute;inset:0;background:var(--hex);opacity:.045}
+.infra .container{position:relative;display:grid;grid-template-columns:1fr 1.15fr;gap:72px;align-items:center}
+.infra h2{color:#fff;font:800 clamp(28px,3vw,40px)/1.12 var(--head);letter-spacing:-.03em}
+.infra .lead{color:var(--on-dark-mute);margin-top:14px;font-size:17px;max-width:46ch}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.1);border-radius:var(--r-lg);overflow:hidden;margin-top:36px}
+.stat{background:var(--deep-2);padding:22px 24px}
+.stat b{display:block;font:800 32px/1 var(--head);color:#fff;letter-spacing:-.02em}
+.stat span{display:block;margin-top:8px;font-size:14px;color:var(--on-dark-mute)}
+.stat b em{font-style:normal;color:var(--gold)}
+.chart{background:var(--deep-2);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);padding:28px 28px 22px}
+.chart h3{color:#fff;font-size:18px}
+.chart .cap{font-size:14px;color:var(--on-dark-mute);margin-top:4px}
+.bars{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:16px;height:270px;margin-top:28px;padding-top:28px;border-bottom:1px solid rgba(255,255,255,.25)}
+.bars::before{content:"";position:absolute;left:0;right:0;top:28px;bottom:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 25%);pointer-events:none}
+.bar{position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bar .col{position:relative;height:calc(var(--v) * 1%);background:linear-gradient(180deg,var(--brand-l),var(--brand-d));border-radius:6px 6px 0 0;transform:scaleY(0);transform-origin:bottom;transition:transform .9s var(--ease);transition-delay:calc(var(--i) * 70ms)}
+.bar.top .col{background:linear-gradient(180deg,var(--gold),#e0b800)}
+.bar .val{position:absolute;left:0;right:0;top:-26px;text-align:center;font:700 15px/1 var(--head);color:#fff;opacity:0;transition:opacity .4s var(--ease);transition-delay:calc(var(--i) * 70ms + 500ms)}
+.bars.in .col{transform:scaleY(1)}
+.bars.in .val{opacity:1}
+.bar-labels{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:12px}
+.bar-labels span{font-size:12.5px;line-height:1.35;color:var(--on-dark-mute);text-align:center}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;font-size:13px;color:var(--on-dark-mute)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--brand-l)}
+.legend i.g{background:var(--gold)}
+
+/* Feature grid */
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px 48px}
+.fitem{display:flex;gap:18px;align-items:flex-start}
+.fitem .hexi{width:52px;height:58px}
+.fitem .hexi .ico{width:22px;height:22px}
+.fitem h3{font-size:17.5px;line-height:1.3}
+.fitem p{font-size:15px;color:var(--muted);margin-top:6px;line-height:1.55}
+.feat-head{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:end;margin-bottom:56px;padding-bottom:36px;border-bottom:1px solid var(--line)}
+.feat-head h2{font:800 clamp(28px,3vw,40px)/1.12 var(--head);letter-spacing:-.03em}
+.feat-head p{color:var(--muted);font-size:17px;border-left:3px solid var(--gold);padding-left:20px}
+
+/* CTA band */
+.cta{position:relative;overflow:hidden;background:linear-gradient(110deg,var(--brand) 0%,var(--brand-d) 55%,#8c1a50 100%);color:#fff}
+.cta::before{content:"";position:absolute;inset:0;background:var(--hex);opacity:.07}
+.cta::after{content:"";position:absolute;top:0;bottom:0;left:0;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);transform:translateX(-120%) skewX(-18deg);animation:shine 7s var(--ease) infinite 1.5s}
+.cta.paused::after{animation-play-state:paused}
+@keyframes shine{0%{transform:translateX(-120%) skewX(-18deg)}35%,100%{transform:translateX(420%) skewX(-18deg)}}
+.cta .container{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:32px;padding-top:52px;padding-bottom:52px}
+.cta h2{color:#fff;font:800 clamp(24px,2.6vw,34px)/1.15 var(--head);letter-spacing:-.025em}
+.cta p{color:rgba(255,255,255,.92);margin-top:8px}
+.cta .acts{display:flex;gap:10px;flex-wrap:wrap}
+.cta .btn-outline{border:1px solid rgba(255,255,255,.6);color:#fff}
+.cta .btn-outline:hover{background:rgba(255,255,255,.1)}
+
+/* Three columns */
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.col-h{display:flex;align-items:center;gap:10px;font:800 21px/1.2 var(--head);padding-bottom:16px;margin-bottom:22px;border-bottom:1px solid var(--line);position:relative}
+.col-h::after{content:"";position:absolute;left:0;bottom:-1px;width:44px;height:2px;background:var(--brand)}
+.col-h i{width:12px;height:13px;background:var(--gold);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.rating{display:flex;align-items:center;gap:16px;padding:20px;border-radius:var(--r-lg);background:var(--ink);color:#fff}
+.rating .score{font:800 40px/1 var(--head);letter-spacing:-.03em}
+.rating .score small{font-size:16px;color:var(--on-dark-mute);font-weight:600}
+.stars{display:flex;gap:2px;color:var(--gold)}
+.stars svg{width:16px;height:16px;fill:currentColor;stroke:none}
+.rating p{font-size:13.5px;color:var(--on-dark-mute);margin-top:4px}
+.rating strong{display:block;font:700 16px var(--head)}
+.tst{position:relative;margin-top:16px;border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;min-height:224px}
+.tst-item{display:none}
+.tst-item.on{display:block;animation:fadeIn .4s var(--ease)}
+.tst blockquote{margin:0;font-size:15.5px;line-height:1.6;color:var(--ink)}
+.tst .who{display:flex;align-items:center;gap:12px;margin-top:16px}
+.tst .who img{width:44px;height:44px;border-radius:50%;object-fit:cover}
+.tst .who b{display:block;font:700 14.5px var(--head)}
+.tst .who span{font-size:13px;color:var(--muted)}
+.sample{display:inline-block;font:600 11.5px/1 var(--body);color:var(--muted);background:var(--tint);border:1px solid var(--line);padding:5px 7px;border-radius:5px;margin-bottom:12px}
+.tst-nav{position:absolute;right:14px;bottom:14px;display:flex;gap:6px}
+.tst-nav button{width:44px;height:44px;border:1px solid var(--line-2);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center}
+.tst-nav button:hover{border-color:var(--ink)}
+.acc-item{border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.acc-item.open{border-color:var(--line-2);box-shadow:0 10px 24px -18px rgba(22,33,43,.4)}
+.acc-q{display:flex;width:100%;align-items:center;gap:12px;min-height:56px;padding:0 16px;text-align:left;font:700 15.5px/1.3 var(--head)}
+.acc-q .hexi{width:32px;height:36px}
+.acc-q .hexi .ico{width:16px;height:16px}
+.acc-q .pm{margin-left:auto;width:28px;height:28px;border-radius:6px;background:var(--tint);display:flex;align-items:center;justify-content:center;flex:none}
+.acc-q .pm .ico{width:14px;height:14px;transition:transform .25s var(--ease)}
+.acc-q[aria-expanded="true"] .pm .ico{transform:rotate(45deg)}
+.acc-a{padding:0 16px 16px 60px;font-size:14.5px;color:var(--muted);line-height:1.6}
+.acc-a[hidden]{display:none}
+.acc-a:not([hidden]){animation:fadeIn .3s var(--ease)}
+.art{display:grid;grid-template-columns:104px 1fr;gap:16px;align-items:center;padding:12px;margin:0 -12px;border-radius:var(--r)}
+.art:hover{background:var(--tint)}
+.art:hover h3{color:var(--brand-d)}
+.art img{width:104px;height:78px;object-fit:cover;border-radius:var(--r-sm)}
+.art h3{font-size:15.5px;line-height:1.35;transition:color .15s}
+.art p{font-size:13px;color:var(--muted);margin-top:4px}
+.trio .more{margin-top:10px}
+
+/* Clients */
+.clients{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:34px 0;overflow:hidden}
+.clients .container{display:flex;align-items:center;gap:40px}
+.clients .cl{flex:none;font-size:14px;color:var(--muted);max-width:160px;line-height:1.4}
+.marquee{flex:1;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.mtrack{display:flex;width:max-content;animation:marquee 32s linear infinite}
+.marquee:hover .mtrack,.marquee.paused .mtrack{animation-play-state:paused}
+.mtrack span{flex:none;padding:0 44px;font:800 26px/48px var(--head);letter-spacing:-.02em;color:#8692a0;transition:color .2s}
+.mtrack span:hover{color:var(--ink)}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* Footer */
+.footer{position:relative;margin-top:48px;background:linear-gradient(180deg,#fff 0 140px,var(--deep) 140px)}
+.footer::before{content:"";position:absolute;left:0;right:0;top:140px;bottom:0;background:var(--hex);opacity:.035;pointer-events:none}
+.fbox{position:relative;background:#fff;border-radius:var(--r-lg);box-shadow:0 40px 80px -40px rgba(22,33,43,.5),0 0 0 1px var(--line);display:grid;grid-template-columns:320px 1fr;gap:40px;padding:32px 40px 64px 32px}
+.contact-card{background:var(--ink);color:var(--on-dark);border-radius:var(--r-lg);padding:26px;position:relative;overflow:hidden;align-self:start}
+.contact-card::before{content:"";position:absolute;inset:0;background:var(--hex);opacity:.06}
+.contact-card>*{position:relative}
+.contact-card h2{color:#fff;font-size:19px}
+.contact-card>p{font-size:14px;color:var(--on-dark-mute);margin-top:6px}
+.cc-row{display:flex;gap:14px;align-items:center;padding:14px 0;border-top:1px solid rgba(255,255,255,.1);margin-top:14px}
+.cc-row+.cc-row{margin-top:0}
+.cc-row .hexi{background:rgba(253,215,0,.12);color:var(--gold);width:40px;height:44px}
+.cc-row small{display:block;font-size:12.5px;color:var(--on-dark-mute)}
+.cc-row a{display:inline-flex;min-height:28px;align-items:center;color:#fff;font-weight:600;font-size:15px}
+.cc-row a:hover{text-decoration:underline;text-underline-offset:3px}
+.fcols{display:grid;grid-template-columns:repeat(3,1fr);gap:28px 32px;padding-top:10px}
+.fcols h3{font:800 15px/1.3 var(--head);margin-bottom:12px;padding-left:10px;border-left:3px solid var(--brand)}
+.fcols a{display:flex;align-items:center;min-height:36px;font-size:14.5px;color:var(--muted);transition:color .15s}
+.fcols a:hover{color:var(--brand-d)}
+.pay{position:absolute;left:50%;bottom:-30px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:#fff;border-radius:999px;padding:10px 18px;box-shadow:0 18px 40px -20px rgba(22,33,43,.55),0 0 0 1px var(--line);white-space:nowrap}
+.pay img{width:48px;height:30px;object-fit:contain}
+.pay .btc{display:inline-flex;align-items:center;gap:4px;font:700 12.5px var(--body);color:#b45309;border:1px solid var(--line);border-radius:6px;height:30px;padding:0 8px}
+.foot-bottom{position:relative;padding:72px 0 36px;color:var(--on-dark-mute);font-size:14px}
+.foot-bottom .container{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.foot-bottom img{height:30px;width:auto}
+.foot-bottom .legal{flex:1;min-width:260px;line-height:1.6}
+.foot-bottom .legal b{color:var(--on-dark);font-weight:500}
+.foot-bottom .live{display:inline-flex;align-items:center;gap:8px}
+.foot-bottom .live i{width:8px;height:8px;border-radius:50%;background:#22c55e}
+.totop{width:46px;height:46px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff}
+.totop:hover{background:rgba(255,255,255,.08)}
+
+.preview-pill{position:fixed;left:16px;bottom:16px;z-index:70;display:inline-flex;align-items:center;gap:8px;background:var(--deep);color:#fff;font:500 13px/1 var(--body);padding:0 14px;min-height:40px;border-radius:999px;box-shadow:0 10px 28px -10px rgba(22,33,43,.7);border:1px solid rgba(255,255,255,.12)}
+.preview-pill i{width:8px;height:9px;background:var(--gold);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+
+/* Reveal */
+[data-reveal]{opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease),transform .5s var(--ease);transition-delay:calc(var(--i,0) * 55ms)}
+[data-reveal].in{opacity:1;transform:none}
+.plan.hl[data-reveal].in{transform:translateY(-14px)}
+
+/* Responsive */
+@media (max-width:1180px){
+  .nav-btn{padding:0 8px;font-size:14.5px;white-space:nowrap}
+  .nav-btn::after{left:8px;right:8px}
+  .header-actions .btn-ghost{display:none}
+  .header-inner{gap:12px}
+  .nav{margin-left:4px}
+}
+@media (max-width:1023px){
+  :root{--gutter:24px;--header-h:68px}
+  .nav,.header-actions .btn,.mega{display:none}
+  .burger{display:inline-flex}
+  .header-actions{gap:8px}
+  .util .hide-md{display:none}
+  .hdot{width:auto;flex:1}
+  .hnav ol{flex:1}
+  .hnav li{flex:1;display:flex}
+  .infra .container{grid-template-columns:1fr;gap:48px}
+  .fgrid{grid-template-columns:repeat(2,1fr)}
+  .trio{grid-template-columns:1fr 1fr}
+  .trio>div:last-child{grid-column:1/-1}
+  .fbox{grid-template-columns:1fr;padding:28px 28px 64px}
+  .plans{gap:16px}
+  .plan-top,.plan-body{padding-left:22px;padding-right:22px}
+  .plan-foot{padding:0 22px 22px}
+  .price .amt{font-size:40px}
+  .feat-head{grid-template-columns:1fr;gap:16px}
+}
+@media (max-width:860px){
+  .plans{grid-template-columns:1fr;max-width:480px;margin:0 auto}
+  .plan.hl,.plan.hl[data-reveal].in{transform:none}
+  .tab{flex-direction:column;align-items:center;text-align:center;gap:8px;padding:12px 8px}
+  .tab small{display:none}
+  .tab strong{font-size:15px}
+  .cta .container{flex-direction:column;align-items:flex-start}
+  .trio{grid-template-columns:1fr}
+}
+@media (max-width:767px){
+  :root{--gutter:16px}
+  body{font-size:15.5px}
+  .util .u-left a:not(:first-child),.util .sep{display:none}
+  .util .u-right .u-item{display:none}
+  .brand img{height:28px}
+  .hero{height:auto;min-height:0;display:grid}
+  .slide{position:relative;grid-area:1/1}
+  .hero-hex{display:none}
+  .hdot .track{background:rgba(255,255,255,.35)}
+  .hcard .from{margin-top:16px;padding-top:14px}
+  .slide::after{background:linear-gradient(180deg,rgba(22,33,43,.35) 0%,rgba(22,33,43,.85) 60%,rgba(22,33,43,.95) 100%)}
+  .slide-inner{align-items:flex-end;padding-top:180px;padding-bottom:126px}
+  .hcard{padding:26px 22px 22px;border-radius:var(--r)}
+  .hcard::before{top:20px;bottom:20px}
+  .hcard p{font-size:15.5px}
+  .hcard .actions .btn{flex:1}
+  .hnav{bottom:56px}
+  .hdot{font-size:0;gap:0;min-height:44px;padding:0 8px}
+  .hdot .lab{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  .domain{margin-top:-44px}
+  .dpanel{padding:22px 16px 18px}
+  .dhead{flex-wrap:wrap;gap:0}
+  .dform{flex-direction:column}
+  .dform .btn{width:100%}
+  .section{padding:72px 0}
+  .tabs{margin-bottom:40px}
+  .fgrid{grid-template-columns:1fr;gap:28px}
+  .stats{grid-template-columns:1fr 1fr}
+  .stat{padding:18px}
+  .stat b{font-size:26px}
+  .chart{padding:22px 16px 18px}
+  .bars{gap:8px;height:220px}
+  .bar-labels{gap:8px}
+  .bar-labels span{font-size:11.5px}
+  .clients .container{flex-direction:column;align-items:flex-start;gap:12px}
+  .clients .cl{max-width:none}
+  .marquee{width:100%}
+  .mtrack span{font-size:22px;padding:0 28px}
+  .fbox{padding:16px 16px 80px}
+  .fcols{grid-template-columns:1fr 1fr;gap:24px 16px}
+  .pay{flex-wrap:wrap;justify-content:center;white-space:normal;border-radius:var(--r);width:calc(100% - 32px);bottom:-44px;gap:8px;padding:10px}
+  .pay img{width:40px;height:25px}
+  .foot-bottom{padding-top:84px}
+  .preview-pill{left:12px;bottom:12px;font-size:12px;min-height:36px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;transition-delay:0s!important;scroll-behavior:auto!important}
+  .slide.is-active .slide-img{transform:scale(1.02)}
+  .cta::after{display:none}
+  .mtrack{animation:none;flex-wrap:wrap;width:auto;justify-content:center}
+  .mtrack span[aria-hidden]{display:none}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/><path d="M6 7h.01M6 17h.01M10 7h4M10 17h4"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></symbol>
+    <symbol id="i-wp" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M4.5 8.5 8.5 19l3-8 3 8 4-10.5M6.5 8.5h4M13.5 8.5h4"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></symbol>
+    <symbol id="i-win" viewBox="0 0 24 24"><path d="M3 5.5 10.5 4.5v7H3zM13 4.2 21 3v8.5h-8zM3 13.5h7.5v6.9L3 19.5zM13 13.5h8V21l-8-1.1z"/></symbol>
+    <symbol id="i-term" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></symbol>
+    <symbol id="i-flow" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><path d="M9 6h5a3 3 0 0 1 3 3v6"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol>
+    <symbol id="i-at" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></symbol>
+    <symbol id="i-transfer" viewBox="0 0 24 24"><path d="M17 3l4 4-4 4M3 7h18M7 21l-4-4 4-4M21 17H3"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><path d="M7 7h.01"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-kanban" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 7v7M12 7v4M16 7v9"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0V8zM12 18v4"/></symbol>
+    <symbol id="i-life" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></symbol>
+    <symbol id="i-drive" viewBox="0 0 24 24"><path d="M22 12H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11zM6 16h.01M10 16h.01"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></symbol>
+    <symbol id="i-headset" viewBox="0 0 24 24"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></symbol>
+    <symbol id="i-move" viewBox="0 0 24 24"><path d="M3 7h13M12 3l4 4-4 4M21 17H8M12 13l-4 4 4 4"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-net" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5V12M12 12l-5.2 5.2M12 12l5.2 5.2"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="util">
+  <div class="container">
+    <div class="u-left" style="display:flex;align-items:center">
+      <a href="tel:+971507341578"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg><span class="num">+971 50 734 1578</span></a>
+      <span class="sep" aria-hidden="true"></span>
+      <a href="mailto:support@globalhostia.com"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>support@globalhostia.com</a>
+    </div>
+    <div class="u-right">
+      <span class="u-item"><svg class="ico" aria-hidden="true"><use href="#i-coin"/></svg>Currency <b>USD</b></span>
+      <span class="u-item"><svg class="ico" aria-hidden="true"><use href="#i-globe"/></svg>Language <b>English</b></span>
+      <span class="sep" aria-hidden="true"></span>
+      <a href="https://globalhostia.com/secure/submitticket.php" class="hide-md"><svg class="ico" aria-hidden="true"><use href="#i-ticket"/></svg>Submit a ticket</a>
+      <a href="https://globalhostia.com/secure/clientarea.php"><svg class="ico" aria-hidden="true"><use href="#i-user"/></svg>Client login</a>
+    </div>
+  </div>
+</div>
+
+<header class="site-header" id="header">
+  <div class="container header-inner">
+    <a class="brand" href="/" aria-label="Globalhostia home"><img src="/image/logo-main-black.png" alt="Globalhostia" width="178" height="34"></a>
+    <nav class="nav" aria-label="Main">
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-hosting" data-menu="m-hosting">Hosting<svg class="ico" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-servers" data-menu="m-servers">Servers<svg class="ico" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-domains" data-menu="m-domains">Domains<svg class="ico" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-security" data-menu="m-security">Security<svg class="ico" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-business" data-menu="m-business">Business tools<svg class="ico" aria-hidden="true"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-support" data-menu="m-support">Support<svg class="ico" aria-hidden="true"><use href="#i-chev"/></svg></button>
+    </nav>
+    <div class="header-actions">
+      <a class="btn btn-ghost" href="https://globalhostia.com/secure/clientarea.php">Client login</a>
+      <a class="btn btn-brand" href="https://globalhostia.com/secure/register.php">Sign up</a>
+      <button class="burger" id="burger" aria-expanded="false" aria-controls="drawer" aria-label="Open menu"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+
+  <!-- Mega menus -->
+  <div class="mega" id="m-hosting" data-panel>
+    <div class="mega-panel">
+      <div class="mega-cols">
+        <div class="mega-group"><h3>Website hosting</h3>
+          <a class="mega-link" href="/web-hosting"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-globe"/></svg></i><div><strong>Web Hosting</strong><span>NVMe hosting in the USA, Malaysia and Singapore.</span></div></a>
+          <a class="mega-link" href="/wordpress-hosting"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-wp"/></svg></i><div><strong>WordPress Hosting</strong><span>Managed WordPress with daily backups.</span></div></a>
+        </div>
+        <div class="mega-group"><h3>Shared and reseller</h3>
+          <a class="mega-link" href="/shared-hosting"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-layers"/></svg></i><div><strong>Shared Hosting</strong><span>Lite, Ultra and Infinity plans, billed yearly.</span></div></a>
+          <a class="mega-link" href="/cpanel-reseller"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-users"/></svg></i><div><strong>Reseller (cPanel)<em class="soon" style="font-style:normal">Soon</em></strong><span>Host your own clients under your brand.</span></div></a>
+        </div>
+      </div>
+      <div class="mega-feat">
+        <span class="tag">Most popular</span>
+        <h4>Hostia Ultra</h4>
+        <div class="big num">$39.99<small>/ year</small></div>
+        <p>5 websites, 100 GB bandwidth and unlimited email accounts on NVMe storage.</p>
+        <a class="link" href="/shared-hosting">See all hosting plans<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="mega" id="m-servers" data-panel>
+    <div class="mega-panel">
+      <div class="mega-cols">
+        <div class="mega-group"><h3>Virtual servers</h3>
+          <a class="mega-link" href="/vps-hosting"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-server"/></svg></i><div><strong>VPS</strong><span>Linux VPS from 4 to 16 vCPU cores.</span></div></a>
+          <a class="mega-link" href="/cloudvps"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-cloud"/></svg></i><div><strong>Cloud VPS</strong><span>Fully managed SSD cloud servers.</span></div></a>
+          <a class="mega-link" href="https://globalhostia.com/secure/cart.php"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-win"/></svg></i><div><strong>Windows VPS</strong><span>Windows Server with up to 48 GB RAM.</span></div></a>
+          <a class="mega-link" href="https://globalhostia.com/secure/cart.php"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg></i><div><strong>Forex VPS</strong><span>Always-on servers for trading platforms.</span></div></a>
+        </div>
+        <div class="mega-group"><h3>Dedicated and specialised</h3>
+          <a class="mega-link" href="/dedicated-servers"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-cpu"/></svg></i><div><strong>Dedicated Servers</strong><span>Bare metal from Xeon to Ryzen 9, up to 10Gbps.</span></div></a>
+          <a class="mega-link" href="https://globalhostia.com/secure/cart.php"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-spark"/></svg></i><div><strong>AI/LLM Hosting</strong><span>Servers sized for running language models.</span></div></a>
+          <a class="mega-link" href="https://globalhostia.com/secure/cart.php"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-flow"/></svg></i><div><strong>n8n Automation</strong><span>Self-hosted n8n with N8N Pro and N8N Elite plans.</span></div></a>
+        </div>
+      </div>
+      <div class="mega-feat">
+        <span class="tag">10Gbps</span>
+        <h4>Premium 10Gbps Server</h4>
+        <div class="big num">$999.99<small>/ month</small></div>
+        <p>2× Xeon E5-2683v4, 32 cores and 64 threads, 128 GB DDR4, 2 TB SSD on an unmetered 10Gbps port.</p>
+        <a class="link" href="/dedicated-servers">Compare dedicated servers<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="mega" id="m-domains" data-panel>
+    <div class="mega-panel">
+      <div class="mega-cols">
+        <div class="mega-group"><h3>Domain names</h3>
+          <a class="mega-link" href="/domains-registration"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-at"/></svg></i><div><strong>Register a domain</strong><span>Search hundreds of extensions and register in minutes.</span></div></a>
+          <a class="mega-link" href="https://globalhostia.com/secure/cart.php?a=add&amp;domain=transfer"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-transfer"/></svg></i><div><strong>Transfer a domain</strong><span>Move your domain to us for free.</span></div></a>
+          <a class="mega-link" href="/domains-registration#pricing"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-tag"/></svg></i><div><strong>Domain pricing</strong><span>Registration, renewal and transfer prices.</span></div></a>
+        </div>
+      </div>
+      <div class="mega-feat">
+        <h4>First-year prices</h4>
+        <ul class="tl num" id="mega-tlds"></ul>
+        <a class="link" href="/domains-registration">Search a domain<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="mega" id="m-security" data-panel>
+    <div class="mega-panel">
+      <div class="mega-cols">
+        <div class="mega-group"><h3>SSL certificates</h3>
+          <a class="mega-link" href="/ssl-certificate"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg></i><div><strong>SSL Certificates</strong><span>Domain, wildcard and organisation validated certificates.</span></div></a>
+          <a class="mega-link" href="/ssl-certificate"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-bolt"/></svg></i><div><strong>Comodo PositiveSSL</strong><span>Domain validated, issued in minutes, secures one domain.</span></div></a>
+        </div>
+        <div class="mega-group"><h3 aria-hidden="true">&nbsp;</h3>
+          <a class="mega-link" href="/ssl-certificate"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-layers"/></svg></i><div><strong>Wildcard SSL</strong><span>One domain plus unlimited subdomains.</span></div></a>
+          <a class="mega-link" href="/ssl-certificate"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg></i><div><strong>GeoTrust OV</strong><span>Your company name in the certificate.</span></div></a>
+        </div>
+      </div>
+      <div class="mega-feat">
+        <h4>Encryption your visitors can see</h4>
+        <p>256-bit encryption, 99.9% browser recognition and free reissues on every certificate.</p>
+        <a class="link" href="/ssl-certificate">Compare certificates<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="mega" id="m-business" data-panel>
+    <div class="mega-panel">
+      <div class="mega-cols">
+        <div class="mega-group"><h3>Work and collaboration</h3>
+          <a class="mega-link" href="/projects"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-kanban"/></svg></i><div><strong>Project Management workspace</strong><span>Kanban boards, time tracking and a client portal.</span></div></a>
+          <a class="mega-link" href="/google-workspace"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-grid"/></svg></i><div><strong>Google Workspace</strong><span>Business email, Drive and Meet on your domain.</span></div></a>
+        </div>
+        <div class="mega-group"><h3>Developers</h3>
+          <a class="mega-link" href="/binance"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-plug"/></svg></i><div><strong>Binance MCPs</strong><span>Hosted MCP servers on NVMe VPS with free SSL.</span></div></a>
+        </div>
+      </div>
+      <div class="mega-feat">
+        <h4>Your own workspace address</h4>
+        <p>Agency plans run on app.yourcompany.com with your logo, client roles and daily automated backups.</p>
+        <a class="link" href="/projects">See workspace plans<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="mega" id="m-support" data-panel>
+    <div class="mega-panel">
+      <div class="mega-cols">
+        <div class="mega-group"><h3>Self-service</h3>
+          <a class="mega-link" href="/help-center"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-life"/></svg></i><div><strong>Help Center</strong><span>Guides for hosting, domains, email and billing.</span></div></a>
+          <a class="mega-link" href="/all-topics"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg></i><div><strong>All topics</strong><span>Browse every article by product.</span></div></a>
+        </div>
+        <div class="mega-group"><h3>Service health</h3>
+          <a class="mega-link" href="/status-page"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-activity"/></svg></i><div><strong>Status page</strong><span>Live status of every datacenter and service.</span></div></a>
+          <a class="mega-link" href="/incident-history"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-clock"/></svg></i><div><strong>Incident history</strong><span>Past incidents and how they were resolved.</span></div></a>
+          <a class="mega-link" href="/contact"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg></i><div><strong>Contact</strong><span>Sales, billing and technical support.</span></div></a>
+        </div>
+      </div>
+      <div class="mega-feat">
+        <h4>Engineers on call, 24/7</h4>
+        <p>Call, email or message us on WhatsApp at any hour.</p>
+        <ul class="tl"><li><span>Phone</span><b class="num">+971 50 734 1578</b></li><li><span>Email</span><b>support@globalhostia.com</b></li></ul>
+        <a class="link" href="https://globalhostia.com/secure/submitticket.php">Submit a ticket<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-scrim" data-close></div>
+  <div class="drawer-sheet" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="drawer-head"><img src="/image/logo-main-black.png" alt="Globalhostia" width="147" height="28"><button data-close aria-label="Close menu"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-foot">
+      <a class="btn btn-ghost" href="https://globalhostia.com/secure/clientarea.php">Client login</a>
+      <a class="btn btn-brand" href="https://globalhostia.com/secure/register.php">Sign up</a>
+      <div class="contact"><a href="tel:+971507341578"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg>+971 50 734 1578</a><a href="mailto:support@globalhostia.com"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>support@globalhostia.com</a></div>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+  <section class="hero" id="hero" aria-roledescription="carousel" aria-label="Featured products">
+    <div class="hero-hex" aria-hidden="true"></div>
+    <div class="slide is-active" id="slide-0" role="group" aria-roledescription="slide" aria-label="1 of 3">
+      <img class="slide-img" src="/previews/hostpen/hero-hosting.jpg" alt="" width="1920" height="1280" fetchpriority="high">
+      <div class="container slide-inner">
+        <div class="hcard">
+          <span class="hkicker"><i aria-hidden="true"></i>Web hosting</span>
+          <h1>Fast NVMe web hosting, from $29.99 a year.</h1>
+          <p>Hostia Lite, Ultra and Infinity plans in the USA, Malaysia and Singapore. Free SSL, daily and weekly backups, and engineers on call around the clock.</p>
+          <div class="actions">
+            <a class="btn btn-brand" href="#plans">View hosting plans</a>
+            <a class="btn btn-ghost" href="/web-hosting">How it works</a>
+          </div>
+          <div class="from">Hostia Lite from <b class="num">$29.99</b> per year, billed annually</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide" id="slide-1" role="group" aria-roledescription="slide" aria-label="2 of 3">
+      <img class="slide-img" src="/previews/hostpen/hero-servers.jpg" alt="" width="1920" height="1260" loading="lazy">
+      <div class="container slide-inner">
+        <div class="hcard">
+          <span class="hkicker"><i aria-hidden="true"></i>Cloud VPS and dedicated</span>
+          <h2>Servers that stay up while you grow.</h2>
+          <p>Managed SSD cloud VPS for Linux or Windows, and dedicated servers up to 64 threads with 10Gbps ports, across six datacenters at 99.93% uptime.</p>
+          <div class="actions">
+            <a class="btn btn-brand" href="/dedicated-servers">Explore dedicated servers</a>
+            <a class="btn btn-ghost" href="/cloudvps">Cloud VPS</a>
+          </div>
+          <div class="from">Dedicated servers from <b class="num">$45.99</b> per month</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide" id="slide-2" role="group" aria-roledescription="slide" aria-label="3 of 3">
+      <img class="slide-img" src="/previews/hostpen/hero-domains.jpg" alt="" width="1920" height="1080" loading="lazy">
+      <div class="container slide-inner">
+        <div class="hcard">
+          <span class="hkicker"><i aria-hidden="true"></i>Domains and SSL</span>
+          <h2>Claim your name and secure it the same day.</h2>
+          <p>Register .com, .shop, .org and more, transfer existing domains for free, and add an SSL certificate that is issued in minutes.</p>
+          <div class="actions">
+            <a class="btn btn-brand" href="#domain-q" data-focus-domain>Search for a domain</a>
+            <a class="btn btn-ghost" href="/ssl-certificate">SSL certificates</a>
+          </div>
+          <div class="from">.shop domains from <b class="num">$1.20</b> for the first year</div>
+        </div>
+      </div>
+    </div>
+    <div class="hnav">
+      <div class="container">
+        <ol aria-label="Choose a slide">
+          <li><button class="hdot" aria-current="true" aria-controls="slide-0" data-go="0"><span class="lab">Web hosting</span><span class="track" aria-hidden="true"><span class="fill"></span></span></button></li>
+          <li><button class="hdot" aria-current="false" aria-controls="slide-1" data-go="1"><span class="lab">Cloud VPS and dedicated</span><span class="track" aria-hidden="true"><span class="fill"></span></span></button></li>
+          <li><button class="hdot" aria-current="false" aria-controls="slide-2" data-go="2"><span class="lab">Domains and SSL</span><span class="track" aria-hidden="true"><span class="fill"></span></span></button></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="domain" aria-labelledby="dom-h">
+    <div class="container">
+      <div class="dpanel">
+        <div class="dhead">
+          <h2 id="dom-h">Find your domain</h2>
+          <a class="link" href="/domains-registration"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>Search multiple domains</a>
+        </div>
+        <form class="dform" id="dform" action="https://globalhostia.com/secure/cart.php" method="get" role="search">
+          <input type="hidden" name="a" value="add">
+          <input type="hidden" name="domain" value="register">
+          <div class="dfield">
+            <svg class="ico" aria-hidden="true"><use href="#i-globe"/></svg>
+            <label class="sr-only" for="domain-q">Domain name</label>
+            <input id="domain-q" name="query" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Type the name you want, for example yourbrand" required>
+          </div>
+          <button class="btn btn-brand" type="submit"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>Search</button>
+        </form>
+        <fieldset class="tlds" style="border:0;padding:0;margin:14px 0 0">
+          <legend class="sr-only">Extensions to search</legend>
+          <span class="lbl" aria-hidden="true">Extensions</span>
+          <span id="tld-pills" style="display:contents"></span>
+        </fieldset>
+        <p class="dnote">First-year prices in USD. The renewal price is shown before you pay.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="plans" aria-labelledby="plans-h">
+    <div class="container">
+      <div class="sec-head">
+        <h2 id="plans-h">Choose the right home for your website</h2>
+        <p>Shared hosting for sites and stores, managed cloud VPS for applications, and dedicated servers for heavy workloads.</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Product type" id="tabs">
+        <span class="tab-ind" aria-hidden="true"></span>
+        <button class="tab" role="tab" id="t-web" aria-controls="p-web" aria-selected="true"><span class="t-ico"><svg class="ico" aria-hidden="true"><use href="#i-globe"/></svg></span><span><strong>Web Hosting</strong><small class="num">Starting from $29.99 / year</small></span></button>
+        <button class="tab" role="tab" id="t-vps" aria-controls="p-vps" aria-selected="false" tabindex="-1"><span class="t-ico"><svg class="ico" aria-hidden="true"><use href="#i-cloud"/></svg></span><span><strong>Cloud VPS</strong><small>Linux or Windows, 4 to 16 vCPU</small></span></button>
+        <button class="tab" role="tab" id="t-ded" aria-controls="p-ded" aria-selected="false" tabindex="-1"><span class="t-ico"><svg class="ico" aria-hidden="true"><use href="#i-server"/></svg></span><span><strong>Dedicated</strong><small class="num">Starting from $45.99 / month</small></span></button>
+      </div>
+
+      <div class="tabpanel" role="tabpanel" id="p-web" aria-labelledby="t-web" tabindex="0">
+        <div class="panel-bar">
+          <p>Pick the datacenter closest to your visitors. Every plan includes free SSL and daily and weekly backups.</p>
+          <div class="seg" role="radiogroup" aria-label="Hosting location" id="seg-loc">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <button role="radio" aria-checked="true" data-v="usa">USA</button>
+            <button role="radio" aria-checked="false" tabindex="-1" data-v="my">Malaysia</button>
+            <button role="radio" aria-checked="false" tabindex="-1" data-v="sg">Singapore</button>
+          </div>
+        </div>
+        <div class="plans" id="plans-web"></div>
+      </div>
+
+      <div class="tabpanel" role="tabpanel" id="p-vps" aria-labelledby="t-vps" tabindex="0" hidden>
+        <div class="panel-bar">
+          <p id="vps-note">Fully managed SSD cloud servers. Linux plans scale to 16 vCPU and 64 GB RAM.</p>
+          <div class="seg" role="radiogroup" aria-label="Operating system" id="seg-os">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <button role="radio" aria-checked="true" data-v="Linux">Linux</button>
+            <button role="radio" aria-checked="false" tabindex="-1" data-v="Windows">Windows</button>
+          </div>
+        </div>
+        <div class="plans" id="plans-vps"></div>
+      </div>
+
+      <div class="tabpanel" role="tabpanel" id="p-ded" aria-labelledby="t-ded" tabindex="0" hidden>
+        <div class="panel-bar">
+          <p>Bare-metal servers with 5 IPv4 addresses each, billed monthly. Seven current models, from Xeon to Ryzen 9 with DDR5 ECC.</p>
+          <a class="link" href="/dedicated-servers">Compare all dedicated servers<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="plans" id="plans-ded"></div>
+      </div>
+
+      <div class="plans-note">
+        <span class="live"><i aria-hidden="true"></i>Prices shown live from our billing system, in USD.</span>
+        <a class="link" href="/domains-registration#pricing">Domain and add-on pricing<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section infra on-dark" aria-labelledby="infra-h">
+    <div class="container">
+      <div>
+        <h2 id="infra-h">Infrastructure you can measure</h2>
+        <p class="lead">Six datacenters on five continents, a CDN with more than 200 points of presence, and flash storage behind every website and server.</p>
+        <div class="stats">
+          <div class="stat" data-reveal style="--i:0"><b class="num">99.93<em>%</em></b><span>Network uptime</span></div>
+          <div class="stat" data-reveal style="--i:1"><b class="num">6</b><span>Datacenters: USA, Brazil, Algeria (EU), South Africa, India, Russia</span></div>
+          <div class="stat" data-reveal style="--i:2"><b class="num">200<em>+</em></b><span>CDN points of presence</span></div>
+          <div class="stat" data-reveal style="--i:3"><b class="num">24/7</b><span>Technical support by phone, email and ticket</span></div>
+        </div>
+      </div>
+      <figure class="chart" style="margin:0">
+        <h3>Threads per dedicated server</h3>
+        <figcaption class="cap">Current models, from entry level to the 10Gbps flagship.</figcaption>
+        <div class="bars" id="bars" role="img" aria-label="Hostia Prime 8 threads, Hostia Flex 32, Hostia Flex Plus 32, Premium Server A 64, Premium 10Gbps Server 64"></div>
+        <div class="bar-labels" id="bar-labels" aria-hidden="true"></div>
+        <div class="legend" aria-hidden="true"><span><i></i>1Gbps port</span><span><i class="g"></i>10Gbps port</span></div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="feat-h">
+    <div class="container">
+      <div class="feat-head">
+        <h2 id="feat-h">Everything a hosting plan should include</h2>
+        <p>No add-on maze. Security, backups and support come with every plan, and our engineers help you move in.</p>
+      </div>
+      <div class="fgrid" id="fgrid"></div>
+    </div>
+  </section>
+
+  <section class="cta" aria-labelledby="cta-h" id="cta">
+    <div class="container">
+      <div>
+        <h2 id="cta-h">Start building your fast website today</h2>
+        <p>Pick a plan, add a domain and go live in minutes. Free domain transfer included.</p>
+      </div>
+      <div class="acts">
+        <a class="btn btn-light" href="#plans">Compare all plans</a>
+        <a class="btn btn-outline" href="/contact">Talk to sales</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-label="Customers, reasons to choose us and help articles">
+    <div class="container trio">
+      <div>
+        <h2 class="col-h"><i aria-hidden="true"></i>Happy customers</h2>
+        <div class="rating">
+          <div class="score num">4.89<small>/5</small></div>
+          <div>
+            <div class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></div>
+            <strong>Excellent</strong>
+            <p>Average customer rating</p>
+          </div>
+        </div>
+        <div class="tst" id="tst" aria-roledescription="carousel" aria-label="Customer reviews">
+          <div class="tst-item on" role="group" aria-roledescription="slide" aria-label="1 of 2">
+            <span class="sample">Sample review, to be replaced with a verified customer review</span>
+            <blockquote>We moved our store from another host over a weekend. Support handled the migration and pages now load noticeably faster on NVMe.</blockquote>
+            <div class="who"><img src="/previews/hostpen/avatar-1.jpg" alt="" width="44" height="44" loading="lazy"><div><b>Online store owner</b><span>Hostia Ultra, Singapore</span></div></div>
+          </div>
+          <div class="tst-item" role="group" aria-roledescription="slide" aria-label="2 of 2">
+            <span class="sample">Sample review, to be replaced with a verified customer review</span>
+            <blockquote>We run client projects on a cloud VPS. When we needed help at 2am, an engineer answered within minutes and stayed until it was fixed.</blockquote>
+            <div class="who"><img src="/previews/hostpen/avatar-2.jpg" alt="" width="44" height="44" loading="lazy"><div><b>Agency founder</b><span>Cloud VPS, Linux</span></div></div>
+          </div>
+          <div class="tst-nav">
+            <button type="button" data-tst="-1" aria-label="Previous review"><svg class="ico" aria-hidden="true"><use href="#i-left"/></svg></button>
+            <button type="button" data-tst="1" aria-label="Next review"><svg class="ico" aria-hidden="true"><use href="#i-right"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h2 class="col-h"><i aria-hidden="true"></i>Why choose us</h2>
+        <div id="why"></div>
+      </div>
+      <div>
+        <h2 class="col-h"><i aria-hidden="true"></i>From the help center</h2>
+        <a class="art" href="/help-center"><img src="/previews/hostpen/help-1.jpg" alt="" width="104" height="78" loading="lazy"><div><h3>Point your domain to Globalhostia nameservers</h3><p>Domains, 4 minute read</p></div></a>
+        <a class="art" href="/help-center"><img src="/previews/hostpen/help-2.jpg" alt="" width="104" height="78" loading="lazy"><div><h3>Transfer a domain to us without downtime</h3><p>Domains, 5 minute read</p></div></a>
+        <a class="art" href="/help-center"><img src="/previews/hostpen/help-3.jpg" alt="" width="104" height="78" loading="lazy"><div><h3>Restore files and databases from a backup</h3><p>Hosting, 3 minute read</p></div></a>
+        <a class="link more" href="/help-center">Visit the help center<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="clients" aria-label="Clients">
+    <div class="container">
+      <p class="cl">Trusted by teams at</p>
+      <div class="marquee" id="marquee">
+        <div class="mtrack">
+          <span>ADPList</span><span>1Mentorship</span><span>INFRA</span><span>AllCode</span><span>Token247</span>
+          <span aria-hidden="true">ADPList</span><span aria-hidden="true">1Mentorship</span><span aria-hidden="true">INFRA</span><span aria-hidden="true">AllCode</span><span aria-hidden="true">Token247</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="fbox">
+      <div class="contact-card">
+        <h2>Contact us</h2>
+        <p>Sales and technical support, every hour of every day.</p>
+        <div class="cc-row"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg></i><div><small>Call us</small><a class="num" href="tel:+971507341578">+971 50 734 1578</a></div></div>
+        <div class="cc-row"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg></i><div><small>Email us</small><a href="mailto:support@globalhostia.com">support@globalhostia.com</a></div></div>
+        <div class="cc-row"><i class="hexi"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg></i><div><small>Chat on WhatsApp</small><a href="https://wa.me/971507341578">Message us on WhatsApp</a></div></div>
+      </div>
+      <nav class="fcols" aria-label="Footer">
+        <div><h3>Hosting</h3><a href="/web-hosting">Web Hosting</a><a href="/wordpress-hosting">WordPress Hosting</a><a href="/shared-hosting">Shared Hosting</a><a href="/cpanel-reseller">Reseller (cPanel)</a></div>
+        <div><h3>Servers</h3><a href="/vps-hosting">VPS</a><a href="/cloudvps">Cloud VPS</a><a href="/dedicated-servers">Dedicated Servers</a><a href="https://globalhostia.com/secure/cart.php">Forex VPS</a><a href="https://globalhostia.com/secure/cart.php">Windows VPS</a><a href="https://globalhostia.com/secure/cart.php">AI/LLM Hosting</a><a href="https://globalhostia.com/secure/cart.php">n8n Automation</a></div>
+        <div><h3>Domains</h3><a href="/domains-registration">Register a domain</a><a href="https://globalhostia.com/secure/cart.php?a=add&amp;domain=transfer">Transfer a domain</a><a href="/domains-registration#pricing">Domain pricing</a><a href="/ssl-certificate">SSL Certificates</a></div>
+        <div><h3>Business tools</h3><a href="/projects">Project Management</a><a href="/google-workspace">Google Workspace</a><a href="/binance">Binance MCPs</a></div>
+        <div><h3>Support</h3><a href="/help-center">Help Center</a><a href="/all-topics">All topics</a><a href="/status-page">Status page</a><a href="/incident-history">Incident history</a><a href="/contact">Contact</a></div>
+      </nav>
+      <div class="pay" aria-label="Accepted payment methods" role="img">
+        <img src="/image/payment/visa.png" alt="" width="48" height="30" loading="lazy">
+        <img src="/image/payment/mastercard.png" alt="" width="48" height="30" loading="lazy">
+        <img src="/image/payment/amex.png" alt="" width="48" height="30" loading="lazy">
+        <img src="/image/payment/discover.png" alt="" width="48" height="30" loading="lazy">
+        <img src="/image/payment/jcb.png" alt="" width="48" height="30" loading="lazy">
+        <img src="/image/payment/maestro.png" alt="" width="48" height="30" loading="lazy">
+        <span class="btc">Bitcoin</span>
+        <span class="sr-only">Visa, Mastercard, American Express, Discover, JCB, Maestro and Bitcoin</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <div class="container">
+      <img src="/image/logo-main-white.png" alt="Globalhostia" width="157" height="30" loading="lazy">
+      <p class="legal">© 2026 Globalhostia · Desert Tech Cloud Services LLC, Dubai, UAE.<br><span class="live"><i aria-hidden="true"></i><b>Prices shown live from our billing system.</b></span></p>
+      <a class="totop" href="#main" aria-label="Back to top"><svg class="ico" aria-hidden="true"><use href="#i-up"/></svg></a>
+    </div>
+  </div>
+</footer>
+
+<a class="preview-pill" href="/previews/index.html"><i aria-hidden="true"></i>Concept 5 · Hostpen Modern — preview</a>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $ = function(s,r){return (r||document).querySelector(s)};
+  var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  function ico(id,cls){return '<svg class="ico'+(cls?' '+cls:'')+'" aria-hidden="true"><use href="#'+id+'"/></svg>'}
+  function money(v){return "$"+Number(v).toFixed(2)}
+
+  /* ---------- Data (from content.json; production reads WHMCS) ---------- */
+  var TLDS = [[".com",13.65],[".net",8.29],[".shop",1.2],[".org",8.65],[".live",2.99]];
+  var LOCS = {usa:{suffix:"USA",dc:"United States"},my:{suffix:"MY",dc:"Malaysia"},sg:{suffix:"SG",dc:"Singapore"}};
+  var WEB = [
+    {base:"Hostia Lite",price:"29.99",sub:"For a first website or portfolio",feat:["1 website","2 GB NVMe storage","50 GB bandwidth","10 email accounts","10 databases"]},
+    {base:"Hostia Ultra",price:"39.99",hl:true,sub:"For growing sites and small stores",feat:["5 websites","5 GB NVMe storage","100 GB bandwidth","Unlimited email accounts","25 databases"]},
+    {base:"Hostia Infinity",price:"49.99",sub:"For agencies and busy stores",feat:["10 websites","Unlimited SSD storage","Unlimited bandwidth","Unlimited email accounts","Unlimited databases"]}
+  ];
+  var VPS = {
+    Linux:[{cpu:4,ram:6},{cpu:6,ram:16,hl:true},{cpu:8,ram:24}],
+    Windows:[{cpu:4,ram:6},{cpu:6,ram:16,hl:true},{cpu:8,ram:24}]
+  };
+  var VPS_NOTE = {Linux:"Fully managed SSD cloud servers. Linux plans scale to 16 vCPU and 64 GB RAM.",Windows:"Fully managed SSD cloud servers with Windows Server. Plans scale to 12 vCPU and 48 GB RAM."};
+  var DED = [
+    {n:"Hostia Prime",m:"Dual Xeon L5420",cpu:"8 cores, 8 threads @ 2.5GHz",ram:"16 GB DDR2",st:"500 GB SATA",bw:"30 TB on a 1Gbps port",p:"45.99"},
+    {n:"Premium Server A",m:"2× Xeon E5-2683v4",hl:true,badge:"Hot",cpu:"32 cores, 64 threads @ 2.10GHz",ram:"128 GB DDR4",st:"2 TB SSD",bw:"Unmetered 1Gbps",p:"129.99"},
+    {n:"Hostia Flex",m:"AMD Ryzen 9 5950X",badge:"Special",cpu:"32 threads @ 3.4GHz",ram:"128 GB DDR4 ECC",st:"2× 1 TB NVMe",bw:"Unmetered 1Gbps",p:"150.00"}
+  ];
+  var CHART = [
+    {n:"Hostia Prime",v:8},{n:"Hostia Flex",v:32},{n:"Hostia Flex Plus",v:32},{n:"Premium Server A",v:64},{n:"Premium 10Gbps",v:64,top:true}
+  ];
+  var FEATURES = [
+    ["i-drive","NVMe and SSD storage","No spinning disks behind your website. Pages and databases load from flash."],
+    ["i-lock","Free SSL certificate","Every hosting plan is served over HTTPS from the first day."],
+    ["i-archive","Daily and weekly backups","Automatic restore points for files and databases, kept off the server."],
+    ["i-activity","99.93% uptime","Redundant power and network across our datacenters, monitored around the clock."],
+    ["i-headset","24/7 technical support","Real engineers by phone, email, WhatsApp and ticket, at any hour."],
+    ["i-transfer","Free domain transfer","Bring your existing domains to Globalhostia at no cost."],
+    ["i-move","Help moving in","Our team migrates your files, email and databases from your old host."],
+    ["i-wp","Managed WordPress","WordPress installed, updated and backed up for you."],
+    ["i-mail","Business email","From 10 to unlimited mailboxes on your own domain."],
+    ["i-pin","Three hosting locations","Host in the USA, Malaysia or Singapore, close to your visitors."],
+    ["i-net","200+ CDN locations","Static files served from the point of presence nearest each visitor."],
+    ["i-card","Flexible payment","Visa, Mastercard, American Express, Discover, JCB, Maestro and Bitcoin."]
+  ];
+  var WHY = [
+    ["i-transfer","Free domain transfer","Unlock your domain at your current registrar, request the EPP code and start the transfer. Your website stays online and we add the transfer at no cost."],
+    ["i-drive","NVMe and SSD-only cloud","Every hosting account, VPS and cloud server runs on flash storage. There are no spinning disks in the path of your visitors."],
+    ["i-headset","24/7 priority support","Engineers answer by phone, email, WhatsApp and ticket around the clock, including weekends and public holidays."],
+    ["i-archive","Daily and weekly backups","Your files and databases are backed up automatically every day and every week. Restore from your control panel or ask support."]
+  ];
+
+  /* ---------- Domain search ---------- */
+  var pills = $("#tld-pills");
+  pills.innerHTML = TLDS.map(function(t,i){
+    return '<span class="tld"><input type="checkbox" id="tld'+i+'" value="'+t[0]+'"'+(i<2?' checked':'')+'><label for="tld'+i+'"><span class="bx">'+ico("i-check")+'</span><b>'+t[0]+'</b><span class="p num">'+money(t[1])+'</span></label></span>';
+  }).join("");
+  $("#mega-tlds").innerHTML = TLDS.map(function(t){return '<li><span>'+t[0]+'</span><b>'+money(t[1])+'</b></li>'}).join("");
+  var q = $("#domain-q");
+  $("#dform").addEventListener("submit",function(){
+    var v = q.value.trim().toLowerCase().replace(/^https?:\/\//,"").replace(/^www\./,"").replace(/\s+/g,"");
+    if(v && v.indexOf(".")===-1){
+      var c = $("#tld-pills input:checked"); v += c ? c.value : ".com";
+    }
+    q.value = v;
+  });
+  $$("[data-focus-domain]").forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();q.scrollIntoView({behavior:reduce?"auto":"smooth",block:"center"});setTimeout(function(){q.focus({preventScroll:true})},reduce?0:450)})});
+
+  /* ---------- Plans ---------- */
+  function feats(list){return '<ul class="feat">'+list.map(function(f){return '<li>'+ico("i-check")+'<span>'+f+'</span></li>'}).join("")+'</ul>'}
+  function priceHtml(p,per){var s=p.split(".");return '<div class="price num"><span class="cur">$</span><span class="amt">'+s[0]+'.'+s[1]+'</span><span class="per">'+per+'</span></div>'}
+  function renderWeb(loc){
+    var L = LOCS[loc];
+    $("#plans-web").innerHTML = WEB.map(function(p,i){
+      var name = p.base+" "+L.suffix;
+      return '<article class="plan'+(p.hl?' hl':'')+'" data-reveal style="--i:'+i+'">'+(p.hl?'<span class="badge">Most popular</span>':'')+
+        '<div class="plan-top"><h3>'+p.base+'</h3><p class="sub">'+p.sub+'</p>'+priceHtml(p.price,"/ year")+'<p class="meta">Billed yearly. Datacenter: '+L.dc+'</p></div>'+
+        '<div class="plan-body">'+feats(p.feat.concat(["Free SSL certificate"]))+'</div>'+
+        '<div class="plan-foot"><a class="btn '+(p.hl?'btn-brand':'btn-ghost')+'" href="/shared-hosting" aria-label="Order '+name+'">Order '+p.base.replace("Hostia ","")+'</a></div></article>';
+    }).join("");
+  }
+  function renderVps(os){
+    $("#vps-note").textContent = VPS_NOTE[os];
+    $("#plans-vps").innerHTML = VPS[os].map(function(p,i){
+      return '<article class="plan'+(p.hl?' hl':'')+'" data-reveal style="--i:'+i+'">'+(p.hl?'<span class="badge">Best value</span>':'')+
+        '<div class="plan-top"><h3>Cloud VPS '+p.cpu+'</h3><p class="sub">'+os+' cloud server</p><div class="price spec num"><span class="amt">'+p.cpu+' vCPU</span></div><p class="meta">Price confirmed live in the order form</p></div>'+
+        '<div class="plan-body">'+feats([p.cpu+" vCPU cores",p.ram+" GB RAM",os+(os==="Linux"?" of your choice":" Server"),"SSD cloud storage","Fully managed"])+'</div>'+
+        '<div class="plan-foot"><a class="btn '+(p.hl?'btn-brand':'btn-ghost')+'" href="/cloudvps" aria-label="See price for '+os+' Cloud VPS with '+p.cpu+' vCPU">See price and order</a></div></article>';
+    }).join("");
+  }
+  $("#plans-ded").innerHTML = DED.map(function(s,i){
+    return '<article class="plan'+(s.hl?' hl':'')+'" data-reveal style="--i:'+i+'">'+(s.badge?'<span class="badge'+(s.hl?'':' soft')+'">'+s.badge+'</span>':'')+
+      '<div class="plan-top"><h3>'+s.n+'</h3><p class="sub">'+s.m+'</p>'+priceHtml(s.p,"/ month")+'<p class="meta">Billed monthly, 5 IPv4 addresses</p></div>'+
+      '<div class="plan-body">'+feats([s.cpu,s.ram,s.st,s.bw])+'</div>'+
+      '<div class="plan-foot"><a class="btn '+(s.hl?'btn-brand':'btn-ghost')+'" href="/dedicated-servers" aria-label="Configure '+s.n+'">Configure server</a></div></article>';
+  }).join("");
+  renderWeb("usa"); renderVps("Linux");
+
+  // Segmented controls
+  function seg(root, onChange){
+    var thumb = $(".seg-thumb",root), btns = $$("button",root);
+    function place(b){thumb.style.width=b.offsetWidth+"px";thumb.style.transform="translateX("+b.offsetLeft+"px)"}
+    function select(b,focus){
+      btns.forEach(function(x){var on=x===b;x.setAttribute("aria-checked",on);x.tabIndex=on?0:-1});
+      place(b); if(focus)b.focus(); onChange(b.dataset.v); observeReveal();
+    }
+    btns.forEach(function(b,i){
+      b.addEventListener("click",function(){select(b)});
+      b.addEventListener("keydown",function(e){
+        var d=e.key==="ArrowRight"||e.key==="ArrowDown"?1:e.key==="ArrowLeft"||e.key==="ArrowUp"?-1:0;
+        if(!d)return; e.preventDefault(); select(btns[(i+d+btns.length)%btns.length],true);
+      });
+    });
+    function sync(){var on=$('[aria-checked="true"]',root); if(on && on.offsetWidth) place(on)}
+    window.addEventListener("resize",sync); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(sync); sync();
+    return sync;
+  }
+  var syncLoc = seg($("#seg-loc"),renderWeb);
+  var syncOs = seg($("#seg-os"),renderVps);
+
+  // Tabs
+  var tabs = $$(".tab"), ind = $(".tab-ind");
+  function selectTab(t,focus){
+    tabs.forEach(function(x,i){
+      var on=x===t; x.setAttribute("aria-selected",on); x.tabIndex=on?0:-1;
+      var p=$("#"+x.getAttribute("aria-controls"));
+      if(on){p.hidden=false;p.classList.remove("enter");void p.offsetWidth;p.classList.add("enter");ind.style.transform="translateX("+(i*100)+"%)"} else p.hidden=true;
+    });
+    if(focus)t.focus(); syncLoc(); syncOs(); observeReveal();
+  }
+  tabs.forEach(function(t,i){
+    t.addEventListener("click",function(){selectTab(t)});
+    t.addEventListener("keydown",function(e){
+      var n=null;
+      if(e.key==="ArrowRight")n=tabs[(i+1)%tabs.length];
+      if(e.key==="ArrowLeft")n=tabs[(i-1+tabs.length)%tabs.length];
+      if(e.key==="Home")n=tabs[0]; if(e.key==="End")n=tabs[tabs.length-1];
+      if(n){e.preventDefault();selectTab(n,true)}
+    });
+  });
+
+  /* ---------- Chart ---------- */
+  $("#bars").innerHTML = CHART.map(function(c,i){return '<div class="bar'+(c.top?' top':'')+'" style="--i:'+i+'"><div class="col" style="--v:'+(c.v/64*100)+'"><span class="val num">'+c.v+'</span></div></div>'}).join("");
+  $("#bar-labels").innerHTML = CHART.map(function(c){return '<span>'+c.n+'</span>'}).join("");
+
+  /* ---------- Feature grid ---------- */
+  $("#fgrid").innerHTML = FEATURES.map(function(f,i){return '<div class="fitem" data-reveal style="--i:'+(i%3)+'"><i class="hexi">'+ico(f[0])+'</i><div><h3>'+f[1]+'</h3><p>'+f[2]+'</p></div></div>'}).join("");
+
+  /* ---------- Why accordion ---------- */
+  $("#why").innerHTML = WHY.map(function(w,i){
+    return '<div class="acc-item'+(i===0?' open':'')+'"><h3 style="margin:0;font-size:inherit"><button class="acc-q" aria-expanded="'+(i===0)+'" aria-controls="wa'+i+'" id="wq'+i+'"><i class="hexi">'+ico(w[0])+'</i>'+w[1]+'<span class="pm">'+ico("i-plus")+'</span></button></h3>'+
+      '<div class="acc-a" id="wa'+i+'" role="region" aria-labelledby="wq'+i+'"'+(i===0?'':' hidden')+'>'+w[2]+'</div></div>';
+  }).join("");
+  $$("#why .acc-q").forEach(function(b){b.addEventListener("click",function(){
+    var open=b.getAttribute("aria-expanded")==="true";
+    $$("#why .acc-q").forEach(function(o){o.setAttribute("aria-expanded","false");$("#"+o.getAttribute("aria-controls")).hidden=true;o.closest(".acc-item").classList.remove("open")});
+    if(!open){b.setAttribute("aria-expanded","true");$("#"+b.getAttribute("aria-controls")).hidden=false;b.closest(".acc-item").classList.add("open")}
+  })});
+
+  /* ---------- Testimonials ---------- */
+  var ti = 0, titems = $$(".tst-item");
+  $$("[data-tst]").forEach(function(b){b.addEventListener("click",function(){
+    titems[ti].classList.remove("on"); ti=(ti+Number(b.dataset.tst)+titems.length)%titems.length; titems[ti].classList.add("on");
+  })});
+
+  /* ---------- Hero slider ---------- */
+  var hero=$("#hero"), slides=$$(".slide",hero), dots=$$(".hdot",hero), cur=0, DUR=7000;
+  hero.style.setProperty("--dur",DUR+"ms");
+  if(reduce) hero.classList.add("static");
+  function go(n){
+    n=(n+slides.length)%slides.length;
+    slides.forEach(function(s,i){var on=i===n;s.classList.toggle("is-active",on);s.setAttribute("aria-hidden",!on);$$("a",s).forEach(function(a){a.tabIndex=on?0:-1})});
+    dots.forEach(function(d,i){d.setAttribute("aria-current",i===n);d.classList.toggle("done",i<n)});
+    // restart progress animation
+    var f=$(".fill",dots[n]); f.style.animation="none"; void f.offsetWidth; f.style.animation="";
+    cur=n;
+  }
+  dots.forEach(function(d,i){
+    d.addEventListener("click",function(){go(i)});
+    $(".fill",d).addEventListener("animationend",function(){ if(!reduce && d.getAttribute("aria-current")==="true") go(cur+1) });
+  });
+  go(0);
+  hero.addEventListener("mouseenter",function(){hero.classList.add("paused")});
+  hero.addEventListener("mouseleave",function(){if(!hero.classList.contains("offscreen"))hero.classList.remove("paused")});
+  hero.addEventListener("focusin",function(){hero.classList.add("paused")});
+  hero.addEventListener("focusout",function(e){if(!hero.contains(e.relatedTarget))hero.classList.remove("paused")});
+  var tx=null, ty=null;
+  hero.addEventListener("touchstart",function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+  hero.addEventListener("touchend",function(e){
+    if(tx===null)return; var dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)) go(cur+(dx<0?1:-1)); tx=null;
+  },{passive:true});
+  // lazy slides: start loading after first paint
+  window.addEventListener("load",function(){$$(".slide-img[loading=lazy]").forEach(function(i){i.loading="eager"})});
+
+  /* ---------- Off-screen pausing ---------- */
+  if("IntersectionObserver" in window){
+    var pio=new IntersectionObserver(function(es){es.forEach(function(e){
+      var t=e.target;
+      if(t===hero){t.classList.toggle("offscreen",!e.isIntersecting);t.classList.toggle("paused",!e.isIntersecting||t.matches(":hover"))}
+      else t.classList.toggle("paused",!e.isIntersecting);
+    })},{threshold:0});
+    [hero,$("#marquee"),$("#cta")].forEach(function(n){pio.observe(n)});
+  }
+
+  /* ---------- Reveal ---------- */
+  var rio = (!reduce && "IntersectionObserver" in window) ? new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");rio.unobserve(e.target)}})},{rootMargin:"0px 0px -8% 0px",threshold:.08}) : null;
+  function observeReveal(){
+    $$("[data-reveal]:not(.in), #bars:not(.in)").forEach(function(n){ if(rio) rio.observe(n); else n.classList.add("in") });
+  }
+  observeReveal();
+
+  /* ---------- Mega menus ---------- */
+  var header=$("#header"), navBtns=$$(".nav-btn"), openId=null, openT, closeT;
+  function openMenu(id){
+    clearTimeout(closeT); if(openId===id)return;
+    navBtns.forEach(function(b){b.setAttribute("aria-expanded",b.dataset.menu===id)});
+    $$("[data-panel]").forEach(function(p){p.classList.toggle("open",p.id===id)});
+    header.classList.add("menu-open"); openId=id;
+  }
+  function closeMenus(){
+    clearTimeout(openT);
+    navBtns.forEach(function(b){b.setAttribute("aria-expanded","false")});
+    $$("[data-panel]").forEach(function(p){p.classList.remove("open")});
+    header.classList.remove("menu-open"); openId=null;
+  }
+  navBtns.forEach(function(b){
+    var id=b.dataset.menu;
+    b.addEventListener("mouseenter",function(){clearTimeout(openT);clearTimeout(closeT);openT=setTimeout(function(){openMenu(id)},openId?0:120)});
+    b.addEventListener("mouseleave",function(){clearTimeout(openT);closeT=setTimeout(closeMenus,180)});
+    b.addEventListener("click",function(e){ if(e.detail===0) return; openId===id?closeMenus():openMenu(id) });
+    b.addEventListener("keydown",function(e){
+      if(e.key==="Enter"||e.key===" "){e.preventDefault(); if(openId===id){closeMenus()}else{openMenu(id);var f=$("#"+id+" a");if(f)setTimeout(function(){f.focus()},30)}}
+      if(e.key==="ArrowDown"){e.preventDefault();openMenu(id);var g=$("#"+id+" a");if(g)setTimeout(function(){g.focus()},30)}
+      if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();var i=navBtns.indexOf(b),n=navBtns[(i+(e.key==="ArrowRight"?1:-1)+navBtns.length)%navBtns.length];n.focus();if(openId)openMenu(n.dataset.menu)}
+      if(e.key==="Escape"){closeMenus();b.focus()}
+    });
+  });
+  $$("[data-panel]").forEach(function(p){
+    p.addEventListener("mouseenter",function(){clearTimeout(closeT)});
+    p.addEventListener("mouseleave",function(){closeT=setTimeout(closeMenus,180)});
+    p.addEventListener("keydown",function(e){
+      if(e.key==="Escape"){var b=$('.nav-btn[data-menu="'+p.id+'"]');closeMenus();b.focus()}
+      if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();var ls=$$("a",p),i=ls.indexOf(document.activeElement);var n=ls[(i+(e.key==="ArrowDown"?1:-1)+ls.length)%ls.length];if(n)n.focus()}
+    });
+    p.addEventListener("focusout",function(e){if(!header.contains(e.relatedTarget))closeMenus()});
+  });
+  document.addEventListener("click",function(e){if(openId&&!header.contains(e.target))closeMenus()});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&openId){var b=$('.nav-btn[data-menu="'+openId+'"]');closeMenus();if(b)b.focus()}});
+  function onScroll(){header.classList.toggle("scrolled",window.scrollY>40)}
+  window.addEventListener("scroll",onScroll,{passive:true}); onScroll();
+
+  /* ---------- Mobile drawer ---------- */
+  var drawer=$("#drawer"), burger=$("#burger"), dbody=$("#drawer-body");
+  dbody.innerHTML = $$("[data-panel]").map(function(p,i){
+    var label=$('.nav-btn[data-menu="'+p.id+'"]').textContent.trim();
+    var links=$$(".mega-link",p).map(function(a){
+      var use=$("use",a).getAttribute("href").slice(1), t=$("strong",a).firstChild.textContent;
+      return '<li><a href="'+a.getAttribute("href")+'">'+ico(use)+t+'</a></li>';
+    }).join("");
+    return '<button class="acc-btn" aria-expanded="false" aria-controls="dp'+i+'">'+label+ico("i-chev")+'</button><div class="acc-panel" id="dp'+i+'"><ul>'+links+'</ul></div>';
+  }).join("");
+  $$(".acc-btn",dbody).forEach(function(b){b.addEventListener("click",function(){
+    var open=b.getAttribute("aria-expanded")==="true";
+    b.setAttribute("aria-expanded",!open); $("#"+b.getAttribute("aria-controls")).classList.toggle("open",!open);
+  })});
+  function setDrawer(open){
+    drawer.classList.toggle("open",open); drawer.setAttribute("aria-hidden",!open);
+    burger.setAttribute("aria-expanded",open); document.body.style.overflow=open?"hidden":"";
+    if(open)setTimeout(function(){$(".drawer-head [data-close]").focus()},60); else burger.focus();
+  }
+  burger.addEventListener("click",function(){setDrawer(true)});
+  $$("[data-close]",drawer).forEach(function(c){c.addEventListener("click",function(){setDrawer(false)})});
+  $$("a",dbody).forEach(function(a){a.addEventListener("click",function(){setDrawer(false)})});
+  drawer.addEventListener("keydown",function(e){
+    if(e.key==="Escape")setDrawer(false);
+    if(e.key==="Tab"){
+      var f=$$("button, a",drawer).filter(function(n){return n.offsetParent!==null});
+      if(!f.length)return; var first=f[0], last=f[f.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+    }
+  });
+  window.addEventListener("resize",function(){ if(window.innerWidth>=1024 && drawer.classList.contains("open")) setDrawer(false) });
+})();
+</script>
+</body>
+</html>
