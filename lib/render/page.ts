@@ -87,15 +87,30 @@ export async function renderPage(slug: string, opts: { preview: boolean; query: 
 <meta property="og:url" content="${esc(url)}" /><meta property="og:title" content="${esc(title)}" /><meta property="og:description" content="${esc(page.seoDescription)}" />${page.ogImage ? `<meta property="og:image" content="${esc(page.ogImage)}" />` : ''}
 <meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="${esc(title)}" /><meta name="twitter:description" content="${esc(page.seoDescription)}" />
 ${slug === 'index' ? `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: s.site_name, url: s.site_url, telephone: s.phone, email: s.email, legalName: s.company }).replace(/</g, '\\u003c')}</script>` : ''}`;
+  const previewBar = opts.preview ? `<div class="gh-preview-bar"><span>Preview — ${esc(page.status)}${page.status !== 'PUBLISHED' ? ' (not public)' : ''}. Hidden sections are outlined.</span><a href="/admin/pages/${page.id}">Back to editor →</a></div>` : '';
+  return shell({ page, blocks, s, vars, seo, body: parts.join('\n'), extra: previewBar });
+}
+
+export function siteVars(s: Settings) {
+  const base = (s.whmcs_base_url || process.env.WHMCS_BASE_URL || 'https://globalhostia.com/secure').replace(/\/$/, '');
+  return {
+    base,
+    vars: { site_name: s.site_name, phone: s.phone, email: s.email, company: s.company, year: String(new Date().getFullYear()),
+      whmcs_url: base, cart_url: `${base}/cart.php`, login_url: `${base}/clientarea.php`, register_url: `${base}/register.php` } as Record<string, string>,
+  };
+}
+
+/** Wraps body HTML in the site's real head / header / footer blocks of a given page record. */
+export function shell(o: { page: { headBlock: string; bodyStartBlock: string; headerBlock: string; footerBlock: string; bodyEndBlock: string; headExtra: string; bodyClass: string; wrapperClass: string };
+  blocks: Record<string, string>; s: Settings; vars: Record<string, string>; seo: string; body: string; extra?: string }) {
+  const { page, blocks, s, vars } = o;
   const T = (h?: string) => tokens(h || '', vars);
   const design = compileDesign(s.design || {});
-  const previewBar = opts.preview ? `<div class="gh-preview-bar"><span>Preview — ${esc(page.status)}${page.status !== 'PUBLISHED' ? ' (not public)' : ''}. Hidden sections are outlined.</span><a href="/admin/pages/${page.id}">Back to editor →</a></div>` : '';
-
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 ${T(blocks[page.headBlock])}
-${seo}
+${o.seo}
 ${T(page.headExtra)}
 <link rel="stylesheet" href="/gh/site.css" />
 ${s.design?.polish === false ? '' : '<link rel="stylesheet" href="/gh/polish.css" />'}
@@ -106,12 +121,12 @@ ${s.custom_head || ''}${s.custom_css ? `<style id="gh-custom">${s.custom_css}</s
 ${T(blocks[page.bodyStartBlock])}
 <div class="${esc(page.wrapperClass)}">
 ${T(blocks[page.headerBlock])}
-${parts.map(T).join('\n')}
+${T(o.body)}
 ${T(blocks[page.footerBlock])}
 </div>
 ${T(blocks[page.bodyEndBlock])}
 <script src="/gh/products.js" defer></script>
-${previewBar}
+${o.extra || ''}
 </body>
 </html>`;
 }

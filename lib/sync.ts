@@ -7,6 +7,8 @@ import { db, schema } from './db';
 import { getProducts, getCurrencies, getTldPricing, type WhmcsProduct } from './whmcs';
 import { parseWhmcsPricing, features } from './pricing';
 import { getSettings } from './settings';
+import { enrichment } from './enrich-core.mjs';
+import legacyDetails from '../legacy/product-details.json';
 
 const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'product';
 const groupSlugFromUrl = (u?: string) => u?.match(/\/store\/([\w-]+)\//)?.[1];
@@ -53,7 +55,14 @@ export async function syncProducts(trigger = 'manual') {
           whmcsHidden: !!Number(wp.hidden ?? 0), whmcsRetired: !!Number(wp.retired ?? 0),
           whmcsUrl: wp.product_url || '', syncedAt: new Date(), syncError: '',
         };
-        const content = { name: wp.name, features: features(wp.description || ''), description: wp.description || '' };
+        // WHMCS text, enriched with the detailed specs/features from the original website when available
+        const rich = enrichment(legacyDetails as any, wp.product_url, wp.slug) as null | { tagline: string; features: string[]; attributes: Record<string, string>; badge: string };
+        const whmcsFeatures = features(wp.description || '');
+        const content = {
+          name: wp.name, description: wp.description || '',
+          features: rich && rich.features.length >= whmcsFeatures.length ? rich.features : whmcsFeatures,
+          ...(rich ? { tagline: rich.tagline, attributes: rich.attributes, ...(rich.badge ? { badge: rich.badge } : {}) } : {}),
+        };
         let productId: string;
         const ex = byPid.get(pid);
         if (ex) {

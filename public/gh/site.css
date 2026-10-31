@@ -1,13 +1,160 @@
-/* Small additions for dynamic sections — everything else comes from the original theme CSS. */
-.gh-featured{border-color:#473bf0!important;box-shadow:0 12px 40px rgba(71,59,240,.12)}
-.gh-more summary{cursor:pointer;color:#473bf0;list-style:none;margin:6px 0 10px}
-.gh-more summary::-webkit-details-marker{display:none}
-.gh-compare summary{cursor:pointer;color:#473bf0}
-.gh-tabs .nav-link{border-radius:30px;padding:10px 22px;font-weight:600}
+/* GlobalHostia dynamic sections. Scoped to .gh-* so the original theme is never affected. */
+:root { --gh-ink:#161c2d; --gh-ink2:#5b6476; --gh-line:#e7e9f0; --gh-brand:#473bf0; --gh-brand-d:#3a2fd6; --gh-soft:#f4f3ff; --gh-ok:#0f9f62; --gh-r:16px; }
+.gh-sr { position:absolute!important; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* ---------- section frame ---------- */
+.gh-products { padding: 72px 0; position: relative; z-index: 2; margin-top: 0 !important; }
+.gh-products * { box-sizing: border-box; }
+.gh-wrap { width: 100%; max-width: 1320px; margin: 0 auto; padding: 0 20px; }
+.gh-head { text-align: center; max-width: 760px; margin: 0 auto 32px; }
+.gh-head h2 { font-size: clamp(28px, 3.2vw, 42px); font-weight: 700; line-height: 1.15; color: var(--gh-ink); margin: 0 0 10px; letter-spacing: -.02em; }
+.gh-head p { font-size: 17px; color: var(--gh-ink2); margin: 0; }
+.gh-controls { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; justify-content: center; margin: 0 0 36px; }
+
+/* category tabs */
+.gh-tabs { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.gh-tabs button { appearance: none; border: 1.5px solid var(--gh-line); background: #fff; color: var(--gh-ink); border-radius: 999px; padding: 10px 18px; font: 600 15px/1.2 inherit; cursor: pointer; transition: border-color .15s, background .15s, color .15s; min-height: 44px; }
+.gh-tabs button span { display: inline-block; margin-left: 6px; font-size: 12px; color: var(--gh-ink2); background: #f1f2f6; border-radius: 999px; padding: 2px 8px; }
+.gh-tabs button:hover { border-color: var(--gh-ink); }
+.gh-tabs button[aria-selected="true"] { background: var(--gh-ink); border-color: var(--gh-ink); color: #fff; }
+.gh-tabs button[aria-selected="true"] span { background: rgba(255,255,255,.18); color: #fff; }
+
+/* billing toggle */
+.gh-cycle { display: inline-flex; padding: 4px; border-radius: 999px; background: #f1f2f6; }
+.gh-cycle button { appearance: none; border: 0; background: transparent; border-radius: 999px; padding: 9px 18px; font: 600 14px/1.2 inherit; color: var(--gh-ink2); cursor: pointer; min-height: 40px; transition: background .15s, color .15s; }
+.gh-cycle button[aria-pressed="true"] { background: #fff; color: var(--gh-ink); box-shadow: 0 1px 3px rgba(22,28,45,.12); }
+.gh-cycle button span { color: var(--gh-ok); font-size: 12.5px; margin-left: 4px; }
+
+/* ---------- pricing cards: rows align across cards via subgrid ---------- */
+.gh-cards { display: grid; gap: 22px; grid-template-columns: 1fr; grid-auto-rows: auto; align-items: stretch; }
+@media (min-width: 640px) { .gh-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .gh-cards { grid-template-columns: repeat(var(--gh-n, 3), minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .gh-cards[style*="--gh-n:2"] { max-width: 880px; margin: 0 auto; } }
+.gh-card { position: relative; display: grid; grid-template-rows: auto auto auto 1fr; gap: 18px; background: #fff; border: 1.5px solid var(--gh-line); border-radius: var(--gh-r); padding: 28px 26px; min-width: 0; transition: border-color .2s, box-shadow .2s; }
+@supports (grid-template-rows: subgrid) { .gh-card { grid-row: span 4; grid-template-rows: subgrid; gap: 18px; } .gh-cards { row-gap: 22px; } }
+.gh-card:hover { border-color: #cfd2e3; box-shadow: 0 16px 40px -24px rgba(22,28,45,.28); }
+.gh-card.is-hl { border-color: var(--gh-brand); box-shadow: 0 18px 44px -24px rgba(71,59,240,.45); }
+.gh-card-head { min-width: 0; }
+.gh-card-name { font-size: 21px; font-weight: 700; color: var(--gh-ink); margin: 0; line-height: 1.25; letter-spacing: -.01em; }
+.gh-card-tag { font-size: 14.5px; line-height: 1.5; color: var(--gh-ink2); margin: 6px 0 0; }
+.gh-ribbon { display: inline-block; font-style: normal; font-size: 12px; font-weight: 700; color: #fff; background: var(--gh-brand); border-radius: 999px; padding: 4px 10px; margin-bottom: 10px; }
+.gh-card .gh-ribbon { position: absolute; top: -12px; left: 24px; margin: 0; }
+
+.gh-price { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.gh-amt { font-size: 40px; font-weight: 800; color: var(--gh-ink); letter-spacing: -.03em; line-height: 1; }
+.gh-amt-sm { font-size: 22px; letter-spacing: 0; }
+.gh-per { font-size: 15px; color: var(--gh-ink2); font-weight: 500; }
+.gh-note { font-size: 13px; color: var(--gh-ink2); margin: 8px 0 0; min-height: 1.4em; }
+
+.gh-card-cta { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.gh-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 20px; border-radius: 12px; border: 1.5px solid var(--gh-brand); color: var(--gh-brand)!important; background: #fff; font-weight: 700; font-size: 15px; text-decoration: none!important; transition: background .15s, color .15s, transform .1s; text-align: center; }
+.gh-btn:hover { background: var(--gh-soft); }
+.gh-btn:active { transform: translateY(1px); }
+.gh-btn-solid { background: var(--gh-brand); color: #fff!important; }
+.gh-btn-solid:hover { background: var(--gh-brand-d); }
+.gh-link { align-self: center; font-size: 14px; color: var(--gh-ink2)!important; text-decoration: underline!important; text-underline-offset: 3px; }
+.gh-link:hover { color: var(--gh-brand)!important; }
+
+.gh-card-body { border-top: 1px solid var(--gh-line); padding-top: 18px; min-width: 0; }
+.gh-feat { list-style: none!important; margin: 0!important; padding: 0!important; display: grid; gap: 10px; }
+.gh-feat li { display: flex!important; gap: 10px; align-items: flex-start; font-size: 14.5px; line-height: 1.45; color: var(--gh-ink); margin: 0!important; padding: 0!important; text-align: left; }
+.gh-feat li::before { display: none!important; }
+.gh-feat svg { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--gh-brand); }
+.gh-feat li.is-off { color: #9aa1b2; }
+.gh-feat li.is-off span { text-decoration: line-through; }
+.gh-feat li.is-off svg { color: #c2c6d3; }
+.gh-more { margin-top: 10px; }
+.gh-more summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--gh-brand); list-style: none; }
+.gh-more summary::-webkit-details-marker { display: none; }
+.gh-more[open] summary { margin-bottom: 10px; }
+
+/* ---------- single product: featured layout ---------- */
+.gh-featured-wrap { display: grid; gap: 22px; }
+.gh-feature { display: grid; gap: 28px; background: #fff; border: 1.5px solid var(--gh-brand); border-radius: 20px; padding: 32px; max-width: 1080px; width: 100%; margin: 0 auto; box-shadow: 0 24px 60px -32px rgba(71,59,240,.45); }
+@media (min-width: 900px) { .gh-feature { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); padding: 40px; gap: 44px; } }
+.gh-feature-main { display: flex; flex-direction: column; gap: 18px; }
+.gh-feature-main .gh-ribbon { align-self: flex-start; margin: 0; }
+.gh-feature-side { display: grid; gap: 22px; align-content: start; }
+.gh-feature-side .gh-feat { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.gh-specs { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 0; }
+@media (max-width: 575px) { .gh-specs { grid-template-columns: repeat(2, minmax(0, 1fr)); } .gh-specs dd { font-size: 14px; } }
+.gh-specs div { background: #f7f7fb; border-radius: 12px; padding: 12px 14px; }
+.gh-specs dt { font-size: 12px; font-weight: 600; color: var(--gh-ink2); margin: 0 0 2px; }
+.gh-specs dd { font-size: 15px; font-weight: 700; color: var(--gh-ink); margin: 0; }
+
+/* ---------- many products: list / server table ---------- */
+.gh-list { border: 1.5px solid var(--gh-line); border-radius: var(--gh-r); background: #fff; overflow: hidden; }
+.gh-row { display: grid; gap: 12px 18px; align-items: center; padding: 18px 22px; border-top: 1px solid var(--gh-line); grid-template-columns: 1fr auto; }
+.gh-list .gh-items > .gh-row:first-child { border-top: 0; }
+.gh-row-head { display: none; border-top: 0; background: #f7f7fb; font-size: 12.5px; font-weight: 700; color: var(--gh-ink2); padding-top: 14px; padding-bottom: 14px; }
+.gh-row-name { grid-column: 1 / -1; min-width: 0; }
+.gh-row-name a { font-size: 17px; font-weight: 700; color: var(--gh-ink)!important; text-decoration: none!important; }
+.gh-row-name a:hover { color: var(--gh-brand)!important; }
+.gh-row-name > span { display: block; font-size: 13.5px; color: var(--gh-ink2); margin-top: 3px; }
+.gh-row-name .gh-ribbon { margin: 6px 0 0; font-size: 11px; background: #fdecec; color: #b42318; }
+.gh-row-spec { font-size: 14px; color: var(--gh-ink); grid-column: span 1; }
+.gh-row-spec::before { content: attr(data-label); display: block; font-size: 11.5px; font-weight: 600; color: var(--gh-ink2); }
+.gh-row-price .gh-amt { font-size: 26px; }
+.gh-row-price .gh-note { margin-top: 4px; min-height: 0; }
+.gh-row-cta .gh-btn { min-width: 120px; }
+@media (max-width: 1099px) {
+  .gh-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gh-row-price { grid-column: 1; } .gh-row-cta { grid-column: 2; justify-self: end; }
+}
+@media (min-width: 1100px) {
+  .gh-row { grid-template-columns: minmax(230px, 2.2fr) repeat(var(--gh-cols, 3), minmax(90px, 1fr)) minmax(150px, 1.2fr) auto; }
+  .gh-list .gh-row-head { display: grid; }
+  .gh-row-name { grid-column: auto; }
+  .gh-row-spec::before { display: none; }
+}
+
+/* ---------- toolbar, pager, compare ---------- */
+.gh-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin: 0 0 22px; }
+.gh-field input, .gh-field select { height: 44px; border: 1.5px solid var(--gh-line); border-radius: 12px; padding: 0 14px; font: 500 14.5px/1 inherit; color: var(--gh-ink); background: #fff; min-width: 180px; }
+.gh-field input:focus, .gh-field select:focus { border-color: var(--gh-brand); outline: 3px solid rgba(71,59,240,.15); }
+.gh-count { font-size: 13.5px; color: var(--gh-ink2); }
+.gh-pager { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 22px; }
+.gh-pager button { min-width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid var(--gh-line); background: #fff; font-weight: 600; cursor: pointer; }
+.gh-pager button[aria-current="page"] { background: var(--gh-ink); border-color: var(--gh-ink); color: #fff; }
+.gh-empty { text-align: center; padding: 40px 20px; color: var(--gh-ink2); grid-column: 1 / -1; }
+
+.gh-compare { margin-top: 32px; }
+.gh-compare > summary { cursor: pointer; text-align: center; font-weight: 700; color: var(--gh-brand); list-style: none; font-size: 15px; padding: 10px; }
+.gh-compare > summary::-webkit-details-marker { display: none; }
+.gh-compare-scroll { overflow-x: auto; margin-top: 14px; border: 1.5px solid var(--gh-line); border-radius: var(--gh-r); background: #fff; }
+.gh-compare table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+.gh-compare th, .gh-compare td { padding: 12px 16px; border-top: 1px solid var(--gh-line); text-align: center; color: var(--gh-ink); }
+.gh-compare thead th { border-top: 0; background: #f7f7fb; font-weight: 700; vertical-align: bottom; }
+.gh-compare thead th small { display: block; font-weight: 500; color: var(--gh-ink2); margin-top: 2px; }
+.gh-compare tbody th { text-align: left; font-weight: 500; color: var(--gh-ink2); }
+.gh-compare .gh-yes svg { width: 18px; height: 18px; color: var(--gh-ok); }
+.gh-compare .gh-no, .gh-compare .gh-no svg { width: 16px; height: 16px; color: #c2c6d3; }
+
+/* ---------- product detail page ---------- */
+.gh-pd { padding: 150px 0 80px; }
+.gh-crumbs { font-size: 14px; color: var(--gh-ink2); margin-bottom: 18px; }
+.gh-crumbs a { color: var(--gh-ink2)!important; }
+.gh-pd-top { display: grid; gap: 36px; }
+@media (min-width: 992px) { .gh-pd-top { grid-template-columns: minmax(0, 7fr) minmax(320px, 5fr); align-items: start; } }
+.gh-pd h1 { font-size: clamp(30px, 4vw, 46px); font-weight: 800; color: var(--gh-ink); letter-spacing: -.025em; line-height: 1.1; margin: 0 0 12px; }
+.gh-pd-lead { font-size: 18px; line-height: 1.6; color: var(--gh-ink2); margin: 0 0 26px; max-width: 64ch; }
+.gh-buy { position: sticky; top: 110px; background: #fff; border: 1.5px solid var(--gh-line); border-radius: 20px; padding: 26px; box-shadow: 0 24px 60px -36px rgba(22,28,45,.35); }
+.gh-buy h2 { font-size: 16px; font-weight: 700; margin: 0 0 14px; color: var(--gh-ink); }
+.gh-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1.5px solid var(--gh-line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; }
+.gh-opt:has(input:checked) { border-color: var(--gh-brand); background: var(--gh-soft); }
+.gh-opt input { accent-color: var(--gh-brand); width: 18px; height: 18px; }
+.gh-opt b { font-size: 15px; color: var(--gh-ink); } .gh-opt small { display: block; color: var(--gh-ink2); font-size: 12.5px; }
+.gh-opt em { font-style: normal; font-size: 12px; font-weight: 700; color: var(--gh-ok); }
+.gh-buy .gh-btn { width: 100%; margin-top: 8px; }
+.gh-pd-sec { margin-top: 48px; }
+.gh-pd-sec h2 { font-size: 24px; font-weight: 700; color: var(--gh-ink); margin: 0 0 18px; }
+.gh-pd-desc { font-size: 16px; line-height: 1.7; color: var(--gh-ink2); max-width: 70ch; }
+
+/* ---------- domain search / FAQ / preview (existing) ---------- */
 .gh-domain-form{display:flex;gap:10px;max-width:720px;margin:0 auto}
-.gh-domain-form input{flex:1;height:60px;border-radius:10px;border:1px solid #e5e7eb;padding:0 20px;font-size:17px}
+.gh-domain-form input{flex:1;height:60px;border-radius:10px;border:1px solid #e5e7eb;padding:0 20px;font-size:17px;min-width:0}
 .gh-domain-form button{height:60px;border-radius:10px;padding:0 30px}
-.gh-domain-results .row-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border:1px solid #e9ecef;border-radius:10px;background:#fff;margin-bottom:10px}
+.gh-domain-results .row-item{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:16px 20px;border:1px solid #e9ecef;border-radius:10px;background:#fff;margin-bottom:10px}
 .gh-domain-results .row-item.exact{border-color:#473bf0;box-shadow:0 8px 28px rgba(71,59,240,.10)}
 .gh-domain-results .taken{color:#9aa0ac;text-decoration:line-through}
 .gh-tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:20px;background:#e8f8ef;color:#12805c;margin-left:8px}
@@ -16,3 +163,5 @@
 .gh-faq summary{cursor:pointer;font-weight:600}
 .gh-preview-bar{position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#111827;color:#fff;font:14px/1.4 system-ui,sans-serif;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
 .gh-preview-bar a{color:#a5b4fc}
+@media (max-width: 575px) { .gh-products { padding: 48px 0; } .gh-card { padding: 24px 20px; } .gh-feature { padding: 24px 20px; } .gh-domain-form { flex-direction: column; } }
+@media (prefers-reduced-motion: reduce) { .gh-card, .gh-btn, .gh-tabs button { transition: none; } }

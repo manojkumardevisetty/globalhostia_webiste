@@ -7,6 +7,7 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import bcrypt from 'bcryptjs';
 import fs from 'node:fs';
 import { randomBytes } from 'node:crypto';
+import { enrichment } from '../lib/enrich-core.mjs';
 
 const url = process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL;
 if (!url) { console.log('[db-setup] no DATABASE_URL — skipping'); process.exit(0); }
@@ -202,6 +203,32 @@ try {
     '009-fake-phone-2': async (tx) => {
       await tx`update sections set html = replace(html, '+123-456-6788-99', '{{phone}}') where html like '%+123-456-6788-99%'`;
       await tx`update blocks set html = replace(html, '+123-456-6788-99', '{{phone}}') where html like '%+123-456-6788-99%'`;
+    },
+    // 10. product details from the original website -> WHMCS products (specs, features, taglines, badges)
+    '010-product-details': async (tx) => {
+      const details = JSON.parse(fs.readFileSync('legacy/product-details.json', 'utf8'));
+      const prods = await tx`select id, slug, whmcs_url, features from products where content_locked = false`;
+      for (const p of prods) {
+        const e = enrichment(details, p.whmcs_url, p.slug);
+        if (!e) continue;
+        const feats = e.features.length >= (p.features || []).length ? e.features : p.features;
+        await tx`update products set tagline = ${e.tagline}, features = ${JSON.stringify(feats)}::jsonb, attributes = ${JSON.stringify(e.attributes)}::jsonb,
+          badge = case when badge = '' then ${e.badge} else badge end, updated_at = now() where id = ${p.id}`;
+      }
+      await tx`update categories set name = 'Shared Hosting – Malaysia' where slug = 'hostia-shared' and name = 'Shared Hosting'`;
+      // original tab order on Web Hosting: USA, Malaysia, Singapore
+      await tx`update sections set data = jsonb_set(data, '{categories}', '["hosting-usa","hostia-shared","hosting-singapore"]'::jsonb)
+        where type = 'products' and page_id = (select id from pages where slug = 'web-hosting') and data->'categories' ? 'hostia-shared'`;
+    },
+    // 11. menu & footer-link partials (loaded by the theme JS) become editable blocks
+    '011-menu-partials': async (tx) => {
+      const names = { 'header-navbar': 'Main menu', 'header-navbar-vpn': 'Main menu – VPN pages', 'header-navbar-aws': 'Main menu – Pro pages', 'header-navbar-aws-pro': 'Main menu – Pro hosting',
+        'footer': 'Footer links', 'footer-aws': 'Footer links – Pro pages', 'languages': 'Language selector' };
+      for (const [f, label] of Object.entries(names)) {
+        const file = `legacy/template-part/${f}.html`;
+        if (!fs.existsSync(file)) continue;
+        await tx`insert into blocks (key,name,html) values (${'tp-' + f},${label},${fs.readFileSync(file, 'utf8')}) on conflict (key) do nothing`;
+      }
     },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {

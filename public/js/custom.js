@@ -147,7 +147,7 @@ function translate() {
 		lng: language,
 		fallbackLng: 'en',
 		backend: {
-			loadPath: 'lang/{{lng}}/lang.json'
+			loadPath: '/lang/{{lng}}/lang.json'
 		}
 	}, function(err, t) {
 		jqueryI18next.init(i18next, $, {
@@ -169,7 +169,7 @@ function translate() {
 // template parts loader
 //----------------------------------------------------/
 function extrafilesloader() {
-	$("#languagesystem-slector").load("template-part/languages.html", function() {
+	$("#languagesystem-slector").load("/template-part/languages.html", function() {
 		$('#languagesystem-slector [data-lng="' + localStorage.getItem('lng') + '"]').addClass('current-lang active');
 		$('#languagesystem-slector .lang-box-item').click(function(e) {
 			e.preventDefault();
@@ -179,12 +179,12 @@ function extrafilesloader() {
 			}, 120);
 		});
 	});
-	$("#header-navbar-links").load("template-part/header-navbar.html");
-	$("#header-navbar-links-vpn").load("template-part/header-navbar-vpn.html");
-	$("#header-navbar-links-aws").load("template-part/header-navbar-aws.html");
-	$("#header-navbar-links-aws-pro").load("template-part/header-navbar-aws-pro.html");
-	$("#footer-wrap-links").load("template-part/footer.html");
-	$("#footer-aws-wrap-links").load("template-part/footer-aws.html");
+	$("#header-navbar-links").load("/template-part/header-navbar.html");
+	$("#header-navbar-links-vpn").load("/template-part/header-navbar-vpn.html");
+	$("#header-navbar-links-aws").load("/template-part/header-navbar-aws.html");
+	$("#header-navbar-links-aws-pro").load("/template-part/header-navbar-aws-pro.html");
+	$("#footer-wrap-links").load("/template-part/footer.html");
+	$("#footer-aws-wrap-links").load("/template-part/footer-aws.html");
 }
 
 

@@ -1,8 +1,11 @@
-// Renders a "products" section using the legacy theme's own markup (pricing-plan-two cards,
-// servers-table rows) so dynamic content looks identical to the original site.
+// Renders "products" sections on the real site. Adaptive by product count:
+//   1 → featured (wide card)   2–4 → pricing cards (aligned rows)   5–12 → grid + sort/filter   13+ → searchable list with pages
+// Cards use CSS subgrid so name / price / button / features line up across every card in a row,
+// whatever each product's text length is. Server products (template "server-row") use the spec list.
 import { chooseLayout } from './layout';
 import { esc } from './util';
-import { pickPrice, money, CYCLE_LABEL, CYCLE_MONTHS, type PriceRow } from '../pricing';
+import { deriveSpecs, SPEC_LABEL } from './specs';
+import { money, CYCLE_LABEL, CYCLE_MONTHS, type PriceRow } from '../pricing';
 
 export interface RProduct {
   id: string; slug: string; name: string; tagline: string; description: string; features: string[]; attributes: Record<string, string>;
@@ -10,126 +13,180 @@ export interface RProduct {
   prices: PriceRow[];
 }
 export interface RCategory { id: string; slug: string; name: string; layout: string; cardTemplate: string }
-interface Ctx { currency: string; defaultCycle: string; orderLabel: string; cartBase: string; sectionId: string }
+interface Ctx { currency: string; defaultCycle: string; orderLabel: string; cartBase: string; sectionId?: string }
 
-const orderUrl = (p: RProduct, ctx: Ctx, cycle?: string) =>
-  p.orderUrl || (p.whmcsPid ? `${ctx.cartBase}/cart.php?a=add&pid=${p.whmcsPid}${cycle && !['auto', 'free', 'onetime'].includes(cycle) ? `&billingcycle=${cycle}` : ''}` : '#');
+const CHECK = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10.5 3.2 3L15 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CROSS = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const SHORT: Record<string, string> = { monthly: '/mo', quarterly: '/3 mo', semiannually: '/6 mo', annually: '/yr', biennially: '/2 yrs', triennially: '/3 yrs', onetime: ' one-time', free: '' };
 
-function priceInfo(p: RProduct, ctx: Ctx) {
-  const pr = pickPrice(p.prices, ctx.currency, p.displayCycle !== 'auto' ? p.displayCycle : ctx.defaultCycle);
-  if (!pr) return { html: '', value: '', cycle: '', label: '' };
-  const v = parseFloat(String(pr.price));
-  const html = pr.cycle === 'free' || v === 0 ? 'Free' : money(v, pr.prefix || '$');
-  const months = CYCLE_MONTHS[pr.cycle] || 0;
-  const perMonth = months > 1 ? money(v / months, pr.prefix || '$') + '/mo' : '';
-  return { html, value: String(v), cycle: pr.cycle, label: CYCLE_LABEL[pr.cycle] || pr.cycle, perMonth, setup: parseFloat(String(pr.setupFee)) > 0 ? money(pr.setupFee, pr.prefix || '$') : '' };
+export const orderUrl = (p: RProduct, cartBase: string, cycle?: string) =>
+  p.orderUrl || (p.whmcsPid ? `${cartBase}/cart.php?a=add&pid=${p.whmcsPid}${cycle && !['auto', 'free', 'onetime'].includes(cycle) ? `&billingcycle=${cycle}` : ''}` : '#');
+
+/** All cycles for the display currency, cheapest first by monthly equivalent. */
+export function cycles(p: RProduct, currency: string) {
+  return p.prices.filter((x) => x.currency === currency).map((x) => {
+    const v = parseFloat(String(x.price)), m = CYCLE_MONTHS[x.cycle] || 0;
+    return { cycle: x.cycle, price: v, perMonth: m ? v / m : v, setup: parseFloat(String(x.setupFee)) || 0, prefix: x.prefix || '$' };
+  }).sort((a, b) => (CYCLE_MONTHS[a.cycle] || 99) - (CYCLE_MONTHS[b.cycle] || 99));
 }
 
-const featureLis = (f: string[], expandable: boolean) => {
+/** The price block shown for one cycle ("view" = monthly | yearly). */
+function priceBlock(p: RProduct, ctx: Ctx, view: 'monthly' | 'yearly') {
+  const cs = cycles(p, ctx.currency);
+  if (!cs.length) return { html: `<div class="gh-price"><span class="gh-amt gh-amt-sm">Price on request</span></div><p class="gh-note">Contact sales for a quote</p>`, cycle: '', sort: 1e9 };
+  const mo = cs.find((c) => c.cycle === 'monthly'), yr = cs.find((c) => c.cycle === 'annually');
+  let c = view === 'yearly' ? yr || mo || cs[0] : mo || yr || cs[0];
+  if (ctx.defaultCycle !== 'auto' && view === 'monthly') c = cs.find((x) => x.cycle === ctx.defaultCycle) || c;
+  if (p.displayCycle !== 'auto' && view === 'monthly') c = cs.find((x) => x.cycle === p.displayCycle) || c;
+  const free = c.cycle === 'free' || c.price === 0;
+  const showPerMonth = view === 'yearly' && c.cycle === 'annually' && mo; // compare like-for-like with monthly
+  const amount = free ? 'Free' : money(showPerMonth ? c.perMonth : c.price, c.prefix);
+  const unit = free ? '' : showPerMonth ? '/mo' : SHORT[c.cycle] ?? '';
+  const save = showPerMonth && mo ? Math.round((1 - c.perMonth / mo.price) * 100) : 0;
+  const notes: string[] = [];
+  if (showPerMonth) notes.push(`${money(c.price, c.prefix)} billed yearly${save > 0 ? ` · save ${save}%` : ''}`);
+  else if (c.cycle === 'annually' && !mo) notes.push(`Billed yearly (≈ ${money(c.perMonth, c.prefix)}/mo)`);
+  else if (c.cycle === 'monthly') notes.push('Billed monthly, cancel anytime');
+  else if (CYCLE_LABEL[c.cycle]) notes.push(`Billed ${CYCLE_LABEL[c.cycle].toLowerCase()}`);
+  if (c.setup > 0) notes.push(`+ ${money(c.setup, c.prefix)} setup`);
+  return {
+    html: `<div class="gh-price"><span class="gh-amt">${amount}</span><span class="gh-per">${unit}</span></div><p class="gh-note">${esc(notes.join(' · '))}</p>`,
+    cycle: c.cycle, sort: c.perMonth,
+  };
+}
+
+const featureList = (f: string[], limit = 8) => {
   const li = (x: string) => x.startsWith('-')
-    ? `<li class="disabled coodiv-text-9"><i class="icon icon-simple-remove"></i>${esc(x.slice(1).trim())}</li>`
-    : `<li class="coodiv-text-9">${esc(x)}</li>`;
-  if (!expandable || f.length <= 6) return f.map(li).join('');
-  return f.slice(0, 6).map(li).join('') + `<details class="gh-more"><summary class="coodiv-text-11">+${f.length - 6} more features</summary>${f.slice(6).map(li).join('')}</details>`;
+    ? `<li class="is-off">${CROSS}<span>${esc(x.replace(/^-\s*/, ''))}</span></li>`
+    : `<li>${CHECK}<span>${esc(x)}</span></li>`;
+  if (f.length <= limit) return `<ul class="gh-feat">${f.map(li).join('')}</ul>`;
+  return `<ul class="gh-feat">${f.slice(0, limit).map(li).join('')}</ul><details class="gh-more"><summary>Show all ${f.length} features</summary><ul class="gh-feat">${f.slice(limit).map(li).join('')}</ul></details>`;
 };
 
-function planCard(p: RProduct, ctx: Ctx, col: string, expandable: boolean, featuredMode: boolean) {
-  const pi = priceInfo(p, ctx);
-  const badge = p.badge || p.name;
-  const attrs = Object.entries(p.attributes || {}).map(([k, v]) => ` data-attr-${esc(k.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}="${esc(v)}"`).join('');
-  const price = pi.html
-    ? `<h2 class="price-of-plan coodiv-text-3 font-weight-bold text-blackish-blue line-spacing-none mb-2 mt-8">${pi.html}<span class="payment-type-m">${esc(pi.label)}</span></h2>
-       ${pi.perMonth ? `<p class="coodiv-text-12 mb-0 coodiv-color-blackish-blue-opacity-7">${pi.perMonth}</p>` : ''}${pi.setup ? `<p class="coodiv-text-12 mb-0 coodiv-color-blackish-blue-opacity-7">+ ${pi.setup} setup</p>` : ''}`
-    : `<h2 class="price-of-plan coodiv-text-6 font-weight-bold text-blackish-blue mb-2 mt-8">See pricing</h2>`;
-  const feats = featuredMode
-    ? `<ul class="card-list list-style-check pl-0 mt-7 row text-left">${p.features.map((x) => `<li class="col-md-6 coodiv-text-9${x.startsWith('-') ? ' disabled' : ''}">${esc(x.replace(/^-\s*/, ''))}</li>`).join('')}</ul>`
-    : `<ul class="card-list list-style-check pl-0 mt-7 mt-lg-11 justify-content-center-li">${featureLis(p.features, expandable)}</ul>`;
-  return `<div class="${col} mb-9 gh-item" data-name="${esc(p.name.toLowerCase())}" data-price="${pi.value}" data-sort="${p.featured ? 0 : 1}"${attrs}>
-  <div class="pricing-plan-two coodiv-hover-shadow-1 bg-white border rounded-10 text-center pt-9 pr-6 pl-6 pb-9 h-100${p.featured ? ' gh-featured' : ''}">
-    <span class="badge coodiv-badge badge-${esc(p.badgeColor || 'primary')} rounded-pill coodiv-text-12 text-uppercase">${esc(badge)}</span>
-    ${price}
-    ${p.tagline ? `<p class="coodiv-text-11 mb-7 mb-lg-11 coodiv-color-blackish-blue-opacity-7 pr-lg-13 pl-lg-13">${esc(p.tagline)}</p>` : ''}
-    ${feats}
-    <a href="${esc(orderUrl(p, ctx, pi.cycle))}" class="btn-order"><span>${esc(ctx.orderLabel)}</span></a>
-  </div>
-</div>`;
+const dataAttrs = (p: RProduct, specs: Record<string, string>, sort: number) =>
+  ` data-name="${esc(p.name.toLowerCase())}" data-price="${sort < 1e9 ? sort.toFixed(4) : ''}"` +
+  Object.entries(specs).map(([k, v]) => ` data-attr-${esc(k.replace(/[^a-z0-9]+/g, '-'))}="${esc(v)}"`).join('');
+
+function card(p: RProduct, ctx: Ctx, opts: { highlight: boolean; hasYearly: boolean }) {
+  const specs = deriveSpecs(p.features, p.attributes);
+  const m = priceBlock(p, ctx, 'monthly'), y = opts.hasYearly ? priceBlock(p, ctx, 'yearly') : null;
+  const badge = p.badge || (opts.highlight ? 'Most popular' : '');
+  return `<article class="gh-card gh-item${opts.highlight ? ' is-hl' : ''}"${dataAttrs(p, specs, m.sort)}>
+  <header class="gh-card-head">${badge ? `<span class="gh-ribbon">${esc(badge)}</span>` : ''}<h3 class="gh-card-name">${esc(p.name)}</h3>${p.tagline ? `<p class="gh-card-tag">${esc(p.tagline)}</p>` : ''}</header>
+  <div class="gh-card-price"><div data-view="monthly">${m.html}</div>${y ? `<div data-view="yearly" hidden>${y.html}</div>` : ''}</div>
+  <div class="gh-card-cta"><a class="gh-btn${opts.highlight ? ' gh-btn-solid' : ''}" href="${esc(orderUrl(p, ctx.cartBase, m.cycle))}" data-monthly="${esc(orderUrl(p, ctx.cartBase, m.cycle))}"${y ? ` data-yearly="${esc(orderUrl(p, ctx.cartBase, y.cycle))}"` : ''}>${esc(ctx.orderLabel)}</a><a class="gh-link" href="/p/${esc(p.slug)}">View details</a></div>
+  <div class="gh-card-body">${featureList(p.features)}</div>
+</article>`;
 }
 
-function serverRow(p: RProduct, ctx: Ctx) {
-  const pi = priceInfo(p, ctx);
-  const a = Object.fromEntries(Object.entries(p.attributes || {}).map(([k, v]) => [k.toLowerCase(), v]));
-  const num = (s?: string) => (s?.match(/\d+/) || [''])[0];
-  return `<tr class="gh-item" data-name="${esc(p.name.toLowerCase())}" data-price="${pi.value}" data-ram="${esc(num(a.ram))}" data-cores="${esc(num(a.cpu || a.cores))}" data-storage="${esc((a.storage || '').toLowerCase().includes('nvme') ? 'nvme' : (a.storage || '').toLowerCase().includes('hdd') ? 'hdd' : 'ssd')}">
-  <td><div class="package-name">${esc(p.tagline || p.name)}</div><small style="color:#6c757d;">${esc(p.name)}</small>${p.badge ? `<span class="package-badge">${esc(p.badge)}</span>` : ''}</td>
-  <td><span class="processor-info">${esc(a.cpu || a.processor || '—')}</span></td>
-  <td><span class="ram-info">${esc(a.ram || '—')}</span></td>
-  <td><span class="storage-info">${esc(a.storage || '—')}</span></td>
-  <td>${esc(a.ips || a.ip || '—')}</td>
-  <td>${esc(a.bandwidth || 'Unmetered')}${a.port ? `<br><small>${esc(a.port)}</small>` : ''}</td>
-  <td class="price-cell"><span class="price-current">${pi.html ? pi.html.replace(/^([^\d]+)/, '<sup>$1</sup>') : '—'}</span>${pi.label && pi.cycle !== 'monthly' ? `<br><small>${esc(pi.label)}</small>` : ''}</td>
-  <td class="action-cell"><a href="${esc(orderUrl(p, ctx, pi.cycle))}" class="btn-buy">${esc(ctx.orderLabel === 'Order Now' ? 'Buy Now' : ctx.orderLabel)}</a></td>
-</tr>`;
+function featuredCard(p: RProduct, ctx: Ctx, hasYearly: boolean) {
+  const m = priceBlock(p, ctx, 'monthly'), y = hasYearly ? priceBlock(p, ctx, 'yearly') : null;
+  const specs = deriveSpecs(p.features, p.attributes);
+  const specRows = Object.entries(specs).filter(([k]) => SPEC_LABEL[k]).slice(0, 6);
+  return `<article class="gh-feature gh-item"${dataAttrs(p, specs, m.sort)}>
+  <div class="gh-feature-main">
+    ${p.badge ? `<span class="gh-ribbon">${esc(p.badge)}</span>` : ''}<h3 class="gh-card-name">${esc(p.name)}</h3>${p.tagline ? `<p class="gh-card-tag">${esc(p.tagline)}</p>` : ''}
+    <div class="gh-card-price"><div data-view="monthly">${m.html}</div>${y ? `<div data-view="yearly" hidden>${y.html}</div>` : ''}</div>
+    <div class="gh-card-cta"><a class="gh-btn gh-btn-solid" href="${esc(orderUrl(p, ctx.cartBase, m.cycle))}" data-monthly="${esc(orderUrl(p, ctx.cartBase, m.cycle))}"${y ? ` data-yearly="${esc(orderUrl(p, ctx.cartBase, y.cycle))}"` : ''}>${esc(ctx.orderLabel)}</a><a class="gh-link" href="/p/${esc(p.slug)}">View details</a></div>
+  </div>
+  <div class="gh-feature-side">
+    ${specRows.length ? `<dl class="gh-specs">${specRows.map(([k, v]) => `<div><dt>${esc(SPEC_LABEL[k])}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
+    ${featureList(p.features.filter((f) => !specRows.some(([, v]) => v === f)), 12)}
+  </div>
+</article>`;
+}
+
+function row(p: RProduct, ctx: Ctx, cols: string[], hasYearly: boolean) {
+  const specs = deriveSpecs(p.features, p.attributes);
+  const m = priceBlock(p, ctx, 'monthly'), y = hasYearly ? priceBlock(p, ctx, 'yearly') : null;
+  return `<div class="gh-row gh-item" role="row"${dataAttrs(p, specs, m.sort)}>
+  <div class="gh-row-name" role="cell"><a href="/p/${esc(p.slug)}">${esc(p.name)}</a>${p.tagline ? `<span>${esc(p.tagline)}</span>` : ''}${p.badge ? `<em class="gh-ribbon">${esc(p.badge)}</em>` : ''}</div>
+  ${cols.map((c) => `<div class="gh-row-spec" role="cell" data-label="${esc(SPEC_LABEL[c] || c)}">${esc(specs[c] || '—')}</div>`).join('')}
+  <div class="gh-row-price" role="cell"><div data-view="monthly">${m.html.replace('Billed monthly, cancel anytime', '')}</div>${y ? `<div data-view="yearly" hidden>${y.html}</div>` : ''}</div>
+  <div class="gh-row-cta" role="cell"><a class="gh-btn gh-btn-solid" href="${esc(orderUrl(p, ctx.cartBase, m.cycle))}" data-monthly="${esc(orderUrl(p, ctx.cartBase, m.cycle))}"${y ? ` data-yearly="${esc(orderUrl(p, ctx.cartBase, y.cycle))}"` : ''}>${esc(ctx.orderLabel === 'Order Now' ? 'Buy now' : ctx.orderLabel)}</a></div>
+</div>`;
 }
 
 function compareTable(items: RProduct[], ctx: Ctx) {
-  const rows = new Map<string, string[]>();
+  const lines = new Map<string, string[]>();
   items.forEach((p, i) => {
+    const specs = deriveSpecs(p.features, p.attributes);
+    for (const [k, v] of Object.entries(specs)) { const key = SPEC_LABEL[k] || k; if (!lines.has(key)) lines.set(key, Array(items.length).fill('—')); lines.get(key)![i] = esc(v); }
     for (const f of p.features) {
-      const key = f.replace(/^-\s*/, '').replace(/^[\d.,]+\s*(GB|TB|MB)?\s*/i, '').trim() || f;
-      if (!rows.has(key)) rows.set(key, Array(items.length).fill('—'));
-      rows.get(key)![i] = f.startsWith('-') ? '✕' : esc(f);
-    }
-    for (const [k, v] of Object.entries(p.attributes || {})) {
-      if (!rows.has(k)) rows.set(k, Array(items.length).fill('—'));
-      rows.get(k)![i] = esc(v);
+      const key = f.replace(/^-\s*/, '');
+      if ([...Object.values(specs)].includes(key)) continue;
+      if (!lines.has(key)) lines.set(key, Array(items.length).fill('<span class="gh-no">—</span>'));
+      lines.get(key)![i] = f.startsWith('-') ? `<span class="gh-no">${CROSS}</span>` : `<span class="gh-yes">${CHECK}</span>`;
     }
   });
-  if (rows.size < 2) return '';
-  return `<details class="gh-compare mt-6"><summary class="coodiv-text-9 font-weight-bold text-center">Compare plans</summary>
-<div class="table-responsive mt-6"><table class="table table-bordered bg-white coodiv-text-11"><thead><tr><th></th>${items.map((p) => `<th class="text-center">${esc(p.name)}<br><small>${priceInfo(p, ctx).html}</small></th>`).join('')}</tr></thead>
-<tbody>${[...rows.entries()].map(([k, v]) => `<tr><th>${esc(k)}</th>${v.map((x) => `<td class="text-center">${x}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
+  if (lines.size < 2) return '';
+  return `<details class="gh-compare"><summary>Compare all features</summary><div class="gh-compare-scroll"><table>
+  <thead><tr><th scope="col"><span class="gh-sr">Feature</span></th>${items.map((p) => `<th scope="col">${esc(p.name)}<small>${priceBlock(p, ctx, 'monthly').html.replace(/<p class="gh-note">.*?<\/p>/, '').replace(/<[^>]+>/g, '')}</small></th>`).join('')}</tr></thead>
+  <tbody>${[...lines.entries()].map(([k, v]) => `<tr><th scope="row">${esc(k)}</th>${v.map((x) => `<td>${x}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
 }
 
-function toolbar(sid: string, search: boolean, attrKeys: string[]) {
-  return `<div class="gh-toolbar d-flex flex-wrap justify-content-center mb-9" data-target="${sid}">
-  ${search ? `<input type="search" class="form-control mr-3 mb-3" style="max-width:260px" placeholder="Search plans…" data-gh="search" aria-label="Search plans">` : ''}
-  <select class="form-control mr-3 mb-3" style="max-width:200px" data-gh="sort" aria-label="Sort"><option value="">Recommended</option><option value="price-asc">Price: low → high</option><option value="price-desc">Price: high → low</option><option value="name">Name A–Z</option></select>
-  ${attrKeys.slice(0, 2).map((k) => `<select class="form-control mr-3 mb-3" style="max-width:200px" data-gh="filter" data-attr="${esc(k)}" aria-label="${esc(k)}"><option value="">All ${esc(k)}</option></select>`).join('')}
+function toolbar(target: string, search: boolean, filterKeys: string[]) {
+  return `<div class="gh-toolbar" data-target="${target}">
+  ${search ? `<label class="gh-field"><span class="gh-sr">Search plans</span><input type="search" placeholder="Search plans" data-gh="search"></label>` : ''}
+  <label class="gh-field"><span class="gh-sr">Sort</span><select data-gh="sort"><option value="">Recommended</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="name">Name</option></select></label>
+  ${filterKeys.map((k) => `<label class="gh-field"><span class="gh-sr">${esc(SPEC_LABEL[k] || k)}</span><select data-gh="filter" data-attr="${esc(k)}"><option value="">All ${esc((SPEC_LABEL[k] || k).toLowerCase())}</option></select></label>`).join('')}
+  <span class="gh-count" aria-live="polite"></span>
 </div>`;
 }
 
-export function renderProducts(data: Record<string, any>, sectionId: string, cats: RCategory[], all: RProduct[], ctx0: Omit<Ctx, 'sectionId'>): string | null {
+export function renderProducts(data: Record<string, any>, sectionId: string, cats: RCategory[], all: RProduct[], ctx0: Ctx): string | null {
   const ctx = { ...ctx0, sectionId };
   const groups = cats.map((c) => ({ cat: c, items: all.filter((p) => p.categoryId === c.id) })).filter((g) => g.items.length);
-  if (!groups.length) return null; // caller falls back to legacy HTML
-  const template = data.template || groups[0].cat.cardTemplate || 'plan-card';
+  if (!groups.length) return null; // caller falls back to the original HTML
   const sid = `ghp-${sectionId.slice(-8)}`;
-  const heading = data.title ? `<div class="row justify-content-center"><div class="col-xl-8 col-lg-10 text-center mb-11">
-    <h2 class="coodiv-text-4 font-weight-bold mb-5">${esc(data.title)}</h2>${data.subtitle ? `<p class="coodiv-text-9 mb-0">${esc(data.subtitle)}</p>` : ''}</div></div>` : '';
+  const hasYearly = groups.some((g) => g.items.some((p) => { const cs = cycles(p, ctx.currency); return cs.some((c) => c.cycle === 'monthly') && cs.some((c) => c.cycle === 'annually'); }));
+  const maxSave = Math.max(0, ...groups.flatMap((g) => g.items.map((p) => { const cs = cycles(p, ctx.currency); const m = cs.find((c) => c.cycle === 'monthly'), y = cs.find((c) => c.cycle === 'annually'); return m && y ? Math.round((1 - y.perMonth / m.price) * 100) : 0; })));
 
   const panes = groups.map((g, gi) => {
-    const items = [...g.items];
-    const L = chooseLayout({ count: items.length, override: data.layout !== 'auto' ? data.layout : g.cat.layout, template,
-      maxFeatures: Math.max(...items.map((p) => p.features.length)), maxDescLen: Math.max(...items.map((p) => p.description.length)) });
-    const attrKeys = [...new Set(items.flatMap((p) => Object.keys(p.attributes || {})))];
+    const items = g.items;
+    const template = data.template || g.cat.cardTemplate || 'plan-card';
+    const L = chooseLayout({ count: items.length, override: data.layout && data.layout !== 'auto' ? data.layout : g.cat.layout, template });
     const pid = `${sid}-${gi}`;
+    const specKeys = (() => {
+      const counts = new Map<string, number>();
+      items.forEach((p) => Object.keys(deriveSpecs(p.features, p.attributes)).forEach((k) => counts.set(k, (counts.get(k) || 0) + 1)));
+      return [...counts.entries()].filter(([k, n]) => SPEC_LABEL[k] && n >= Math.max(1, items.length / 2)).map(([k]) => k);
+    })();
+    const filterKeys = specKeys.filter((k) => ['location', 'cpu', 'ram', 'storage'].includes(k)).slice(0, 2);
+    const listView = template === 'server-row' || L.mode === 'catalog';
     let body: string;
-    if (template === 'server-row') {
-      body = `${L.toolbar ? toolbar(pid, L.search, []) : ''}<div class="servers-table-container"><table class="servers-table"><thead><tr><th>Package</th><th>Processor</th><th>RAM</th><th>Storage</th><th>IPs</th><th>Bandwidth</th><th>Price</th><th></th></tr></thead>
-        <tbody id="${pid}" class="gh-items">${items.map((p) => serverRow(p, ctx)).join('')}</tbody></table></div>`;
+    if (L.mode === 'featured' && !listView) {
+      body = `<div class="gh-items gh-featured-wrap" id="${pid}">${items.map((p) => featuredCard(p, ctx, hasYearly)).join('')}</div>`;
+    } else if (listView) {
+      const has = (k: string) => items.some((p) => !!deriveSpecs(p.features, p.attributes)[k]);
+      const cols = (template === 'server-row' ? ['cpu', 'ram', 'storage', 'os', 'bandwidth', 'ips', 'location'] : specKeys).filter(has).slice(0, 5);
+      body = `${items.length > 4 ? toolbar(pid, items.length > 8, filterKeys) : ''}
+      <div class="gh-list" role="table" style="--gh-cols:${cols.length}">
+        <div class="gh-row gh-row-head" role="row"><div role="columnheader">Plan</div>${cols.map((c) => `<div role="columnheader">${esc(SPEC_LABEL[c] || c)}</div>`).join('')}<div role="columnheader">Price</div><div role="columnheader"><span class="gh-sr">Order</span></div></div>
+        <div class="gh-items" id="${pid}" data-page-size="${items.length > 15 ? 15 : 0}">${items.map((p) => row(p, ctx, cols, hasYearly)).join('')}</div>
+      </div>${items.length > 15 ? `<nav class="gh-pager" data-target="${pid}" aria-label="Pages"></nav>` : ''}`;
     } else {
-      body = `${L.toolbar ? toolbar(pid, L.search, attrKeys) : ''}<div class="row justify-content-center gh-items" id="${pid}" data-page-size="${L.pageSize}">${items.map((p) => planCard(p, ctx, L.colClass, L.expandable, L.mode === 'featured')).join('')}</div>
-        ${L.pageSize ? `<nav class="gh-pager text-center mt-6" data-target="${pid}"></nav>` : ''}${L.compare ? compareTable(items, ctx) : ''}`;
+      const highlightIdx = items.findIndex((p) => p.featured) >= 0 ? items.findIndex((p) => p.featured) : items.length === 3 ? 1 : -1;
+      body = `${L.toolbar ? toolbar(pid, L.search, filterKeys) : ''}
+      <div class="gh-cards gh-items" id="${pid}" style="--gh-n:${Math.min(items.length, L.mode === 'cards' ? 4 : 4)}" data-page-size="${L.pageSize}">${items.map((p, i) => card(p, ctx, { highlight: i === highlightIdx, hasYearly })).join('')}</div>
+      ${L.pageSize ? `<nav class="gh-pager" data-target="${pid}" aria-label="Pages"></nav>` : ''}${L.mode === 'cards' && items.length > 1 ? compareTable(items, ctx) : ''}`;
     }
-    return { g, pid, body, L };
+    return { g, pid, body, mode: listView ? 'list' : L.mode };
   });
 
-  const inner = panes.length === 1
-    ? panes[0].body
-    : `<ul class="nav nav-pills justify-content-center mb-11 gh-tabs" role="tablist">${panes.map((p, i) => `<li class="nav-item"><a class="nav-link${i ? '' : ' active'}" data-toggle="pill" href="#${p.pid}-tab" role="tab">${esc(p.g.cat.name)}</a></li>`).join('')}</ul>
-       <div class="tab-content">${panes.map((p, i) => `<div class="tab-pane fade${i ? '' : ' show active'}" id="${p.pid}-tab" role="tabpanel">${p.body}</div>`).join('')}</div>`;
+  const toggle = hasYearly ? `<div class="gh-cycle" role="group" aria-label="Billing period"><button type="button" aria-pressed="true" data-cycle="monthly">Monthly</button><button type="button" aria-pressed="false" data-cycle="yearly">Yearly${maxSave > 0 ? ` <span>save up to ${maxSave}%</span>` : ''}</button></div>` : '';
+  const tabs = panes.length > 1
+    ? `<div class="gh-tabs" role="tablist" aria-label="Choose a category">${panes.map((p, i) => `<button type="button" role="tab" id="${p.pid}-t" aria-controls="${p.pid}-p" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${esc(p.g.cat.name)} <span>${p.g.items.length}</span></button>`).join('')}</div>`
+    : '';
+  const inner = panes.map((p, i) => `<div class="gh-pane" role="${panes.length > 1 ? 'tabpanel' : 'region'}" id="${p.pid}-p" aria-labelledby="${p.pid}-t"${i ? ' hidden' : ''} data-mode="${p.mode}">${p.body}</div>`).join('');
 
-  return `<div class="${esc(data.wrapperClass || 'pt-13 pb-13')} gh-products" data-layout="${panes.map((p) => p.L.mode).join(',')}" data-section="${esc(sectionId)}">
-  <div class="${template === 'server-row' ? 'container-fluid px-lg-15' : 'container'}">${heading}${inner}</div>
-</div>`;
+  // keep theme background classes, drop theme spacing/negative margins (they caused overlap with heroes)
+  const wrap = String(data.wrapperClass || '').split(/\s+/).filter((c) => c && !/^(m|p)[tbxylr]?(-(sm|md|lg|xl))?-n?\d+$|^mtm-|^mt-n|^mt-\w+-n|^position-|^px-|^py-/.test(c)).join(' ');
+  return `<section class="gh-products ${esc(wrap)}" data-layout="${panes.map((p) => p.mode).join(',')}" data-section="${esc(sectionId)}">
+  <div class="gh-wrap">
+    ${data.title || data.subtitle ? `<div class="gh-head">${data.title ? `<h2>${esc(data.title)}</h2>` : ''}${data.subtitle ? `<p>${esc(data.subtitle)}</p>` : ''}</div>` : ''}
+    ${tabs || toggle ? `<div class="gh-controls">${tabs}${toggle}</div>` : ''}
+    ${inner}
+  </div>
+</section>`;
 }

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { unstable_cache } from 'next/cache';
 import { db, schema } from '@/lib/db';
 import { renderPage } from '@/lib/render/page';
+import { renderProductPage } from '@/lib/render/product-page';
 import { getSettings } from '@/lib/settings';
 import { verifySession, COOKIE } from '@/lib/auth';
 
@@ -32,6 +33,10 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: stri
     return html(`<!doctype html><meta name=viewport content="width=device-width"><title>${s.site_name}</title><body style="font:16px system-ui;display:grid;place-items:center;height:100vh;margin:0"><div style="text-align:center"><h1>We'll be right back</h1><p>${s.site_name} is undergoing scheduled maintenance.</p></div>`, 503, false);
   }
 
+  if (segs[0] === 'p' && segs.length === 2) {
+    const out = await renderProductPage(segs[1].toLowerCase(), preview);
+    if (out) return html(out, 200, !preview);
+  }
   const slug = segs.length ? segs.join('/').toLowerCase() : 'index';
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
   const opts = { preview, query: req.nextUrl.searchParams, ip, path };

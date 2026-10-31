@@ -1,0 +1,1108 @@
+{
+ "dedicated-servers/hostia-mini": {
+  "key": "dedicated-servers/hostia-mini",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1230 – 16GB DDR3 – 1x160GB SSD",
+  "name": "Hostia mini",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/4T @ 3.2GHz",
+   "ram": "16GB DDR3",
+   "storage": "160GB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "Unmetered1Gbps"
+  },
+  "attrs": {
+   "price": "39.99",
+   "ram": "16",
+   "cores": "4",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-mini-plus": {
+  "key": "dedicated-servers/hostia-mini-plus",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1230v1 – 16GB DDR3 – 1x1TB SATA",
+  "name": "Hostia mini plus",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/4T @ 3.2GHz",
+   "ram": "16GB DDR3",
+   "storage": "1TB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "Unmetered1Gbps"
+  },
+  "attrs": {
+   "price": "43.99",
+   "ram": "16",
+   "cores": "4",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-compact": {
+  "key": "dedicated-servers/hostia-compact",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1230v1 – 16GB DDR3 – 1x2TB SATA",
+  "name": "Hostia Compact",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/4T @ 3.2GHz",
+   "ram": "16GB DDR3",
+   "storage": "2TB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "Unmetered1Gbps"
+  },
+  "attrs": {
+   "price": "45.99",
+   "ram": "16",
+   "cores": "4",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-prime": {
+  "key": "dedicated-servers/hostia-prime",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Dual L5420 – 16GB DDR2 – 1x500GB SATA",
+  "name": "Hostia Prime",
+  "badge": "",
+  "specs": {
+   "cpu": "8C/8T @ 2.5GHz",
+   "ram": "16GB DDR2",
+   "storage": "500GB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "45.99",
+   "ram": "16",
+   "cores": "8",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-compact-plus": {
+  "key": "dedicated-servers/hostia-compact-plus",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1230v2 – 16GB DDR3 – 1x256GB SSD",
+  "name": "Hostia Compact Plus",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/8T @ 3.3GHz",
+   "ram": "16GB DDR3",
+   "storage": "256GB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "47.99",
+   "ram": "16",
+   "cores": "4",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-prime-mini": {
+  "key": "dedicated-servers/hostia-prime-mini",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Dual L5520 – 24GB DDR3 – 1x500GB SATA",
+  "name": "Hostia Prime Mini",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "8C/16T @ 2.26GHz",
+   "ram": "24GB DDR3",
+   "storage": "500GB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "47.99",
+   "ram": "24",
+   "cores": "8",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-pocket": {
+  "key": "dedicated-servers/hostia-pocket",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1230v2 – 16GB DDR3 – 2x1TB SATA",
+  "name": "Hostia Pocket",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/8T @ 3.3GHz",
+   "ram": "16GB DDR3",
+   "storage": "2x1TB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "48.99",
+   "ram": "16",
+   "cores": "4",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-pocket-max": {
+  "key": "dedicated-servers/hostia-pocket-max",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1230v2 – 32GB DDR3 – 120GB SSD + 1TB HDD",
+  "name": "Hostia Pocket Max",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/8T @ 3.3GHz",
+   "ram": "32GB DDR3",
+   "storage": "120GB SSD + 1TB HDD",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "50.99",
+   "ram": "32",
+   "cores": "4",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-core": {
+  "key": "dedicated-servers/hostia-core",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Dual L5520 – 48GB DDR3 – 1TB SATA",
+  "name": "Hostia Core",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "8C/16T @ 2.26GHz",
+   "ram": "48GB DDR3",
+   "storage": "1TB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "52.99",
+   "ram": "48",
+   "cores": "8",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-go": {
+  "key": "dedicated-servers/hostia-go",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1270v2 – 16GB DDR3 – 1x2TB SATA",
+  "name": "Hostia Go",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/8T @ 3.5GHz",
+   "ram": "16GB DDR3",
+   "storage": "2TB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "53.99",
+   "ram": "16",
+   "cores": "4",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-go-plus": {
+  "key": "dedicated-servers/hostia-go-plus",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1270v2 – 32GB DDR3 – 1x2TB SATA",
+  "name": "Hostia Go Plus",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/8T @ 3.5GHz",
+   "ram": "32GB DDR3",
+   "storage": "2TB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "54.99",
+   "ram": "32",
+   "cores": "4",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-edge": {
+  "key": "dedicated-servers/hostia-edge",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1270v2 – 32GB DDR3 – 1x500GB SSD",
+  "name": "Hostia Edge",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/8T @ 3.5GHz",
+   "ram": "32GB DDR3",
+   "storage": "500GB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "55.99",
+   "ram": "32",
+   "cores": "4",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-core-plus": {
+  "key": "dedicated-servers/hostia-core-plus",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Dual L5520 – 48GB DDR3 – 1x2TB SATA",
+  "name": "Hostia Core Plus",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "8C/16T @ 2.26GHz",
+   "ram": "48GB DDR3",
+   "storage": "2TB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "55.99",
+   "ram": "48",
+   "cores": "8",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-edge-pro": {
+  "key": "dedicated-servers/hostia-edge-pro",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "E3-1270v2 – 32GB DDR3 – 1x1TB SSD",
+  "name": "Hostia Edge Pro",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "4C/8T @ 3.5GHz",
+   "ram": "32GB DDR3",
+   "storage": "1TB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "57.99",
+   "ram": "32",
+   "cores": "4",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-spark": {
+  "key": "dedicated-servers/hostia-spark",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Dual L5520 – 64GB DDR3 – 1x1TB SATA",
+  "name": "Hostia Spark",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "8C/16T @ 2.26GHz",
+   "ram": "64GB DDR3",
+   "storage": "1TB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "58.99",
+   "ram": "64",
+   "cores": "8",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-spark-mini": {
+  "key": "dedicated-servers/hostia-spark-mini",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Dual L5520 – 64GB DDR3 – 1x2TB SATA",
+  "name": "Hostia Spark Mini",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "8C/16T @ 2.26GHz",
+   "ram": "64GB DDR3",
+   "storage": "2TB SATA",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "59.99",
+   "ram": "64",
+   "cores": "8",
+   "storage": "sata"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-air": {
+  "key": "dedicated-servers/hostia-air",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Dual L5520 – 48GB DDR3 – 1x500GB SSD",
+  "name": "Hostia Air",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "8C/16T @ 2.26GHz",
+   "ram": "48GB DDR3",
+   "storage": "500GB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "63.99",
+   "ram": "48",
+   "cores": "8",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-air-plus": {
+  "key": "dedicated-servers/hostia-air-plus",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Dual L5520 – 48GB DDR3 – 1TB SSD",
+  "name": "Hostia Air Plus",
+  "badge": "EOL",
+  "specs": {
+   "cpu": "8C/16T @ 2.26GHz",
+   "ram": "48GB DDR3",
+   "storage": "1TB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "30TB1Gbps"
+  },
+  "attrs": {
+   "price": "66.99",
+   "ram": "48",
+   "cores": "8",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "premiumdedicated-servers/premiuma": {
+  "key": "premiumdedicated-servers/premiuma",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "2xE5-2683v4 – 128GB DDR4 – 2TB SSD",
+  "name": "Premium Server A",
+  "badge": "HOT",
+  "specs": {
+   "cpu": "32C/64T @ 2.10GHz",
+   "ram": "128GB DDR4",
+   "storage": "2TB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "Unmetered1Gbps"
+  },
+  "attrs": {
+   "price": "129.99",
+   "ram": "128",
+   "cores": "32",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-flex": {
+  "key": "dedicated-servers/hostia-flex",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Ryzen 9 5950X – 128GB DDR4 ECC – 2x1TB NVMe",
+  "name": "Hostia Flex",
+  "badge": "Special",
+  "specs": {
+   "cpu": "Ryzen 9 5950X 32T @ 3.4GHz",
+   "ram": "128GB DDR4 ECC",
+   "storage": "2x1TB NVMe",
+   "ips": "5 IPs",
+   "bandwidth": "Unmetered1Gbps"
+  },
+  "attrs": {
+   "price": "150.00",
+   "ram": "128",
+   "cores": "32",
+   "storage": "nvme"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "premiumdedicated-servers/premiumb": {
+  "key": "premiumdedicated-servers/premiumb",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "2xE5-2683v4 – 128GB DDR4 – 2x2TB SSD",
+  "name": "Premium Server B",
+  "badge": "SALE",
+  "specs": {
+   "cpu": "32C/64T @ 2.10GHz",
+   "ram": "128GB DDR4",
+   "storage": "2x2TB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "Unmetered1Gbps"
+  },
+  "attrs": {
+   "price": "154.99",
+   "ram": "128",
+   "cores": "32",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "premiumdedicated-servers/premiumc": {
+  "key": "premiumdedicated-servers/premiumc",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "2xE5-2683v4 – 256GB DDR4 – 2x2TB SSD",
+  "name": "Premium Server C",
+  "badge": "OUT",
+  "specs": {
+   "cpu": "32C/64T @ 2.10GHz",
+   "ram": "256GB DDR4",
+   "storage": "2x2TB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "Unmetered1Gbps"
+  },
+  "attrs": {
+   "price": "169.99",
+   "ram": "256",
+   "cores": "32",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "dedicated-servers/hostia-flex-plus-1": {
+  "key": "dedicated-servers/hostia-flex-plus-1",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "Ryzen9 7950X – 128GB DDR5 ECC – 2x2TB NVMe",
+  "name": "Hostia Flex Plus",
+  "badge": "Pre-Order",
+  "specs": {
+   "cpu": "16C/32T @ 4.9GHz",
+   "ram": "128GB DDR5 ECC",
+   "storage": "2x2TB NVMe",
+   "ips": "5 IPs",
+   "bandwidth": "Unmetered1Gbps"
+  },
+  "attrs": {
+   "price": "249.99",
+   "ram": "128",
+   "cores": "16",
+   "storage": "nvme"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "premiumdedicated-servers/premium10g1": {
+  "key": "premiumdedicated-servers/premium10g1",
+  "page": "dedicated-servers",
+  "kind": "row",
+  "model": "2xE5-2683v4 – 128GB DDR4 – 2TB SSD",
+  "name": "Premium 10Gbps Server",
+  "badge": "10Gbps",
+  "specs": {
+   "cpu": "32C/64T @ 2.10GHz",
+   "ram": "128GB DDR4",
+   "storage": "2TB SSD",
+   "ips": "5 IPs",
+   "bandwidth": "Unmetered10Gbps"
+  },
+  "attrs": {
+   "price": "999.99",
+   "ram": "128",
+   "cores": "32",
+   "storage": "ssd"
+  },
+  "pages": [
+   "dedicated-servers"
+  ]
+ },
+ "mcps/n8n-elite": {
+  "key": "mcps/n8n-elite",
+  "page": "index",
+  "kind": "card",
+  "name": ". .99",
+  "title": ". .99",
+  "description": "",
+  "features": [
+   "FREE SSL Certificate",
+   "4 vCPU Cores",
+   "6 GB RAM",
+   "100 GB NVMe",
+   "250 Mbps*",
+   "32TB Bandwidth"
+  ],
+  "note": "",
+  "pages": [
+   "index"
+  ]
+ },
+ "mcps/n8n-pro": {
+  "key": "mcps/n8n-pro",
+  "page": "index",
+  "kind": "card",
+  "name": ". .99",
+  "title": ". .99",
+  "description": "",
+  "features": [
+   "All Important Features",
+   "FREE SSL Certificate",
+   "6 vCPU Cores",
+   "16 GB RAM",
+   "200 GB NVMe",
+   "250*MBPS",
+   "32TB Bandwidth",
+   "Premium support"
+  ],
+  "note": "",
+  "pages": [
+   "index"
+  ]
+ },
+ "ssl-certificates/positivessl-dv": {
+  "key": "ssl-certificates/positivessl-dv",
+  "page": "ssl-certificate",
+  "kind": "card",
+  "name": "",
+  "title": "",
+  "description": "For a fast website security solution, the Comodo Positive SSL certificate is the answer for you. This domain validated (DV) certificate offers industry standard encryption at an unbelievable price.",
+  "features": [
+   "Domain Validated (DV) certificate",
+   "256-bit encryption",
+   "Fast issuance in minutes",
+   "Secures 1 domain",
+   "99.9% browser recognition",
+   "$10,000 warranty",
+   "Comodo trusted brand",
+   "Free reissues",
+   "-Wildcard support",
+   "-Organization Validation",
+   "-Extended Validation"
+  ],
+  "note": "With a 1yr term (33% savings)",
+  "pages": [
+   "ssl-certificate",
+   "index"
+  ]
+ },
+ "ssl-certificates/thawte-ssl123-flex": {
+  "key": "ssl-certificates/thawte-ssl123-flex",
+  "page": "ssl-certificate",
+  "kind": "card",
+  "name": "",
+  "title": "",
+  "description": "This is a very popular wildcard certificate, as it offers full 256-bit encryption for one main domain and an unlimited amount of associated subdomains. Plus, being a Domain Validated (DV) certificate, it can be issued in a matter of minutes.",
+  "features": [
+   "Domain Validated (DV) certificate",
+   "256-bit encryption",
+   "Wildcard support",
+   "Unlimited subdomains",
+   "Fast issuance in minutes",
+   "99.9% browser recognition",
+   "$500,000 warranty",
+   "Thawte trusted brand",
+   "Free reissues",
+   "Flexible licensing",
+   "-Organization Validation"
+  ],
+  "note": "With a 1yr term (33% savings)",
+  "pages": [
+   "ssl-certificate",
+   "index"
+  ]
+ },
+ "ssl-certificates/essentialssl-wildcard-dv": {
+  "key": "ssl-certificates/essentialssl-wildcard-dv",
+  "page": "ssl-certificate",
+  "kind": "card",
+  "name": "",
+  "title": "",
+  "description": "This certificate will secure an unlimited number of subdomains which makes management and provisioning very easy. This wildcard certificate will provide you with unlimited server licensing, along with a static site seal.",
+  "features": [
+   "Domain Validated (DV) certificate",
+   "256-bit encryption",
+   "Wildcard support",
+   "Unlimited subdomains",
+   "Unlimited server licensing",
+   "Static site seal",
+   "Fast issuance in minutes",
+   "99.9% browser recognition",
+   "$10,000 warranty",
+   "Free reissues",
+   "-Organization Validation"
+  ],
+  "note": "With a 1yr term (33% savings)",
+  "pages": [
+   "ssl-certificate",
+   "index"
+  ]
+ },
+ "project-management/globalhostia-pm-shared-workspace": {
+  "key": "project-management/globalhostia-pm-shared-workspace",
+  "page": "projects",
+  "kind": "card",
+  "name": "",
+  "title": "",
+  "description": "Perfect for small teams & startups",
+  "features": [
+   "*Unlimited Users(10 GB storage)",
+   "app.globalhostia.com/yourcompany",
+   "Kanban & Agile Boards",
+   "Multi-Project Workspace",
+   "Team Roles & Permissions",
+   "Time Tracking & Reporting",
+   "Wiki & Document Sharing",
+   "Shared High-Speed Infrastructure"
+  ],
+  "note": "",
+  "pages": [
+   "projects"
+  ]
+ },
+ "project-management/globalhostia-pm-dedicated-workspace": {
+  "key": "project-management/globalhostia-pm-dedicated-workspace",
+  "page": "projects",
+  "kind": "card",
+  "name": "Most Popular",
+  "title": "Most Popular",
+  "description": "For agencies managing multiple clients",
+  "features": [
+   "Unlimited users(100GB storage)",
+   "Your Own app.yourcompany.com",
+   "Projects, Clients & Sub-Projects",
+   "Custom Branding & Logo",
+   "Client Portal Access (Read/Comment Roles)",
+   "Priority Performance & Isolation",
+   "Daily Automated Backups",
+   "Best for Agencies & Growing Teams"
+  ],
+  "note": "",
+  "pages": [
+   "projects"
+  ]
+ },
+ "ssl-certificates/geotrust-true-businessid-flex": {
+  "key": "ssl-certificates/geotrust-true-businessid-flex",
+  "page": "ssl-certificate",
+  "kind": "card",
+  "name": "",
+  "title": "",
+  "description": "This certificate delivers 99% browser and server recognition while securing transactions on your website. This budget-friendly organization validated certificate is great for small- to medium-sized businesses interested in going beyond standard encryption and beefing up their customer trust.",
+  "features": [
+   "Organization Validated (OV) certificate",
+   "256-bit encryption",
+   "99% browser recognition",
+   "Enhanced trust for customers",
+   "Company name in certificate",
+   "$1,250,000 warranty",
+   "GeoTrust trusted brand",
+   "Free reissues",
+   "Budget-friendly OV option",
+   "Flexible licensing",
+   "-Extended Validation (EV)"
+  ],
+  "note": "With a 1yr term (33% savings)",
+  "pages": [
+   "ssl-certificate"
+  ]
+ },
+ "hostiavps/h-linux-vps-01": {
+  "key": "hostiavps/h-linux-vps-01",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "4 vCPU Cores",
+   "ram": "6GB",
+   "os": "Linux"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hostiavps/h-linux-vps-02": {
+  "key": "hostiavps/h-linux-vps-02",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "6 vCPU Cores",
+   "ram": "16GB",
+   "os": "Linux"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hostiavps/h-linux-vps-03": {
+  "key": "hostiavps/h-linux-vps-03",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "8 vCPU Cores",
+   "ram": "24GB",
+   "os": "Linux"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hostiavps/h-linux-vps-04": {
+  "key": "hostiavps/h-linux-vps-04",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "12 vCPU Cores",
+   "ram": "48GB",
+   "os": "Linux"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hostiavps/h-linux-vps-05": {
+  "key": "hostiavps/h-linux-vps-05",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "16 vCPU Cores",
+   "ram": "64GB",
+   "os": "Linux"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hostiavps/h-linux-vps-06": {
+  "key": "hostiavps/h-linux-vps-06",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "24 vCPU Cores",
+   "ram": "12GB",
+   "os": "Linux"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hostiavps/h-windows-vps-01": {
+  "key": "hostiavps/h-windows-vps-01",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "4 vCPU Cores",
+   "ram": "6GB",
+   "os": "Windows"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hostiavps/h-windows-vps-02": {
+  "key": "hostiavps/h-windows-vps-02",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "6 vCPU Cores",
+   "ram": "16GB",
+   "os": "Windows"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hostiavps/h-windows-vps-03": {
+  "key": "hostiavps/h-windows-vps-03",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "8 vCPU Cores",
+   "ram": "24GB",
+   "os": "Windows"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hostiavps/h-windows-vps-04": {
+  "key": "hostiavps/h-windows-vps-04",
+  "page": "vps-hosting",
+  "kind": "row",
+  "model": "",
+  "name": "",
+  "badge": "",
+  "specs": {
+   "cpu": "12 vCPU Cores",
+   "ram": "48GB",
+   "os": "Windows"
+  },
+  "attrs": {},
+  "pages": [
+   "vps-hosting"
+  ]
+ },
+ "hosting-usa/hostia-lite-usa": {
+  "key": "hosting-usa/hostia-lite-usa",
+  "page": "web-hosting",
+  "kind": "card",
+  "name": "Hostia Lite USA",
+  "title": "Hostia Lite USA",
+  "description": "Fast NVMe Storage and Real 24/7 Technical Support.",
+  "features": [
+   "2 GB of Space",
+   "50 GB Bandwidth",
+   "10 Email Id's",
+   "-1 Website",
+   "-10 Database"
+  ],
+  "note": "",
+  "pages": [
+   "web-hosting"
+  ]
+ },
+ "hostia-shared/hostia-ultra-usa": {
+  "key": "hostia-shared/hostia-ultra-usa",
+  "page": "web-hosting",
+  "kind": "card",
+  "name": "Hostia Ultra USA",
+  "title": "Hostia Ultra USA",
+  "description": "Fast NVMe Storage and Real 24/7 Technical Support.",
+  "features": [
+   "5 GB of Space",
+   "100GB Bandwidth",
+   "Unlimited Email Id's",
+   "5 Websites",
+   "-25 Database"
+  ],
+  "note": "",
+  "pages": [
+   "web-hosting"
+  ]
+ },
+ "hosting-usa/hostia-infinity-usa": {
+  "key": "hosting-usa/hostia-infinity-usa",
+  "page": "web-hosting",
+  "kind": "card",
+  "name": "Hostia Infinity USA",
+  "title": "Hostia Infinity USA",
+  "description": "Fast SSD Storage and Real 24/7 Technical Support.",
+  "features": [
+   "Unlimited Space",
+   "Unlimited Bandwidth",
+   "Unlimited Email Id's",
+   "10 Websites",
+   "Unlimited Database"
+  ],
+  "note": "",
+  "pages": [
+   "web-hosting"
+  ]
+ },
+ "hostia-shared/hostia-lite": {
+  "key": "hostia-shared/hostia-lite",
+  "page": "web-hosting",
+  "kind": "card",
+  "name": "Hostia Lite MY",
+  "title": "Hostia Lite MY",
+  "description": "Fast NVMe Storage and Real 24/7 Technical Support.",
+  "features": [
+   "2 GB of Space",
+   "50 GB Bandwidth",
+   "10 Email Id's",
+   "-1 Website",
+   "-10 Database"
+  ],
+  "note": "",
+  "pages": [
+   "web-hosting"
+  ]
+ },
+ "hostia-shared/hostia-ultra": {
+  "key": "hostia-shared/hostia-ultra",
+  "page": "web-hosting",
+  "kind": "card",
+  "name": "Hostia Ultra MY",
+  "title": "Hostia Ultra MY",
+  "description": "Fast NVMe Storage and Real 24/7 Technical Support.",
+  "features": [
+   "5 GB of Space",
+   "100GB Bandwidth",
+   "Unlimited Email Id's",
+   "5 Websites",
+   "-25 Database"
+  ],
+  "note": "",
+  "pages": [
+   "web-hosting"
+  ]
+ },
+ "hostia-shared/hostia-infinity": {
+  "key": "hostia-shared/hostia-infinity",
+  "page": "web-hosting",
+  "kind": "card",
+  "name": "Hostia Infinity MY",
+  "title": "Hostia Infinity MY",
+  "description": "Fast SSD Storage and Real 24/7 Technical Support.",
+  "features": [
+   "Unlimited Space",
+   "Unlimited Bandwidth",
+   "Unlimited Email Id's",
+   "10 Websites",
+   "Unlimited Database"
+  ],
+  "note": "",
+  "pages": [
+   "web-hosting"
+  ]
+ },
+ "hosting-singapore/hostia-lite-sg": {
+  "key": "hosting-singapore/hostia-lite-sg",
+  "page": "web-hosting",
+  "kind": "card",
+  "name": "Hostia Lite SG",
+  "title": "Hostia Lite SG",
+  "description": "Fast NVMe Storage and Real 24/7 Technical Support.",
+  "features": [
+   "2 GB of Space",
+   "50 GB Bandwidth",
+   "10 Email Id's",
+   "-1 Website",
+   "-10 Database"
+  ],
+  "note": "",
+  "pages": [
+   "web-hosting"
+  ]
+ },
+ "hosting-singapore/hostia-ultra-sg": {
+  "key": "hosting-singapore/hostia-ultra-sg",
+  "page": "web-hosting",
+  "kind": "card",
+  "name": "Hostia Ultra SG",
+  "title": "Hostia Ultra SG",
+  "description": "Fast NVMe Storage and Real 24/7 Technical Support.",
+  "features": [
+   "5 GB of Space",
+   "100GB Bandwidth",
+   "Unlimited Email Id's",
+   "5 Websites",
+   "-25 Database"
+  ],
+  "note": "",
+  "pages": [
+   "web-hosting"
+  ]
+ },
+ "hosting-singapore/hostia-infinity-sg": {
+  "key": "hosting-singapore/hostia-infinity-sg",
+  "page": "web-hosting",
+  "kind": "card",
+  "name": "Hostia Infinity SG",
+  "title": "Hostia Infinity SG",
+  "description": "Fast SSD Storage and Real 24/7 Technical Support.",
+  "features": [
+   "Unlimited Space",
+   "Unlimited Bandwidth",
+   "Unlimited Email Id's",
+   "10 Websites",
+   "Unlimited Database"
+  ],
+  "note": "",
+  "pages": [
+   "web-hosting"
+  ]
+ }
+}
