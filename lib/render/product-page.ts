@@ -86,5 +86,5 @@ export async function renderProductPage(slug: string, preview: boolean) {
 <meta name="description" content="${esc(desc)}" /><link rel="canonical" href="${esc(url)}" />
 <meta property="og:title" content="${esc(p.name)}" /><meta property="og:description" content="${esc(desc)}" /><meta property="og:url" content="${esc(url)}" />
 <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
-  return shell({ page: tpl, blocks, s, vars, seo, body: body + related });
+  return shell({ page: tpl, blocks, s, vars, seo, body: body + related, ambKey: cat?.slug || p.slug });
 }

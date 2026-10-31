@@ -101,13 +101,24 @@ export function siteVars(s: Settings) {
 }
 
 /** Wraps body HTML in the site's real head / header / footer blocks of a given page record. */
+/** Animated section background: 'off' | 'auto' (palette picked per page) | palette name. */
+export const AMBIENT = ['brand', 'ocean', 'dusk', 'mint', 'violet', 'sunrise'] as const;
+function ambient(v: unknown, key: string): number | null {
+  if (v === 'off' || v === false) return null;
+  const i = AMBIENT.indexOf(v as any);
+  if (i >= 0) return i;
+  let h = 0; for (const c of key) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h % AMBIENT.length;
+}
+
 export function shell(o: { page: { headBlock: string; bodyStartBlock: string; headerBlock: string; footerBlock: string; bodyEndBlock: string; headExtra: string; bodyClass: string; wrapperClass: string };
-  blocks: Record<string, string>; s: Settings; vars: Record<string, string>; seo: string; body: string; extra?: string }) {
+  blocks: Record<string, string>; s: Settings; vars: Record<string, string>; seo: string; body: string; extra?: string; ambKey?: string }) {
   const { page, blocks, s, vars } = o;
+  const amb = ambient(s.design?.ambient, o.ambKey || (page as any).slug || 'index');
   const T = (h?: string) => tokens(h || '', vars);
   const design = compileDesign(s.design || {});
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en"${amb === null ? '' : ` data-gh-amb="${amb}"`}>
 <head>
 ${T(blocks[page.headBlock])}
 ${o.seo}

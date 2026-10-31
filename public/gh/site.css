@@ -165,3 +165,31 @@
 .gh-preview-bar a{color:#a5b4fc}
 @media (max-width: 575px) { .gh-products { padding: 48px 0; } .gh-card { padding: 24px 20px; } .gh-feature { padding: 24px 20px; } .gh-domain-form { flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { .gh-card, .gh-btn, .gh-tabs button { transition: none; } }
+
+/* ---------- ambient background: soft, slow glow behind product sections (transform-only = GPU, 60fps) ---------- */
+html[data-gh-amb] .gh-products, html[data-gh-amb] .gh-pd { position: relative; isolation: isolate; overflow: clip;
+  background: radial-gradient(rgba(22,28,45,.045) 1px, transparent 1.3px) 0 0 / 24px 24px, linear-gradient(180deg, #fbfbff, #fff 70%); }
+html[data-gh-amb] .gh-products::before, html[data-gh-amb] .gh-pd::before,
+html[data-gh-amb] .gh-products::after, html[data-gh-amb] .gh-pd::after {
+  content: ""; position: absolute; z-index: -1; inset: -25% -15%; pointer-events: none; will-change: transform;
+  transform: translate3d(0,0,0); animation: gh-drift-a 42s cubic-bezier(.45,.05,.55,.95) infinite alternate; animation-play-state: paused; }
+html[data-gh-amb] .gh-products::before, html[data-gh-amb] .gh-pd::before {
+  background: radial-gradient(38% 46% at 18% 22%, var(--gh-a1), transparent 68%), radial-gradient(34% 40% at 84% 18%, var(--gh-a2), transparent 70%); }
+html[data-gh-amb] .gh-products::after, html[data-gh-amb] .gh-pd::after {
+  background: radial-gradient(42% 44% at 60% 88%, var(--gh-a3), transparent 70%), radial-gradient(26% 32% at 30% 70%, var(--gh-a2), transparent 72%);
+  animation-name: gh-drift-b; animation-duration: 56s; }
+html[data-gh-amb] .gh-amb-on::before, html[data-gh-amb] .gh-amb-on::after { animation-play-state: running; }
+.gh-products + .gh-products::before { animation-delay: -21s; } .gh-products + .gh-products::after { animation-delay: -30s; }
+@keyframes gh-drift-a { 0% { transform: translate3d(-4%,2%,0) rotate(0deg) scale(1); } 50% { transform: translate3d(3%,-3%,0) rotate(6deg) scale(1.06); } 100% { transform: translate3d(5%,3%,0) rotate(-4deg) scale(1.02); } }
+@keyframes gh-drift-b { 0% { transform: translate3d(4%,-2%,0) scale(1.04); } 50% { transform: translate3d(-3%,3%,0) rotate(-5deg) scale(1); } 100% { transform: translate3d(-5%,-3%,0) rotate(3deg) scale(1.08); } }
+html[data-gh-amb="1"] .gh-products::before, html[data-gh-amb="3"] .gh-products::before, html[data-gh-amb="5"] .gh-products::before,
+html[data-gh-amb="1"] .gh-pd::before, html[data-gh-amb="3"] .gh-pd::before, html[data-gh-amb="5"] .gh-pd::before { animation-direction: alternate-reverse; }
+html[data-gh-amb="0"] { --gh-a1: rgba(71,59,240,.17); --gh-a2: rgba(56,189,248,.15); --gh-a3: rgba(167,139,250,.16); }
+html[data-gh-amb="1"] { --gh-a1: rgba(14,165,233,.16); --gh-a2: rgba(45,212,191,.14); --gh-a3: rgba(99,102,241,.13); }
+html[data-gh-amb="2"] { --gh-a1: rgba(99,102,241,.16); --gh-a2: rgba(236,72,153,.11); --gh-a3: rgba(251,146,60,.11); }
+html[data-gh-amb="3"] { --gh-a1: rgba(16,185,129,.13); --gh-a2: rgba(59,130,246,.14); --gh-a3: rgba(132,204,22,.09); }
+html[data-gh-amb="4"] { --gh-a1: rgba(139,92,246,.16); --gh-a2: rgba(71,59,240,.12); --gh-a3: rgba(56,189,248,.12); }
+html[data-gh-amb="5"] { --gh-a1: rgba(251,191,36,.14); --gh-a2: rgba(244,114,182,.11); --gh-a3: rgba(71,59,240,.11); }
+/* no backdrop-filter: re-blurring over a moving layer costs frames; a high-alpha white reads the same */
+html[data-gh-amb] .gh-card:not(.is-hl), html[data-gh-amb] .gh-list, html[data-gh-amb] .gh-feature, html[data-gh-amb] .gh-buy { background-color: rgba(255,255,255,.9); }
+@media (prefers-reduced-motion: reduce) { html[data-gh-amb] .gh-products::before, html[data-gh-amb] .gh-products::after, html[data-gh-amb] .gh-pd::before, html[data-gh-amb] .gh-pd::after { animation: none; } }

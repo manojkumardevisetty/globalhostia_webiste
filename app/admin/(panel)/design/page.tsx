@@ -32,6 +32,15 @@ export default async function Design({ searchParams }: { searchParams: Promise<R
             <label className="flex items-start gap-3 text-sm"><input type="checkbox" name="polish" defaultChecked={d.polish !== false} className="mt-0.5" />
               <span><b>On (recommended)</b> — loader disappears fast, smoother hover/scroll animations, frosted sticky header, clearer keyboard focus and bigger mobile tap targets. Your design and colours stay the same.</span></label>
           </Card>
+          <Card title="Animated background (product sections & plan pages)">
+            <label className="block text-sm"><span className="mb-1.5 block text-slate-600">Very slow, soft colour glow behind your plans — pauses off-screen and for visitors who turn off motion.</span>
+              <select name="ambient" defaultValue={d.ambient || 'auto'} className="input max-w-xs">
+                <option value="auto">On — different colours per page (recommended)</option>
+                <option value="brand">On — Brand blue everywhere</option><option value="ocean">On — Ocean</option><option value="dusk">On — Dusk</option>
+                <option value="mint">On — Mint</option><option value="violet">On — Violet</option><option value="sunrise">On — Sunrise</option>
+                <option value="off">Off — plain white</option>
+              </select></label>
+          </Card>
           <Card title="Typography & shape">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Body font"><select name="bodyFont" defaultValue={d.bodyFont || 'Inter'} className="input">{FONTS.map((f) => <option key={f}>{f}</option>)}</select></Field>

@@ -19,6 +19,7 @@ export async function saveDesign(fd: FormData) {
     if (/^#[0-9a-f]{6}$/.test(v) && v !== DEFAULT_TOKENS[k]) design[k] = v;
   }
   for (const k of ['bodyFont', 'headingFont', 'radius', 'buttonRadius']) { const v = str(fd, k); if (v && v !== 'Inter') design[k] = v; }
+  { const a = str(fd, 'ambient'); if (a && a !== 'auto') (design as any).ambient = a; }
   if (fd.get('polish') !== 'on') (design as any).polish = false;
   await setSetting('design', design);
   await setSetting('custom_css', String(fd.get('custom_css') ?? '').replace(/<\/style/gi, ''));

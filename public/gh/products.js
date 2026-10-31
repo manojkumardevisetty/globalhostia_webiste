@@ -94,3 +94,12 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
+
+/* ambient background: animate only while the section is on screen (saves battery, keeps scrolling smooth) */
+(function () {
+  if (!document.documentElement.hasAttribute('data-gh-amb')) return;
+  var els = document.querySelectorAll('.gh-products, .gh-pd');
+  if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('gh-amb-on'); }); return; }
+  var io = new IntersectionObserver(function (es) { es.forEach(function (e) { e.target.classList.toggle('gh-amb-on', e.isIntersecting); }); }, { rootMargin: '120px 0px' });
+  els.forEach(function (e) { io.observe(e); });
+})();
