@@ -88,7 +88,7 @@ export async function renderPage(slug: string, opts: { preview: boolean; query: 
 <meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="${esc(title)}" /><meta name="twitter:description" content="${esc(page.seoDescription)}" />
 ${slug === 'index' ? `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: s.site_name, url: s.site_url, telephone: s.phone, email: s.email, legalName: s.company }).replace(/</g, '\\u003c')}</script>` : ''}`;
   const previewBar = opts.preview ? `<div class="gh-preview-bar"><span>Preview — ${esc(page.status)}${page.status !== 'PUBLISHED' ? ' (not public)' : ''}. Hidden sections are outlined.</span><a href="/admin/pages/${page.id}">Back to editor →</a></div>` : '';
-  return shell({ page, blocks, s, vars, seo, body: parts.join('\n'), extra: previewBar });
+  return shell({ page, blocks, s, vars, seo, body: parts.join('\n'), extra: previewBar, look: opts.query.get('look') || undefined });
 }
 
 export function siteVars(s: Settings) {
@@ -112,19 +112,21 @@ function ambient(v: unknown, key: string): number | null {
 }
 
 export function shell(o: { page: { headBlock: string; bodyStartBlock: string; headerBlock: string; footerBlock: string; bodyEndBlock: string; headExtra: string; bodyClass: string; wrapperClass: string };
-  blocks: Record<string, string>; s: Settings; vars: Record<string, string>; seo: string; body: string; extra?: string; ambKey?: string }) {
+  blocks: Record<string, string>; s: Settings; vars: Record<string, string>; seo: string; body: string; extra?: string; ambKey?: string; look?: string }) {
   const { page, blocks, s, vars } = o;
   const amb = ambient(s.design?.ambient, o.ambKey || (page as any).slug || 'index');
+  // site "look" layer on top of the original theme: from Design settings, or ?look=a|b|c to preview one
+  const look = ['a', 'b', 'c', 'off'].includes(o.look || '') ? o.look : (s.design?.look || 'off');
   const T = (h?: string) => tokens(h || '', vars);
   const design = compileDesign(s.design || {});
   return `<!DOCTYPE html>
-<html lang="en"${amb === null ? '' : ` data-gh-amb="${amb}"`}>
+<html lang="en"${amb === null ? '' : ` data-gh-amb="${amb}"`}${look !== 'off' ? ` class="gh-look gh-look-${look}"` : ''}>
 <head>
 ${T(blocks[page.headBlock])}
 ${o.seo}
 ${T(page.headExtra)}
 <link rel="stylesheet" href="/gh/site.css" />
-${s.design?.polish === false ? '' : '<link rel="stylesheet" href="/gh/polish.css" />'}
+${s.design?.polish === false ? '' : '<link rel="stylesheet" href="/gh/polish.css" />'}${look !== 'off' ? '<link rel="stylesheet" href="/gh/look.css" />' : ''}
 ${design.fontsHref ? `<link rel="stylesheet" href="${esc(design.fontsHref)}" />` : ''}${design.css ? `<style id="gh-design">${design.css}</style>` : ''}
 ${s.custom_head || ''}${s.custom_css ? `<style id="gh-custom">${s.custom_css}</style>` : ''}
 </head>

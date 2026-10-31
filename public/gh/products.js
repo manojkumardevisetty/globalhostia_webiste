@@ -103,3 +103,17 @@
   var io = new IntersectionObserver(function (es) { es.forEach(function (e) { e.target.classList.toggle('gh-amb-on', e.isIntersecting); }); }, { rootMargin: '120px 0px' });
   els.forEach(function (e) { io.observe(e); });
 })();
+
+/* looks B/C: glow layer behind the original theme's light sections */
+(function () {
+  var c = document.documentElement.classList;
+  if (!c.contains('gh-look-b') && !c.contains('gh-look-c')) return;
+  var sel = c.contains('gh-look-c') ? '.hero-area-coodiv, .feature-section' : '.sevrices-plans, .feature-section, .single-slide-boxes, .head-to-head-section, .faq-section';
+  var hosts = document.querySelectorAll(sel);
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (es) { es.forEach(function (e) { e.target.classList.toggle('gh-amb-on', e.isIntersecting); }); }, { rootMargin: '120px 0px' }) : null;
+  hosts.forEach(function (h) {
+    var l = document.createElement('div'); l.className = 'gh-amb-layer'; l.setAttribute('aria-hidden', 'true');
+    h.insertBefore(l, h.firstChild); h.classList.add('gh-amb-host');
+    io ? io.observe(h) : h.classList.add('gh-amb-on');
+  });
+})();

@@ -32,6 +32,13 @@ export default async function Design({ searchParams }: { searchParams: Promise<R
             <label className="flex items-start gap-3 text-sm"><input type="checkbox" name="polish" defaultChecked={d.polish !== false} className="mt-0.5" />
               <span><b>On (recommended)</b> — loader disappears fast, smoother hover/scroll animations, frosted sticky header, clearer keyboard focus and bigger mobile tap targets. Your design and colours stay the same.</span></label>
           </Card>
+          <Card title="Site look (on top of your theme)">
+            <label className="block text-sm"><span className="mb-1.5 block text-slate-600">Preview first: open <a className="text-brand-600 underline" href="/?look=a" target="_blank">Clean</a> · <a className="text-brand-600 underline" href="/?look=b" target="_blank">Soft glow</a> · <a className="text-brand-600 underline" href="/?look=c" target="_blank">Midnight</a> · <a className="text-brand-600 underline" href="/?look=off" target="_blank">Original</a></span>
+              <select name="look" defaultValue={d.look || 'off'} className="input max-w-xs">
+                <option value="off">Original theme</option><option value="a">A — Clean (consistent buttons &amp; cards)</option>
+                <option value="b">B — Soft glow (Clean + slow colour glow)</option><option value="c">C — Midnight (Clean + dark hero &amp; feature band)</option>
+              </select></label>
+          </Card>
           <Card title="Animated background (product sections & plan pages)">
             <label className="block text-sm"><span className="mb-1.5 block text-slate-600">Very slow, soft colour glow behind your plans — pauses off-screen and for visitors who turn off motion.</span>
               <select name="ambient" defaultValue={d.ambient || 'auto'} className="input max-w-xs">

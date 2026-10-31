@@ -1,0 +1,56 @@
+/* Site "looks": optional layers on top of the original theme. html.gh-look-a | -b | -c
+   A = Clean (consistent buttons, cards, type)   B = A + soft animated glow   C = A + midnight hero & dark accents */
+
+/* ---------- shared by all looks (A) ---------- */
+.gh-look { --lk-brand: #473bf0; --lk-brand2: #6c5cff; --lk-ink: #161c2d; --lk-line: #e7e9f0; }
+.gh-look body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+.gh-look .hero-content h1, .gh-look .hero-content .title { letter-spacing: -.025em; }
+.gh-look h2.title, .gh-look .title.coodiv-text-4 { letter-spacing: -.02em; }
+
+/* one button language: brand pill, soft lift on hover */
+.gh-look .btn-warning, .gh-look .btn-red:not(.header-btn .btn), .gh-look .btn-special-home-plan, .gh-look .btn-order,
+.gh-look .btn.btn-primary:not(.search-btn) {
+  background: linear-gradient(135deg, var(--lk-brand), var(--lk-brand2)) !important; border: 0 !important; color: #fff !important;
+  border-radius: 999px !important; box-shadow: 0 10px 24px -12px rgba(71,59,240,.65); transition: transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s; }
+.gh-look .btn-warning:hover, .gh-look .btn-red:hover, .gh-look .btn-special-home-plan:hover, .gh-look .btn-order:hover, .gh-look .btn.btn-primary:hover {
+  transform: translateY(-2px); box-shadow: 0 16px 30px -14px rgba(71,59,240,.75); }
+.gh-look .btn-warning { color: #fff !important; }
+
+/* cards: same radius, hairline border, soft shadow */
+.gh-look .feature-section .rounded-20, .gh-look .single-slide-boxes .slick-slide > div > div, .gh-look .comparison-box,
+.gh-look .sevrices-plans .rounded-20, .gh-look .faq-section .card {
+  border-radius: 20px !important; border: 1px solid var(--lk-line) !important; box-shadow: 0 1px 2px rgba(22,28,45,.04), 0 18px 40px -28px rgba(22,28,45,.25) !important; }
+.gh-look .comparison-box { overflow: hidden; }
+
+/* calmer section rhythm */
+.gh-look .feature-section, .gh-look .head-to-head-section, .gh-look .single-slide-boxes { border: 0 !important; }
+
+/* ---------- B: soft animated glow behind light sections ---------- */
+.gh-look-b .gh-amb-layer, .gh-look-c .gh-amb-layer { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent); mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent); }
+.gh-look-c .hero-area-coodiv > .gh-amb-layer { -webkit-mask-image: none; mask-image: none; }
+.gh-look-b .gh-amb-host, .gh-look-c .gh-amb-host { position: relative; isolation: isolate; }
+.gh-amb-layer::before, .gh-amb-layer::after { content: ""; position: absolute; inset: -25% -15%; will-change: transform; transform: translate3d(0,0,0);
+  animation: lk-drift-a 44s cubic-bezier(.45,.05,.55,.95) infinite alternate; animation-play-state: paused; }
+.gh-amb-layer::before { background: radial-gradient(36% 44% at 14% 24%, var(--lk-a1), transparent 68%), radial-gradient(30% 40% at 86% 16%, var(--lk-a2), transparent 70%); }
+.gh-amb-layer::after { background: radial-gradient(40% 46% at 62% 90%, var(--lk-a3), transparent 70%); animation-name: lk-drift-b; animation-duration: 58s; }
+.gh-amb-host.gh-amb-on .gh-amb-layer::before, .gh-amb-host.gh-amb-on .gh-amb-layer::after { animation-play-state: running; }
+.gh-amb-host:nth-of-type(2n) .gh-amb-layer::before { animation-direction: alternate-reverse; }
+@keyframes lk-drift-a { 0% { transform: translate3d(-4%,2%,0) rotate(0) scale(1); } 50% { transform: translate3d(3%,-3%,0) rotate(6deg) scale(1.06); } 100% { transform: translate3d(5%,3%,0) rotate(-4deg) scale(1.02); } }
+@keyframes lk-drift-b { 0% { transform: translate3d(4%,-2%,0) scale(1.04); } 50% { transform: translate3d(-3%,3%,0) rotate(-5deg) scale(1); } 100% { transform: translate3d(-5%,-3%,0) rotate(3deg) scale(1.08); } }
+.gh-look-b { --lk-a1: rgba(71,59,240,.14); --lk-a2: rgba(56,189,248,.13); --lk-a3: rgba(236,72,153,.09); }
+.gh-look-b .sevrices-plans { background: transparent !important; }
+
+/* ---------- C: midnight hero + dark feature band ---------- */
+.gh-look-c { --lk-a1: rgba(108,92,255,.30); --lk-a2: rgba(56,189,248,.22); --lk-a3: rgba(236,72,153,.16); }
+.gh-look-c .hero-area-coodiv { background: radial-gradient(120% 90% at 50% 0%, #1b1f4b 0%, #0b0f2a 55%, #070a1d 100%); }
+.gh-look-c .header-erath { opacity: .18; mix-blend-mode: screen; }
+.gh-look-c .montains-01, .gh-look-c .montains-02 { filter: hue-rotate(20deg) saturate(.8) brightness(.55); }
+.gh-look-c .feature-section { background: #0b0f2a !important; }
+.gh-look-c .feature-section .title, .gh-look-c .feature-section h2, .gh-look-c .feature-section h3 { color: #fff !important; }
+.gh-look-c .feature-section p, .gh-look-c .feature-section span:not([class*=badge]) { color: rgba(255,255,255,.7); }
+.gh-look-c .feature-section .rounded-20:not([class*=gradient]):not([class*=bg-]), .gh-look-c .feature-section .bg-white, .gh-look-c .feature-section [class*=white-bg] {
+  background: rgba(255,255,255,.05) !important; border-color: rgba(255,255,255,.12) !important; box-shadow: none !important; }
+.gh-look-c .feature-section .rounded-20 h3, .gh-look-c .feature-section .rounded-20 .coodiv-text-9 { color: #fff !important; }
+
+@media (prefers-reduced-motion: reduce) { .gh-amb-layer::before, .gh-amb-layer::after { animation: none; } }
