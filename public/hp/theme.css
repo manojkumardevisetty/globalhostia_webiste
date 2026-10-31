@@ -714,3 +714,4 @@ main{display:block}
   .hp-btn,.hp-plan{translate:none!important;rotate:none!important}
   .hp-plan::after{display:none}
 }
+.hp-table-wrap{position:relative}
