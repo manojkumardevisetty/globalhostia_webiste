@@ -1,0 +1,1427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Globalhostia — Business hosting, servers and domains</title>
+<meta name="description" content="Web hosting, managed cloud VPS, dedicated servers and domains from Globalhostia. NVMe storage, daily backups, 24/7 priority support and six datacenters worldwide.">
+<link rel="icon" href="/image/favicon/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b1f4b;
+  --navy-deep:#07163a;
+  --navy-raise:#132c62;
+  --navy-line:rgba(255,255,255,.12);
+  --teal:#0ea5a4;
+  --teal-ink:#0b7776;
+  --teal-wash:#e6f5f5;
+  --gold:#c9a24d;
+  --gold-soft:rgba(201,162,77,.55);
+  --ink:#0f1b36;
+  --slate:#4a5776;
+  --slate-2:#6a7693;
+  --line:#dde3ee;
+  --mist:#f4f6fa;
+  --paper:#ffffff;
+  --on-navy:#ffffff;
+  --on-navy-2:#b9c4dc;
+  --amber:#8a5a00;
+  --amber-wash:#fbf3e2;
+  --red:#a23b3b;
+  --red-wash:#fbecec;
+
+  --serif:"Source Serif 4","Source Serif Pro",Georgia,"Times New Roman",serif;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --r-sm:4px; --r-md:6px; --r-lg:10px;
+  --wrap:1240px;
+  --shadow-1:0 1px 2px rgba(11,31,75,.06),0 4px 16px rgba(11,31,75,.06);
+  --shadow-2:0 2px 4px rgba(7,22,58,.18),0 24px 56px rgba(7,22,58,.32);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;font-family:var(--sans);font-size:17px;line-height:1.6;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{max-width:100%;display:block}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 32px}
+.ico{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.ico-sm{width:16px;height:16px}
+.skip{position:absolute;left:16px;top:-48px;background:var(--paper);color:var(--navy);padding:10px 14px;z-index:100;border-radius:var(--r-sm)}
+.skip:focus{top:8px}
+
+/* ---------- headings ---------- */
+.h-display{font-family:var(--serif);font-weight:600;letter-spacing:-.022em;line-height:1.06;font-size:clamp(40px,5.4vw,64px);margin:0}
+.h2{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.14;font-size:clamp(30px,3.4vw,42px);margin:0}
+.h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;line-height:1.25;font-size:22px;margin:0}
+.lede{color:var(--slate);font-size:18px;max-width:60ch;margin:16px 0 0}
+.sec{padding:112px 0}
+.sec-head{max-width:760px;margin-bottom:56px}
+.sec-head::before{content:"";display:block;width:48px;height:1px;background:var(--gold);margin-bottom:24px}
+.sec-head.on-navy .lede{color:var(--on-navy-2)}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:var(--r-sm);border:1px solid transparent;font-weight:500;font-size:15px;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease)}
+.btn-teal{background:var(--teal);color:var(--navy-deep)}
+.btn-teal:hover{background:#13b8b7}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{background:var(--navy-raise)}
+.btn-ghost{border-color:var(--navy-line);color:#fff;background:transparent}
+.btn-ghost:hover{border-color:rgba(255,255,255,.4)}
+.btn-line{border-color:var(--line);color:var(--navy);background:var(--paper)}
+.btn-line:hover{border-color:var(--navy)}
+.btn[aria-disabled="true"]{background:var(--mist);color:var(--slate-2);border-color:var(--line);cursor:not-allowed}
+
+/* ---------- utility bar ---------- */
+.util{background:var(--navy-deep);color:var(--on-navy-2);font-size:13.5px}
+.util .wrap{display:flex;align-items:center;justify-content:space-between;min-height:40px;gap:24px}
+.util-l,.util-r{display:flex;align-items:center;gap:24px}
+.util a{text-decoration:none;display:inline-flex;align-items:center;gap:8px;min-height:40px}
+.util a:hover{color:#fff}
+.util .ico{width:15px;height:15px}
+.lang{display:inline-flex;align-items:center;gap:8px}
+.lang select{appearance:none;background:transparent;border:0;color:var(--on-navy-2);padding:8px 18px 8px 0;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23b9c4dc' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right center}
+.lang select option{color:var(--ink)}
+.util-sep{width:1px;height:16px;background:var(--navy-line)}
+
+/* ---------- header ---------- */
+.hdr{position:sticky;top:0;z-index:50;background:var(--navy);transition:background-color .25s var(--ease),box-shadow .25s var(--ease)}
+.hdr.compact{background:rgba(11,31,75,.88);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);box-shadow:0 1px 0 var(--navy-line)}
+.hdr-in{display:flex;align-items:center;gap:32px;height:76px;transition:height .25s var(--ease)}
+.hdr.compact .hdr-in{height:62px}
+.logo{display:flex;align-items:center;flex:none}
+.logo img{height:32px;width:auto}
+.nav{display:flex;align-items:stretch;gap:2px;height:100%;margin:0;padding:0;list-style:none}
+.nav li{display:flex}
+.nav-btn{display:flex;align-items:center;gap:6px;background:none;border:0;color:#e6ebf5;font-size:15px;font-weight:500;padding:0 14px;cursor:pointer;position:relative}
+.nav-btn .ico{width:14px;height:14px;opacity:.7;transition:transform .2s var(--ease)}
+.nav-btn::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .22s var(--ease)}
+.nav-btn:hover,.nav-btn[aria-expanded="true"]{color:#fff}
+.nav-btn[aria-expanded="true"]::after{transform:scaleX(1)}
+.nav-btn[aria-expanded="true"] .ico{transform:rotate(180deg)}
+.hdr-cta{margin-left:auto;display:flex;align-items:center;gap:12px}
+.hdr-cta .signin{color:#e6ebf5;text-decoration:none;font-size:15px;font-weight:500;padding:0 12px;min-height:44px;display:inline-flex;align-items:center;gap:8px}
+.hdr-cta .signin:hover{color:#fff}
+.burger{display:none;margin-left:auto;background:none;border:1px solid var(--navy-line);color:#fff;width:44px;height:44px;border-radius:var(--r-sm);align-items:center;justify-content:center;cursor:pointer}
+
+/* ---------- mega menu (tabbed) ---------- */
+.mega{position:absolute;left:0;right:0;top:100%;padding:0 32px;pointer-events:none}
+.mega-card{max-width:calc(var(--wrap) - 64px);margin:0 auto;background:var(--paper);border-radius:0 0 var(--r-md) var(--r-md);box-shadow:var(--shadow-2);display:grid;grid-template-columns:232px 1fr 280px;min-height:340px;overflow:hidden;opacity:0;transform:translateY(-8px);transition:opacity .2s var(--ease),transform .2s var(--ease);border-top:1px solid var(--gold)}
+.mega.open{pointer-events:auto}
+.mega.open .mega-card{opacity:1;transform:none}
+.mega[hidden]{display:block;visibility:hidden}
+.mega.open[hidden]{visibility:visible}
+.rail{background:var(--mist);padding:16px 0;border-right:1px solid var(--line);display:flex;flex-direction:column}
+.rail-tab{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;width:100%;background:none;border:0;padding:12px 24px;min-height:46px;color:var(--slate);font-weight:500;font-size:15px;cursor:pointer;position:relative}
+.rail-tab::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:2px;background:var(--teal);transform:scaleY(0);transition:transform .18s var(--ease)}
+.rail-tab .ico{width:14px;height:14px;transform:rotate(-90deg);opacity:0;transition:opacity .18s var(--ease)}
+.rail-tab[aria-selected="true"]{color:var(--navy);background:var(--paper)}
+.rail-tab[aria-selected="true"]::before{transform:scaleY(1)}
+.rail-tab[aria-selected="true"] .ico{opacity:.6}
+.rail-foot{margin-top:auto;padding:16px 24px 8px;font-size:13px;color:var(--slate-2)}
+.panes{position:relative;padding:28px 32px}
+.pane[hidden]{display:none}
+.pane{animation:paneIn .22s var(--ease)}
+@keyframes paneIn{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:none}}
+.pane-title{font-family:var(--serif);font-size:20px;font-weight:600;margin:0 0 4px;color:var(--navy)}
+.pane-sub{font-size:14px;color:var(--slate);margin:0 0 20px}
+.links{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;list-style:none;margin:0;padding:0}
+.mlink{display:flex;gap:14px;padding:12px;margin:0 -12px;border-radius:var(--r-sm);text-decoration:none;min-height:44px;transition:background-color .15s var(--ease)}
+.mlink:hover,.mlink:focus-visible{background:var(--mist)}
+.mlink-ic{width:36px;height:36px;border-radius:var(--r-sm);display:grid;place-items:center;background:var(--teal-wash);color:var(--teal-ink);flex:none}
+.mlink-t{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-weight:600;font-size:15px;color:var(--ink)}
+.mlink-p{font-weight:500;font-size:13px;color:var(--teal-ink)}
+.mlink-p.soon{color:var(--slate-2)}
+.mlink-d{display:block;font-size:13.5px;color:var(--slate);line-height:1.45;margin-top:2px}
+.feature{background:var(--navy);color:#fff;padding:28px;display:flex;flex-direction:column;gap:12px;position:relative}
+.feature::before{content:"";position:absolute;inset:12px;border:1px solid var(--gold-soft);border-radius:var(--r-sm);pointer-events:none}
+.feature-k{font-size:13px;color:var(--on-navy-2)}
+.feature-v{font-family:var(--serif);font-size:26px;line-height:1.15;font-weight:600;letter-spacing:-.01em}
+.feature-v small{font-family:var(--sans);font-size:14px;font-weight:400;color:var(--on-navy-2);letter-spacing:0}
+.feature p{margin:0;font-size:14px;color:var(--on-navy-2);line-height:1.5}
+.feature .btn{margin-top:auto;align-self:flex-start;position:relative}
+
+/* ---------- mobile drawer ---------- */
+.drawer{position:fixed;inset:0;z-index:80;visibility:hidden}
+.drawer.open{visibility:visible}
+.drawer-scrim{position:absolute;inset:0;background:rgba(7,22,58,.5);opacity:0;transition:opacity .22s var(--ease)}
+.drawer-panel{position:absolute;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--paper);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .26s var(--ease)}
+.drawer.open .drawer-scrim{opacity:1}
+.drawer.open .drawer-panel{transform:none}
+.drawer-top{display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 24px;height:64px;background:var(--navy);flex:none}
+.drawer-top img{height:28px}
+.drawer-x{background:none;border:0;color:#fff;width:44px;height:44px;display:grid;place-items:center;cursor:pointer}
+.drawer-body{overflow-y:auto;flex:1;padding:8px 0}
+.acc-btn{width:100%;display:flex;justify-content:space-between;align-items:center;min-height:56px;padding:0 24px;background:none;border:0;border-bottom:1px solid var(--line);font-weight:600;font-size:16px;cursor:pointer;text-align:left}
+.acc-btn .ico{transition:transform .2s var(--ease);color:var(--slate)}
+.acc-btn[aria-expanded="true"] .ico{transform:rotate(180deg)}
+.acc-panel{background:var(--mist);border-bottom:1px solid var(--line);padding:8px 12px}
+.acc-panel[hidden]{display:none}
+.acc-panel .mlink{margin:0}
+.drawer-foot{padding:16px 24px 24px;border-top:1px solid var(--line);display:grid;gap:12px;flex:none}
+.drawer-foot .btn{width:100%}
+.drawer-contact{font-size:14px;color:var(--slate);display:flex;flex-wrap:wrap;gap:4px 16px}
+.drawer-contact a{text-decoration:none;min-height:32px;display:inline-flex;align-items:center;gap:6px}
+
+/* ---------- hero ---------- */
+.hero{background:var(--navy);color:#fff;position:relative;overflow:hidden;padding:88px 0 120px}
+.hero-grid-bg{position:absolute;inset:0;opacity:.5;pointer-events:none;background-image:linear-gradient(var(--navy-line) 1px,transparent 1px),linear-gradient(90deg,var(--navy-line) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 60% 70% at 78% 40%,#000 0%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse 60% 70% at 78% 40%,#000 0%,transparent 75%)}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold) 20%,var(--gold) 80%,transparent)}
+.hero-in{position:relative;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:72px;align-items:center}
+.hero-copy .h-display{max-width:14ch}
+.hero-sub{font-size:19px;line-height:1.6;color:var(--on-navy-2);max-width:52ch;margin:24px 0 36px}
+.dsearch{display:flex;background:#fff;border-radius:var(--r-md);padding:6px;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 16px 40px rgba(0,0,0,.25);max-width:580px}
+.dsearch label{display:flex;align-items:center;gap:10px;flex:1;padding:0 12px;color:var(--slate-2);min-width:0}
+.dsearch input{border:0;outline:0;flex:1;min-width:0;height:48px;font-size:17px;color:var(--ink);background:transparent}
+.dsearch input::placeholder{color:var(--slate-2)}
+.dsearch:focus-within{box-shadow:0 0 0 2px var(--teal),0 16px 40px rgba(0,0,0,.25)}
+.dsearch .btn{min-height:48px;padding:0 24px}
+.tlds{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0;padding:0;list-style:none}
+.tlds a{display:inline-flex;align-items:baseline;gap:8px;min-height:36px;padding:7px 12px;border:1px solid var(--navy-line);border-radius:var(--r-sm);text-decoration:none;font-size:14px;color:var(--on-navy-2);transition:border-color .15s var(--ease),color .15s var(--ease)}
+.tlds a:hover{border-color:var(--gold-soft);color:#fff}
+.tlds b{color:#fff;font-weight:600}
+.trust{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:36px;padding-top:24px;border-top:1px solid var(--navy-line);font-size:14px;color:var(--on-navy-2);max-width:580px}
+.trust span{display:inline-flex;align-items:center;gap:8px}
+.trust .ico{color:var(--teal);width:16px;height:16px}
+.stars{display:inline-flex;gap:2px;color:var(--gold)}
+.stars svg{width:14px;height:14px;fill:currentColor}
+
+/* configurator */
+.cfg-stage{position:relative;padding:16px 0}
+.cfg-shadow{position:absolute;inset:40px -16px -8px 32px;border:1px solid var(--gold-soft);border-radius:var(--r-lg)}
+.cfg{position:relative;background:var(--paper);color:var(--ink);border-radius:var(--r-lg);box-shadow:var(--shadow-2);overflow:hidden;animation:float 20s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.cfg-head{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line)}
+.cfg-head h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:0;color:var(--navy)}
+.cfg-head span{font-size:13px;color:var(--slate)}
+.cfg-body{padding:20px 24px 24px}
+.cfg fieldset{border:0;margin:0 0 20px;padding:0;min-width:0}
+.cfg legend{font-size:13.5px;font-weight:600;color:var(--slate);padding:0;margin-bottom:10px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--mist);border:1px solid var(--line);border-radius:var(--r-md);padding:4px;position:relative}
+.seg-thumb{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);background:var(--paper);border-radius:var(--r-sm);box-shadow:0 1px 2px rgba(11,31,75,.12),0 0 0 1px var(--line);transition:transform .3s var(--ease)}
+.seg label{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;font-size:14.5px;font-weight:500;color:var(--slate);cursor:pointer;z-index:1;transition:color .2s var(--ease)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked+span{color:var(--navy)}
+.seg input:focus-visible+span{outline:2px solid var(--teal);outline-offset:4px;border-radius:2px}
+.seg .cc{font-size:11.5px;font-weight:600;color:var(--slate-2);border:1px solid var(--line);border-radius:3px;padding:0 4px;line-height:16px}
+.plans-pick{display:grid;gap:8px}
+.pp{position:relative;display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);cursor:pointer;transition:border-color .18s var(--ease),background-color .18s var(--ease)}
+.pp input{position:absolute;opacity:0}
+.pp-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid #b5bfd3;display:grid;place-items:center}
+.pp-dot::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal-ink);transform:scale(0);transition:transform .18s var(--ease)}
+.pp-n{font-weight:600;font-size:15px}
+.pp-s{display:block;font-size:13px;color:var(--slate);font-weight:400}
+.pp-p{font-size:14px;color:var(--slate);font-variant-numeric:tabular-nums}
+.pp:has(input:checked){border-color:var(--teal-ink);background:#f6fbfb}
+.pp input:checked~.pp-dot{border-color:var(--teal-ink)}
+.pp input:checked~.pp-dot::after{transform:scale(1)}
+.pp input:focus-visible~.pp-dot{outline:2px solid var(--teal);outline-offset:3px}
+.pp-tag{font-size:11.5px;font-weight:600;color:var(--amber);background:var(--amber-wash);border-radius:3px;padding:1px 6px;margin-left:8px;vertical-align:2px}
+.cfg-sum{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;padding:20px 24px;background:var(--mist);border-top:1px solid var(--line)}
+.cfg-name{font-size:13.5px;color:var(--slate)}
+.cfg-name b{color:var(--ink);font-weight:600}
+.price{display:flex;align-items:flex-start;font-family:var(--serif);font-weight:600;color:var(--navy);font-size:52px;line-height:1;letter-spacing:-.02em;margin-top:6px;font-variant-numeric:tabular-nums}
+.price .cur{font-size:24px;margin-top:6px;margin-right:2px}
+.price .dot{width:.26em;text-align:center}
+.odo{display:inline-block;height:1em;overflow:hidden;position:relative;width:.56em}
+.odo-col{display:flex;flex-direction:column;transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+.odo-col span{height:1em;line-height:1;text-align:center}
+.price .cents{font-size:24px;margin-top:6px;display:flex}
+.price .cents .odo{width:.6em}
+.per{font-size:13px;color:var(--slate);margin-top:6px}
+.cfg-feats{display:flex;flex-wrap:wrap;gap:6px 14px;margin:14px 0 0;padding:0;list-style:none;font-size:13.5px;color:var(--slate)}
+.cfg-feats li{display:inline-flex;align-items:center;gap:6px;transition:opacity .25s var(--ease)}
+.cfg-feats .ico{width:14px;height:14px;color:var(--teal-ink)}
+.cfg-feats.swap li{opacity:0}
+
+/* ---------- assurance row ---------- */
+.assure{border-bottom:1px solid var(--line)}
+.assure-in{display:grid;grid-template-columns:auto 1fr;gap:40px;align-items:center;padding:28px 0}
+.assure-k{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--navy);padding-right:40px;border-right:1px solid var(--line);line-height:1.3}
+.assure-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;list-style:none;margin:0;padding:0}
+.assure-list li{display:flex;align-items:center;gap:12px;font-size:14px;line-height:1.35;color:var(--slate)}
+.assure-list b{display:block;color:var(--ink);font-weight:600;font-size:14.5px}
+.seal{width:40px;height:40px;border-radius:50%;border:1px solid var(--gold);display:grid;place-items:center;color:var(--navy);flex:none;position:relative}
+.seal::after{content:"";position:absolute;inset:3px;border-radius:50%;border:1px solid var(--line)}
+.seal .ico{width:18px;height:18px}
+
+/* ---------- value props ---------- */
+.vp{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line)}
+.vp-i{padding:32px 32px 8px 0;margin-right:32px;position:relative}
+.vp-i+.vp-i{padding-left:32px;margin-right:0;border-left:1px solid var(--line)}
+.vp-i:first-child{margin-right:0}
+.vp-i::before{content:"";position:absolute;top:-1px;left:0;width:40px;height:2px;background:var(--teal)}
+.vp-i+.vp-i::before{left:32px}
+.vp-ic{color:var(--teal-ink);margin-bottom:20px}
+.vp-ic .ico{width:28px;height:28px;stroke-width:1.5}
+.vp-i p{color:var(--slate);font-size:15.5px;margin:10px 0 16px}
+.tlink{display:inline-flex;align-items:center;gap:6px;color:var(--teal-ink);font-weight:600;font-size:15px;text-decoration:none;min-height:44px;border-bottom:1px solid transparent}
+.tlink:hover{text-decoration:underline;text-underline-offset:4px}
+
+/* ---------- shared plans ---------- */
+.plans-sec{background:var(--mist);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.plans-top{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;margin-bottom:40px;flex-wrap:wrap}
+.plans-top .sec-head{margin-bottom:0}
+.loc-tabs{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);padding:4px;gap:4px}
+.loc-tabs button{min-height:40px;padding:0 18px;border:0;background:none;border-radius:var(--r-sm);font-weight:500;font-size:14.5px;color:var(--slate);cursor:pointer;transition:background-color .2s var(--ease),color .2s var(--ease)}
+.loc-tabs button[aria-selected="true"]{background:var(--navy);color:#fff}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);padding:32px;display:flex;flex-direction:column;position:relative}
+.card.hi{border-color:var(--navy);box-shadow:var(--shadow-1)}
+.card.hi::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:3px;background:var(--gold);border-radius:var(--r-md) var(--r-md) 0 0}
+.card-flag{position:absolute;top:20px;right:20px;font-size:12.5px;font-weight:600;color:var(--navy);background:#f3ead6;border-radius:3px;padding:2px 8px}
+.card h3{font-family:var(--serif);font-size:24px;font-weight:600;margin:0;color:var(--navy)}
+.card .loc{font-size:14px;color:var(--slate);margin-top:4px}
+.card .amt{font-family:var(--serif);font-size:44px;font-weight:600;color:var(--ink);letter-spacing:-.02em;margin:24px 0 0;line-height:1}
+.card .amt small{font-family:var(--sans);font-size:15px;font-weight:400;color:var(--slate);letter-spacing:0}
+.card .eq{font-size:13.5px;color:var(--slate);margin-top:8px}
+.feats{list-style:none;margin:24px 0 28px;padding:24px 0 0;border-top:1px solid var(--line);display:grid;gap:12px;font-size:15px}
+.feats li{display:flex;gap:10px;align-items:flex-start}
+.feats .ico{width:18px;height:18px;color:var(--teal-ink);margin-top:3px}
+.card .btn{margin-top:auto}
+.small-print{font-size:13.5px;color:var(--slate);margin-top:24px}
+
+/* ---------- dedicated table ---------- */
+.ded-bar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:40px;padding:0 14px;border:1px solid var(--line);background:var(--paper);border-radius:var(--r-sm);font-size:14px;font-weight:500;color:var(--slate);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:border-color .15s var(--ease),color .15s var(--ease),background-color .15s var(--ease)}
+.chip .n{font-size:12.5px;color:var(--slate-2);font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{border-color:var(--navy);color:var(--navy);background:#eef2f9}
+.ded-count{font-size:14px;color:var(--slate)}
+.tablewrap{border:1px solid var(--line);border-radius:var(--r-md);max-height:560px;overflow:auto;background:var(--paper);overscroll-behavior:contain}
+table.spec{width:100%;border-collapse:separate;border-spacing:0;font-size:14.5px;min-width:980px}
+.spec th,.spec td{padding:12px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.spec thead th{position:sticky;top:0;z-index:2;background:var(--navy);color:#fff;font-weight:500;font-size:13.5px;border-bottom:1px solid var(--gold)}
+.spec thead th:first-child{z-index:3}
+.spec th:first-child,.spec td:first-child{position:sticky;left:0;background:inherit}
+.spec thead th:first-child{background:var(--navy)}
+.spec tbody tr{background:var(--paper)}
+.spec tbody tr:nth-child(even){background:#fafbfd}
+.spec tbody tr:hover{background:#f0f6f6}
+.spec td:first-child{box-shadow:1px 0 0 var(--line)}
+.sort{background:none;border:0;color:inherit;font:inherit;display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:0;min-height:28px}
+.sort .ico{width:13px;height:13px;opacity:.55;transition:transform .2s var(--ease),opacity .2s}
+th[aria-sort="ascending"] .sort .ico{opacity:1}
+th[aria-sort="descending"] .sort .ico{opacity:1;transform:rotate(180deg)}
+.srv b{display:block;font-weight:600;color:var(--ink)}
+.srv span{font-size:13px;color:var(--slate)}
+.num{font-variant-numeric:tabular-nums}
+.pr{font-weight:600;color:var(--navy);font-variant-numeric:tabular-nums}
+.spec th.r{text-align:right}
+.badge{display:inline-block;font-size:12.5px;font-weight:600;border-radius:3px;padding:2px 8px;line-height:1.5}
+.b-eol{background:var(--mist);color:var(--slate)}
+.b-hot{background:var(--teal-wash);color:var(--teal-ink)}
+.b-sale{background:#f3ead6;color:#6b4e12}
+.b-out{background:var(--red-wash);color:var(--red)}
+.b-pre{background:#eaeefb;color:#2a3f8f}
+.b-10g{background:var(--navy);color:#fff}
+.spec .btn{min-height:36px;padding:0 12px;font-size:14px}
+.spec td:last-child,.spec th:last-child{padding-left:4px;padding-right:12px}
+.empty{padding:48px;text-align:center;color:var(--slate)}
+
+/* ---------- why ---------- */
+.why{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:80px;align-items:start}
+.rating{margin-top:40px;padding:28px;border:1px solid var(--line);border-radius:var(--r-md);display:flex;gap:20px;align-items:center;max-width:420px}
+.rating-n{font-family:var(--serif);font-size:48px;font-weight:600;color:var(--navy);line-height:1;letter-spacing:-.02em}
+.rating-n small{font-size:20px;color:var(--slate-2)}
+.rating p{margin:6px 0 0;font-size:14px;color:var(--slate)}
+.rating .stars svg{width:18px;height:18px}
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.why-i{padding:32px 32px 32px 0;border-bottom:1px solid var(--line)}
+.why-i:nth-child(even){padding-left:32px;padding-right:0;border-left:1px solid var(--line)}
+.why-i:nth-child(-n+2){border-top:1px solid var(--line)}
+.why-i .ico{width:26px;height:26px;color:var(--teal-ink);stroke-width:1.5}
+.why-i h3{margin-top:16px}
+.why-i p{color:var(--slate);font-size:15.5px;margin:8px 0 0}
+
+/* ---------- products strip ---------- */
+.prod-sec{background:var(--mist);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.prods{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:24px}
+.prod{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);padding:28px;display:flex;flex-direction:column}
+.prod-ic{width:44px;height:44px;border-radius:var(--r-sm);background:var(--navy);color:#fff;display:grid;place-items:center;margin-bottom:20px}
+.prod p{color:var(--slate);font-size:15px;margin:8px 0 20px}
+.prod .tlink{margin-top:auto}
+.tiers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 0 20px}
+.tier{border:1px solid var(--line);border-radius:var(--r-sm);padding:14px}
+.tier b{display:block;font-size:14.5px;color:var(--navy)}
+.tier ul{list-style:none;margin:8px 0 0;padding:0;font-size:13px;color:var(--slate);display:grid;gap:3px}
+.soon-note{margin-top:20px;font-size:14px;color:var(--slate)}
+
+/* ---------- network ---------- */
+.net{background:var(--navy);color:#fff;position:relative;overflow:hidden}
+.net-in{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:48px;align-items:center}
+.map{position:relative}
+.map svg{width:100%;height:auto;display:block}
+.map .land{stroke:#4b68a6;stroke-width:4;stroke-linecap:round;fill:none}
+.arc{fill:none;stroke:var(--gold);stroke-width:1.4;stroke-dasharray:3 5;opacity:.75}
+.pin-core{fill:var(--teal)}
+.pin-hq{fill:var(--gold)}
+.pin-ring{fill:none;stroke:var(--teal);stroke-width:1.5;transform-box:fill-box;transform-origin:center;opacity:0;animation:ring 24s var(--ease) infinite}
+@keyframes ring{0%{opacity:0;transform:scale(.6)}2%{opacity:.9}12%{opacity:0;transform:scale(3)}100%{opacity:0;transform:scale(3)}}
+.pin-lbl{font-family:var(--sans);font-size:22px;fill:#dce3f2;font-weight:500}
+.net-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--navy-line);border-bottom:1px solid var(--navy-line);margin:32px 0}
+.net-stats div{padding:20px 0}
+.net-stats div+div{padding-left:20px;border-left:1px solid var(--navy-line)}
+.net-stats b{display:block;font-family:var(--serif);font-size:32px;font-weight:600;letter-spacing:-.01em;line-height:1.1}
+.net-stats span{display:block;font-size:13.5px;line-height:1.4;color:var(--on-navy-2);margin-top:4px}
+.dc-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;font-size:15px}
+.dc-list li{display:flex;align-items:center;gap:10px;color:#e6ebf5}
+.dc-list i{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px rgba(14,165,164,.2)}
+.net-note{font-size:13.5px;color:var(--on-navy-2);margin-top:24px}
+
+/* ---------- head to head ---------- */
+.h2h{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
+.h2h table{width:100%;border-collapse:collapse;font-size:15.5px}
+.h2h th,.h2h td{padding:18px 24px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.h2h tr:last-child th,.h2h tr:last-child td{border-bottom:0}
+.h2h thead th{font-weight:600;font-size:14px;color:var(--slate);background:var(--mist)}
+.h2h thead th.us{background:var(--navy);color:#fff;font-family:var(--serif);font-size:18px;border-top:3px solid var(--gold)}
+.h2h tbody th{font-weight:600;color:var(--ink);width:26%}
+.h2h td.us{background:#f6fbfb;color:var(--ink)}
+.h2h td.them{color:var(--slate)}
+.cell{display:flex;gap:10px;align-items:flex-start}
+.cell .ico{width:18px;height:18px;margin-top:3px}
+.us .ico{color:var(--teal-ink)}
+.them .ico{color:var(--slate-2)}
+
+/* ---------- clients ---------- */
+.clients{padding:72px 0;border-top:1px solid var(--line)}
+.clients-in{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center}
+.clients-k{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--navy);max-width:16ch;line-height:1.3}
+.wm{display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap;color:#5b6684}
+.wm span{font-size:22px;white-space:nowrap}
+.wm-1{font-family:var(--sans);font-weight:600;letter-spacing:-.02em}
+.wm-2{font-family:var(--serif);font-weight:600}
+.wm-3{font-family:var(--sans);font-weight:600;letter-spacing:.2em}
+.wm-4{font-family:var(--sans);font-weight:400;letter-spacing:-.01em}
+.wm-4 b{font-weight:600}
+.wm-5{font-family:var(--serif);font-weight:500;font-style:italic}
+
+/* ---------- faq ---------- */
+.faq-sec{background:var(--mist);border-top:1px solid var(--line)}
+.faq-in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:80px}
+.faq-help{margin-top:32px;font-size:15px;color:var(--slate)}
+.faq-help a{color:var(--teal-ink);font-weight:600}
+.faq{border-top:1px solid var(--line)}
+.faq-q{margin:0}
+.faq-btn{width:100%;display:flex;justify-content:space-between;align-items:center;gap:24px;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:22px 0;min-height:64px;font-family:var(--serif);font-weight:600;font-size:19px;color:var(--navy);cursor:pointer}
+.faq-btn .pm{width:32px;height:32px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;flex:none;background:var(--paper);transition:transform .25s var(--ease),border-color .2s}
+.faq-btn[aria-expanded="true"] .pm{transform:rotate(45deg);border-color:var(--teal-ink);color:var(--teal-ink)}
+.faq-a{border-bottom:1px solid var(--line);padding:0 56px 24px 0;color:var(--slate);font-size:16px;margin-top:-1px;animation:fadeIn .3s var(--ease)}
+.faq-a[hidden]{display:none}
+.faq-a p{margin:0}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* ---------- cta ---------- */
+.cta{background:var(--navy);color:#fff;position:relative}
+.cta::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold) 20%,var(--gold) 80%,transparent)}
+.cta-in{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:56px;align-items:center;padding:88px 0}
+.cta p{color:var(--on-navy-2);font-size:18px;margin:16px 0 0;max-width:52ch}
+.cta-box{border:1px solid var(--navy-line);border-radius:var(--r-md);padding:28px;display:grid;gap:16px;background:rgba(255,255,255,.03)}
+.cta-line{display:flex;align-items:center;gap:14px;text-decoration:none;min-height:44px}
+.cta-line .ico{color:var(--teal)}
+.cta-line b{display:block;font-size:17px;font-weight:600}
+.cta-line span{font-size:13.5px;color:var(--on-navy-2)}
+.cta-btns{display:flex;gap:12px;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--navy-line)}
+.cta-btns .btn{flex:1}
+
+/* ---------- footer ---------- */
+.ftr{background:var(--navy-deep);color:var(--on-navy-2);font-size:14.5px}
+.ftr-top{display:grid;grid-template-columns:1.4fr repeat(5,1fr);gap:32px;padding:72px 0 48px}
+.ftr h3{font-family:var(--sans);font-size:14px;font-weight:600;color:#fff;margin:0 0 16px}
+.ftr ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.ftr a{text-decoration:none;display:inline-flex;align-items:center;min-height:32px}
+.ftr a:hover{color:#fff}
+.ftr-brand p{margin:16px 0;max-width:34ch;line-height:1.55}
+.ftr-brand img{height:30px}
+.ftr-contact a{gap:8px}
+.ftr-contact .ico{width:15px;height:15px;color:var(--teal)}
+.ftr-bot{border-top:1px solid var(--navy-line);padding:24px 0 96px;display:flex;justify-content:space-between;gap:16px 32px;flex-wrap:wrap;font-size:13px}
+.ftr-bot p{margin:0}
+
+/* ---------- preview pill ---------- */
+.pill{position:fixed;left:16px;bottom:16px;z-index:60;background:var(--paper);color:var(--navy);border:1px solid var(--line);box-shadow:var(--shadow-1);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;min-height:40px;display:inline-flex;align-items:center;gap:8px}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold)}
+
+/* ---------- reveal ---------- */
+.rv{opacity:0;transform:translateY(14px);transition:opacity .55s var(--ease),transform .55s var(--ease);transition-delay:calc(var(--i,0) * 60ms)}
+.rv.in{opacity:1;transform:none}
+.paused,.paused *{animation-play-state:paused!important}
+
+/* ---------- responsive ---------- */
+@media (max-width:1180px){
+  .nav-btn{padding:0 10px;font-size:14.5px}
+  .hdr-in{gap:20px}
+  .assure-list{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .ftr-top{grid-template-columns:repeat(3,1fr)}
+  .ftr-brand{grid-column:1/-1}
+  .prods{grid-template-columns:1fr 1fr}
+}
+@media (max-width:1023px){
+  .nav,.hdr-cta{display:none}
+  .burger{display:inline-flex}
+  .mega{display:none}
+  .hero{padding:56px 0 80px}
+  .hero-in{grid-template-columns:1fr;gap:56px}
+  .cfg-stage{max-width:560px}
+  .vp{grid-template-columns:1fr 1fr}
+  .vp-i,.vp-i+.vp-i{padding:32px 24px 8px 0;margin:0;border-left:0}
+  .vp-i:nth-child(even){padding-left:24px;border-left:1px solid var(--line)}
+  .vp-i:nth-child(n+3){border-top:1px solid var(--line)}
+  .vp-i+.vp-i::before{left:0}
+  .vp-i:nth-child(even)::before{left:24px}
+  .why,.faq-in,.net-in,.cta-in{grid-template-columns:1fr;gap:48px}
+  .assure-in{grid-template-columns:1fr;gap:20px}
+  .assure-k{border-right:0;padding-right:0}
+  .clients-in{grid-template-columns:1fr;gap:28px}
+  .cards{grid-template-columns:1fr;max-width:520px}
+  .sec{padding:88px 0}
+}
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{padding:0 20px}
+  .util-hide{display:none!important}
+  .util .wrap{gap:12px}
+  .util-l,.util-r{gap:16px}
+  .hdr-in{height:64px}
+  .hero-sub{font-size:17px}
+  .dsearch{flex-direction:column;gap:6px}
+  .dsearch .btn{width:100%}
+  .cfg-shadow{display:none}
+  .seg .cc{display:none}
+  .cfg-head,.cfg-body,.cfg-sum{padding-left:18px;padding-right:18px}
+  .cfg-sum{grid-template-columns:1fr}
+  .cfg-sum .btn{width:100%}
+  .price{font-size:46px}
+  .vp{grid-template-columns:1fr}
+  .vp-i,.vp-i+.vp-i,.vp-i:nth-child(even){padding:28px 0 8px;border-left:0}
+  .vp-i:nth-child(n+2){border-top:1px solid var(--line)}
+  .vp-i::before,.vp-i+.vp-i::before,.vp-i:nth-child(even)::before{left:0}
+  .assure-list{grid-template-columns:1fr;gap:16px}
+  .why-grid{grid-template-columns:1fr}
+  .why-i,.why-i:nth-child(even){padding:28px 0;border-left:0}
+  .why-i:nth-child(2){border-top:0}
+  .prods{grid-template-columns:1fr}
+  .loc-tabs{width:100%}
+  .loc-tabs button{flex:1;padding:0 8px}
+  .card{padding:28px 24px}
+  .net-stats b{font-size:26px}
+  .dc-list{grid-template-columns:1fr 1fr}
+  .h2h{border:0;border-radius:0}
+  .h2h thead{display:none}
+  .h2h tbody tr{display:block;border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:16px;overflow:hidden}
+  .h2h tbody th,.h2h tbody td{display:block;width:auto;border-bottom:1px solid var(--line);padding:14px 18px}
+  .h2h tbody tr td:last-child{border-bottom:0}
+  .h2h tbody th{background:var(--mist)}
+  .h2h td.us::before,.h2h td.them::before{display:block;font-size:12.5px;font-weight:600;margin-bottom:4px}
+  .h2h td.us::before{content:"Globalhostia";color:var(--teal-ink)}
+  .h2h td.them::before{content:"Typical host";color:var(--slate-2)}
+  .wm{justify-content:flex-start;gap:20px 32px}
+  .wm span{font-size:19px}
+  .faq-btn{font-size:17px}
+  .faq-a{padding-right:0}
+  .ftr-top{grid-template-columns:1fr 1fr}
+  .cta-btns{flex-direction:column}
+  .sec{padding:72px 0}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .rv{opacity:1;transform:none}
+  .pin-ring{display:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+  <symbol id="i-buoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></symbol>
+  <symbol id="i-flow" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><path d="M7 11v4a2 2 0 0 0 2 2h4"/><rect x="13" y="13" width="8" height="8" rx="2"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></symbol>
+  <symbol id="i-kanban" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 7v7M12 7v4M16 7v9"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r=".5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-drive" viewBox="0 0 24 24"><path d="M22 12H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11zM6 16h.01M10 16h.01"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></symbol>
+  <symbol id="i-headset" viewBox="0 0 24 24"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5M9 8V2M15 8V2M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+</svg>
+
+<!-- Utility bar -->
+<div class="util">
+  <div class="wrap">
+    <div class="util-l">
+      <a href="tel:+971507341578"><svg class="ico"><use href="#i-phone"/></svg>+971 50 734 1578</a>
+      <a class="util-hide" href="mailto:support@globalhostia.com"><svg class="ico"><use href="#i-mail"/></svg>support@globalhostia.com</a>
+    </div>
+    <div class="util-r">
+      <a class="util-hide" href="https://globalhostia.com/status-page"><svg class="ico"><use href="#i-activity"/></svg>System status</a>
+      <span class="util-sep util-hide" aria-hidden="true"></span>
+      <label class="lang util-hide"><svg class="ico" aria-hidden="true"><use href="#i-globe"/></svg><span class="sr-only">Language</span>
+        <select aria-label="Language"><option>English</option><option lang="ar">العربية</option></select>
+      </label>
+      <span class="util-sep util-hide" aria-hidden="true"></span>
+      <a href="https://globalhostia.com/secure/clientarea.php"><svg class="ico"><use href="#i-user"/></svg>Client login</a>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="hdr" id="hdr">
+  <div class="wrap hdr-in">
+    <a class="logo" href="#" aria-label="Globalhostia home"><img src="/image/logo-main-white.png" alt="Globalhostia" width="160" height="32"></a>
+    <nav aria-label="Primary" style="height:100%">
+      <ul class="nav" id="nav">
+        <li><button class="nav-btn" data-tab="hosting" aria-expanded="false" aria-controls="mega">Hosting<svg class="ico"><use href="#i-down"/></svg></button></li>
+        <li><button class="nav-btn" data-tab="servers" aria-expanded="false" aria-controls="mega">Servers<svg class="ico"><use href="#i-down"/></svg></button></li>
+        <li><button class="nav-btn" data-tab="domains" aria-expanded="false" aria-controls="mega">Domains<svg class="ico"><use href="#i-down"/></svg></button></li>
+        <li><button class="nav-btn" data-tab="security" aria-expanded="false" aria-controls="mega">Security<svg class="ico"><use href="#i-down"/></svg></button></li>
+        <li><button class="nav-btn" data-tab="business" aria-expanded="false" aria-controls="mega">Business tools<svg class="ico"><use href="#i-down"/></svg></button></li>
+        <li><button class="nav-btn" data-tab="support" aria-expanded="false" aria-controls="mega">Support<svg class="ico"><use href="#i-down"/></svg></button></li>
+      </ul>
+    </nav>
+    <div class="hdr-cta">
+      <a class="signin" href="https://globalhostia.com/secure/clientarea.php">Sign in</a>
+      <a class="btn btn-teal" href="https://globalhostia.com/secure/cart.php">Get started</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="drawer"><svg class="ico"><use href="#i-menu"/></svg></button>
+  </div>
+
+  <div class="mega" id="mega" hidden>
+    <div class="mega-card" id="megaCard">
+      <div class="rail" role="tablist" aria-label="Product categories" aria-orientation="vertical" id="rail"></div>
+      <div class="panes" id="panes"></div>
+      <aside class="feature" id="feature" aria-live="polite"></aside>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile drawer -->
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-scrim" data-close></div>
+  <div class="drawer-panel" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="drawer-top">
+      <img src="/image/logo-main-white.png" alt="Globalhostia" width="140" height="28">
+      <button class="drawer-x" data-close aria-label="Close menu"><svg class="ico"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-foot">
+      <a class="btn btn-navy" href="https://globalhostia.com/secure/cart.php">Get started</a>
+      <a class="btn btn-line" href="https://globalhostia.com/secure/clientarea.php">Sign in</a>
+      <div class="drawer-contact">
+        <a href="tel:+971507341578"><svg class="ico ico-sm"><use href="#i-phone"/></svg>+971 50 734 1578</a>
+        <a href="mailto:support@globalhostia.com"><svg class="ico ico-sm"><use href="#i-mail"/></svg>support@globalhostia.com</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+<!-- Hero -->
+<section class="hero" aria-labelledby="hero-h">
+  <div class="hero-grid-bg" aria-hidden="true"></div>
+  <div class="wrap hero-in">
+    <div class="hero-copy">
+      <h1 class="h-display rv" id="hero-h">Hosting your business can rely on, year after year.</h1>
+      <p class="hero-sub rv" style="--i:1">Web hosting, managed cloud VPS and dedicated servers across six datacenters, on NVMe storage with daily backups and engineers on call around the clock.</p>
+      <form class="dsearch rv" style="--i:2" action="https://globalhostia.com/secure/cart.php" method="get" role="search" aria-label="Domain search">
+        <input type="hidden" name="a" value="add">
+        <input type="hidden" name="domain" value="register">
+        <label><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">Domain name</span>
+          <input type="text" name="query" placeholder="Find a domain, e.g. yourbrand.com" autocomplete="off" spellcheck="false" required>
+        </label>
+        <button class="btn btn-navy" type="submit">Search domains</button>
+      </form>
+      <ul class="tlds rv" style="--i:3" aria-label="Domain prices per year">
+        <li><a href="https://globalhostia.com/domains-registration">.com <b>$13.65</b></a></li>
+        <li><a href="https://globalhostia.com/domains-registration">.net <b>$8.29</b></a></li>
+        <li><a href="https://globalhostia.com/domains-registration">.shop <b>$1.20</b></a></li>
+        <li><a href="https://globalhostia.com/domains-registration">.org <b>$8.65</b></a></li>
+        <li><a href="https://globalhostia.com/domains-registration">.live <b>$2.99</b></a></li>
+      </ul>
+      <div class="trust rv" style="--i:4">
+        <span><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>Rated Excellent 4.89/5</span>
+        <span><svg class="ico"><use href="#i-activity"/></svg>99.93% uptime</span>
+        <span><svg class="ico"><use href="#i-headset"/></svg>24/7 priority support</span>
+      </div>
+    </div>
+
+    <div class="cfg-stage rv" style="--i:2" id="cfgStage">
+      <div class="cfg-shadow" aria-hidden="true"></div>
+      <form class="cfg" id="cfg" action="https://globalhostia.com/shared-hosting" method="get" aria-labelledby="cfg-h">
+        <div class="cfg-head">
+          <h2 id="cfg-h">Configure shared hosting</h2>
+          <span>Billed yearly</span>
+        </div>
+        <div class="cfg-body">
+          <fieldset>
+            <legend>Server location</legend>
+            <div class="seg" id="seg">
+              <span class="seg-thumb" aria-hidden="true"></span>
+              <label><input type="radio" name="loc" value="USA" checked><span>USA <span class="cc">US</span></span></label>
+              <label><input type="radio" name="loc" value="Malaysia"><span>Malaysia <span class="cc">MY</span></span></label>
+              <label><input type="radio" name="loc" value="Singapore"><span>Singapore <span class="cc">SG</span></span></label>
+            </div>
+          </fieldset>
+          <fieldset style="margin:0">
+            <legend>Plan</legend>
+            <div class="plans-pick">
+              <label class="pp"><input type="radio" name="plan" value="lite"><span class="pp-dot" aria-hidden="true"></span><span><span class="pp-n">Hostia Lite</span><span class="pp-s">1 website, 2 GB NVMe</span></span><span class="pp-p">$29.99</span></label>
+              <label class="pp"><input type="radio" name="plan" value="ultra" checked><span class="pp-dot" aria-hidden="true"></span><span><span class="pp-n">Hostia Ultra<span class="pp-tag">Most chosen</span></span><span class="pp-s">5 websites, 5 GB NVMe</span></span><span class="pp-p">$39.99</span></label>
+              <label class="pp"><input type="radio" name="plan" value="infinity"><span class="pp-dot" aria-hidden="true"></span><span><span class="pp-n">Hostia Infinity</span><span class="pp-s">10 websites, unlimited SSD</span></span><span class="pp-p">$49.99</span></label>
+            </div>
+          </fieldset>
+        </div>
+        <div class="cfg-sum">
+          <div>
+            <div class="cfg-name" id="cfgName">Your plan: <b>Hostia Ultra USA</b></div>
+            <div class="price" aria-live="polite" aria-atomic="true">
+              <span class="sr-only" id="priceSr">$39.99 per year</span>
+              <span class="cur" aria-hidden="true">$</span>
+              <span class="odo" aria-hidden="true"><span class="odo-col" data-d="0"></span></span>
+              <span class="odo" aria-hidden="true"><span class="odo-col" data-d="1"></span></span>
+              <span class="cents" aria-hidden="true">.<span class="odo"><span class="odo-col" data-d="2"></span></span><span class="odo"><span class="odo-col" data-d="3"></span></span></span>
+            </div>
+            <div class="per" id="cfgPer">per year, about $3.33 a month</div>
+            <ul class="cfg-feats" id="cfgFeats"></ul>
+          </div>
+          <a class="btn btn-navy" id="cfgGo" href="https://globalhostia.com/shared-hosting">Continue to order</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Assurances -->
+<section class="assure" aria-label="Assurances">
+  <div class="wrap assure-in">
+    <div class="assure-k">Standards we<br>hold ourselves to</div>
+    <ul class="assure-list">
+      <li class="rv" style="--i:0"><span class="seal"><svg class="ico"><use href="#i-gauge"/></svg></span><span><b>99.93% uptime</b>Measured across the network</span></li>
+      <li class="rv" style="--i:1"><span class="seal"><svg class="ico"><use href="#i-lock"/></svg></span><span><b>Comodo, Thawte, GeoTrust</b>Certificate authorities we issue</span></li>
+      <li class="rv" style="--i:2"><span class="seal"><svg class="ico"><use href="#i-archive"/></svg></span><span><b>Daily and weekly</b>Backups on every plan</span></li>
+      <li class="rv" style="--i:3"><span class="seal"><svg class="ico"><use href="#i-star"/></svg></span><span><b>Excellent 4.89/5</b>Customer rating</span></li>
+      <li class="rv" style="--i:4"><span class="seal"><svg class="ico"><use href="#i-building"/></svg></span><span><b>Registered in the UAE</b>Desert Tech Cloud Services LLC</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- Value props -->
+<section class="sec" aria-labelledby="vp-h">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2 class="h2" id="vp-h">Four ways to run your workload</h2>
+      <p class="lede">Start on shared hosting and move up to VPS or bare metal when you need it. Same team, same account, same billing.</p>
+    </div>
+    <div class="vp">
+      <article class="vp-i rv" style="--i:0">
+        <div class="vp-ic"><svg class="ico"><use href="#i-globe"/></svg></div>
+        <h3 class="h3">Web hosting</h3>
+        <p>cPanel accounts on NVMe storage with email, databases and one-click installers. From $29.99 a year.</p>
+        <a class="tlink" href="https://globalhostia.com/web-hosting">View web hosting</a>
+      </article>
+      <article class="vp-i rv" style="--i:1">
+        <div class="vp-ic"><svg class="ico"><use href="#i-cloud"/></svg></div>
+        <h3 class="h3">Managed SSD cloud VPS</h3>
+        <p>Linux or Windows, 4 to 24 vCPU cores. We patch, monitor and back up the server for you.</p>
+        <a class="tlink" href="https://globalhostia.com/cloudvps">View cloud VPS</a>
+      </article>
+      <article class="vp-i rv" style="--i:2">
+        <div class="vp-ic"><svg class="ico"><use href="#i-layout"/></svg></div>
+        <h3 class="h3">Managed WordPress</h3>
+        <p>Core and plugin updates, daily backups and caching handled, so you can focus on content.</p>
+        <a class="tlink" href="https://globalhostia.com/wordpress-hosting">View WordPress hosting</a>
+      </article>
+      <article class="vp-i rv" style="--i:3">
+        <div class="vp-ic"><svg class="ico"><use href="#i-server"/></svg></div>
+        <h3 class="h3">Dedicated 10 Gbps servers</h3>
+        <p>Xeon and Ryzen hardware with five IPs included, on ports up to 10 Gbps. From $39.99 a month.</p>
+        <a class="tlink" href="#dedicated">Compare servers</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Shared hosting plans -->
+<section class="sec plans-sec" id="plans" aria-labelledby="plans-h">
+  <div class="wrap">
+    <div class="plans-top">
+      <div class="sec-head rv">
+        <h2 class="h2" id="plans-h">Shared hosting plans</h2>
+        <p class="lede">The same three plans in each region. Pick the location closest to your customers.</p>
+      </div>
+      <div class="loc-tabs rv" role="tablist" aria-label="Hosting location" id="locTabs">
+        <button role="tab" aria-selected="true" data-loc="USA">USA</button>
+        <button role="tab" aria-selected="false" data-loc="Malaysia" tabindex="-1">Malaysia</button>
+        <button role="tab" aria-selected="false" data-loc="Singapore" tabindex="-1">Singapore</button>
+      </div>
+    </div>
+    <div class="cards" id="planCards" role="tabpanel" aria-labelledby="plans-h"></div>
+    <p class="small-print">Prices in US dollars, billed yearly. Monthly figures are for comparison only.</p>
+  </div>
+</section>
+
+<!-- Dedicated servers -->
+<section class="sec" id="dedicated" aria-labelledby="ded-h">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2 class="h2" id="ded-h">Dedicated servers, side by side</h2>
+      <p class="lede">Every server includes five IPv4 addresses and full root access. Sort by price or memory, or filter by line.</p>
+    </div>
+    <div class="ded-bar rv">
+      <div class="chips" id="dedChips" role="group" aria-label="Filter servers"></div>
+      <div class="ded-count" id="dedCount" aria-live="polite"></div>
+    </div>
+    <div class="tablewrap rv" tabindex="0" role="region" aria-label="Dedicated server comparison table, scrollable">
+      <table class="spec" id="dedTable">
+        <thead>
+          <tr>
+            <th scope="col">Server</th>
+            <th scope="col">Processor</th>
+            <th scope="col" aria-sort="none" data-sort="ram"><button class="sort" type="button">Memory<svg class="ico"><use href="#i-down"/></svg></button></th>
+            <th scope="col">Storage</th>
+            <th scope="col">Bandwidth</th>
+            <th scope="col">Status</th>
+            <th scope="col" aria-sort="ascending" data-sort="price"><button class="sort" type="button">Monthly<svg class="ico"><use href="#i-down"/></svg></button></th>
+            <th scope="col"><span class="sr-only">Order</span></th>
+          </tr>
+        </thead>
+        <tbody id="dedBody"></tbody>
+      </table>
+    </div>
+    <p class="small-print">End-of-line servers are previous-generation hardware offered while stock lasts.</p>
+  </div>
+</section>
+
+<!-- Why -->
+<section class="sec" aria-labelledby="why-h" style="padding-top:0">
+  <div class="wrap why">
+    <div>
+      <div class="sec-head rv" style="margin-bottom:0">
+        <h2 class="h2" id="why-h">Why businesses move to Globalhostia</h2>
+        <p class="lede">The basics you should be able to assume, written into every plan rather than sold as extras.</p>
+      </div>
+      <div class="rating rv">
+        <div class="rating-n">4.89<small>/5</small></div>
+        <div>
+          <span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          <p>Rated Excellent by our customers</p>
+        </div>
+      </div>
+    </div>
+    <div class="why-grid">
+      <div class="why-i rv" style="--i:0"><svg class="ico"><use href="#i-swap"/></svg><h3 class="h3">Free domain transfer</h3><p>Bring your domains over at no charge. We handle the authorization codes and DNS with you.</p></div>
+      <div class="why-i rv" style="--i:1"><svg class="ico"><use href="#i-drive"/></svg><h3 class="h3">SSD and NVMe-only cloud</h3><p>No spinning disks behind our cloud and VPS plans, so databases and admin panels stay quick.</p></div>
+      <div class="why-i rv" style="--i:2"><svg class="ico"><use href="#i-headset"/></svg><h3 class="h3">24/7 priority support</h3><p>Reach an engineer by ticket, email or phone at any hour, including weekends and holidays.</p></div>
+      <div class="why-i rv" style="--i:3"><svg class="ico"><use href="#i-archive"/></svg><h3 class="h3">Daily and weekly backups</h3><p>Automatic snapshots you can restore from your client area, kept on separate storage.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Products strip -->
+<section class="sec prod-sec" aria-labelledby="prod-h">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2 class="h2" id="prod-h">More than hosting</h2>
+      <p class="lede">Automation, AI workloads, security and team tools, billed on the same account.</p>
+    </div>
+    <div class="prods">
+      <article class="prod rv" style="--i:0">
+        <div class="prod-ic"><svg class="ico"><use href="#i-flow"/></svg></div>
+        <h3 class="h3">n8n Automation</h3>
+        <p>Managed n8n for your workflows, with a free SSL certificate and 32 TB of bandwidth.</p>
+        <div class="tiers">
+          <div class="tier"><b>N8N Pro</b><ul><li>4 vCPU cores</li><li>6 GB RAM</li><li>100 GB NVMe</li></ul></div>
+          <div class="tier"><b>N8N Elite</b><ul><li>6 vCPU cores</li><li>16 GB RAM</li><li>200 GB NVMe</li></ul></div>
+        </div>
+        <a class="tlink" href="https://globalhostia.com/secure/cart.php">Choose an n8n plan</a>
+      </article>
+      <article class="prod rv" style="--i:1">
+        <div class="prod-ic"><svg class="ico"><use href="#i-bot"/></svg></div>
+        <h3 class="h3">AI and LLM hosting</h3>
+        <p>Servers sized to run open language models and inference APIs privately.</p>
+        <a class="tlink" href="https://globalhostia.com/secure/cart.php">See AI hosting</a>
+      </article>
+      <article class="prod rv" style="--i:2">
+        <div class="prod-ic"><svg class="ico"><use href="#i-lock"/></svg></div>
+        <h3 class="h3">SSL certificates</h3>
+        <p>DV, wildcard and OV certificates from Comodo, Thawte and GeoTrust, issued in minutes.</p>
+        <a class="tlink" href="https://globalhostia.com/ssl-certificate">Compare certificates</a>
+      </article>
+      <article class="prod rv" style="--i:3">
+        <div class="prod-ic"><svg class="ico"><use href="#i-kanban"/></svg></div>
+        <h3 class="h3">Project management</h3>
+        <p>Kanban boards, time tracking, wikis and client portals for unlimited users.</p>
+        <a class="tlink" href="https://globalhostia.com/projects">Explore the workspace</a>
+      </article>
+    </div>
+    <p class="soon-note">cPanel reseller hosting is coming soon. <a href="https://globalhostia.com/contact" style="color:var(--teal-ink);font-weight:600">Ask to be notified</a></p>
+  </div>
+</section>
+
+<!-- Global network -->
+<section class="sec net" id="network" aria-labelledby="net-h">
+  <div class="wrap net-in">
+    <div class="map rv" id="map">
+      <svg viewBox="0 0 1192 570" role="img" aria-labelledby="map-t">
+        <title id="map-t">Map of Globalhostia datacenters in the USA, Brazil, Algeria, South Africa, India and Russia, managed from Dubai</title>
+        <path class="land" d="M319 4h0M328 4h0M346 4h0M355 4h0M364 4h0M373 4h0M382 4h0M391 4h0M400 4h0M409 4h0M418 4h0M427 4h0M436 4h0M445 4h0M454 4h0M463 4h0M472 4h0M481 4h0M490 4h0M499 4h0M508 4h0M310 13h0M319 13h0M337 13h0M346 13h0M355 13h0M364 13h0M382 13h0M391 13h0M400 13h0M409 13h0M418 13h0M427 13h0M436 13h0M445 13h0M454 13h0M463 13h0M472 13h0M481 13h0M490 13h0M499 13h0M310 22h0M319 22h0M328 22h0M337 22h0M346 22h0M364 22h0M373 22h0M382 22h0M391 22h0M400 22h0M409 22h0M418 22h0M427 22h0M436 22h0M445 22h0M454 22h0M463 22h0M472 22h0M481 22h0M490 22h0M787 22h0M796 22h0M805 22h0M814 22h0M823 22h0M832 22h0M841 22h0M211 31h0M220 31h0M229 31h0M256 31h0M274 31h0M283 31h0M292 31h0M301 31h0M310 31h0M319 31h0M400 31h0M409 31h0M418 31h0M427 31h0M436 31h0M445 31h0M454 31h0M463 31h0M472 31h0M481 31h0M769 31h0M778 31h0M787 31h0M796 31h0M805 31h0M814 31h0M823 31h0M832 31h0M841 31h0M850 31h0M859 31h0M868 31h0M886 31h0M895 31h0M85 40h0M94 40h0M103 40h0M112 40h0M121 40h0M130 40h0M139 40h0M184 40h0M202 40h0M211 40h0M220 40h0M229 40h0M238 40h0M247 40h0M256 40h0M274 40h0M283 40h0M301 40h0M310 40h0M319 40h0M328 40h0M337 40h0M346 40h0M400 40h0M409 40h0M418 40h0M427 40h0M436 40h0M445 40h0M454 40h0M463 40h0M472 40h0M481 40h0M607 40h0M616 40h0M625 40h0M634 40h0M733 40h0M742 40h0M751 40h0M760 40h0M769 40h0M778 40h0M787 40h0M796 40h0M805 40h0M814 40h0M823 40h0M832 40h0M841 40h0M850 40h0M859 40h0M868 40h0M877 40h0M886 40h0M895 40h0M904 40h0M913 40h0M922 40h0M931 40h0M940 40h0M949 40h0M958 40h0M967 40h0M976 40h0M985 40h0M994 40h0M1003 40h0M1030 40h0M1039 40h0M67 49h0M76 49h0M85 49h0M94 49h0M103 49h0M112 49h0M121 49h0M130 49h0M139 49h0M148 49h0M157 49h0M166 49h0M175 49h0M184 49h0M193 49h0M202 49h0M211 49h0M220 49h0M229 49h0M265 49h0M274 49h0M283 49h0M292 49h0M301 49h0M310 49h0M328 49h0M337 49h0M346 49h0M400 49h0M409 49h0M418 49h0M427 49h0M436 49h0M445 49h0M454 49h0M463 49h0M589 49h0M598 49h0M607 49h0M616 49h0M625 49h0M634 49h0M643 49h0M652 49h0M661 49h0M679 49h0M697 49h0M706 49h0M715 49h0M724 49h0M733 49h0M742 49h0M751 49h0M760 49h0M769 49h0M778 49h0M787 49h0M796 49h0M805 49h0M814 49h0M823 49h0M832 49h0M841 49h0M850 49h0M859 49h0M868 49h0M877 49h0M886 49h0M895 49h0M904 49h0M913 49h0M922 49h0M931 49h0M940 49h0M949 49h0M958 49h0M967 49h0M976 49h0M985 49h0M994 49h0M1003 49h0M1012 49h0M1021 49h0M1030 49h0M1039 49h0M1048 49h0M1057 49h0M1066 49h0M49 58h0M58 58h0M67 58h0M76 58h0M85 58h0M94 58h0M103 58h0M112 58h0M121 58h0M130 58h0M139 58h0M148 58h0M157 58h0M166 58h0M175 58h0M184 58h0M193 58h0M202 58h0M211 58h0M220 58h0M229 58h0M238 58h0M247 58h0M256 58h0M265 58h0M274 58h0M283 58h0M292 58h0M301 58h0M310 58h0M319 58h0M328 58h0M337 58h0M346 58h0M355 58h0M391 58h0M400 58h0M409 58h0M418 58h0M427 58h0M436 58h0M481 58h0M490 58h0M499 58h0M580 58h0M589 58h0M598 58h0M607 58h0M616 58h0M625 58h0M634 58h0M643 58h0M652 58h0M661 58h0M670 58h0M679 58h0M688 58h0M697 58h0M706 58h0M715 58h0M724 58h0M733 58h0M742 58h0M751 58h0M760 58h0M769 58h0M778 58h0M787 58h0M796 58h0M805 58h0M814 58h0M823 58h0M832 58h0M841 58h0M850 58h0M859 58h0M868 58h0M877 58h0M886 58h0M895 58h0M904 58h0M913 58h0M922 58h0M931 58h0M940 58h0M949 58h0M958 58h0M967 58h0M976 58h0M985 58h0M994 58h0M1003 58h0M1012 58h0M1021 58h0M1030 58h0M1039 58h0M1048 58h0M1057 58h0M1066 58h0M1075 58h0M1084 58h0M1093 58h0M1102 58h0M49 67h0M58 67h0M67 67h0M76 67h0M85 67h0M94 67h0M103 67h0M112 67h0M121 67h0M130 67h0M139 67h0M148 67h0M157 67h0M166 67h0M175 67h0M184 67h0M193 67h0M202 67h0M211 67h0M220 67h0M229 67h0M238 67h0M247 67h0M256 67h0M265 67h0M283 67h0M292 67h0M301 67h0M328 67h0M337 67h0M346 67h0M391 67h0M400 67h0M409 67h0M418 67h0M481 67h0M490 67h0M571 67h0M580 67h0M589 67h0M598 67h0M607 67h0M616 67h0M625 67h0M634 67h0M643 67h0M652 67h0M661 67h0M670 67h0M679 67h0M688 67h0M697 67h0M706 67h0M715 67h0M724 67h0M733 67h0M742 67h0M751 67h0M760 67h0M769 67h0M778 67h0M787 67h0M796 67h0M805 67h0M814 67h0M823 67h0M832 67h0M841 67h0M850 67h0M859 67h0M868 67h0M877 67h0M886 67h0M895 67h0M904 67h0M913 67h0M922 67h0M931 67h0M940 67h0M949 67h0M958 67h0M967 67h0M976 67h0M985 67h0M994 67h0M1003 67h0M1012 67h0M1021 67h0M1030 67h0M1039 67h0M1048 67h0M1057 67h0M1066 67h0M1075 67h0M1084 67h0M31 76h0M40 76h0M49 76h0M58 76h0M67 76h0M76 76h0M85 76h0M94 76h0M103 76h0M112 76h0M121 76h0M130 76h0M139 76h0M148 76h0M157 76h0M166 76h0M175 76h0M184 76h0M193 76h0M202 76h0M211 76h0M220 76h0M229 76h0M238 76h0M247 76h0M256 76h0M301 76h0M310 76h0M319 76h0M328 76h0M337 76h0M391 76h0M400 76h0M409 76h0M562 76h0M571 76h0M580 76h0M589 76h0M598 76h0M607 76h0M616 76h0M625 76h0M634 76h0M643 76h0M652 76h0M661 76h0M670 76h0M679 76h0M688 76h0M697 76h0M706 76h0M715 76h0M724 76h0M733 76h0M742 76h0M751 76h0M760 76h0M769 76h0M778 76h0M787 76h0M796 76h0M805 76h0M814 76h0M823 76h0M832 76h0M841 76h0M850 76h0M859 76h0M868 76h0M877 76h0M886 76h0M895 76h0M904 76h0M913 76h0M922 76h0M931 76h0M940 76h0M949 76h0M958 76h0M967 76h0M976 76h0M985 76h0M994 76h0M1003 76h0M1012 76h0M1021 76h0M1030 76h0M1039 76h0M1048 76h0M1057 76h0M1066 76h0M1075 76h0M1084 76h0M31 85h0M40 85h0M49 85h0M103 85h0M112 85h0M121 85h0M130 85h0M139 85h0M148 85h0M157 85h0M166 85h0M175 85h0M184 85h0M193 85h0M202 85h0M211 85h0M220 85h0M229 85h0M238 85h0M292 85h0M301 85h0M310 85h0M319 85h0M328 85h0M337 85h0M562 85h0M571 85h0M580 85h0M589 85h0M598 85h0M607 85h0M616 85h0M625 85h0M634 85h0M643 85h0M652 85h0M661 85h0M670 85h0M679 85h0M688 85h0M697 85h0M706 85h0M715 85h0M724 85h0M733 85h0M742 85h0M751 85h0M760 85h0M769 85h0M778 85h0M787 85h0M796 85h0M805 85h0M814 85h0M823 85h0M832 85h0M841 85h0M850 85h0M859 85h0M868 85h0M877 85h0M886 85h0M895 85h0M904 85h0M913 85h0M922 85h0M931 85h0M940 85h0M949 85h0M958 85h0M967 85h0M976 85h0M985 85h0M994 85h0M1003 85h0M1012 85h0M1021 85h0M1030 85h0M1048 85h0M1057 85h0M13 94h0M22 94h0M31 94h0M49 94h0M103 94h0M112 94h0M121 94h0M130 94h0M139 94h0M148 94h0M157 94h0M166 94h0M175 94h0M184 94h0M193 94h0M202 94h0M211 94h0M220 94h0M229 94h0M238 94h0M247 94h0M256 94h0M292 94h0M301 94h0M310 94h0M319 94h0M328 94h0M337 94h0M526 94h0M571 94h0M580 94h0M589 94h0M598 94h0M607 94h0M616 94h0M625 94h0M634 94h0M643 94h0M652 94h0M661 94h0M670 94h0M679 94h0M688 94h0M697 94h0M706 94h0M715 94h0M724 94h0M733 94h0M742 94h0M751 94h0M760 94h0M769 94h0M778 94h0M787 94h0M796 94h0M805 94h0M814 94h0M823 94h0M832 94h0M841 94h0M850 94h0M859 94h0M868 94h0M877 94h0M886 94h0M895 94h0M904 94h0M913 94h0M922 94h0M931 94h0M940 94h0M949 94h0M958 94h0M967 94h0M976 94h0M985 94h0M1048 94h0M1057 94h0M1066 94h0M112 103h0M121 103h0M130 103h0M139 103h0M148 103h0M157 103h0M166 103h0M175 103h0M184 103h0M193 103h0M202 103h0M211 103h0M220 103h0M229 103h0M238 103h0M247 103h0M256 103h0M265 103h0M274 103h0M283 103h0M292 103h0M301 103h0M310 103h0M319 103h0M328 103h0M337 103h0M508 103h0M517 103h0M526 103h0M535 103h0M571 103h0M580 103h0M589 103h0M598 103h0M607 103h0M616 103h0M625 103h0M634 103h0M643 103h0M652 103h0M661 103h0M670 103h0M679 103h0M688 103h0M697 103h0M706 103h0M715 103h0M724 103h0M733 103h0M742 103h0M751 103h0M760 103h0M769 103h0M778 103h0M787 103h0M796 103h0M805 103h0M814 103h0M823 103h0M832 103h0M841 103h0M850 103h0M859 103h0M868 103h0M877 103h0M886 103h0M895 103h0M904 103h0M913 103h0M922 103h0M931 103h0M940 103h0M949 103h0M958 103h0M967 103h0M976 103h0M985 103h0M1057 103h0M1066 103h0M112 112h0M121 112h0M130 112h0M139 112h0M148 112h0M157 112h0M166 112h0M175 112h0M184 112h0M193 112h0M202 112h0M211 112h0M220 112h0M229 112h0M238 112h0M247 112h0M256 112h0M265 112h0M274 112h0M283 112h0M292 112h0M301 112h0M310 112h0M319 112h0M328 112h0M337 112h0M346 112h0M508 112h0M517 112h0M526 112h0M535 112h0M544 112h0M553 112h0M562 112h0M571 112h0M580 112h0M589 112h0M598 112h0M607 112h0M616 112h0M625 112h0M634 112h0M643 112h0M652 112h0M661 112h0M670 112h0M679 112h0M688 112h0M697 112h0M706 112h0M715 112h0M724 112h0M733 112h0M742 112h0M751 112h0M760 112h0M769 112h0M778 112h0M787 112h0M796 112h0M805 112h0M814 112h0M823 112h0M832 112h0M841 112h0M850 112h0M859 112h0M868 112h0M877 112h0M886 112h0M895 112h0M904 112h0M913 112h0M922 112h0M931 112h0M940 112h0M949 112h0M958 112h0M967 112h0M976 112h0M985 112h0M994 112h0M1003 112h0M1012 112h0M1021 112h0M1066 112h0M103 121h0M121 121h0M130 121h0M139 121h0M148 121h0M157 121h0M166 121h0M175 121h0M184 121h0M193 121h0M202 121h0M211 121h0M220 121h0M229 121h0M238 121h0M247 121h0M256 121h0M265 121h0M274 121h0M283 121h0M292 121h0M301 121h0M310 121h0M526 121h0M544 121h0M553 121h0M562 121h0M571 121h0M580 121h0M589 121h0M598 121h0M607 121h0M616 121h0M625 121h0M634 121h0M643 121h0M652 121h0M661 121h0M670 121h0M679 121h0M688 121h0M697 121h0M706 121h0M715 121h0M724 121h0M733 121h0M742 121h0M751 121h0M760 121h0M769 121h0M778 121h0M787 121h0M796 121h0M805 121h0M814 121h0M823 121h0M832 121h0M841 121h0M850 121h0M859 121h0M868 121h0M877 121h0M886 121h0M895 121h0M904 121h0M913 121h0M922 121h0M931 121h0M940 121h0M949 121h0M958 121h0M967 121h0M976 121h0M985 121h0M994 121h0M1003 121h0M1012 121h0M1021 121h0M1030 121h0M103 130h0M112 130h0M121 130h0M130 130h0M139 130h0M148 130h0M157 130h0M166 130h0M175 130h0M184 130h0M193 130h0M202 130h0M211 130h0M220 130h0M229 130h0M238 130h0M247 130h0M256 130h0M265 130h0M274 130h0M283 130h0M292 130h0M301 130h0M310 130h0M319 130h0M337 130h0M346 130h0M526 130h0M535 130h0M544 130h0M553 130h0M562 130h0M571 130h0M580 130h0M589 130h0M598 130h0M607 130h0M616 130h0M625 130h0M634 130h0M643 130h0M652 130h0M661 130h0M670 130h0M679 130h0M688 130h0M697 130h0M706 130h0M715 130h0M724 130h0M733 130h0M742 130h0M751 130h0M760 130h0M769 130h0M778 130h0M787 130h0M796 130h0M805 130h0M814 130h0M823 130h0M832 130h0M841 130h0M850 130h0M859 130h0M868 130h0M877 130h0M886 130h0M895 130h0M904 130h0M913 130h0M922 130h0M931 130h0M940 130h0M949 130h0M958 130h0M967 130h0M976 130h0M985 130h0M994 130h0M1003 130h0M1012 130h0M1021 130h0M1030 130h0M1039 130h0M103 139h0M112 139h0M121 139h0M130 139h0M139 139h0M148 139h0M157 139h0M166 139h0M175 139h0M184 139h0M193 139h0M202 139h0M211 139h0M220 139h0M229 139h0M256 139h0M265 139h0M274 139h0M283 139h0M292 139h0M301 139h0M310 139h0M319 139h0M535 139h0M544 139h0M553 139h0M562 139h0M571 139h0M580 139h0M589 139h0M598 139h0M607 139h0M616 139h0M625 139h0M634 139h0M643 139h0M652 139h0M661 139h0M679 139h0M688 139h0M697 139h0M706 139h0M733 139h0M742 139h0M751 139h0M760 139h0M769 139h0M778 139h0M787 139h0M796 139h0M805 139h0M814 139h0M823 139h0M832 139h0M841 139h0M850 139h0M859 139h0M868 139h0M877 139h0M886 139h0M895 139h0M904 139h0M913 139h0M922 139h0M931 139h0M940 139h0M949 139h0M958 139h0M967 139h0M976 139h0M985 139h0M994 139h0M1003 139h0M1012 139h0M1021 139h0M94 148h0M103 148h0M112 148h0M121 148h0M130 148h0M139 148h0M148 148h0M157 148h0M166 148h0M175 148h0M184 148h0M193 148h0M202 148h0M211 148h0M220 148h0M229 148h0M238 148h0M247 148h0M256 148h0M265 148h0M274 148h0M283 148h0M292 148h0M301 148h0M310 148h0M319 148h0M508 148h0M517 148h0M526 148h0M535 148h0M544 148h0M553 148h0M562 148h0M571 148h0M580 148h0M589 148h0M598 148h0M607 148h0M616 148h0M625 148h0M634 148h0M643 148h0M661 148h0M679 148h0M688 148h0M697 148h0M706 148h0M715 148h0M724 148h0M733 148h0M742 148h0M751 148h0M760 148h0M769 148h0M778 148h0M787 148h0M796 148h0M805 148h0M814 148h0M823 148h0M832 148h0M841 148h0M850 148h0M859 148h0M868 148h0M877 148h0M886 148h0M895 148h0M904 148h0M913 148h0M922 148h0M931 148h0M940 148h0M949 148h0M958 148h0M967 148h0M976 148h0M985 148h0M994 148h0M1003 148h0M1012 148h0M1021 148h0M1039 148h0M1048 148h0M1057 148h0M94 157h0M103 157h0M112 157h0M121 157h0M130 157h0M139 157h0M148 157h0M157 157h0M166 157h0M175 157h0M184 157h0M193 157h0M202 157h0M211 157h0M220 157h0M229 157h0M238 157h0M247 157h0M256 157h0M265 157h0M274 157h0M283 157h0M508 157h0M517 157h0M526 157h0M535 157h0M544 157h0M571 157h0M580 157h0M589 157h0M598 157h0M607 157h0M616 157h0M625 157h0M634 157h0M652 157h0M661 157h0M670 157h0M688 157h0M697 157h0M706 157h0M715 157h0M733 157h0M742 157h0M751 157h0M760 157h0M769 157h0M778 157h0M787 157h0M796 157h0M805 157h0M814 157h0M823 157h0M832 157h0M841 157h0M850 157h0M859 157h0M868 157h0M877 157h0M886 157h0M895 157h0M904 157h0M913 157h0M922 157h0M931 157h0M940 157h0M949 157h0M958 157h0M967 157h0M976 157h0M985 157h0M994 157h0M1003 157h0M1039 157h0M85 166h0M94 166h0M103 166h0M112 166h0M121 166h0M130 166h0M139 166h0M148 166h0M157 166h0M166 166h0M175 166h0M184 166h0M193 166h0M202 166h0M211 166h0M220 166h0M229 166h0M238 166h0M247 166h0M256 166h0M265 166h0M508 166h0M517 166h0M526 166h0M535 166h0M544 166h0M571 166h0M589 166h0M598 166h0M607 166h0M616 166h0M625 166h0M634 166h0M643 166h0M652 166h0M661 166h0M670 166h0M679 166h0M688 166h0M697 166h0M706 166h0M715 166h0M733 166h0M742 166h0M751 166h0M760 166h0M769 166h0M778 166h0M787 166h0M796 166h0M805 166h0M814 166h0M823 166h0M832 166h0M841 166h0M850 166h0M859 166h0M868 166h0M877 166h0M886 166h0M895 166h0M904 166h0M913 166h0M922 166h0M931 166h0M940 166h0M949 166h0M958 166h0M967 166h0M976 166h0M985 166h0M994 166h0M1003 166h0M1048 166h0M1057 166h0M85 175h0M94 175h0M103 175h0M112 175h0M121 175h0M130 175h0M139 175h0M148 175h0M157 175h0M166 175h0M175 175h0M184 175h0M193 175h0M202 175h0M211 175h0M220 175h0M229 175h0M238 175h0M247 175h0M256 175h0M508 175h0M517 175h0M526 175h0M589 175h0M598 175h0M616 175h0M625 175h0M643 175h0M652 175h0M661 175h0M670 175h0M679 175h0M688 175h0M697 175h0M706 175h0M715 175h0M733 175h0M742 175h0M751 175h0M760 175h0M769 175h0M778 175h0M787 175h0M796 175h0M805 175h0M814 175h0M823 175h0M832 175h0M841 175h0M850 175h0M859 175h0M868 175h0M877 175h0M886 175h0M895 175h0M904 175h0M913 175h0M922 175h0M931 175h0M940 175h0M949 175h0M958 175h0M967 175h0M976 175h0M985 175h0M1003 175h0M1012 175h0M1048 175h0M85 184h0M94 184h0M103 184h0M112 184h0M121 184h0M130 184h0M139 184h0M148 184h0M157 184h0M166 184h0M175 184h0M184 184h0M193 184h0M202 184h0M211 184h0M220 184h0M229 184h0M238 184h0M247 184h0M256 184h0M517 184h0M526 184h0M535 184h0M544 184h0M553 184h0M562 184h0M571 184h0M580 184h0M589 184h0M598 184h0M625 184h0M634 184h0M661 184h0M670 184h0M679 184h0M688 184h0M697 184h0M706 184h0M715 184h0M724 184h0M733 184h0M742 184h0M751 184h0M760 184h0M769 184h0M778 184h0M787 184h0M796 184h0M805 184h0M814 184h0M823 184h0M832 184h0M841 184h0M850 184h0M859 184h0M868 184h0M877 184h0M886 184h0M895 184h0M904 184h0M913 184h0M922 184h0M931 184h0M940 184h0M949 184h0M958 184h0M967 184h0M976 184h0M985 184h0M1003 184h0M1012 184h0M1021 184h0M1030 184h0M1039 184h0M1048 184h0M1057 184h0M103 193h0M112 193h0M121 193h0M130 193h0M139 193h0M148 193h0M157 193h0M166 193h0M175 193h0M184 193h0M193 193h0M202 193h0M211 193h0M220 193h0M229 193h0M238 193h0M499 193h0M508 193h0M517 193h0M526 193h0M535 193h0M544 193h0M553 193h0M562 193h0M571 193h0M580 193h0M589 193h0M616 193h0M625 193h0M670 193h0M679 193h0M688 193h0M697 193h0M706 193h0M715 193h0M724 193h0M733 193h0M742 193h0M751 193h0M760 193h0M769 193h0M778 193h0M787 193h0M796 193h0M805 193h0M814 193h0M823 193h0M832 193h0M841 193h0M850 193h0M859 193h0M868 193h0M877 193h0M886 193h0M895 193h0M904 193h0M913 193h0M922 193h0M931 193h0M940 193h0M949 193h0M958 193h0M967 193h0M976 193h0M985 193h0M1030 193h0M1039 193h0M103 202h0M112 202h0M121 202h0M130 202h0M139 202h0M148 202h0M157 202h0M166 202h0M175 202h0M184 202h0M193 202h0M202 202h0M211 202h0M220 202h0M229 202h0M499 202h0M508 202h0M517 202h0M526 202h0M535 202h0M544 202h0M553 202h0M562 202h0M571 202h0M580 202h0M589 202h0M598 202h0M607 202h0M616 202h0M625 202h0M634 202h0M643 202h0M652 202h0M661 202h0M670 202h0M679 202h0M688 202h0M697 202h0M706 202h0M715 202h0M724 202h0M733 202h0M742 202h0M751 202h0M760 202h0M769 202h0M778 202h0M787 202h0M796 202h0M805 202h0M814 202h0M823 202h0M832 202h0M841 202h0M850 202h0M859 202h0M868 202h0M877 202h0M886 202h0M895 202h0M904 202h0M913 202h0M922 202h0M931 202h0M940 202h0M949 202h0M958 202h0M967 202h0M976 202h0M985 202h0M994 202h0M1030 202h0M103 211h0M112 211h0M121 211h0M130 211h0M139 211h0M148 211h0M157 211h0M166 211h0M175 211h0M220 211h0M229 211h0M490 211h0M499 211h0M508 211h0M517 211h0M526 211h0M535 211h0M544 211h0M553 211h0M562 211h0M571 211h0M580 211h0M589 211h0M598 211h0M607 211h0M616 211h0M625 211h0M634 211h0M643 211h0M652 211h0M661 211h0M670 211h0M679 211h0M688 211h0M697 211h0M706 211h0M715 211h0M733 211h0M742 211h0M751 211h0M760 211h0M769 211h0M778 211h0M787 211h0M796 211h0M805 211h0M814 211h0M823 211h0M832 211h0M841 211h0M850 211h0M859 211h0M868 211h0M877 211h0M886 211h0M895 211h0M904 211h0M913 211h0M922 211h0M931 211h0M940 211h0M949 211h0M958 211h0M967 211h0M976 211h0M985 211h0M994 211h0M103 220h0M121 220h0M130 220h0M139 220h0M148 220h0M157 220h0M166 220h0M220 220h0M229 220h0M481 220h0M490 220h0M499 220h0M508 220h0M517 220h0M526 220h0M535 220h0M544 220h0M553 220h0M562 220h0M571 220h0M580 220h0M589 220h0M598 220h0M607 220h0M616 220h0M625 220h0M634 220h0M643 220h0M652 220h0M661 220h0M670 220h0M679 220h0M688 220h0M697 220h0M706 220h0M715 220h0M724 220h0M733 220h0M742 220h0M751 220h0M760 220h0M769 220h0M778 220h0M787 220h0M796 220h0M805 220h0M814 220h0M823 220h0M832 220h0M841 220h0M850 220h0M859 220h0M868 220h0M877 220h0M886 220h0M895 220h0M904 220h0M913 220h0M922 220h0M931 220h0M940 220h0M949 220h0M958 220h0M967 220h0M976 220h0M985 220h0M994 220h0M103 229h0M112 229h0M121 229h0M130 229h0M139 229h0M148 229h0M157 229h0M220 229h0M229 229h0M472 229h0M481 229h0M490 229h0M499 229h0M508 229h0M517 229h0M526 229h0M535 229h0M544 229h0M553 229h0M562 229h0M571 229h0M580 229h0M589 229h0M598 229h0M607 229h0M616 229h0M625 229h0M634 229h0M643 229h0M652 229h0M661 229h0M670 229h0M679 229h0M688 229h0M697 229h0M706 229h0M715 229h0M724 229h0M733 229h0M742 229h0M751 229h0M796 229h0M805 229h0M814 229h0M823 229h0M832 229h0M841 229h0M850 229h0M859 229h0M868 229h0M877 229h0M886 229h0M895 229h0M904 229h0M913 229h0M922 229h0M931 229h0M940 229h0M949 229h0M958 229h0M967 229h0M976 229h0M985 229h0M994 229h0M1003 229h0M112 238h0M121 238h0M130 238h0M139 238h0M148 238h0M157 238h0M211 238h0M220 238h0M229 238h0M238 238h0M472 238h0M481 238h0M490 238h0M499 238h0M508 238h0M517 238h0M526 238h0M535 238h0M544 238h0M553 238h0M562 238h0M571 238h0M580 238h0M589 238h0M598 238h0M607 238h0M616 238h0M625 238h0M634 238h0M643 238h0M652 238h0M661 238h0M670 238h0M679 238h0M688 238h0M697 238h0M706 238h0M715 238h0M724 238h0M733 238h0M742 238h0M751 238h0M760 238h0M805 238h0M814 238h0M823 238h0M832 238h0M841 238h0M850 238h0M859 238h0M868 238h0M877 238h0M886 238h0M895 238h0M904 238h0M913 238h0M922 238h0M931 238h0M940 238h0M949 238h0M958 238h0M967 238h0M976 238h0M985 238h0M994 238h0M1003 238h0M130 247h0M139 247h0M148 247h0M157 247h0M184 247h0M193 247h0M238 247h0M247 247h0M256 247h0M472 247h0M481 247h0M490 247h0M499 247h0M508 247h0M517 247h0M526 247h0M535 247h0M544 247h0M553 247h0M562 247h0M571 247h0M580 247h0M589 247h0M598 247h0M607 247h0M616 247h0M625 247h0M634 247h0M643 247h0M652 247h0M661 247h0M670 247h0M679 247h0M688 247h0M697 247h0M706 247h0M715 247h0M724 247h0M733 247h0M742 247h0M751 247h0M760 247h0M805 247h0M823 247h0M832 247h0M841 247h0M850 247h0M859 247h0M868 247h0M886 247h0M895 247h0M904 247h0M913 247h0M922 247h0M931 247h0M940 247h0M949 247h0M958 247h0M967 247h0M130 256h0M139 256h0M148 256h0M157 256h0M166 256h0M175 256h0M184 256h0M193 256h0M229 256h0M247 256h0M256 256h0M265 256h0M274 256h0M283 256h0M472 256h0M481 256h0M490 256h0M499 256h0M508 256h0M517 256h0M526 256h0M535 256h0M544 256h0M553 256h0M562 256h0M571 256h0M580 256h0M589 256h0M598 256h0M607 256h0M616 256h0M625 256h0M634 256h0M643 256h0M652 256h0M661 256h0M670 256h0M679 256h0M697 256h0M706 256h0M715 256h0M724 256h0M733 256h0M742 256h0M751 256h0M823 256h0M832 256h0M841 256h0M850 256h0M859 256h0M895 256h0M904 256h0M913 256h0M922 256h0M931 256h0M940 256h0M949 256h0M958 256h0M967 256h0M1003 256h0M148 265h0M157 265h0M166 265h0M175 265h0M184 265h0M193 265h0M202 265h0M211 265h0M472 265h0M481 265h0M490 265h0M499 265h0M508 265h0M517 265h0M526 265h0M535 265h0M544 265h0M553 265h0M562 265h0M571 265h0M580 265h0M589 265h0M598 265h0M607 265h0M616 265h0M625 265h0M634 265h0M643 265h0M652 265h0M661 265h0M670 265h0M679 265h0M688 265h0M697 265h0M706 265h0M715 265h0M724 265h0M733 265h0M823 265h0M832 265h0M841 265h0M850 265h0M904 265h0M913 265h0M922 265h0M931 265h0M940 265h0M949 265h0M958 265h0M1003 265h0M1012 265h0M175 274h0M184 274h0M193 274h0M202 274h0M211 274h0M472 274h0M481 274h0M490 274h0M499 274h0M508 274h0M517 274h0M526 274h0M535 274h0M544 274h0M553 274h0M562 274h0M571 274h0M580 274h0M589 274h0M598 274h0M607 274h0M616 274h0M625 274h0M634 274h0M643 274h0M652 274h0M661 274h0M670 274h0M679 274h0M688 274h0M697 274h0M706 274h0M715 274h0M724 274h0M733 274h0M823 274h0M832 274h0M841 274h0M913 274h0M922 274h0M931 274h0M940 274h0M949 274h0M958 274h0M1003 274h0M1012 274h0M1021 274h0M193 283h0M202 283h0M211 283h0M238 283h0M247 283h0M256 283h0M265 283h0M472 283h0M481 283h0M490 283h0M499 283h0M508 283h0M517 283h0M526 283h0M535 283h0M544 283h0M553 283h0M562 283h0M571 283h0M580 283h0M589 283h0M598 283h0M607 283h0M616 283h0M625 283h0M634 283h0M643 283h0M652 283h0M661 283h0M670 283h0M679 283h0M688 283h0M697 283h0M724 283h0M733 283h0M832 283h0M841 283h0M922 283h0M931 283h0M940 283h0M949 283h0M958 283h0M967 283h0M1003 283h0M1012 283h0M1030 283h0M202 292h0M211 292h0M238 292h0M247 292h0M256 292h0M265 292h0M274 292h0M283 292h0M292 292h0M472 292h0M481 292h0M490 292h0M499 292h0M508 292h0M517 292h0M526 292h0M535 292h0M544 292h0M553 292h0M562 292h0M571 292h0M580 292h0M589 292h0M598 292h0M607 292h0M616 292h0M625 292h0M634 292h0M643 292h0M652 292h0M661 292h0M670 292h0M679 292h0M688 292h0M697 292h0M706 292h0M715 292h0M724 292h0M733 292h0M832 292h0M841 292h0M922 292h0M940 292h0M949 292h0M958 292h0M994 292h0M1003 292h0M1012 292h0M1021 292h0M1030 292h0M202 301h0M211 301h0M220 301h0M229 301h0M238 301h0M247 301h0M256 301h0M265 301h0M274 301h0M283 301h0M292 301h0M301 301h0M490 301h0M499 301h0M508 301h0M517 301h0M526 301h0M535 301h0M544 301h0M553 301h0M562 301h0M571 301h0M580 301h0M589 301h0M598 301h0M607 301h0M616 301h0M625 301h0M634 301h0M643 301h0M652 301h0M661 301h0M670 301h0M679 301h0M688 301h0M697 301h0M706 301h0M715 301h0M724 301h0M733 301h0M841 301h0M850 301h0M859 301h0M922 301h0M931 301h0M1012 301h0M1021 301h0M1030 301h0M229 310h0M238 310h0M247 310h0M256 310h0M265 310h0M274 310h0M283 310h0M292 310h0M301 310h0M310 310h0M319 310h0M328 310h0M490 310h0M499 310h0M508 310h0M517 310h0M526 310h0M535 310h0M544 310h0M553 310h0M562 310h0M571 310h0M580 310h0M589 310h0M598 310h0M607 310h0M616 310h0M625 310h0M634 310h0M643 310h0M652 310h0M661 310h0M670 310h0M679 310h0M688 310h0M697 310h0M706 310h0M715 310h0M724 310h0M850 310h0M859 310h0M931 310h0M940 310h0M994 310h0M1003 310h0M1021 310h0M1030 310h0M229 319h0M238 319h0M247 319h0M256 319h0M265 319h0M274 319h0M283 319h0M292 319h0M301 319h0M310 319h0M319 319h0M328 319h0M571 319h0M580 319h0M589 319h0M598 319h0M607 319h0M616 319h0M625 319h0M634 319h0M643 319h0M652 319h0M661 319h0M670 319h0M679 319h0M688 319h0M697 319h0M706 319h0M715 319h0M913 319h0M922 319h0M931 319h0M940 319h0M976 319h0M985 319h0M994 319h0M1003 319h0M220 328h0M229 328h0M238 328h0M247 328h0M256 328h0M265 328h0M274 328h0M283 328h0M292 328h0M301 328h0M310 328h0M319 328h0M328 328h0M337 328h0M571 328h0M580 328h0M589 328h0M598 328h0M607 328h0M616 328h0M625 328h0M634 328h0M643 328h0M652 328h0M661 328h0M670 328h0M679 328h0M688 328h0M697 328h0M706 328h0M715 328h0M922 328h0M931 328h0M940 328h0M967 328h0M976 328h0M985 328h0M994 328h0M1003 328h0M1012 328h0M1021 328h0M1030 328h0M1039 328h0M220 337h0M229 337h0M238 337h0M247 337h0M256 337h0M265 337h0M274 337h0M283 337h0M292 337h0M301 337h0M310 337h0M319 337h0M328 337h0M337 337h0M346 337h0M355 337h0M571 337h0M580 337h0M589 337h0M598 337h0M607 337h0M616 337h0M625 337h0M634 337h0M643 337h0M652 337h0M661 337h0M670 337h0M679 337h0M688 337h0M697 337h0M922 337h0M931 337h0M940 337h0M949 337h0M967 337h0M976 337h0M985 337h0M994 337h0M1003 337h0M1012 337h0M1021 337h0M1039 337h0M1048 337h0M1057 337h0M220 346h0M229 346h0M238 346h0M247 346h0M256 346h0M265 346h0M274 346h0M283 346h0M292 346h0M301 346h0M310 346h0M319 346h0M328 346h0M337 346h0M346 346h0M355 346h0M364 346h0M373 346h0M571 346h0M580 346h0M589 346h0M598 346h0M607 346h0M616 346h0M625 346h0M634 346h0M643 346h0M652 346h0M661 346h0M670 346h0M679 346h0M688 346h0M697 346h0M931 346h0M940 346h0M949 346h0M967 346h0M976 346h0M985 346h0M994 346h0M1003 346h0M1012 346h0M1021 346h0M1039 346h0M1048 346h0M1057 346h0M1066 346h0M1075 346h0M1084 346h0M1129 346h0M220 355h0M229 355h0M238 355h0M247 355h0M256 355h0M265 355h0M274 355h0M283 355h0M292 355h0M301 355h0M310 355h0M319 355h0M328 355h0M337 355h0M346 355h0M355 355h0M364 355h0M373 355h0M382 355h0M391 355h0M580 355h0M589 355h0M598 355h0M607 355h0M616 355h0M625 355h0M634 355h0M643 355h0M652 355h0M661 355h0M670 355h0M679 355h0M688 355h0M940 355h0M949 355h0M1003 355h0M1012 355h0M1021 355h0M1066 355h0M1075 355h0M1084 355h0M1093 355h0M1102 355h0M1111 355h0M1120 355h0M1129 355h0M1138 355h0M220 364h0M229 364h0M238 364h0M247 364h0M256 364h0M265 364h0M274 364h0M283 364h0M292 364h0M301 364h0M310 364h0M319 364h0M328 364h0M337 364h0M346 364h0M355 364h0M364 364h0M373 364h0M382 364h0M391 364h0M400 364h0M580 364h0M589 364h0M598 364h0M607 364h0M616 364h0M625 364h0M634 364h0M643 364h0M652 364h0M661 364h0M670 364h0M679 364h0M688 364h0M949 364h0M958 364h0M967 364h0M976 364h0M1003 364h0M1075 364h0M1084 364h0M1093 364h0M1102 364h0M1111 364h0M1120 364h0M1129 364h0M1138 364h0M1147 364h0M220 373h0M229 373h0M238 373h0M247 373h0M256 373h0M265 373h0M274 373h0M283 373h0M292 373h0M301 373h0M310 373h0M319 373h0M328 373h0M337 373h0M346 373h0M355 373h0M364 373h0M373 373h0M382 373h0M391 373h0M400 373h0M589 373h0M598 373h0M607 373h0M616 373h0M625 373h0M634 373h0M643 373h0M652 373h0M661 373h0M670 373h0M679 373h0M688 373h0M751 373h0M967 373h0M976 373h0M985 373h0M994 373h0M1003 373h0M1012 373h0M1021 373h0M1030 373h0M1084 373h0M1093 373h0M1102 373h0M1111 373h0M1120 373h0M1156 373h0M1165 373h0M229 382h0M238 382h0M247 382h0M256 382h0M265 382h0M274 382h0M283 382h0M292 382h0M301 382h0M310 382h0M319 382h0M328 382h0M337 382h0M346 382h0M355 382h0M364 382h0M373 382h0M382 382h0M391 382h0M589 382h0M598 382h0M607 382h0M616 382h0M625 382h0M634 382h0M643 382h0M652 382h0M661 382h0M670 382h0M679 382h0M688 382h0M751 382h0M1003 382h0M1021 382h0M1120 382h0M1156 382h0M1165 382h0M238 391h0M247 391h0M256 391h0M265 391h0M274 391h0M283 391h0M292 391h0M301 391h0M310 391h0M319 391h0M328 391h0M337 391h0M346 391h0M355 391h0M364 391h0M373 391h0M382 391h0M589 391h0M598 391h0M607 391h0M616 391h0M625 391h0M634 391h0M643 391h0M652 391h0M661 391h0M670 391h0M679 391h0M688 391h0M724 391h0M733 391h0M1048 391h0M1057 391h0M1066 391h0M1084 391h0M1093 391h0M1102 391h0M238 400h0M247 400h0M256 400h0M265 400h0M274 400h0M283 400h0M292 400h0M301 400h0M310 400h0M319 400h0M328 400h0M337 400h0M346 400h0M355 400h0M364 400h0M373 400h0M382 400h0M580 400h0M589 400h0M598 400h0M607 400h0M616 400h0M625 400h0M634 400h0M643 400h0M652 400h0M661 400h0M670 400h0M679 400h0M688 400h0M715 400h0M724 400h0M733 400h0M1021 400h0M1030 400h0M1039 400h0M1048 400h0M1057 400h0M1066 400h0M1084 400h0M1093 400h0M1102 400h0M256 409h0M265 409h0M274 409h0M283 409h0M292 409h0M301 409h0M310 409h0M319 409h0M328 409h0M337 409h0M346 409h0M355 409h0M364 409h0M373 409h0M382 409h0M580 409h0M589 409h0M598 409h0M607 409h0M616 409h0M625 409h0M634 409h0M643 409h0M652 409h0M661 409h0M670 409h0M679 409h0M706 409h0M715 409h0M724 409h0M1012 409h0M1021 409h0M1030 409h0M1039 409h0M1048 409h0M1057 409h0M1066 409h0M1075 409h0M1084 409h0M1093 409h0M1102 409h0M265 418h0M274 418h0M283 418h0M292 418h0M301 418h0M310 418h0M319 418h0M328 418h0M337 418h0M346 418h0M355 418h0M364 418h0M373 418h0M382 418h0M589 418h0M598 418h0M607 418h0M616 418h0M625 418h0M634 418h0M643 418h0M652 418h0M661 418h0M670 418h0M706 418h0M715 418h0M1003 418h0M1012 418h0M1021 418h0M1030 418h0M1039 418h0M1048 418h0M1057 418h0M1066 418h0M1075 418h0M1084 418h0M1093 418h0M1102 418h0M1174 418h0M265 427h0M274 427h0M283 427h0M292 427h0M301 427h0M310 427h0M319 427h0M328 427h0M337 427h0M346 427h0M355 427h0M364 427h0M373 427h0M589 427h0M598 427h0M607 427h0M616 427h0M625 427h0M634 427h0M643 427h0M652 427h0M661 427h0M670 427h0M697 427h0M706 427h0M715 427h0M976 427h0M985 427h0M994 427h0M1003 427h0M1012 427h0M1021 427h0M1030 427h0M1039 427h0M1048 427h0M1057 427h0M1066 427h0M1075 427h0M1084 427h0M1093 427h0M1102 427h0M1111 427h0M1174 427h0M265 436h0M274 436h0M283 436h0M292 436h0M301 436h0M310 436h0M319 436h0M328 436h0M337 436h0M346 436h0M355 436h0M589 436h0M598 436h0M607 436h0M616 436h0M625 436h0M634 436h0M643 436h0M652 436h0M661 436h0M670 436h0M697 436h0M706 436h0M715 436h0M976 436h0M985 436h0M994 436h0M1003 436h0M1012 436h0M1021 436h0M1030 436h0M1039 436h0M1048 436h0M1057 436h0M1066 436h0M1075 436h0M1084 436h0M1093 436h0M1102 436h0M1111 436h0M265 445h0M274 445h0M283 445h0M292 445h0M301 445h0M310 445h0M319 445h0M328 445h0M337 445h0M346 445h0M589 445h0M598 445h0M607 445h0M616 445h0M625 445h0M634 445h0M643 445h0M652 445h0M661 445h0M670 445h0M706 445h0M715 445h0M976 445h0M985 445h0M994 445h0M1003 445h0M1012 445h0M1021 445h0M1030 445h0M1039 445h0M1048 445h0M1057 445h0M1066 445h0M1075 445h0M1084 445h0M1093 445h0M1102 445h0M1111 445h0M1120 445h0M265 454h0M274 454h0M283 454h0M292 454h0M301 454h0M310 454h0M319 454h0M328 454h0M337 454h0M346 454h0M589 454h0M598 454h0M607 454h0M616 454h0M625 454h0M634 454h0M643 454h0M652 454h0M661 454h0M976 454h0M985 454h0M994 454h0M1003 454h0M1012 454h0M1021 454h0M1030 454h0M1039 454h0M1048 454h0M1057 454h0M1066 454h0M1075 454h0M1084 454h0M1093 454h0M1102 454h0M1111 454h0M1120 454h0M265 463h0M274 463h0M283 463h0M292 463h0M301 463h0M310 463h0M319 463h0M328 463h0M337 463h0M346 463h0M598 463h0M607 463h0M616 463h0M625 463h0M634 463h0M643 463h0M652 463h0M976 463h0M985 463h0M994 463h0M1003 463h0M1012 463h0M1021 463h0M1030 463h0M1039 463h0M1048 463h0M1057 463h0M1066 463h0M1075 463h0M1084 463h0M1093 463h0M1102 463h0M1111 463h0M1120 463h0M265 472h0M274 472h0M283 472h0M292 472h0M301 472h0M310 472h0M319 472h0M328 472h0M337 472h0M607 472h0M616 472h0M625 472h0M634 472h0M643 472h0M976 472h0M985 472h0M994 472h0M1003 472h0M1012 472h0M1021 472h0M1030 472h0M1039 472h0M1048 472h0M1057 472h0M1066 472h0M1075 472h0M1084 472h0M1093 472h0M1102 472h0M1111 472h0M274 481h0M283 481h0M292 481h0M301 481h0M310 481h0M319 481h0M328 481h0M337 481h0M607 481h0M616 481h0M625 481h0M634 481h0M967 481h0M976 481h0M985 481h0M994 481h0M1003 481h0M1039 481h0M1048 481h0M1057 481h0M1066 481h0M1075 481h0M1084 481h0M1093 481h0M1102 481h0M274 490h0M283 490h0M292 490h0M301 490h0M310 490h0M319 490h0M328 490h0M1057 490h0M1066 490h0M1075 490h0M1084 490h0M1183 490h0M274 499h0M283 499h0M292 499h0M301 499h0M310 499h0M319 499h0M328 499h0M1057 499h0M1066 499h0M1075 499h0M1084 499h0M1174 499h0M1183 499h0M274 508h0M283 508h0M292 508h0M301 508h0M310 508h0M1174 508h0M274 517h0M283 517h0M292 517h0M301 517h0M1057 517h0M1066 517h0M1147 517h0M1156 517h0M283 526h0M292 526h0M301 526h0M1138 526h0M1147 526h0M274 535h0M283 535h0M292 535h0M301 535h0M310 535h0M1129 535h0M1138 535h0M283 544h0M292 544h0M301 544h0M310 544h0M292 553h0M301 553h0M310 562h0M319 562h0M328 562h0"/>
+        <g id="arcs"></g>
+        <g id="pins"></g>
+      </svg>
+    </div>
+    <div>
+      <div class="sec-head on-navy rv" style="margin-bottom:0">
+        <h2 class="h2" id="net-h">A network built for reach</h2>
+        <p class="lede">Six datacenters on four continents, with a CDN that brings static content within a short hop of your visitors.</p>
+      </div>
+      <div class="net-stats rv">
+        <div><b>99.93%</b><span>Network uptime</span></div>
+        <div><b>200</b><span>CDN points of presence</span></div>
+        <div><b>6</b><span>Datacenters</span></div>
+      </div>
+      <ul class="dc-list rv">
+        <li><i></i>United States</li>
+        <li><i></i>Brazil</li>
+        <li><i></i>Algeria (EU edge)</li>
+        <li><i></i>South Africa</li>
+        <li><i></i>India</li>
+        <li><i></i>Russia</li>
+      </ul>
+      <p class="net-note">Operations and support are run from our team in Dubai.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Head to head -->
+<section class="sec" aria-labelledby="h2h-h">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <h2 class="h2" id="h2h-h">How we compare with a typical host</h2>
+      <p class="lede">What you get by default, before any upsell.</p>
+    </div>
+    <div class="h2h rv">
+      <table>
+        <thead><tr><th scope="col"><span class="sr-only">Feature</span></th><th scope="col" class="us">Globalhostia</th><th scope="col">Typical host</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Storage</th><td class="us"><span class="cell"><svg class="ico"><use href="#i-check"/></svg>NVMe-only servers for cloud and VPS</span></td><td class="them"><span class="cell"><svg class="ico"><use href="#i-minus"/></svg>Mixed SATA SSD and spinning disks</span></td></tr>
+          <tr><th scope="row">Starting price</th><td class="us"><span class="cell"><svg class="ico"><use href="#i-check"/></svg>Shared hosting from $29.99/yr, dedicated from $39.99/mo</span></td><td class="them"><span class="cell"><svg class="ico"><use href="#i-minus"/></svg>Low first-term price that rises on renewal</span></td></tr>
+          <tr><th scope="row">Backups</th><td class="us"><span class="cell"><svg class="ico"><use href="#i-check"/></svg>Daily and weekly, included</span></td><td class="them"><span class="cell"><svg class="ico"><use href="#i-minus"/></svg>Often a paid add-on</span></td></tr>
+          <tr><th scope="row">Domain transfer</th><td class="us"><span class="cell"><svg class="ico"><use href="#i-check"/></svg>Free</span></td><td class="them"><span class="cell"><svg class="ico"><use href="#i-minus"/></svg>Transfer fee charged</span></td></tr>
+          <tr><th scope="row">Support</th><td class="us"><span class="cell"><svg class="ico"><use href="#i-check"/></svg>24/7 priority, by phone, email and ticket</span></td><td class="them"><span class="cell"><svg class="ico"><use href="#i-minus"/></svg>Ticket queue, phone on higher tiers</span></td></tr>
+          <tr><th scope="row">Server network port</th><td class="us"><span class="cell"><svg class="ico"><use href="#i-check"/></svg>1 Gbps standard, 10 Gbps available</span></td><td class="them"><span class="cell"><svg class="ico"><use href="#i-minus"/></svg>Shared 1 Gbps uplink</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Clients -->
+<section class="clients" aria-labelledby="cl-h">
+  <div class="wrap clients-in">
+    <h2 class="clients-k" id="cl-h">Trusted by teams at</h2>
+    <div class="wm" role="list">
+      <span class="wm-1" role="listitem">ADPList</span>
+      <span class="wm-2" role="listitem">1Mentorship</span>
+      <span class="wm-3" role="listitem">INFRA</span>
+      <span class="wm-4" role="listitem"><b>All</b>Code</span>
+      <span class="wm-5" role="listitem">Token247</span>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec faq-sec" aria-labelledby="faq-h">
+  <div class="wrap faq-in">
+    <div>
+      <div class="sec-head rv" style="margin-bottom:0">
+        <h2 class="h2" id="faq-h">Common questions</h2>
+        <p class="lede">Answers to what customers ask most before they sign up.</p>
+      </div>
+      <p class="faq-help">Something else? <a href="https://globalhostia.com/help-center">Visit the Help Center</a> or call +971 50 734 1578.</p>
+    </div>
+    <div class="faq" id="faq">
+      <h3 class="faq-q"><button class="faq-btn" aria-expanded="true" aria-controls="fa1" id="fq1">How do I transfer my domain to Globalhostia?<span class="pm"><svg class="ico ico-sm"><use href="#i-plus"/></svg></span></button></h3>
+      <div class="faq-a" id="fa1" role="region" aria-labelledby="fq1"><p>Unlock the domain at your current registrar and request its authorization (EPP) code. Start a transfer from our domain page, enter the code, and we take care of the rest. Transfers are free, and most complete within five to seven days.</p></div>
+      <h3 class="faq-q"><button class="faq-btn" aria-expanded="false" aria-controls="fa2" id="fq2">Which server location should I choose?<span class="pm"><svg class="ico ico-sm"><use href="#i-plus"/></svg></span></button></h3>
+      <div class="faq-a" id="fa2" role="region" aria-labelledby="fq2" hidden><p>Choose the region closest to most of your visitors. Shared hosting runs in the USA, Malaysia and Singapore at the same price, and our CDN serves static files from 200 locations wherever your server is.</p></div>
+      <h3 class="faq-q"><button class="faq-btn" aria-expanded="false" aria-controls="fa3" id="fq3">Can I upgrade from shared hosting to a VPS later?<span class="pm"><svg class="ico ico-sm"><use href="#i-plus"/></svg></span></button></h3>
+      <div class="faq-a" id="fa3" role="region" aria-labelledby="fq3" hidden><p>Yes. Upgrade between shared plans from your client area at any time, with the price difference prorated. Moving to a cloud VPS or dedicated server is a migration our team will do with you.</p></div>
+      <h3 class="faq-q"><button class="faq-btn" aria-expanded="false" aria-controls="fa4" id="fq4">How do backups work, and can I restore them myself?<span class="pm"><svg class="ico ico-sm"><use href="#i-plus"/></svg></span></button></h3>
+      <div class="faq-a" id="fa4" role="region" aria-labelledby="fq4" hidden><p>We take daily and weekly backups automatically and store them separately from your server. You can restore files, databases or a full account from cPanel, or ask support to do it for you.</p></div>
+      <h3 class="faq-q"><button class="faq-btn" aria-expanded="false" aria-controls="fa5" id="fq5">Which payment methods do you accept?<span class="pm"><svg class="ico ico-sm"><use href="#i-plus"/></svg></span></button></h3>
+      <div class="faq-a" id="fa5" role="region" aria-labelledby="fq5" hidden><p>Visa, Mastercard, American Express, Discover, JCB, Maestro and Bitcoin. Invoices are issued in US dollars through your client area.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" aria-labelledby="cta-h">
+  <div class="wrap cta-in">
+    <div class="rv">
+      <h2 class="h2" id="cta-h">Talk to an engineer before you buy.</h2>
+      <p>Tell us what you are running today and we will recommend the right plan, then help you migrate it at no cost.</p>
+    </div>
+    <div class="cta-box rv" style="--i:1">
+      <a class="cta-line" href="tel:+971507341578"><svg class="ico"><use href="#i-phone"/></svg><span><b>+971 50 734 1578</b><span>Phone and WhatsApp, 24/7</span></span></a>
+      <a class="cta-line" href="mailto:support@globalhostia.com"><svg class="ico"><use href="#i-mail"/></svg><span><b>support@globalhostia.com</b><span>We reply within the hour</span></span></a>
+      <div class="cta-btns">
+        <a class="btn btn-teal" href="https://globalhostia.com/secure/cart.php">Get started</a>
+        <a class="btn btn-ghost" href="https://globalhostia.com/contact">Contact sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr-top">
+      <div class="ftr-brand">
+        <img src="/image/logo-main-white.png" alt="Globalhostia" width="150" height="30">
+        <p>Hosting, servers and domains for businesses, run by a team in Dubai, UAE.</p>
+        <ul class="ftr-contact">
+          <li><a href="tel:+971507341578"><svg class="ico"><use href="#i-phone"/></svg>+971 50 734 1578</a></li>
+          <li><a href="mailto:support@globalhostia.com"><svg class="ico"><use href="#i-mail"/></svg>support@globalhostia.com</a></li>
+        </ul>
+      </div>
+      <div><h3>Hosting</h3><ul>
+        <li><a href="https://globalhostia.com/web-hosting">Web hosting</a></li>
+        <li><a href="https://globalhostia.com/wordpress-hosting">WordPress hosting</a></li>
+        <li><a href="https://globalhostia.com/shared-hosting">Shared hosting</a></li>
+        <li><a href="https://globalhostia.com/cpanel-reseller">Reseller (cPanel)</a></li>
+      </ul></div>
+      <div><h3>Servers</h3><ul>
+        <li><a href="https://globalhostia.com/vps-hosting">VPS</a></li>
+        <li><a href="https://globalhostia.com/cloudvps">Cloud VPS</a></li>
+        <li><a href="https://globalhostia.com/dedicated-servers">Dedicated servers</a></li>
+        <li><a href="https://globalhostia.com/secure/cart.php">Forex VPS</a></li>
+        <li><a href="https://globalhostia.com/secure/cart.php">Windows VPS</a></li>
+        <li><a href="https://globalhostia.com/secure/cart.php">AI/LLM hosting</a></li>
+        <li><a href="https://globalhostia.com/secure/cart.php">n8n Automation</a></li>
+      </ul></div>
+      <div><h3>Domains and security</h3><ul>
+        <li><a href="https://globalhostia.com/domains-registration">Register a domain</a></li>
+        <li><a href="https://globalhostia.com/secure/cart.php?a=add&amp;domain=transfer">Transfer a domain</a></li>
+        <li><a href="https://globalhostia.com/domains-registration">Domain pricing</a></li>
+        <li><a href="https://globalhostia.com/ssl-certificate">SSL certificates</a></li>
+      </ul></div>
+      <div><h3>Business tools</h3><ul>
+        <li><a href="https://globalhostia.com/projects">Project management</a></li>
+        <li><a href="https://globalhostia.com/google-workspace">Google Workspace</a></li>
+        <li><a href="https://globalhostia.com/binance">Binance MCPs</a></li>
+      </ul></div>
+      <div><h3>Support</h3><ul>
+        <li><a href="https://globalhostia.com/help-center">Help Center</a></li>
+        <li><a href="https://globalhostia.com/all-topics">All topics</a></li>
+        <li><a href="https://globalhostia.com/status-page">Status page</a></li>
+        <li><a href="https://globalhostia.com/incident-history">Incident history</a></li>
+        <li><a href="https://globalhostia.com/contact">Contact</a></li>
+      </ul></div>
+    </div>
+    <div class="ftr-bot">
+      <p>We accept Visa, Mastercard, American Express, Discover, JCB, Maestro and Bitcoin. Prices shown live from our billing system.</p>
+      <p>© 2026 Globalhostia, a brand of Desert Tech Cloud Services LLC. Dubai, UAE.</p>
+    </div>
+  </div>
+</footer>
+
+<a class="pill" href="/previews/index.html">Concept 3 · Meridian — preview</a>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var B = "https://globalhostia.com";
+  var STORE = B + "/secure/cart.php";
+  function ico(id, cls){ return '<svg class="ico'+(cls?' '+cls:'')+'" aria-hidden="true"><use href="#i-'+id+'"/></svg>'; }
+
+  /* ---------------- Menu data ---------------- */
+  var MENU = [
+    {id:"hosting", label:"Hosting", sub:"Websites, email and WordPress on NVMe storage.", links:[
+      {t:"Web Hosting", d:"cPanel hosting for business websites", h:B+"/web-hosting", i:"globe", p:"from $29.99/yr"},
+      {t:"WordPress Hosting", d:"Managed updates, caching and daily backups", h:B+"/wordpress-hosting", i:"layout"},
+      {t:"Shared Hosting", d:"Lite, Ultra and Infinity in USA, Malaysia, Singapore", h:B+"/shared-hosting", i:"users", p:"from $29.99/yr"},
+      {t:"Reseller (cPanel)", d:"Host your own clients under your brand", h:B+"/cpanel-reseller", i:"building", p:"Coming soon", soon:true}
+    ], f:{k:"Shared hosting", v:"$29.99", u:"/yr", p:"Hostia Lite with NVMe storage and 10 email accounts, in any of three regions.", c:"Compare plans", h:"#plans"}},
+    {id:"servers", label:"Servers", sub:"Virtual and bare-metal servers you control.", links:[
+      {t:"VPS", d:"Linux and Windows VPS, 4 to 24 vCPU", h:B+"/vps-hosting", i:"cpu"},
+      {t:"Cloud VPS", d:"Fully managed SSD cloud servers", h:B+"/cloudvps", i:"cloud"},
+      {t:"Dedicated Servers", d:"Xeon and Ryzen hardware, up to 10 Gbps", h:B+"/dedicated-servers", i:"server", p:"from $39.99/mo"},
+      {t:"Forex VPS", d:"Windows VPS for trading terminals", h:STORE, i:"trend"},
+      {t:"Windows VPS", d:"Windows servers from 4 to 12 vCPU", h:STORE, i:"monitor"},
+      {t:"AI/LLM Hosting", d:"Run language models privately", h:STORE, i:"bot"},
+      {t:"n8n Automation", d:"Managed n8n with NVMe and free SSL", h:STORE, i:"flow"}
+    ], f:{k:"Dedicated servers", v:"$39.99", u:"/mo", p:"Five IPv4 addresses and full root access on every server, with 10 Gbps options.", c:"Compare servers", h:"#dedicated"}},
+    {id:"domains", label:"Domains", sub:"Register, transfer and manage your names.", links:[
+      {t:"Register a domain", d:".com, .net, .org, .shop, .live and more", h:B+"/domains-registration", i:"globe", p:"from $1.20/yr"},
+      {t:"Transfer a domain", d:"Move your domains to us at no charge", h:STORE+"?a=add&domain=transfer", i:"swap", p:"Free"},
+      {t:"Domain pricing", d:"Registration and renewal prices for every TLD", h:B+"/domains-registration", i:"tag"}
+    ], f:{k:".com registration", v:"$13.65", u:"/yr", p:"Free domain transfer and DNS management included with every domain.", c:"Search domains", h:"#hero-h"}},
+    {id:"security", label:"Security", sub:"Encryption and trust for your websites.", links:[
+      {t:"SSL Certificates", d:"DV, wildcard and OV from Comodo, Thawte and GeoTrust", h:B+"/ssl-certificate", i:"lock"},
+      {t:"Wildcard SSL", d:"One certificate for unlimited subdomains", h:B+"/ssl-certificate", i:"shield"},
+      {t:"Organization Validated", d:"Your company name in the certificate", h:B+"/ssl-certificate", i:"building"}
+    ], f:{k:"GeoTrust OV certificate", v:"$1,250,000", u:" warranty", p:"Organization validation with 99% browser recognition and free reissues.", c:"Compare certificates", h:B+"/ssl-certificate"}},
+    {id:"business", label:"Business tools", sub:"Software your team uses every day.", links:[
+      {t:"Project Management", d:"Kanban, time tracking and client portals", h:B+"/projects", i:"kanban"},
+      {t:"Google Workspace", d:"Business email and Drive on your domain", h:B+"/google-workspace", i:"mail"},
+      {t:"Binance MCPs", d:"MCP servers for Binance trading tools", h:B+"/binance", i:"plug"}
+    ], f:{k:"Project workspace", v:"Unlimited users", u:"", p:"Agency plan with your own app.yourcompany.com, custom branding and daily backups.", c:"Explore the workspace", h:B+"/projects"}},
+    {id:"support", label:"Support", sub:"Help from engineers, around the clock.", links:[
+      {t:"Help Center", d:"Guides for hosting, domains and email", h:B+"/help-center", i:"buoy"},
+      {t:"All topics", d:"Browse every article by subject", h:B+"/all-topics", i:"book"},
+      {t:"Status page", d:"Live status of every service", h:B+"/status-page", i:"activity"},
+      {t:"Incident history", d:"Past incidents and their resolution", h:B+"/incident-history", i:"history"},
+      {t:"Contact", d:"Phone, email and ticket support", h:B+"/contact", i:"headset"}
+    ], f:{k:"24/7 priority support", v:"+971 50 734 1578", u:"", p:"support@globalhostia.com. Call, email or open a ticket at any hour.", c:"Contact support", h:B+"/contact"}}
+  ];
+
+  function linkHTML(l){
+    return '<li><a class="mlink" href="'+l.h+'"><span class="mlink-ic">'+ico(l.i)+'</span><span><span class="mlink-t">'+l.t+
+      (l.p?'<span class="mlink-p'+(l.soon?' soon':'')+'">'+l.p+'</span>':'')+'</span><span class="mlink-d">'+l.d+'</span></span></a></li>';
+  }
+
+  /* ---------------- Mega menu ---------------- */
+  var rail = document.getElementById("rail"), panes = document.getElementById("panes"), feature = document.getElementById("feature");
+  var mega = document.getElementById("mega"), hdr = document.getElementById("hdr");
+  var navBtns = [].slice.call(document.querySelectorAll(".nav-btn"));
+  MENU.forEach(function(m, i){
+    rail.insertAdjacentHTML("beforeend",'<button class="rail-tab" role="tab" id="tab-'+m.id+'" aria-controls="pane-'+m.id+'" aria-selected="false" tabindex="-1" data-tab="'+m.id+'">'+m.label+ico("down")+'</button>');
+    panes.insertAdjacentHTML("beforeend",'<div class="pane" role="tabpanel" id="pane-'+m.id+'" aria-labelledby="tab-'+m.id+'" hidden><p class="pane-title">'+m.label+'</p><p class="pane-sub">'+m.sub+'</p><ul class="links">'+m.links.map(linkHTML).join("")+'</ul></div>');
+  });
+  rail.insertAdjacentHTML("beforeend",'<div class="rail-foot">Need advice? Call +971 50 734 1578</div>');
+  var tabs = [].slice.call(rail.querySelectorAll(".rail-tab"));
+  var current = null, openT = null, closeT = null, isOpen = false;
+
+  function select(id){
+    if (current === id) return;
+    current = id;
+    var m = MENU.filter(function(x){return x.id===id;})[0];
+    tabs.forEach(function(t){ var on = t.dataset.tab===id; t.setAttribute("aria-selected", on); t.tabIndex = on?0:-1; });
+    [].forEach.call(panes.children, function(p){ p.hidden = p.id !== "pane-"+id; });
+    feature.innerHTML = '<span class="feature-k">'+m.f.k+'</span><span class="feature-v">'+m.f.v+(m.f.u?'<small>'+m.f.u+'</small>':'')+'</span><p>'+m.f.p+'</p><a class="btn btn-teal" href="'+m.f.h+'">'+m.f.c+'</a>';
+    navBtns.forEach(function(b){ b.setAttribute("aria-expanded", isOpen && b.dataset.tab===id); });
+  }
+  function open(id){
+    clearTimeout(closeT);
+    isOpen = true;
+    mega.hidden = false;
+    select(id);
+    navBtns.forEach(function(b){ b.setAttribute("aria-expanded", b.dataset.tab===id); });
+    requestAnimationFrame(function(){ mega.classList.add("open"); });
+  }
+  function close(focusBack){
+    clearTimeout(openT);
+    if (!isOpen) return;
+    isOpen = false;
+    mega.classList.remove("open");
+    var trig = navBtns.filter(function(b){return b.dataset.tab===current;})[0];
+    navBtns.forEach(function(b){ b.setAttribute("aria-expanded","false"); });
+    setTimeout(function(){ if(!isOpen) mega.hidden = true; }, reduce?0:220);
+    if (focusBack && trig) trig.focus();
+  }
+  navBtns.forEach(function(b){
+    b.addEventListener("mouseenter", function(){
+      clearTimeout(closeT); clearTimeout(openT);
+      if (isOpen) { open(b.dataset.tab); return; }
+      openT = setTimeout(function(){ open(b.dataset.tab); }, 120);
+    });
+    b.addEventListener("mouseleave", function(){ clearTimeout(openT); closeT = setTimeout(function(){ close(false); }, 180); });
+    b.addEventListener("click", function(e){
+      if (isOpen && current===b.dataset.tab) close(false); else open(b.dataset.tab);
+    });
+    b.addEventListener("keydown", function(e){
+      if (e.key==="ArrowDown" || ((e.key==="Enter"||e.key===" ") && !(isOpen && current===b.dataset.tab))) {
+        e.preventDefault(); open(b.dataset.tab);
+        var first = document.querySelector("#pane-"+b.dataset.tab+" .mlink"); if (first) setTimeout(function(){ first.focus(); }, 30);
+      } else if (e.key==="Escape") close(true);
+    });
+  });
+  mega.addEventListener("mouseenter", function(){ clearTimeout(closeT); });
+  mega.addEventListener("mouseleave", function(){ closeT = setTimeout(function(){ close(false); }, 180); });
+  tabs.forEach(function(t, i){
+    var hoverT;
+    t.addEventListener("mouseenter", function(){ hoverT = setTimeout(function(){ select(t.dataset.tab); }, 60); });
+    t.addEventListener("mouseleave", function(){ clearTimeout(hoverT); });
+    t.addEventListener("click", function(){ select(t.dataset.tab); });
+    t.addEventListener("keydown", function(e){
+      var n = null;
+      if (e.key==="ArrowDown") n = tabs[(i+1)%tabs.length];
+      if (e.key==="ArrowUp") n = tabs[(i-1+tabs.length)%tabs.length];
+      if (n){ e.preventDefault(); select(n.dataset.tab); n.focus(); }
+    });
+  });
+  document.addEventListener("keydown", function(e){ if (e.key==="Escape" && isOpen) close(true); });
+  document.addEventListener("click", function(e){ if (isOpen && !hdr.contains(e.target)) close(false); });
+  mega.addEventListener("focusout", function(e){ if (isOpen && !hdr.contains(e.relatedTarget) && e.relatedTarget) close(false); });
+
+  /* ---------------- Sticky header ---------------- */
+  var ticking = false;
+  function onScroll(){ hdr.classList.toggle("compact", window.scrollY > 40); ticking = false; }
+  window.addEventListener("scroll", function(){ if(!ticking){ ticking = true; requestAnimationFrame(onScroll); } }, {passive:true});
+  onScroll();
+
+  /* ---------------- Drawer ---------------- */
+  var drawer = document.getElementById("drawer"), burger = document.getElementById("burger"), dBody = document.getElementById("drawerBody");
+  dBody.innerHTML = MENU.map(function(m){
+    return '<button class="acc-btn" aria-expanded="false" aria-controls="acc-'+m.id+'">'+m.label+ico("down")+'</button><div class="acc-panel" id="acc-'+m.id+'" hidden><ul class="links" style="grid-template-columns:1fr">'+m.links.map(linkHTML).join("")+'</ul></div>';
+  }).join("");
+  dBody.addEventListener("click", function(e){
+    var b = e.target.closest(".acc-btn"); if (!b) return;
+    var ex = b.getAttribute("aria-expanded")==="true";
+    b.setAttribute("aria-expanded", !ex);
+    document.getElementById(b.getAttribute("aria-controls")).hidden = ex;
+  });
+  function setDrawer(on){
+    drawer.classList.toggle("open", on);
+    drawer.setAttribute("aria-hidden", !on);
+    burger.setAttribute("aria-expanded", on);
+    document.body.style.overflow = on ? "hidden" : "";
+    if (on) setTimeout(function(){ drawer.querySelector(".drawer-x").focus(); }, 50); else burger.focus();
+  }
+  burger.addEventListener("click", function(){ setDrawer(true); });
+  drawer.addEventListener("click", function(e){ if (e.target.closest("[data-close]")) setDrawer(false); });
+  drawer.addEventListener("keydown", function(e){
+    if (e.key==="Escape") setDrawer(false);
+    if (e.key==="Tab"){
+      var f = drawer.querySelectorAll("button, a[href]"); f = [].filter.call(f, function(x){ return x.offsetParent!==null; });
+      var a = f[0], z = f[f.length-1];
+      if (e.shiftKey && document.activeElement===a){ e.preventDefault(); z.focus(); }
+      else if (!e.shiftKey && document.activeElement===z){ e.preventDefault(); a.focus(); }
+    }
+  });
+  window.matchMedia("(min-width:1024px)").addEventListener("change", function(q){ if (q.matches && drawer.classList.contains("open")) setDrawer(false); });
+
+  /* ---------------- Plan data ---------------- */
+  var PLANS = {
+    lite:{n:"Hostia Lite", p:"29.99", f:["2 GB NVMe space","50 GB bandwidth","10 email accounts","1 website","10 databases"]},
+    ultra:{n:"Hostia Ultra", p:"39.99", f:["5 GB NVMe space","100 GB bandwidth","Unlimited email accounts","5 websites","25 databases"]},
+    infinity:{n:"Hostia Infinity", p:"49.99", f:["Unlimited SSD space","Unlimited bandwidth","Unlimited email accounts","10 websites","Unlimited databases"]}
+  };
+  var SUFFIX = {USA:"USA", Malaysia:"MY", Singapore:"SG"};
+  var DC = {USA:"United States datacenter", Malaysia:"Malaysia datacenter", Singapore:"Singapore datacenter"};
+  function perMonth(p){ return (Math.round(parseFloat(p)/12*100)/100).toFixed(2); }
+
+  /* ---------------- Configurator ---------------- */
+  var cfg = document.getElementById("cfg");
+  var cols = [].slice.call(cfg.querySelectorAll(".odo-col"));
+  cols.forEach(function(c){ var s=""; for (var d=0; d<10; d++) s += "<span>"+d+"</span>"; c.innerHTML = s; });
+  var thumb = cfg.querySelector(".seg-thumb");
+  var feats = document.getElementById("cfgFeats");
+  var lastFeatKey = "";
+  function updateCfg(){
+    var loc = cfg.querySelector("input[name=loc]:checked").value;
+    var key = cfg.querySelector("input[name=plan]:checked").value;
+    var P = PLANS[key];
+    var digits = P.p.replace(".","").split("");
+    cols.forEach(function(c, i){ c.style.transform = "translateY(" + (-parseInt(digits[i],10)) + "em)"; });
+    document.getElementById("priceSr").textContent = "$" + P.p + " per year";
+    document.getElementById("cfgName").innerHTML = "Your plan: <b>" + P.n + " " + SUFFIX[loc] + "</b>";
+    document.getElementById("cfgPer").textContent = "per year, about $" + perMonth(P.p) + " a month";
+    var idx = ["USA","Malaysia","Singapore"].indexOf(loc);
+    thumb.style.transform = "translateX(" + (idx*100) + "%)";
+    var fk = key + loc;
+    if (fk !== lastFeatKey){
+      var html = [DC[loc]].concat(P.f.slice(0,3)).map(function(t){ return "<li>"+ico("check")+t+"</li>"; }).join("");
+      if (lastFeatKey && !reduce){
+        feats.classList.add("swap");
+        setTimeout(function(){ feats.innerHTML = html; feats.classList.remove("swap"); }, 200);
+      } else feats.innerHTML = html;
+      lastFeatKey = fk;
+    }
+    document.getElementById("cfgGo").href = B + "/shared-hosting?location=" + encodeURIComponent(loc) + "&plan=" + key;
+  }
+  cfg.addEventListener("change", updateCfg);
+  cfg.addEventListener("submit", function(e){ e.preventDefault(); });
+  updateCfg();
+
+  /* ---------------- Plan cards ---------------- */
+  var planCards = document.getElementById("planCards"), locTabs = [].slice.call(document.querySelectorAll("#locTabs [role=tab]"));
+  function renderCards(loc){
+    planCards.innerHTML = ["lite","ultra","infinity"].map(function(k){
+      var P = PLANS[k], hi = k==="ultra";
+      return '<article class="card'+(hi?' hi':'')+'">'+(hi?'<span class="card-flag">Most chosen</span>':'')+
+        '<h3>'+P.n+' '+SUFFIX[loc]+'</h3><div class="loc">'+DC[loc]+'</div>'+
+        '<div class="amt">$'+P.p+' <small>/yr</small></div><div class="eq">About $'+perMonth(P.p)+' a month, billed yearly</div>'+
+        '<ul class="feats">'+P.f.map(function(f){ return '<li>'+ico("check")+'<span>'+f+'</span></li>'; }).join("")+'<li>'+ico("check")+'<span>24/7 technical support</span></li></ul>'+
+        '<a class="btn '+(hi?'btn-navy':'btn-line')+'" href="'+B+'/shared-hosting">Order '+P.n+'</a></article>';
+    }).join("");
+  }
+  locTabs.forEach(function(t, i){
+    t.addEventListener("click", function(){
+      locTabs.forEach(function(x){ x.setAttribute("aria-selected", x===t); x.tabIndex = x===t?0:-1; });
+      renderCards(t.dataset.loc);
+    });
+    t.addEventListener("keydown", function(e){
+      var n = e.key==="ArrowRight" ? locTabs[(i+1)%3] : e.key==="ArrowLeft" ? locTabs[(i+2)%3] : null;
+      if (n){ e.preventDefault(); n.focus(); n.click(); }
+    });
+  });
+  renderCards("USA");
+
+  /* ---------------- Dedicated servers ---------------- */
+  var DED = [
+    ["Hostia mini","EOL","E3-1230","4C/4T @ 3.2GHz","16GB DDR3","160GB SSD","Unmetered1Gbps","39.99","std"],
+    ["Hostia mini plus","EOL","E3-1230v1","4C/4T @ 3.2GHz","16GB DDR3","1TB SATA","Unmetered1Gbps","43.99","std"],
+    ["Hostia Compact","EOL","E3-1230v1","4C/4T @ 3.2GHz","16GB DDR3","2TB SATA","Unmetered1Gbps","45.99","std"],
+    ["Hostia Prime","","Dual L5420","8C/8T @ 2.5GHz","16GB DDR2","500GB SATA","30TB1Gbps","45.99","std"],
+    ["Hostia Compact Plus","EOL","E3-1230v2","4C/8T @ 3.3GHz","16GB DDR3","256GB SSD","30TB1Gbps","47.99","std"],
+    ["Hostia Prime Mini","EOL","Dual L5520","8C/16T @ 2.26GHz","24GB DDR3","500GB SATA","30TB1Gbps","47.99","std"],
+    ["Hostia Pocket","EOL","E3-1230v2","4C/8T @ 3.3GHz","16GB DDR3","2x1TB SATA","30TB1Gbps","48.99","std"],
+    ["Hostia Pocket Max","EOL","E3-1230v2","4C/8T @ 3.3GHz","32GB DDR3","120GB SSD + 1TB HDD","30TB1Gbps","50.99","std"],
+    ["Hostia Core","EOL","Dual L5520","8C/16T @ 2.26GHz","48GB DDR3","1TB SATA","30TB1Gbps","52.99","std"],
+    ["Hostia Go","EOL","E3-1270v2","4C/8T @ 3.5GHz","16GB DDR3","2TB SATA","30TB1Gbps","53.99","std"],
+    ["Hostia Go Plus","EOL","E3-1270v2","4C/8T @ 3.5GHz","32GB DDR3","2TB SATA","30TB1Gbps","54.99","std"],
+    ["Hostia Edge","EOL","E3-1270v2","4C/8T @ 3.5GHz","32GB DDR3","500GB SSD","30TB1Gbps","55.99","std"],
+    ["Hostia Core Plus","EOL","Dual L5520","8C/16T @ 2.26GHz","48GB DDR3","2TB SATA","30TB1Gbps","55.99","std"],
+    ["Hostia Edge Pro","EOL","E3-1270v2","4C/8T @ 3.5GHz","32GB DDR3","1TB SSD","30TB1Gbps","57.99","std"],
+    ["Hostia Spark","EOL","Dual L5520","8C/16T @ 2.26GHz","64GB DDR3","1TB SATA","30TB1Gbps","58.99","std"],
+    ["Hostia Spark Mini","EOL","Dual L5520","8C/16T @ 2.26GHz","64GB DDR3","2TB SATA","30TB1Gbps","59.99","std"],
+    ["Hostia Air","EOL","Dual L5520","8C/16T @ 2.26GHz","48GB DDR3","500GB SSD","30TB1Gbps","63.99","std"],
+    ["Hostia Air Plus","EOL","Dual L5520","8C/16T @ 2.26GHz","48GB DDR3","1TB SSD","30TB1Gbps","66.99","std"],
+    ["Hostia Flex","Special","Ryzen 9 5950X","16C/32T @ 3.4GHz","128GB DDR4 ECC","2x1TB NVMe","Unmetered1Gbps","150.00","ryzen"],
+    ["Hostia Flex Plus","Pre-Order","Ryzen 9 7950X","16C/32T @ 4.9GHz","128GB DDR5 ECC","2x2TB NVMe","Unmetered1Gbps","249.99","ryzen"],
+    ["Premium Server A","HOT","2x E5-2683v4","32C/64T @ 2.10GHz","128GB DDR4","2TB SSD","Unmetered1Gbps","129.99","prem"],
+    ["Premium Server B","SALE","2x E5-2683v4","32C/64T @ 2.10GHz","128GB DDR4","2x2TB SSD","Unmetered1Gbps","154.99","prem"],
+    ["Premium Server C","OUT","2x E5-2683v4","32C/64T @ 2.10GHz","256GB DDR4","2x2TB SSD","Unmetered1Gbps","169.99","prem"],
+    ["Premium 10Gbps Server","10Gbps","2x E5-2683v4","32C/64T @ 2.10GHz","128GB DDR4","2TB SSD","Unmetered10Gbps","999.99","prem"]
+  ].map(function(r){
+    var bw = r[6].match(/^(Unmetered|\d+TB)(\d+Gbps)$/);
+    return {name:r[0], badge:r[1], chip:r[2], cpu:r[3], ram:r[4], ramN:parseInt(r[4],10), sto:r[5],
+      traffic: bw[1]==="Unmetered" ? "Unmetered" : bw[1].replace("TB"," TB"), port: bw[2].replace("Gbps"," Gbps"),
+      price:r[7], priceN:parseFloat(r[7]), line:r[8]};
+  });
+  var BADGE = {"EOL":["End of line","b-eol"],"Special":["Special offer","b-hot"],"Pre-Order":["Pre-order","b-pre"],"HOT":["Popular","b-hot"],"SALE":["On sale","b-sale"],"OUT":["Sold out","b-out"],"10Gbps":["10 Gbps","b-10g"],"":["Available","b-hot"]};
+  var FILTERS = [
+    {id:"all", t:"All servers", fn:function(){return true;}},
+    {id:"prem", t:"Premium dual Xeon", fn:function(s){return s.line==="prem";}},
+    {id:"ryzen", t:"Ryzen NVMe", fn:function(s){return s.line==="ryzen";}},
+    {id:"std", t:"Value Xeon", fn:function(s){return s.line==="std";}}
+  ];
+  var dState = {f:"all", key:"price", dir:1};
+  var chips = document.getElementById("dedChips");
+  chips.innerHTML = FILTERS.map(function(f){
+    var n = DED.filter(f.fn).length;
+    return '<button class="chip" type="button" aria-pressed="'+(f.id==="all")+'" data-f="'+f.id+'">'+f.t+'<span class="n">'+n+'</span></button>';
+  }).join("");
+  chips.addEventListener("click", function(e){
+    var b = e.target.closest(".chip"); if (!b) return;
+    dState.f = b.dataset.f;
+    [].forEach.call(chips.children, function(c){ c.setAttribute("aria-pressed", c===b); });
+    renderDed();
+  });
+  var ths = [].slice.call(document.querySelectorAll("#dedTable th[data-sort]"));
+  ths.forEach(function(th){
+    th.querySelector("button").addEventListener("click", function(){
+      var k = th.dataset.sort;
+      dState.dir = dState.key===k ? -dState.dir : 1; dState.key = k;
+      ths.forEach(function(x){ x.setAttribute("aria-sort", x===th ? (dState.dir>0?"ascending":"descending") : "none"); });
+      renderDed();
+    });
+  });
+  function renderDed(){
+    var f = FILTERS.filter(function(x){return x.id===dState.f;})[0];
+    var rows = DED.filter(f.fn).slice().sort(function(a,b){
+      var k = dState.key==="price" ? "priceN" : "ramN";
+      return (a[k]-b[k])*dState.dir || a.priceN-b.priceN;
+    });
+    document.getElementById("dedCount").textContent = rows.length + (rows.length===1?" server":" servers") + " shown";
+    document.getElementById("dedBody").innerHTML = rows.length ? rows.map(function(s){
+      var bd = BADGE[s.badge] || [s.badge,"b-eol"], out = s.badge==="OUT";
+      return '<tr><th scope="row" class="srv"><b>'+s.name+'</b><span>'+s.chip+'</span></th><td>'+s.cpu+'</td><td class="num">'+s.ram+'</td><td>'+s.sto+'</td><td>'+s.traffic+' at '+s.port+'</td>'+
+        '<td><span class="badge '+bd[1]+'">'+bd[0]+'</span></td><td class="pr">$'+s.price+'</td><td>'+
+        (out ? '<span class="btn" aria-disabled="true">Sold out</span>' : '<a class="btn btn-line" href="'+B+'/dedicated-servers" aria-label="Order '+s.name+'">Order</a>')+'</td></tr>';
+    }).join("") : '<tr><td colspan="8" class="empty">No servers match this filter. Choose All servers to see the full range.</td></tr>';
+  }
+  renderDed();
+
+  /* ---------------- Map ---------------- */
+  var NS = "http://www.w3.org/2000/svg";
+  var HQ = {x:745, y:226};
+  var DCS = [
+    {n:"USA", x:186, y:182, lx:0, ly:-22, a:"middle"},
+    {n:"Brazil", x:340, y:408, lx:-18, ly:8, a:"end"},
+    {n:"Algeria", x:530, y:168, lx:-16, ly:-14, a:"end"},
+    {n:"Russia", x:650, y:92, lx:0, ly:-22, a:"middle"},
+    {n:"South Africa", x:656, y:440, lx:18, ly:8, a:"start"},
+    {n:"India", x:822, y:262, lx:18, ly:8, a:"start"}
+  ];
+  var arcs = document.getElementById("arcs"), pins = document.getElementById("pins");
+  function el(t, at){ var e = document.createElementNS(NS, t); for (var k in at) e.setAttribute(k, at[k]); return e; }
+  DCS.forEach(function(d, i){
+    var mx = (HQ.x + d.x)/2, my = (HQ.y + d.y)/2, dist = Math.hypot(d.x-HQ.x, d.y-HQ.y);
+    arcs.appendChild(el("path", {class:"arc", d:"M"+HQ.x+" "+HQ.y+" Q"+mx+" "+(my - dist*0.28)+" "+d.x+" "+d.y}));
+    var g = el("g", {});
+    var ring = el("circle", {class:"pin-ring", cx:d.x, cy:d.y, r:8}); ring.style.animationDelay = (i*4)+"s";
+    g.appendChild(ring);
+    g.appendChild(el("circle", {cx:d.x, cy:d.y, r:9, fill:"rgba(14,165,164,.18)"}));
+    g.appendChild(el("circle", {class:"pin-core", cx:d.x, cy:d.y, r:5}));
+    var t = el("text", {class:"pin-lbl", x:d.x+d.lx, y:d.y+d.ly, "text-anchor":d.a}); t.textContent = d.n;
+    g.appendChild(t);
+    pins.appendChild(g);
+  });
+  var hq = el("g", {});
+  hq.appendChild(el("circle", {cx:HQ.x, cy:HQ.y, r:11, fill:"none", stroke:"#c9a24d", "stroke-width":1.2}));
+  hq.appendChild(el("circle", {class:"pin-hq", cx:HQ.x, cy:HQ.y, r:5}));
+  var ht = el("text", {class:"pin-lbl", x:HQ.x+18, y:HQ.y-14, "text-anchor":"start"}); ht.textContent = "Dubai HQ"; ht.setAttribute("fill","#e8d3a2");
+  hq.appendChild(ht); pins.appendChild(hq);
+
+  /* ---------------- FAQ ---------------- */
+  document.getElementById("faq").addEventListener("click", function(e){
+    var b = e.target.closest(".faq-btn"); if (!b) return;
+    var ex = b.getAttribute("aria-expanded")==="true";
+    b.setAttribute("aria-expanded", !ex);
+    document.getElementById(b.getAttribute("aria-controls")).hidden = ex;
+  });
+
+  /* ---------------- Reveal + ambient pause ---------------- */
+  var rvs = [].slice.call(document.querySelectorAll(".rv"));
+  if ("IntersectionObserver" in window && !reduce){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(en){ if (en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); } });
+    }, {rootMargin:"0px 0px -8% 0px", threshold:0.08});
+    rvs.forEach(function(r){ io.observe(r); });
+    var amb = new IntersectionObserver(function(es){
+      es.forEach(function(en){ en.target.classList.toggle("paused", !en.isIntersecting); });
+    });
+    amb.observe(document.getElementById("cfgStage"));
+    amb.observe(document.getElementById("map"));
+  } else rvs.forEach(function(r){ r.classList.add("in"); });
+})();
+</script>
+</body>
+</html>

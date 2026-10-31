@@ -1,0 +1,1314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Globalhostia — Hosting, servers and domains</title>
+<meta name="description" content="NVMe web hosting, managed cloud VPS, dedicated servers up to 10Gbps and domain registration from Globalhostia, Dubai.">
+<link rel="icon" href="/image/favicon/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0f172a; --ink-2:#1e293b; --muted:#475569; --subtle:#64748b;
+  --line:#e2e8f0; --line-2:#cbd5e1; --surface:#f8fafc; --white:#fff;
+  --blue:#2563eb; --blue-ink:#1d4ed8; --blue-tint:#eff6ff; --blue-line:#bfdbfe;
+  --orange:#c2410c; --orange-hover:#9a3412;
+  --ok:#15803d;
+  --display:"Inter Tight","Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --container:1240px; --gutter:32px;
+  --r-sm:6px; --r:10px; --r-lg:14px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --header-h:72px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--white);color:var(--ink);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+h1,h2,h3,h4{font-family:var(--display);margin:0;color:var(--ink);font-weight:600}
+p{margin:0}
+ul{margin:0;padding:0;list-style:none}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip{position:absolute;left:16px;top:-60px;z-index:100;background:var(--ink);color:#fff;padding:10px 14px;border-radius:var(--r-sm)}
+.skip:focus{top:12px}
+.container{max-width:var(--container);margin:0 auto;padding:0 var(--gutter)}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:32px}
+.ico{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:var(--r-sm);font:600 15px/1 var(--body);border:1px solid transparent;transition:background-color .18s var(--ease),border-color .18s var(--ease),color .18s var(--ease);white-space:nowrap}
+.btn-cta{background:var(--orange);color:#fff}
+.btn-cta:hover{background:var(--orange-hover)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-ink)}
+.btn-ghost{border-color:var(--line-2);background:#fff;color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-text{color:var(--ink);padding:0 12px}
+.btn-text:hover{color:var(--blue)}
+.link{color:var(--blue);font-weight:500;display:inline-flex;align-items:center;gap:6px;min-height:44px}
+.link:hover{color:var(--blue-ink);text-decoration:underline;text-underline-offset:3px}
+.link .ico{width:16px;height:16px;transition:transform .2s var(--ease)}
+.link:hover .ico{transform:translateX(2px)}
+
+/* Header */
+.site-header{position:sticky;top:0;z-index:50;height:var(--header-h)}
+.site-header::before{content:"";position:absolute;inset:0;background:rgba(255,255,255,.82);-webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid var(--line);opacity:0;transition:opacity .25s var(--ease)}
+.site-header.scrolled::before,.site-header.menu-open::before{opacity:1}
+.site-header.menu-open::before{background:#fff}
+.header-inner{position:relative;height:100%;display:flex;align-items:center;gap:24px}
+.brand{display:flex;align-items:center;min-height:44px;transform-origin:left center;transition:transform .25s var(--ease)}
+.brand img{height:32px;width:auto}
+.scrolled .brand{transform:scale(.9)}
+.nav{display:flex;align-items:center;gap:2px;margin-left:16px}
+.nav-btn{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 12px;border-radius:var(--r-sm);font:500 15px/1 var(--body);color:var(--ink-2);transition:color .15s,background-color .15s}
+.nav-btn .ico{width:14px;height:14px;transition:transform .2s var(--ease);color:var(--subtle)}
+.nav-btn:hover,.nav-btn[aria-expanded="true"]{color:var(--ink);background:var(--surface)}
+.nav-btn[aria-expanded="true"] .ico{transform:rotate(180deg)}
+.header-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.burger{display:none;width:44px;height:44px;align-items:center;justify-content:center;border-radius:var(--r-sm);border:1px solid var(--line)}
+
+/* Mega menu */
+.mega{position:absolute;left:0;right:0;top:calc(var(--header-h) - 1px);padding:0 var(--gutter);pointer-events:none}
+.mega-panel{max-width:calc(var(--container) - 2*var(--gutter));margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:0 0 var(--r-lg) var(--r-lg);box-shadow:0 24px 48px -24px rgba(15,23,42,.18);opacity:0;transform:translateY(-6px);visibility:hidden;transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 300px;overflow:hidden}
+.mega.open{pointer-events:auto}
+.mega.open .mega-panel{opacity:1;transform:none;visibility:visible;transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s}
+.mega-col{padding:28px 24px 28px}
+.mega-col + .mega-col{border-left:1px solid var(--line)}
+.mega-col h3{font:500 13px/1.4 var(--body);color:var(--subtle);margin:0 0 12px 12px}
+.mega-link{display:flex;gap:12px;padding:10px 12px;border-radius:var(--r);transition:background-color .15s}
+.mega-link:hover,.mega-link:focus-visible{background:var(--surface)}
+.mega-link .mi{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;color:var(--blue);flex:none;background:#fff}
+.mega-link .mi .ico{width:18px;height:18px}
+.mega-link strong{display:block;font:600 15px/1.35 var(--body);color:var(--ink)}
+.mega-link span{display:block;font-size:13.5px;line-height:1.45;color:var(--muted);margin-top:2px}
+.mega-link .tag{display:inline-block;font:600 11px/1 var(--body);color:var(--blue-ink);background:var(--blue-tint);border:1px solid var(--blue-line);padding:3px 6px;border-radius:4px;margin-left:6px;vertical-align:2px}
+.mega-feature{background:var(--surface);border-left:1px solid var(--line);padding:28px;display:flex;flex-direction:column;gap:12px}
+.mega-feature .mf-kicker{font-size:13px;color:var(--subtle)}
+.mega-feature h4{font-size:22px;letter-spacing:-.02em;line-height:1.2}
+.mega-feature p{font-size:14.5px;color:var(--muted);line-height:1.55}
+.mega-feature .mf-spec{border-top:1px solid var(--line);padding-top:12px;font-size:13.5px;color:var(--ink-2);display:grid;gap:6px}
+.mega-feature .mf-spec div{display:flex;justify-content:space-between;gap:12px}
+.mega-feature .mf-spec dt{color:var(--subtle)}
+.mega-feature .btn{margin-top:auto;align-self:flex-start}
+.tld-mini{display:grid;gap:2px}
+.tld-mini a{display:flex;justify-content:space-between;padding:10px 12px;border-radius:var(--r);font-size:15px;min-height:44px;align-items:center}
+.tld-mini a:hover{background:var(--surface)}
+.tld-mini b{font-weight:600}
+.tld-mini span{color:var(--muted)}
+
+/* Drawer */
+.drawer{position:fixed;inset:0;z-index:80;visibility:hidden;transition:visibility 0s linear .3s}
+.drawer.open{visibility:visible;transition:none}
+.drawer-scrim{position:absolute;inset:0;background:rgba(15,23,42,.35);opacity:0;transition:opacity .3s var(--ease)}
+.drawer.open .drawer-scrim{opacity:1}
+.drawer-panel{position:absolute;top:0;right:0;bottom:0;width:min(420px,100%);background:#fff;transform:translateX(100%);transition:transform .32s var(--ease);display:flex;flex-direction:column}
+.drawer.open .drawer-panel{transform:none}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;height:64px;padding:0 16px 0 20px;border-bottom:1px solid var(--line);flex:none}
+.drawer-head img{height:28px;width:auto}
+.drawer-body{overflow-y:auto;flex:1;padding:8px 0}
+.acc-btn{width:100%;display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 20px;font:600 17px/1 var(--display);border-bottom:1px solid var(--line)}
+.acc-btn .ico{transition:transform .25s var(--ease);color:var(--subtle)}
+.acc-btn[aria-expanded="true"] .ico{transform:rotate(180deg)}
+.acc-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s var(--ease)}
+.acc-panel.open{grid-template-rows:1fr}
+.acc-panel > div{overflow:hidden}
+.acc-panel ul{padding:8px 12px 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.acc-panel a{display:flex;align-items:center;gap:12px;min-height:48px;padding:6px 8px;border-radius:var(--r-sm);font-size:16px}
+.acc-panel a .ico{color:var(--blue)}
+.acc-panel a:hover{background:#fff}
+.drawer-foot{flex:none;padding:16px 20px 20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Hero */
+.hero{position:relative;padding:64px 0 88px;overflow:hidden}
+.hero-guides{position:absolute;inset:0;pointer-events:none;-webkit-mask-image:linear-gradient(#000 0%,#000 55%,transparent 100%);mask-image:linear-gradient(#000 0%,#000 55%,transparent 100%)}
+.hero-guides .container{height:100%}
+.hero-guides .grid{height:100%}
+.hero-guides .grid span{border-left:1px solid rgba(226,232,240,.7);height:100%}
+.hero-guides .grid span:last-child{border-right:1px solid rgba(226,232,240,.7)}
+.hero .grid{position:relative;align-items:center;row-gap:56px}
+.hero-copy{grid-column:1 / span 6}
+.hero-visual{grid-column:7 / span 6}
+.hero-badge{display:inline-flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px 6px 8px;min-height:36px}
+.hero-badge .pill{font-weight:600;font-size:12px;color:var(--blue-ink);background:var(--blue-tint);border-radius:999px;padding:3px 8px}
+.hero-badge:hover{border-color:var(--line-2)}
+.hero h1{font-size:clamp(40px,4.6vw,60px);line-height:1.04;letter-spacing:-.04em;margin:24px 0 20px;max-width:13ch}
+.hero-sub{font-size:19px;line-height:1.6;color:var(--muted);max-width:52ch}
+.domain{margin-top:36px}
+.domain-field{display:flex;align-items:stretch;background:#fff;border:1px solid var(--line-2);border-radius:var(--r);padding:6px;transition:border-color .15s,box-shadow .15s;max-width:560px}
+.domain-field:focus-within{border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+.domain-field .ico{margin:0 4px 0 10px;align-self:center;color:var(--subtle)}
+.domain-field input{flex:1;min-width:0;border:0;outline:0;font:400 17px/1 var(--body);color:var(--ink);padding:0 8px;min-height:48px;background:transparent}
+.domain-field input::placeholder{color:#64748b}
+.domain-field .btn{min-height:48px;padding:0 22px}
+.domain-label{display:block;font-size:14px;font-weight:500;color:var(--ink-2);margin-bottom:10px}
+.tlds{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.tld{display:inline-flex;gap:6px;border:1px solid var(--line);border-radius:var(--r-sm);padding:0 11px;min-height:44px;align-items:center;font-size:14px;background:#fff;transition:border-color .15s}
+.tld:hover{border-color:var(--blue)}
+.tld b{font-weight:600}
+.tld span{color:var(--muted)}
+.trust{display:flex;flex-wrap:wrap;gap:12px 24px;margin-top:32px;padding-top:24px;border-top:1px solid var(--line);font-size:14.5px;color:var(--muted);max-width:560px}
+.trust li{display:flex;align-items:center;gap:8px}
+.trust .ico{width:18px;height:18px;color:var(--blue)}
+.stars{display:inline-flex;gap:1px;color:#f59e0b}
+.stars svg{width:14px;height:14px;fill:currentColor;stroke:none}
+
+/* Map card */
+.map-card{border:1px solid var(--line);border-radius:var(--r-lg);background:#fff;box-shadow:0 1px 0 rgba(15,23,42,.02),0 30px 60px -40px rgba(15,23,42,.25)}
+.map-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--line);font-size:14px}
+.map-head strong{font-weight:600}
+.status{display:inline-flex;align-items:center;gap:8px;color:var(--ok);font-weight:500;min-height:32px}
+.status i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+.status:hover{text-decoration:underline;text-underline-offset:3px}
+.map-wrap{padding:20px 16px 8px}
+.worldmap{width:100%;height:auto;overflow:visible}
+.worldmap .land{stroke:#cbd5e1;stroke-width:3.3;stroke-linecap:round;fill:none}
+.worldmap .arc{fill:none;stroke:var(--blue);stroke-width:1.2;stroke-linecap:round;opacity:.7;stroke-dasharray:1;stroke-dashoffset:1}
+.worldmap.drawn .arc{stroke-dashoffset:0;transition:stroke-dashoffset 2.6s var(--ease)}
+.worldmap .dc-core{fill:var(--blue);stroke:#fff;stroke-width:2}
+.worldmap .dc-ring{fill:var(--blue);opacity:0;transform-box:fill-box;transform-origin:center;animation:pulse 4.8s var(--ease) infinite}
+.worldmap .dc.hl .dc-core{fill:var(--orange)}
+.worldmap .dc-label{font:600 11px var(--body);fill:var(--ink);opacity:0;transition:opacity .2s}
+.worldmap .dc.hl .dc-label{opacity:1}
+.worldmap .hq{fill:#fff;stroke:var(--ink);stroke-width:1.6}
+.worldmap .packet{fill:var(--blue)}
+.paused .dc-ring{animation-play-state:paused}
+@keyframes pulse{0%{transform:scale(1);opacity:.35}70%,100%{transform:scale(4.2);opacity:0}}
+.map-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line)}
+.map-legend li{padding:12px 16px;font-size:13.5px;display:flex;flex-direction:column;gap:2px;cursor:default;transition:background-color .15s}
+.map-legend li:hover{background:var(--surface)}
+.map-legend li:nth-child(n+4){border-top:1px solid var(--line)}
+.map-legend li:not(:nth-child(3n+1)){border-left:1px solid var(--line)}
+.map-legend b{font-weight:600;display:flex;align-items:center;gap:8px}
+.map-legend b::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.map-legend span{color:var(--subtle);padding-left:14px}
+.map-foot{display:flex;justify-content:space-between;gap:12px;padding:12px 20px;border-top:1px solid var(--line);font-size:13px;color:var(--subtle);background:var(--surface);border-radius:0 0 var(--r-lg) var(--r-lg)}
+.map-foot b{color:var(--ink);font-weight:600}
+
+/* Sections */
+.section{padding:112px 0}
+.section-alt{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.sec-head{margin-bottom:56px;row-gap:16px}
+.sec-head h2{grid-column:1 / span 6;font-size:clamp(30px,3.4vw,44px);line-height:1.08;letter-spacing:-.032em}
+.sec-head p{grid-column:8 / span 5;color:var(--muted);font-size:17.5px;align-self:end}
+.kicker{font:500 15px/1.4 var(--body);color:var(--blue);margin-bottom:14px;display:block}
+
+/* Value props */
+.props{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--ink)}
+.prop{padding:28px 28px 8px 0}
+.prop + .prop{padding-left:28px;border-left:1px solid var(--line)}
+.prop .pi{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;color:var(--blue);margin-bottom:24px}
+.prop h3{font-size:20px;letter-spacing:-.015em;line-height:1.25;margin-bottom:10px}
+.prop p{color:var(--muted);font-size:15.5px;line-height:1.6;margin-bottom:12px}
+.prop .from{font-size:14px;color:var(--subtle);margin-bottom:4px}
+.prop .from b{color:var(--ink);font-weight:600}
+
+/* Plans */
+.plans-bar{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:24px;flex-wrap:wrap}
+.plans-bar p{color:var(--muted);font-size:15px}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--line-2);border-radius:var(--r);padding:4px;position:relative}
+.seg button{position:relative;z-index:1;min-height:40px;padding:0 18px;border-radius:7px;font:500 15px/1 var(--body);color:var(--muted);display:inline-flex;align-items:center;gap:8px;transition:color .2s}
+.seg button[aria-checked="true"]{color:#fff}
+.seg-thumb{position:absolute;top:4px;bottom:4px;left:0;border-radius:7px;background:var(--ink);transition:transform .3s var(--ease),width .3s var(--ease)}
+.plan-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.plan{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:32px;display:flex;flex-direction:column}
+.plan.featured{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.plan .flag{position:absolute;top:-12px;left:32px;background:var(--blue);color:#fff;font:600 12.5px/1 var(--body);padding:6px 10px;border-radius:999px}
+.plan h3{font-size:22px;letter-spacing:-.02em}
+.plan .loc{font-size:14px;color:var(--subtle);margin-top:4px;min-height:22px}
+.plan .loc b{color:var(--ink-2);font-weight:500}
+.plan .tagline{font-size:15px;color:var(--muted);margin:16px 0 24px;line-height:1.55}
+.price{display:flex;align-items:baseline;gap:6px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.price .amt{font:600 44px/1 var(--display);letter-spacing:-.035em}
+.price .cur{font:600 20px/1 var(--display);align-self:flex-start;margin-top:6px}
+.price .per{color:var(--subtle);font-size:15px}
+.plan .btn{margin:24px 0;width:100%}
+.feat{display:grid;gap:12px;font-size:15px}
+.feat li{display:flex;gap:10px;align-items:flex-start}
+.feat .ico{width:18px;height:18px;margin-top:3px;color:var(--blue)}
+.feat li.no{color:var(--subtle)}
+.feat li.no .ico{color:#94a3b8}
+.plans-note{margin-top:20px;font-size:13.5px;color:var(--subtle)}
+.swap{transition:opacity .2s var(--ease)}
+.swap.fade{opacity:0}
+
+.servers{margin-top:96px}
+.servers-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:24px;flex-wrap:wrap}
+.servers-head h3{font-size:26px;letter-spacing:-.025em}
+.servers-head p{color:var(--muted);font-size:15.5px;margin-top:6px;max-width:56ch}
+.table-scroll{position:relative;border:1px solid var(--line);border-radius:var(--r-lg);overflow-x:auto;background:#fff}
+.spec-table{width:100%;min-width:860px;border-collapse:collapse;font-size:15px;border-spacing:0}
+.spec-table th{text-align:left;font:500 13px/1.3 var(--body);color:var(--subtle);padding:14px 20px;border-bottom:1px solid var(--line);background:var(--surface);white-space:nowrap}
+.spec-table td{white-space:nowrap;padding:18px 20px;border-bottom:1px solid var(--line);vertical-align:middle}
+.spec-table tr:last-child td{border-bottom:0}
+.spec-table tbody tr{transition:background-color .15s}
+.spec-table tbody tr:hover{background:#fbfdff}
+.spec-table .nm{font-weight:600}
+.spec-table .nm small{display:block;font-weight:400;color:var(--subtle);font-size:13px;margin-top:2px}
+.spec-table .pr{font:600 18px/1 var(--display);letter-spacing:-.02em;white-space:nowrap}
+.spec-table .pr .pv span{font:400 13px var(--body);color:var(--subtle)}
+.spec-table td:last-child{text-align:right}
+.badge{display:inline-block;font:600 11.5px/1 var(--body);padding:4px 7px;border-radius:4px;border:1px solid var(--line);color:var(--ink-2);margin-left:8px;vertical-align:2px}
+.badge.b-blue{color:var(--blue-ink);background:var(--blue-tint);border-color:var(--blue-line)}
+.badge.b-orange{color:var(--orange);background:#fff7ed;border-color:#fed7aa}
+
+/* Why */
+.why{align-items:start;row-gap:48px}
+.rating{grid-column:1 / span 4;border:1px solid var(--line);border-radius:var(--r-lg);padding:32px;background:#fff}
+.rating .score{font:600 64px/1 var(--display);letter-spacing:-.04em;margin:16px 0 8px}
+.rating .score span{font-size:28px;color:var(--subtle);letter-spacing:-.02em}
+.rating .stars svg{width:20px;height:20px}
+.rating p{color:var(--muted);font-size:15.5px;margin-top:12px}
+.rating .r-meta{border-top:1px solid var(--line);margin-top:24px;padding-top:20px;display:grid;gap:12px;font-size:14.5px}
+.rating .r-meta div{display:flex;justify-content:space-between}
+.rating .r-meta dt{color:var(--subtle)}
+.rating .r-meta dd{margin:0;font-weight:600}
+.why-grid{grid-column:6 / span 7;display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ink)}
+.why-item{padding:28px 28px 32px 0;border-bottom:1px solid var(--line)}
+.why-item:nth-child(even){padding-left:28px;padding-right:0;border-left:1px solid var(--line)}
+.why-item .ico{width:24px;height:24px;color:var(--blue);margin-bottom:20px}
+.why-item h3{font-size:19px;letter-spacing:-.015em;margin-bottom:8px}
+.why-item p{color:var(--muted);font-size:15.5px}
+
+/* Product strip */
+.strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r-lg);background:#fff;overflow:hidden}
+.strip-item{padding:28px 24px;display:flex;flex-direction:column;gap:10px;transition:background-color .15s;min-height:260px}
+.strip-item + .strip-item{border-left:1px solid var(--line)}
+.strip-item:hover{background:var(--surface)}
+.strip-item .si{width:40px;height:40px;border-radius:10px;background:var(--blue-tint);color:var(--blue);display:grid;place-items:center;margin-bottom:8px}
+.strip-item h3{font-size:18px;letter-spacing:-.015em;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.strip-item p{font-size:14.5px;color:var(--muted);line-height:1.55}
+.strip-item .link{margin-top:auto;font-size:15px}
+.strip-item.soon .si{background:var(--surface);color:var(--subtle);border:1px solid var(--line)}
+
+/* Network */
+.net{row-gap:48px;align-items:start}
+.net-copy{grid-column:1 / span 4}
+.net-copy h2{font-size:clamp(30px,3.4vw,44px);line-height:1.08;letter-spacing:-.032em;margin-bottom:16px}
+.net-copy > p{color:var(--muted);font-size:17px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--ink);margin-top:40px}
+.stat{padding:20px 0 0}
+.stat + .stat{padding-left:20px;border-left:1px solid var(--line)}
+.stat b{display:block;font:600 34px/1 var(--display);letter-spacing:-.035em}
+.stat span{display:block;font-size:13.5px;color:var(--muted);margin-top:8px;line-height:1.4}
+.net-viz{grid-column:6 / span 7;border:1px solid var(--line);border-radius:var(--r-lg);background:#fff;overflow:hidden}
+.band{width:100%;height:auto}
+.band .axis{stroke:var(--ink);stroke-width:1}
+.band .tick{stroke:var(--line-2);stroke-width:1}
+.band .tick-l{font:500 11px var(--body);fill:var(--subtle)}
+.band .lat{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+.band .barc{fill:none;stroke:var(--blue);stroke-width:1.2;opacity:.5}
+.band .pin{fill:var(--blue);stroke:#fff;stroke-width:2.5}
+.band .stem{stroke:var(--blue);stroke-width:1;opacity:.35}
+.band .nm{font:600 13px var(--display);fill:var(--ink)}
+.band .sub{font:400 11.5px var(--body);fill:var(--subtle)}
+.dc-table{width:100%;border-collapse:collapse;font-size:14.5px;border-top:1px solid var(--line)}
+.dc-table th{font:500 12.5px var(--body);color:var(--subtle);text-align:left;padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+.dc-table td{padding:12px 20px;border-bottom:1px solid var(--line)}
+.dc-table tr:last-child td{border-bottom:0}
+.dc-table td:first-child{font-weight:600}
+.dc-table td:last-child{color:var(--muted)}
+
+/* Compare */
+.compare-wrap{border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:#fff}
+.compare{width:100%;border-collapse:collapse;font-size:15.5px}
+.compare th,.compare td{padding:18px 24px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.compare thead th{font:600 15px/1.3 var(--display);background:var(--surface)}
+.compare thead th.us{background:var(--blue-tint);color:var(--blue-ink);box-shadow:inset 0 3px 0 var(--blue)}
+.compare tbody th{font-weight:500;color:var(--ink-2);width:30%}
+.compare td.us{background:#f8fbff;font-weight:500}
+.compare td .cell{display:flex;gap:10px;align-items:flex-start}
+.compare td .ico{width:18px;height:18px;margin-top:3px}
+.compare td.us .ico{color:var(--blue)}
+.compare td.them{color:var(--muted)}
+.compare td.them .ico{color:#94a3b8}
+.compare tr:last-child th,.compare tr:last-child td{border-bottom:0}
+.compare-note{font-size:13.5px;color:var(--subtle);margin-top:16px}
+
+/* Clients */
+.clients{display:flex;align-items:center;gap:24px 48px;flex-wrap:wrap;justify-content:space-between;padding:40px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.clients p{font-size:15px;color:var(--muted);max-width:22ch}
+.clients ul{display:flex;flex-wrap:wrap;gap:16px 48px;align-items:center}
+.wm{font:600 22px/1 var(--display);letter-spacing:-.02em;color:#64748b;transition:color .2s}
+.wm:hover{color:var(--ink)}
+.wm.w2{font-family:Georgia,"Times New Roman",serif;font-weight:700;letter-spacing:-.01em}
+.wm.w3{letter-spacing:.18em;font-weight:700;font-size:19px}
+.wm.w4{font-weight:500;letter-spacing:-.03em}
+.wm.w5{font-weight:700;font-style:italic}
+
+/* FAQ */
+.faq{row-gap:40px;align-items:start}
+.faq-side{grid-column:1 / span 4}
+.faq-side h2{font-size:clamp(30px,3.4vw,44px);line-height:1.08;letter-spacing:-.032em;margin-bottom:16px}
+.faq-side p{color:var(--muted)}
+.faq-contact{margin-top:28px;display:grid;gap:4px;font-size:15.5px}
+.faq-contact a{display:flex;align-items:center;gap:10px;min-height:44px;color:var(--ink);font-weight:500}
+.faq-contact a .ico{color:var(--blue)}
+.faq-contact a:hover{color:var(--blue)}
+.faq-list{grid-column:6 / span 7;border-top:1px solid var(--ink)}
+.faq-item{border-bottom:1px solid var(--line)}
+.faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;gap:24px;text-align:left;padding:22px 0;min-height:64px;font:600 18px/1.4 var(--display);letter-spacing:-.01em}
+.faq-q:hover{color:var(--blue)}
+.faq-q .pm{position:relative;width:20px;height:20px;flex:none}
+.faq-q .pm::before,.faq-q .pm::after{content:"";position:absolute;left:3px;right:3px;top:50%;height:1.6px;margin-top:-.8px;background:currentColor;border-radius:2px;transition:transform .25s var(--ease)}
+.faq-q .pm::after{transform:rotate(90deg)}
+.faq-q[aria-expanded="true"] .pm::after{transform:rotate(0)}
+.faq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s var(--ease)}
+.faq-a.open{grid-template-rows:1fr}
+.faq-a > div{overflow:hidden}
+.faq-a p{padding:0 48px 24px 0;color:var(--muted);font-size:16.5px;max-width:64ch}
+
+/* CTA */
+.cta{padding:0 0 112px}
+.cta-box{border:1px solid var(--line);border-radius:var(--r-lg);padding:56px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:32px;row-gap:28px;align-items:center;background:
+  radial-gradient(600px 240px at 100% 0%,rgba(37,99,235,.08),transparent 70%),#fff;position:relative;overflow:hidden}
+.cta-box h2{grid-column:1 / span 7;font-size:clamp(28px,3vw,40px);letter-spacing:-.03em;line-height:1.1}
+.cta-box p{grid-column:1 / span 7;color:var(--muted);margin-top:-12px}
+.cta-actions{grid-column:9 / span 4;grid-row:1 / span 2;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
+
+/* Footer */
+.footer{background:var(--surface);border-top:1px solid var(--line);padding:72px 0 32px;font-size:14.5px}
+.foot-top{row-gap:40px}
+.foot-brand{grid-column:1 / span 3}
+.foot-brand img{height:30px;width:auto;margin-bottom:20px}
+.foot-brand p{color:var(--muted);max-width:30ch}
+.foot-brand address{font-style:normal;margin-top:20px;display:grid;gap:2px}
+.foot-brand address a{display:flex;align-items:center;gap:10px;min-height:40px;color:var(--ink-2)}
+.foot-brand address a:hover{color:var(--blue)}
+.foot-brand address .ico{width:18px;height:18px;color:var(--blue)}
+.foot-cols{grid-column:5 / span 8;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px}
+.foot-cols h3{font:600 14px/1.4 var(--body);margin-bottom:12px}
+.foot-cols a{display:flex;align-items:center;color:var(--muted);min-height:34px;line-height:1.35}
+.foot-cols a:hover{color:var(--ink)}
+.foot-bottom{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px 32px;color:var(--subtle);font-size:13.5px}
+.foot-bottom .pay{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.foot-bottom .pay span{border:1px solid var(--line-2);border-radius:4px;padding:3px 7px;font-size:12px;font-weight:500;color:var(--ink-2);background:#fff}
+
+/* Preview pill */
+.preview-pill{position:fixed;left:16px;bottom:16px;z-index:60;display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;font:500 13px/1 var(--body);padding:0 14px;min-height:36px;border-radius:999px;box-shadow:0 8px 24px -8px rgba(15,23,42,.5)}
+.preview-pill i{width:6px;height:6px;border-radius:50%;background:#60a5fa}
+
+/* Reveal */
+[data-reveal]{opacity:0;transform:translateY(10px);transition:opacity .5s var(--ease),transform .5s var(--ease);transition-delay:calc(var(--i,0) * 55ms)}
+[data-reveal].in{opacity:1;transform:none}
+
+/* Responsive */
+@media (max-width:1180px){
+  .nav-btn{padding:0 9px;font-size:14.5px}
+  .header-actions .btn-text{display:none}
+  .mega-panel{grid-template-columns:repeat(3,minmax(0,1fr)) 260px}
+  .strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .strip-item:nth-child(n+4){border-top:1px solid var(--line)}
+  .strip-item:nth-child(4){border-left:0}
+  .foot-brand{grid-column:1 / -1}
+  .foot-cols{grid-column:1 / -1}
+}
+@media (max-width:1023px){
+  :root{--header-h:64px;--gutter:24px}
+  .nav,.header-actions .btn-text,.header-actions .btn-ghost{display:none}
+  .burger{display:inline-flex}
+  .mega{display:none}
+  .hero{padding:48px 0 72px}
+  .hero-copy,.hero-visual{grid-column:1 / -1}
+  .hero h1{max-width:14ch}
+  .sec-head h2,.sec-head p{grid-column:1 / -1}
+  .props{grid-template-columns:1fr 1fr}
+  .prop:nth-child(3){padding-left:0;border-left:0}
+  .prop:nth-child(n+3){border-top:1px solid var(--line);margin-top:24px}
+  .plan-grid{grid-template-columns:1fr;max-width:560px}
+  .rating,.why-grid,.net-copy,.net-viz,.faq-side,.faq-list{grid-column:1 / -1}
+  .cta-box h2,.cta-box p,.cta-actions{grid-column:1 / -1;grid-row:auto}
+  .cta-actions{justify-content:flex-start}
+  .foot-cols{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .section{padding:88px 0}
+}
+@media (max-width:720px){
+  :root{--gutter:16px}
+  body{font-size:16px}
+  .grid{column-gap:16px}
+  .hero-guides{display:none}
+  .hero-sub{font-size:17px}
+  .domain-field{flex-wrap:wrap}
+  .domain-field input{flex-basis:calc(100% - 40px)}
+  .domain-field .btn{width:100%;margin-top:6px}
+  .map-head{padding:12px 16px}
+  .map-head strong{display:none}
+  .map-wrap{padding:12px 8px 4px}
+  .map-legend{grid-template-columns:1fr 1fr}
+  .map-legend li:nth-child(n+3){border-top:1px solid var(--line)}
+  .map-legend li:not(:nth-child(3n+1)){border-left:0}
+  .map-legend li:nth-child(even){border-left:1px solid var(--line)}
+  .map-foot{flex-direction:column;gap:4px}
+  .section{padding:72px 0}
+  .sec-head{margin-bottom:40px}
+  .props{grid-template-columns:1fr}
+  .prop,.prop + .prop{padding:24px 0 8px;border-left:0}
+  .prop + .prop{border-top:1px solid var(--line);margin-top:16px}
+  .plans-bar{flex-direction:column;align-items:flex-start}
+  .seg{width:100%}
+  .seg button{flex:1;justify-content:center;padding:0 8px}
+  .plan{padding:28px 24px}
+  .spec-table{min-width:0}
+  .spec-table thead{display:none}
+  .spec-table,.spec-table tbody,.spec-table tr,.spec-table td{display:block;width:100%}
+  .spec-table tr{padding:16px 0;border-bottom:1px solid var(--line)}
+  .spec-table tr:last-child{border-bottom:0}
+  .spec-table td{border:0;padding:4px 16px;display:flex;justify-content:space-between;gap:16px;text-align:right}
+  .spec-table td::before{content:attr(data-l);color:var(--subtle);font-size:13.5px;text-align:left}
+  .spec-table td.nm{display:block;text-align:left;padding-bottom:10px}
+  .spec-table td.nm::before{content:none}
+  .spec-table td:last-child{justify-content:flex-start;padding-top:12px}
+  .spec-table td:last-child::before{content:none}
+  .why-grid{grid-template-columns:1fr}
+  .why-item,.why-item:nth-child(even){padding:24px 0;border-left:0}
+  .strip{grid-template-columns:1fr}
+  .strip-item{min-height:0}
+  .strip-item + .strip-item{border-left:0;border-top:1px solid var(--line)}
+  .band{display:none}
+  .dc-table{border-top:0}
+  .stats{grid-template-columns:1fr 1fr 1fr}
+  .stat b{font-size:26px}
+  .stat + .stat{padding-left:12px}
+  .compare th,.compare td{padding:14px 12px;font-size:14.5px}
+  .compare tbody th{width:34%}
+  .clients{flex-direction:column;align-items:flex-start}
+  .clients ul{gap:16px 32px}
+  .wm{font-size:19px}
+  .faq-a p{padding-right:0}
+  .cta-box{padding:32px 24px}
+  .cta-actions .btn{flex:1}
+  .foot-cols{grid-template-columns:1fr 1fr}
+  .foot-bottom{flex-direction:column}
+  .preview-pill{font-size:12px;left:12px;bottom:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:0s !important;animation:none !important;scroll-behavior:auto !important}
+  [data-reveal]{opacity:1;transform:none}
+  .worldmap .arc{stroke-dashoffset:0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+    <symbol id="i-wp" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M4.5 8.5l4.2 11.3M8 8.5h5M10.5 8.5l3.6 10M13.5 8.5c2 0 3.5.2 3.5 2 0 1.2-.8 2.2-1.3 3.6l-1.6 4.4"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.4 9.2 4.5 4.5 0 0 0 7 18z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.7.8 2.8 2.5 3.1 5.2"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/><rect x="9.5" y="9.5" width="5" height="5"/><path d="M9 2.5v3M15 2.5v3M9 18.5v3M15 18.5v3M2.5 9h3M2.5 15h3M18.5 9h3M18.5 15h3"/></symbol>
+    <symbol id="i-win" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><path d="M12 3.5v17M3.5 12h17"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 16l4-5 4 3 6-8"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/><path d="M19 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z"/></symbol>
+    <symbol id="i-flow" viewBox="0 0 24 24"><rect x="2.5" y="4" width="6" height="5" rx="1"/><rect x="15.5" y="4" width="6" height="5" rx="1"/><rect x="9" y="15" width="6" height="5" rx="1"/><path d="M8.5 6.5h7M5.5 9v3.5a2 2 0 0 0 2 2H9M18.5 9v3.5a2 2 0 0 1-2 2H15"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2.5L4.5 13.5H12l-1 8 8.5-11H12l1-8z"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9-8-8z"/><circle cx="8" cy="8" r="1.4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5l-4.5-4.5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.2-7.5 9.5-4.3-1.3-7.5-4.9-7.5-9.5V6L12 3z"/><path d="M8.8 12l2.2 2.2 4.2-4.4"/></symbol>
+    <symbol id="i-badge" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.3L7 21l5-2.6L17 21l-1.5-7.7"/></symbol>
+    <symbol id="i-kanban" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M8.5 7.5v6M12 7.5v9.5M15.5 7.5v3.5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2.5v5M15 2.5v5M6.5 7.5h11v3.5a5.5 5.5 0 0 1-11 0V7.5zM12 16.5v5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5v-15z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6 5 12 2.5-6h4"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6L3.5 8.5"/><path d="M3.5 4v4.5H8M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 3.5h3.5l1.8 4.5-2.3 1.4a11 11 0 0 0 6.6 6.6l1.4-2.3 4.5 1.8V19a1.5 1.5 0 0 1-1.5 1.5A16.5 16.5 0 0 1 3.5 5 1.5 1.5 0 0 1 5 3.5z"/></symbol>
+    <symbol id="i-headset" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3.5" y="13.5" width="4" height="6" rx="1.5"/><rect x="16.5" y="13.5" width="4" height="6" rx="1.5"/><path d="M18.5 19.5c0 1.2-1.5 2-4 2H12"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4.5" rx="1"/><path d="M4.5 8.5V19a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5V8.5M10 12.5h4"/></symbol>
+    <symbol id="i-drive" viewBox="0 0 24 24"><path d="M3 14.5l2.8-8.2A1.8 1.8 0 0 1 7.5 5h9a1.8 1.8 0 0 1 1.7 1.3L21 14.5"/><rect x="3" y="14.5" width="18" height="5" rx="1.5"/><path d="M7 17h.01M10.5 17h.01"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4L2.8 9.5l6.4-.8L12 2.8z"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4.5 18a8.5 8.5 0 1 1 15 0"/><path d="M12 13.5l4-4.5"/><circle cx="12" cy="14" r="1.3"/></symbol>
+  </defs>
+</svg>
+
+<header class="site-header" id="header">
+  <div class="container header-inner">
+    <a class="brand" href="/" aria-label="Globalhostia home"><img src="/image/logo-main-black.png" alt="Globalhostia" width="150" height="32"></a>
+    <nav class="nav" aria-label="Primary">
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-hosting" data-menu="m-hosting">Hosting<svg class="ico"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-servers" data-menu="m-servers">Servers<svg class="ico"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-domains" data-menu="m-domains">Domains<svg class="ico"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-security" data-menu="m-security">Security<svg class="ico"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-business" data-menu="m-business">Business tools<svg class="ico"><use href="#i-chev"/></svg></button>
+      <button class="nav-btn" aria-expanded="false" aria-controls="m-support" data-menu="m-support">Support<svg class="ico"><use href="#i-chev"/></svg></button>
+    </nav>
+    <div class="header-actions">
+      <a class="btn btn-text" href="/secure/clientarea.php">Sign in</a>
+      <a class="btn btn-cta" href="#plans">Get started</a>
+      <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="drawer"><svg class="ico"><use href="#i-menu"/></svg></button>
+    </div>
+  </div>
+
+  <!-- Mega: Hosting -->
+  <div class="mega" id="m-hosting" data-panel>
+    <div class="mega-panel" role="region" aria-label="Hosting">
+      <div class="mega-col">
+        <h3>Hosting plans</h3>
+        <a class="mega-link" href="/web-hosting"><i class="mi"><svg class="ico"><use href="#i-globe"/></svg></i><div><strong>Web Hosting</strong><span>cPanel hosting on NVMe storage for any website.</span></div></a>
+        <a class="mega-link" href="/wordpress-hosting"><i class="mi"><svg class="ico"><use href="#i-wp"/></svg></i><div><strong>WordPress Hosting</strong><span>Managed WordPress, tuned and kept up to date.</span></div></a>
+        <a class="mega-link" href="/shared-hosting"><i class="mi"><svg class="ico"><use href="#i-layers"/></svg></i><div><strong>Shared Hosting</strong><span>Lite, Ultra and Infinity plans billed yearly.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>For agencies</h3>
+        <a class="mega-link" href="/cpanel-reseller"><i class="mi"><svg class="ico"><use href="#i-users"/></svg></i><div><strong>Reseller (cPanel)<em class="tag" style="font-style:normal">Soon</em></strong><span>Host your clients under your own brand.</span></div></a>
+        <a class="mega-link" href="/projects"><i class="mi"><svg class="ico"><use href="#i-kanban"/></svg></i><div><strong>Project Management</strong><span>A hosted workspace for your client projects.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>Hosting locations</h3>
+        <a class="mega-link" href="#plans" data-loc-link="usa"><i class="mi"><svg class="ico"><use href="#i-pin"/></svg></i><div><strong>United States</strong><span>All three shared plans available.</span></div></a>
+        <a class="mega-link" href="#plans" data-loc-link="my"><i class="mi"><svg class="ico"><use href="#i-pin"/></svg></i><div><strong>Malaysia</strong><span>Close to customers across Southeast Asia.</span></div></a>
+        <a class="mega-link" href="#plans" data-loc-link="sg"><i class="mi"><svg class="ico"><use href="#i-pin"/></svg></i><div><strong>Singapore</strong><span>Low-latency hosting for APAC traffic.</span></div></a>
+      </div>
+      <div class="mega-feature">
+        <span class="mf-kicker">Most chosen plan</span>
+        <h4>Hostia Ultra, $39.99 a year</h4>
+        <p>5 websites, unlimited email accounts and NVMe storage, with support around the clock.</p>
+        <dl class="mf-spec"><div><dt>Storage</dt><dd>5 GB NVMe</dd></div><div><dt>Bandwidth</dt><dd>100 GB</dd></div></dl>
+        <a class="btn btn-primary" href="#plans">Compare plans</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mega: Servers -->
+  <div class="mega" id="m-servers" data-panel>
+    <div class="mega-panel" role="region" aria-label="Servers">
+      <div class="mega-col">
+        <h3>Virtual servers</h3>
+        <a class="mega-link" href="/vps-hosting"><i class="mi"><svg class="ico"><use href="#i-server"/></svg></i><div><strong>VPS</strong><span>Linux VPS from 4 to 24 vCPU cores.</span></div></a>
+        <a class="mega-link" href="/cloudvps"><i class="mi"><svg class="ico"><use href="#i-cloud"/></svg></i><div><strong>Cloud VPS</strong><span>Fully managed SSD cloud servers.</span></div></a>
+        <a class="mega-link" href="/secure/cart.php"><i class="mi"><svg class="ico"><use href="#i-win"/></svg></i><div><strong>Windows VPS</strong><span>Windows Server with up to 48GB RAM.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>Bare metal</h3>
+        <a class="mega-link" href="/dedicated-servers"><i class="mi"><svg class="ico"><use href="#i-drive"/></svg></i><div><strong>Dedicated Servers</strong><span>Intel Xeon and AMD Ryzen, 5 IPs included.</span></div></a>
+        <a class="mega-link" href="/dedicated-servers"><i class="mi"><svg class="ico"><use href="#i-zap"/></svg></i><div><strong>10Gbps Dedicated</strong><span>Unmetered 10Gbps on dual Xeon E5.</span></div></a>
+        <a class="mega-link" href="/secure/cart.php"><i class="mi"><svg class="ico"><use href="#i-chart"/></svg></i><div><strong>Forex VPS</strong><span>Always-on servers for trading platforms.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>Specialised</h3>
+        <a class="mega-link" href="/secure/cart.php"><i class="mi"><svg class="ico"><use href="#i-spark"/></svg></i><div><strong>AI / LLM Hosting</strong><span>Run models and inference APIs on your own server.</span></div></a>
+        <a class="mega-link" href="/secure/cart.php"><i class="mi"><svg class="ico"><use href="#i-flow"/></svg></i><div><strong>n8n Automation</strong><span>Self-hosted n8n, N8N Pro and N8N Elite plans.</span></div></a>
+      </div>
+      <div class="mega-feature">
+        <span class="mf-kicker">Bare metal</span>
+        <h4>Dedicated from $39.99/mo</h4>
+        <p>Every server includes 5 IPv4 addresses and a 1Gbps port. 10Gbps available on Premium.</p>
+        <dl class="mf-spec"><div><dt>Hostia Flex</dt><dd>Ryzen 9 5950X</dd></div><div><dt>Memory</dt><dd>128GB DDR4 ECC</dd></div></dl>
+        <a class="btn btn-primary" href="#servers">See servers</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mega: Domains -->
+  <div class="mega" id="m-domains" data-panel>
+    <div class="mega-panel" role="region" aria-label="Domains">
+      <div class="mega-col">
+        <h3>Get a domain</h3>
+        <a class="mega-link" href="/domains-registration"><i class="mi"><svg class="ico"><use href="#i-search"/></svg></i><div><strong>Register a domain</strong><span>Search and register in a few seconds.</span></div></a>
+        <a class="mega-link" href="/secure/cart.php?a=add&amp;domain=transfer"><i class="mi"><svg class="ico"><use href="#i-swap"/></svg></i><div><strong>Transfer a domain</strong><span>Move your domain to us at no extra cost.</span></div></a>
+        <a class="mega-link" href="/domains-registration#pricing"><i class="mi"><svg class="ico"><use href="#i-tag"/></svg></i><div><strong>Domain pricing</strong><span>Registration, renewal and transfer prices.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>Popular extensions, first year</h3>
+        <div class="tld-mini num" id="tld-mini"></div>
+      </div>
+      <div class="mega-col">
+        <h3>Pair it with</h3>
+        <a class="mega-link" href="/google-workspace"><i class="mi"><svg class="ico"><use href="#i-mail"/></svg></i><div><strong>Google Workspace</strong><span>Email on your own domain.</span></div></a>
+        <a class="mega-link" href="/ssl-certificate"><i class="mi"><svg class="ico"><use href="#i-lock"/></svg></i><div><strong>SSL Certificate</strong><span>Secure the domain with HTTPS.</span></div></a>
+      </div>
+      <div class="mega-feature">
+        <span class="mf-kicker">New extension</span>
+        <h4>.shop for $1.20</h4>
+        <p>A short, clear address for an online store. First-year price; renewal price shown at checkout.</p>
+        <a class="btn btn-primary" href="/domains-registration">Search domains</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mega: Security -->
+  <div class="mega" id="m-security" data-panel>
+    <div class="mega-panel" role="region" aria-label="Security">
+      <div class="mega-col">
+        <h3>Domain validated</h3>
+        <a class="mega-link" href="/ssl-certificate"><i class="mi"><svg class="ico"><use href="#i-lock"/></svg></i><div><strong>Comodo PositiveSSL</strong><span>One domain, issued in minutes.</span></div></a>
+        <a class="mega-link" href="/ssl-certificate"><i class="mi"><svg class="ico"><use href="#i-layers"/></svg></i><div><strong>Thawte Wildcard</strong><span>Unlimited subdomains, $500,000 warranty.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>For larger estates</h3>
+        <a class="mega-link" href="/ssl-certificate"><i class="mi"><svg class="ico"><use href="#i-server"/></svg></i><div><strong>Wildcard, unlimited servers</strong><span>Unlimited server licensing with site seal.</span></div></a>
+        <a class="mega-link" href="/ssl-certificate"><i class="mi"><svg class="ico"><use href="#i-badge"/></svg></i><div><strong>GeoTrust OV</strong><span>Company name shown in the certificate.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>Included</h3>
+        <a class="mega-link" href="#why"><i class="mi"><svg class="ico"><use href="#i-shield"/></svg></i><div><strong>Free SSL on hosting</strong><span>Every hosting plan ships with HTTPS.</span></div></a>
+        <a class="mega-link" href="#why"><i class="mi"><svg class="ico"><use href="#i-archive"/></svg></i><div><strong>Daily and weekly backups</strong><span>Restore points kept for your sites.</span></div></a>
+      </div>
+      <div class="mega-feature">
+        <span class="mf-kicker">All certificates</span>
+        <h4>256-bit encryption, free reissues</h4>
+        <p>Every certificate we sell is recognised by 99% or more of browsers and can be reissued at no cost.</p>
+        <a class="btn btn-primary" href="/ssl-certificate">Compare SSL</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mega: Business -->
+  <div class="mega" id="m-business" data-panel>
+    <div class="mega-panel" role="region" aria-label="Business tools">
+      <div class="mega-col">
+        <h3>Collaboration</h3>
+        <a class="mega-link" href="/projects"><i class="mi"><svg class="ico"><use href="#i-kanban"/></svg></i><div><strong>Project Management workspace</strong><span>Kanban, time tracking and wiki for teams.</span></div></a>
+        <a class="mega-link" href="/google-workspace"><i class="mi"><svg class="ico"><use href="#i-mail"/></svg></i><div><strong>Google Workspace</strong><span>Gmail, Drive and Meet on your domain.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>Automation</h3>
+        <a class="mega-link" href="/binance"><i class="mi"><svg class="ico"><use href="#i-plug"/></svg></i><div><strong>Binance MCPs</strong><span>Connect AI assistants to Binance data.</span></div></a>
+        <a class="mega-link" href="/secure/cart.php"><i class="mi"><svg class="ico"><use href="#i-flow"/></svg></i><div><strong>n8n Automation</strong><span>Workflow automation on your own server.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>Workspace plans</h3>
+        <a class="mega-link" href="/projects"><i class="mi"><svg class="ico"><use href="#i-users"/></svg></i><div><strong>Team</strong><span>Unlimited users, 10 GB storage.</span></div></a>
+        <a class="mega-link" href="/projects"><i class="mi"><svg class="ico"><use href="#i-badge"/></svg></i><div><strong>Agency</strong><span>Unlimited users, 100 GB, client portal.</span></div></a>
+      </div>
+      <div class="mega-feature">
+        <span class="mf-kicker">For agencies</span>
+        <h4>Your own app.yourcompany.com</h4>
+        <p>Custom branding, client portal access and daily automated backups for growing teams.</p>
+        <a class="btn btn-primary" href="/projects">Explore workspace</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mega: Support -->
+  <div class="mega" id="m-support" data-panel>
+    <div class="mega-panel" role="region" aria-label="Support">
+      <div class="mega-col">
+        <h3>Find an answer</h3>
+        <a class="mega-link" href="/help-center"><i class="mi"><svg class="ico"><use href="#i-book"/></svg></i><div><strong>Help Center</strong><span>Guides for hosting, domains and email.</span></div></a>
+        <a class="mega-link" href="/all-topics"><i class="mi"><svg class="ico"><use href="#i-list"/></svg></i><div><strong>All topics</strong><span>Browse every article by category.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>Service health</h3>
+        <a class="mega-link" href="/status-page"><i class="mi"><svg class="ico"><use href="#i-pulse"/></svg></i><div><strong>Status page</strong><span>Live state of every service and location.</span></div></a>
+        <a class="mega-link" href="/incident-history"><i class="mi"><svg class="ico"><use href="#i-history"/></svg></i><div><strong>Incident history</strong><span>Past incidents and how they were resolved.</span></div></a>
+      </div>
+      <div class="mega-col">
+        <h3>Talk to us</h3>
+        <a class="mega-link" href="/contact"><i class="mi"><svg class="ico"><use href="#i-headset"/></svg></i><div><strong>Contact</strong><span>Open a ticket with our engineers.</span></div></a>
+        <a class="mega-link" href="tel:+971507341578"><i class="mi"><svg class="ico"><use href="#i-phone"/></svg></i><div><strong>+971 50 734 1578</strong><span>Call or message us.</span></div></a>
+      </div>
+      <div class="mega-feature">
+        <span class="mf-kicker">Always on</span>
+        <h4>24/7 priority support</h4>
+        <p>Real engineers answer day and night. Write to support@globalhostia.com or open a ticket.</p>
+        <a class="btn btn-primary" href="/contact">Contact support</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile drawer -->
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-scrim" data-close></div>
+  <div class="drawer-panel" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="drawer-head">
+      <img src="/image/logo-main-black.png" alt="Globalhostia" width="130" height="28">
+      <button class="burger" style="display:inline-flex" data-close aria-label="Close menu"><svg class="ico"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-foot">
+      <a class="btn btn-ghost" href="/secure/clientarea.php">Sign in</a>
+      <a class="btn btn-cta" href="#plans" data-close>Get started</a>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+  <!-- Hero -->
+  <section class="hero" aria-labelledby="hero-h">
+    <div class="hero-guides" aria-hidden="true"><div class="container"><div class="grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div></div>
+    <div class="container">
+      <div class="grid">
+        <div class="hero-copy">
+          <a class="hero-badge" href="/dedicated-servers"><span class="pill">New</span>Unmetered 10Gbps dedicated servers</a>
+          <h1 id="hero-h">Hosting, servers and domains on infrastructure you can see.</h1>
+          <p class="hero-sub">NVMe web hosting, managed cloud VPS and dedicated servers from six datacenters, with engineers on call every hour of the day.</p>
+
+          <form class="domain" action="https://globalhostia.com/secure/cart.php" method="get" role="search">
+            <input type="hidden" name="a" value="add">
+            <input type="hidden" name="domain" value="register">
+            <label class="domain-label" for="q">Find your domain</label>
+            <div class="domain-field">
+              <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+              <input id="q" name="query" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="yourbusiness.com" required>
+              <button class="btn btn-cta" type="submit">Search</button>
+            </div>
+            <div class="tlds num" id="tlds" aria-label="First-year domain prices"></div>
+          </form>
+
+          <ul class="trust">
+            <li><span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>Rated Excellent 4.89/5</li>
+            <li><svg class="ico"><use href="#i-gauge"/></svg>99.93% uptime</li>
+            <li><svg class="ico"><use href="#i-swap"/></svg>Free domain transfer</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual">
+          <figure class="map-card" style="margin:0" aria-labelledby="map-cap">
+            <div class="map-head">
+              <strong id="map-cap">Globalhostia network</strong>
+              <a class="status" href="/status-page"><i aria-hidden="true"></i>All systems operational</a>
+            </div>
+            <div class="map-wrap">
+              <svg class="worldmap" id="worldmap" viewBox="0 0 880 424" role="img" aria-label="World map showing datacenters in the USA, Brazil, Algeria, South Africa, India and Russia">
+                <path class="land" d="M233.4 4.1h0M249.8 4.1h0M258 4.1h0M266.2 4.1h0M274.3 4.1h0M282.5 4.1h0M290.7 4.1h0M298.9 4.1h0M307.1 4.1h0M315.3 4.1h0M323.5 4.1h0M331.7 4.1h0M339.9 4.1h0M348.1 4.1h0M356.2 4.1h0M364.4 4.1h0M372.6 4.1h0M225.2 12.3h0M233.4 12.3h0M241.6 12.3h0M249.8 12.3h0M258 12.3h0M266.2 12.3h0M274.3 12.3h0M282.5 12.3h0M290.7 12.3h0M298.9 12.3h0M307.1 12.3h0M315.3 12.3h0M323.5 12.3h0M331.7 12.3h0M339.9 12.3h0M348.1 12.3h0M356.2 12.3h0M364.4 12.3h0M593.7 12.3h0M601.9 12.3h0M151.5 20.5h0M159.7 20.5h0M167.9 20.5h0M184.3 20.5h0M192.5 20.5h0M200.6 20.5h0M208.8 20.5h0M225.2 20.5h0M233.4 20.5h0M241.6 20.5h0M282.5 20.5h0M290.7 20.5h0M298.9 20.5h0M307.1 20.5h0M315.3 20.5h0M323.5 20.5h0M331.7 20.5h0M339.9 20.5h0M348.1 20.5h0M356.2 20.5h0M569.2 20.5h0M577.4 20.5h0M585.5 20.5h0M593.7 20.5h0M601.9 20.5h0M610.1 20.5h0M618.3 20.5h0M626.5 20.5h0M634.7 20.5h0M651.1 20.5h0M659.3 20.5h0M143.3 28.7h0M151.5 28.7h0M159.7 28.7h0M167.9 28.7h0M176.1 28.7h0M200.6 28.7h0M217 28.7h0M225.2 28.7h0M233.4 28.7h0M241.6 28.7h0M290.7 28.7h0M298.9 28.7h0M307.1 28.7h0M315.3 28.7h0M323.5 28.7h0M331.7 28.7h0M339.9 28.7h0M348.1 28.7h0M544.6 28.7h0M552.8 28.7h0M561 28.7h0M569.2 28.7h0M577.4 28.7h0M585.5 28.7h0M593.7 28.7h0M601.9 28.7h0M610.1 28.7h0M618.3 28.7h0M626.5 28.7h0M634.7 28.7h0M642.9 28.7h0M651.1 28.7h0M659.3 28.7h0M667.4 28.7h0M683.8 28.7h0M692 28.7h0M700.2 28.7h0M708.4 28.7h0M36.9 36.9h0M45 36.9h0M53.2 36.9h0M61.4 36.9h0M69.6 36.9h0M77.8 36.9h0M86 36.9h0M94.2 36.9h0M102.4 36.9h0M110.6 36.9h0M118.7 36.9h0M126.9 36.9h0M135.1 36.9h0M143.3 36.9h0M151.5 36.9h0M159.7 36.9h0M167.9 36.9h0M192.5 36.9h0M200.6 36.9h0M208.8 36.9h0M217 36.9h0M225.2 36.9h0M241.6 36.9h0M249.8 36.9h0M290.7 36.9h0M298.9 36.9h0M307.1 36.9h0M315.3 36.9h0M323.5 36.9h0M331.7 36.9h0M339.9 36.9h0M438.1 36.9h0M446.3 36.9h0M454.5 36.9h0M462.7 36.9h0M470.9 36.9h0M479.1 36.9h0M487.3 36.9h0M495.5 36.9h0M511.8 36.9h0M520 36.9h0M528.2 36.9h0M536.4 36.9h0M544.6 36.9h0M552.8 36.9h0M561 36.9h0M569.2 36.9h0M577.4 36.9h0M585.5 36.9h0M593.7 36.9h0M601.9 36.9h0M610.1 36.9h0M618.3 36.9h0M626.5 36.9h0M634.7 36.9h0M642.9 36.9h0M651.1 36.9h0M659.3 36.9h0M667.4 36.9h0M675.6 36.9h0M683.8 36.9h0M692 36.9h0M700.2 36.9h0M708.4 36.9h0M716.6 36.9h0M724.8 36.9h0M733 36.9h0M741.2 36.9h0M749.3 36.9h0M757.5 36.9h0M765.7 36.9h0M773.9 36.9h0M782.1 36.9h0M28.7 45h0M36.9 45h0M45 45h0M53.2 45h0M61.4 45h0M69.6 45h0M77.8 45h0M86 45h0M94.2 45h0M102.4 45h0M110.6 45h0M118.7 45h0M126.9 45h0M135.1 45h0M143.3 45h0M151.5 45h0M159.7 45h0M167.9 45h0M176.1 45h0M184.3 45h0M192.5 45h0M200.6 45h0M208.8 45h0M217 45h0M225.2 45h0M233.4 45h0M241.6 45h0M249.8 45h0M258 45h0M282.5 45h0M290.7 45h0M298.9 45h0M307.1 45h0M315.3 45h0M348.1 45h0M356.2 45h0M364.4 45h0M429.9 45h0M438.1 45h0M446.3 45h0M454.5 45h0M462.7 45h0M470.9 45h0M479.1 45h0M487.3 45h0M495.5 45h0M503.7 45h0M511.8 45h0M520 45h0M528.2 45h0M536.4 45h0M544.6 45h0M552.8 45h0M561 45h0M569.2 45h0M577.4 45h0M585.5 45h0M593.7 45h0M601.9 45h0M610.1 45h0M618.3 45h0M626.5 45h0M634.7 45h0M642.9 45h0M651.1 45h0M659.3 45h0M667.4 45h0M675.6 45h0M683.8 45h0M692 45h0M700.2 45h0M708.4 45h0M716.6 45h0M724.8 45h0M733 45h0M741.2 45h0M749.3 45h0M757.5 45h0M765.7 45h0M773.9 45h0M782.1 45h0M790.3 45h0M798.5 45h0M806.7 45h0M814.9 45h0M20.5 53.2h0M28.7 53.2h0M36.9 53.2h0M45 53.2h0M53.2 53.2h0M61.4 53.2h0M69.6 53.2h0M77.8 53.2h0M86 53.2h0M94.2 53.2h0M102.4 53.2h0M110.6 53.2h0M118.7 53.2h0M126.9 53.2h0M135.1 53.2h0M143.3 53.2h0M151.5 53.2h0M159.7 53.2h0M167.9 53.2h0M176.1 53.2h0M184.3 53.2h0M192.5 53.2h0M200.6 53.2h0M208.8 53.2h0M217 53.2h0M225.2 53.2h0M233.4 53.2h0M241.6 53.2h0M249.8 53.2h0M282.5 53.2h0M290.7 53.2h0M298.9 53.2h0M348.1 53.2h0M356.2 53.2h0M413.6 53.2h0M421.8 53.2h0M429.9 53.2h0M438.1 53.2h0M446.3 53.2h0M454.5 53.2h0M462.7 53.2h0M470.9 53.2h0M479.1 53.2h0M487.3 53.2h0M495.5 53.2h0M503.7 53.2h0M511.8 53.2h0M520 53.2h0M528.2 53.2h0M536.4 53.2h0M544.6 53.2h0M552.8 53.2h0M561 53.2h0M569.2 53.2h0M577.4 53.2h0M585.5 53.2h0M593.7 53.2h0M601.9 53.2h0M610.1 53.2h0M618.3 53.2h0M626.5 53.2h0M634.7 53.2h0M642.9 53.2h0M651.1 53.2h0M659.3 53.2h0M667.4 53.2h0M675.6 53.2h0M683.8 53.2h0M692 53.2h0M700.2 53.2h0M708.4 53.2h0M716.6 53.2h0M724.8 53.2h0M733 53.2h0M741.2 53.2h0M749.3 53.2h0M757.5 53.2h0M765.7 53.2h0M773.9 53.2h0M782.1 53.2h0M790.3 53.2h0M798.5 53.2h0M12.3 61.4h0M20.5 61.4h0M28.7 61.4h0M36.9 61.4h0M45 61.4h0M61.4 61.4h0M69.6 61.4h0M77.8 61.4h0M86 61.4h0M94.2 61.4h0M102.4 61.4h0M110.6 61.4h0M118.7 61.4h0M126.9 61.4h0M135.1 61.4h0M143.3 61.4h0M151.5 61.4h0M159.7 61.4h0M167.9 61.4h0M176.1 61.4h0M217 61.4h0M225.2 61.4h0M233.4 61.4h0M241.6 61.4h0M290.7 61.4h0M413.6 61.4h0M421.8 61.4h0M429.9 61.4h0M438.1 61.4h0M446.3 61.4h0M454.5 61.4h0M462.7 61.4h0M470.9 61.4h0M479.1 61.4h0M487.3 61.4h0M495.5 61.4h0M503.7 61.4h0M511.8 61.4h0M520 61.4h0M528.2 61.4h0M536.4 61.4h0M544.6 61.4h0M552.8 61.4h0M561 61.4h0M569.2 61.4h0M577.4 61.4h0M585.5 61.4h0M593.7 61.4h0M601.9 61.4h0M610.1 61.4h0M618.3 61.4h0M626.5 61.4h0M634.7 61.4h0M642.9 61.4h0M651.1 61.4h0M659.3 61.4h0M667.4 61.4h0M675.6 61.4h0M683.8 61.4h0M692 61.4h0M700.2 61.4h0M708.4 61.4h0M716.6 61.4h0M724.8 61.4h0M733 61.4h0M741.2 61.4h0M749.3 61.4h0M757.5 61.4h0M773.9 61.4h0M782.1 61.4h0M790.3 61.4h0M4.1 69.6h0M12.3 69.6h0M20.5 69.6h0M28.7 69.6h0M69.6 69.6h0M77.8 69.6h0M86 69.6h0M94.2 69.6h0M102.4 69.6h0M110.6 69.6h0M118.7 69.6h0M126.9 69.6h0M135.1 69.6h0M143.3 69.6h0M151.5 69.6h0M159.7 69.6h0M167.9 69.6h0M176.1 69.6h0M184.3 69.6h0M208.8 69.6h0M217 69.6h0M225.2 69.6h0M233.4 69.6h0M241.6 69.6h0M389 69.6h0M413.6 69.6h0M429.9 69.6h0M438.1 69.6h0M446.3 69.6h0M454.5 69.6h0M462.7 69.6h0M470.9 69.6h0M479.1 69.6h0M487.3 69.6h0M495.5 69.6h0M503.7 69.6h0M511.8 69.6h0M520 69.6h0M528.2 69.6h0M536.4 69.6h0M544.6 69.6h0M552.8 69.6h0M561 69.6h0M569.2 69.6h0M577.4 69.6h0M585.5 69.6h0M593.7 69.6h0M601.9 69.6h0M610.1 69.6h0M618.3 69.6h0M626.5 69.6h0M634.7 69.6h0M642.9 69.6h0M651.1 69.6h0M659.3 69.6h0M667.4 69.6h0M675.6 69.6h0M683.8 69.6h0M692 69.6h0M700.2 69.6h0M708.4 69.6h0M716.6 69.6h0M724.8 69.6h0M773.9 69.6h0M782.1 69.6h0M790.3 69.6h0M77.8 77.8h0M86 77.8h0M94.2 77.8h0M102.4 77.8h0M110.6 77.8h0M118.7 77.8h0M126.9 77.8h0M135.1 77.8h0M143.3 77.8h0M151.5 77.8h0M159.7 77.8h0M167.9 77.8h0M176.1 77.8h0M184.3 77.8h0M192.5 77.8h0M200.6 77.8h0M208.8 77.8h0M217 77.8h0M225.2 77.8h0M233.4 77.8h0M241.6 77.8h0M249.8 77.8h0M372.6 77.8h0M380.8 77.8h0M389 77.8h0M397.2 77.8h0M413.6 77.8h0M421.8 77.8h0M429.9 77.8h0M438.1 77.8h0M446.3 77.8h0M454.5 77.8h0M462.7 77.8h0M470.9 77.8h0M479.1 77.8h0M487.3 77.8h0M495.5 77.8h0M503.7 77.8h0M511.8 77.8h0M520 77.8h0M528.2 77.8h0M536.4 77.8h0M544.6 77.8h0M552.8 77.8h0M561 77.8h0M569.2 77.8h0M577.4 77.8h0M585.5 77.8h0M593.7 77.8h0M601.9 77.8h0M610.1 77.8h0M618.3 77.8h0M626.5 77.8h0M634.7 77.8h0M642.9 77.8h0M651.1 77.8h0M659.3 77.8h0M667.4 77.8h0M675.6 77.8h0M683.8 77.8h0M692 77.8h0M700.2 77.8h0M708.4 77.8h0M716.6 77.8h0M724.8 77.8h0M733 77.8h0M741.2 77.8h0M749.3 77.8h0M782.1 77.8h0M790.3 77.8h0M77.8 86h0M86 86h0M94.2 86h0M102.4 86h0M110.6 86h0M118.7 86h0M126.9 86h0M135.1 86h0M143.3 86h0M151.5 86h0M159.7 86h0M167.9 86h0M176.1 86h0M184.3 86h0M192.5 86h0M200.6 86h0M208.8 86h0M217 86h0M225.2 86h0M233.4 86h0M241.6 86h0M249.8 86h0M372.6 86h0M380.8 86h0M389 86h0M397.2 86h0M405.4 86h0M413.6 86h0M421.8 86h0M429.9 86h0M438.1 86h0M446.3 86h0M454.5 86h0M462.7 86h0M470.9 86h0M479.1 86h0M487.3 86h0M495.5 86h0M503.7 86h0M511.8 86h0M520 86h0M528.2 86h0M536.4 86h0M544.6 86h0M552.8 86h0M561 86h0M569.2 86h0M577.4 86h0M585.5 86h0M593.7 86h0M601.9 86h0M610.1 86h0M618.3 86h0M626.5 86h0M634.7 86h0M642.9 86h0M651.1 86h0M659.3 86h0M667.4 86h0M675.6 86h0M683.8 86h0M692 86h0M700.2 86h0M708.4 86h0M716.6 86h0M724.8 86h0M733 86h0M741.2 86h0M757.5 86h0M790.3 86h0M69.6 94.2h0M77.8 94.2h0M86 94.2h0M94.2 94.2h0M102.4 94.2h0M110.6 94.2h0M118.7 94.2h0M126.9 94.2h0M135.1 94.2h0M143.3 94.2h0M151.5 94.2h0M159.7 94.2h0M167.9 94.2h0M176.1 94.2h0M184.3 94.2h0M192.5 94.2h0M200.6 94.2h0M208.8 94.2h0M217 94.2h0M225.2 94.2h0M249.8 94.2h0M389 94.2h0M397.2 94.2h0M405.4 94.2h0M413.6 94.2h0M421.8 94.2h0M429.9 94.2h0M438.1 94.2h0M446.3 94.2h0M454.5 94.2h0M462.7 94.2h0M470.9 94.2h0M479.1 94.2h0M487.3 94.2h0M495.5 94.2h0M503.7 94.2h0M511.8 94.2h0M520 94.2h0M528.2 94.2h0M536.4 94.2h0M544.6 94.2h0M552.8 94.2h0M561 94.2h0M569.2 94.2h0M577.4 94.2h0M585.5 94.2h0M593.7 94.2h0M601.9 94.2h0M610.1 94.2h0M618.3 94.2h0M626.5 94.2h0M634.7 94.2h0M642.9 94.2h0M651.1 94.2h0M659.3 94.2h0M667.4 94.2h0M675.6 94.2h0M683.8 94.2h0M692 94.2h0M700.2 94.2h0M708.4 94.2h0M716.6 94.2h0M724.8 94.2h0M733 94.2h0M741.2 94.2h0M749.3 94.2h0M757.5 94.2h0M765.7 94.2h0M69.6 102.4h0M77.8 102.4h0M86 102.4h0M94.2 102.4h0M102.4 102.4h0M110.6 102.4h0M118.7 102.4h0M126.9 102.4h0M135.1 102.4h0M143.3 102.4h0M151.5 102.4h0M159.7 102.4h0M167.9 102.4h0M176.1 102.4h0M184.3 102.4h0M192.5 102.4h0M200.6 102.4h0M208.8 102.4h0M217 102.4h0M225.2 102.4h0M233.4 102.4h0M241.6 102.4h0M249.8 102.4h0M389 102.4h0M397.2 102.4h0M405.4 102.4h0M413.6 102.4h0M421.8 102.4h0M429.9 102.4h0M438.1 102.4h0M446.3 102.4h0M454.5 102.4h0M462.7 102.4h0M470.9 102.4h0M479.1 102.4h0M487.3 102.4h0M495.5 102.4h0M503.7 102.4h0M511.8 102.4h0M520 102.4h0M528.2 102.4h0M536.4 102.4h0M544.6 102.4h0M552.8 102.4h0M561 102.4h0M569.2 102.4h0M577.4 102.4h0M585.5 102.4h0M593.7 102.4h0M601.9 102.4h0M610.1 102.4h0M618.3 102.4h0M626.5 102.4h0M634.7 102.4h0M642.9 102.4h0M651.1 102.4h0M659.3 102.4h0M667.4 102.4h0M675.6 102.4h0M683.8 102.4h0M692 102.4h0M700.2 102.4h0M708.4 102.4h0M716.6 102.4h0M724.8 102.4h0M733 102.4h0M741.2 102.4h0M749.3 102.4h0M765.7 102.4h0M61.4 110.6h0M69.6 110.6h0M77.8 110.6h0M86 110.6h0M94.2 110.6h0M102.4 110.6h0M110.6 110.6h0M118.7 110.6h0M126.9 110.6h0M135.1 110.6h0M143.3 110.6h0M151.5 110.6h0M159.7 110.6h0M167.9 110.6h0M176.1 110.6h0M184.3 110.6h0M192.5 110.6h0M200.6 110.6h0M208.8 110.6h0M217 110.6h0M225.2 110.6h0M372.6 110.6h0M380.8 110.6h0M389 110.6h0M397.2 110.6h0M405.4 110.6h0M413.6 110.6h0M421.8 110.6h0M429.9 110.6h0M438.1 110.6h0M446.3 110.6h0M454.5 110.6h0M462.7 110.6h0M470.9 110.6h0M487.3 110.6h0M495.5 110.6h0M503.7 110.6h0M511.8 110.6h0M520 110.6h0M528.2 110.6h0M536.4 110.6h0M544.6 110.6h0M552.8 110.6h0M561 110.6h0M569.2 110.6h0M577.4 110.6h0M585.5 110.6h0M593.7 110.6h0M601.9 110.6h0M610.1 110.6h0M618.3 110.6h0M626.5 110.6h0M634.7 110.6h0M642.9 110.6h0M651.1 110.6h0M659.3 110.6h0M667.4 110.6h0M675.6 110.6h0M683.8 110.6h0M692 110.6h0M700.2 110.6h0M708.4 110.6h0M716.6 110.6h0M724.8 110.6h0M733 110.6h0M741.2 110.6h0M749.3 110.6h0M765.7 110.6h0M773.9 110.6h0M61.4 118.7h0M69.6 118.7h0M77.8 118.7h0M86 118.7h0M94.2 118.7h0M102.4 118.7h0M110.6 118.7h0M118.7 118.7h0M126.9 118.7h0M135.1 118.7h0M143.3 118.7h0M151.5 118.7h0M159.7 118.7h0M167.9 118.7h0M176.1 118.7h0M184.3 118.7h0M192.5 118.7h0M200.6 118.7h0M372.6 118.7h0M380.8 118.7h0M389 118.7h0M397.2 118.7h0M413.6 118.7h0M429.9 118.7h0M438.1 118.7h0M446.3 118.7h0M454.5 118.7h0M462.7 118.7h0M470.9 118.7h0M479.1 118.7h0M487.3 118.7h0M495.5 118.7h0M503.7 118.7h0M511.8 118.7h0M520 118.7h0M536.4 118.7h0M544.6 118.7h0M552.8 118.7h0M561 118.7h0M569.2 118.7h0M577.4 118.7h0M585.5 118.7h0M593.7 118.7h0M601.9 118.7h0M610.1 118.7h0M618.3 118.7h0M626.5 118.7h0M634.7 118.7h0M642.9 118.7h0M651.1 118.7h0M659.3 118.7h0M667.4 118.7h0M675.6 118.7h0M683.8 118.7h0M692 118.7h0M700.2 118.7h0M708.4 118.7h0M716.6 118.7h0M724.8 118.7h0M733 118.7h0M741.2 118.7h0M765.7 118.7h0M773.9 118.7h0M61.4 126.9h0M69.6 126.9h0M77.8 126.9h0M86 126.9h0M94.2 126.9h0M102.4 126.9h0M110.6 126.9h0M118.7 126.9h0M126.9 126.9h0M135.1 126.9h0M143.3 126.9h0M151.5 126.9h0M159.7 126.9h0M167.9 126.9h0M176.1 126.9h0M184.3 126.9h0M372.6 126.9h0M380.8 126.9h0M389 126.9h0M397.2 126.9h0M413.6 126.9h0M429.9 126.9h0M438.1 126.9h0M446.3 126.9h0M454.5 126.9h0M462.7 126.9h0M470.9 126.9h0M479.1 126.9h0M487.3 126.9h0M495.5 126.9h0M503.7 126.9h0M511.8 126.9h0M520 126.9h0M528.2 126.9h0M544.6 126.9h0M552.8 126.9h0M561 126.9h0M569.2 126.9h0M577.4 126.9h0M585.5 126.9h0M593.7 126.9h0M601.9 126.9h0M610.1 126.9h0M618.3 126.9h0M626.5 126.9h0M634.7 126.9h0M642.9 126.9h0M651.1 126.9h0M659.3 126.9h0M667.4 126.9h0M675.6 126.9h0M683.8 126.9h0M692 126.9h0M700.2 126.9h0M708.4 126.9h0M716.6 126.9h0M724.8 126.9h0M733 126.9h0M741.2 126.9h0M773.9 126.9h0M61.4 135.1h0M69.6 135.1h0M77.8 135.1h0M86 135.1h0M94.2 135.1h0M102.4 135.1h0M110.6 135.1h0M118.7 135.1h0M126.9 135.1h0M135.1 135.1h0M143.3 135.1h0M151.5 135.1h0M159.7 135.1h0M167.9 135.1h0M176.1 135.1h0M184.3 135.1h0M397.2 135.1h0M405.4 135.1h0M413.6 135.1h0M421.8 135.1h0M487.3 135.1h0M495.5 135.1h0M503.7 135.1h0M511.8 135.1h0M520 135.1h0M528.2 135.1h0M536.4 135.1h0M544.6 135.1h0M552.8 135.1h0M561 135.1h0M569.2 135.1h0M577.4 135.1h0M585.5 135.1h0M593.7 135.1h0M601.9 135.1h0M610.1 135.1h0M618.3 135.1h0M626.5 135.1h0M634.7 135.1h0M642.9 135.1h0M651.1 135.1h0M659.3 135.1h0M667.4 135.1h0M675.6 135.1h0M683.8 135.1h0M692 135.1h0M700.2 135.1h0M708.4 135.1h0M716.6 135.1h0M724.8 135.1h0M741.2 135.1h0M749.3 135.1h0M765.7 135.1h0M773.9 135.1h0M782.1 135.1h0M69.6 143.3h0M77.8 143.3h0M86 143.3h0M94.2 143.3h0M102.4 143.3h0M110.6 143.3h0M118.7 143.3h0M126.9 143.3h0M135.1 143.3h0M143.3 143.3h0M151.5 143.3h0M159.7 143.3h0M167.9 143.3h0M372.6 143.3h0M380.8 143.3h0M389 143.3h0M397.2 143.3h0M405.4 143.3h0M413.6 143.3h0M421.8 143.3h0M495.5 143.3h0M503.7 143.3h0M511.8 143.3h0M520 143.3h0M528.2 143.3h0M536.4 143.3h0M544.6 143.3h0M552.8 143.3h0M561 143.3h0M569.2 143.3h0M577.4 143.3h0M585.5 143.3h0M593.7 143.3h0M601.9 143.3h0M610.1 143.3h0M618.3 143.3h0M626.5 143.3h0M634.7 143.3h0M642.9 143.3h0M651.1 143.3h0M659.3 143.3h0M667.4 143.3h0M675.6 143.3h0M683.8 143.3h0M692 143.3h0M700.2 143.3h0M708.4 143.3h0M716.6 143.3h0M724.8 143.3h0M757.5 143.3h0M765.7 143.3h0M69.6 151.5h0M77.8 151.5h0M86 151.5h0M94.2 151.5h0M102.4 151.5h0M110.6 151.5h0M118.7 151.5h0M126.9 151.5h0M135.1 151.5h0M143.3 151.5h0M151.5 151.5h0M159.7 151.5h0M364.4 151.5h0M372.6 151.5h0M380.8 151.5h0M389 151.5h0M397.2 151.5h0M405.4 151.5h0M413.6 151.5h0M421.8 151.5h0M429.9 151.5h0M438.1 151.5h0M446.3 151.5h0M454.5 151.5h0M462.7 151.5h0M470.9 151.5h0M479.1 151.5h0M487.3 151.5h0M495.5 151.5h0M503.7 151.5h0M511.8 151.5h0M520 151.5h0M528.2 151.5h0M536.4 151.5h0M544.6 151.5h0M552.8 151.5h0M561 151.5h0M569.2 151.5h0M577.4 151.5h0M585.5 151.5h0M593.7 151.5h0M601.9 151.5h0M610.1 151.5h0M618.3 151.5h0M626.5 151.5h0M634.7 151.5h0M642.9 151.5h0M651.1 151.5h0M659.3 151.5h0M667.4 151.5h0M675.6 151.5h0M683.8 151.5h0M692 151.5h0M700.2 151.5h0M708.4 151.5h0M716.6 151.5h0M724.8 151.5h0M733 151.5h0M757.5 151.5h0M69.6 159.7h0M77.8 159.7h0M86 159.7h0M94.2 159.7h0M102.4 159.7h0M110.6 159.7h0M118.7 159.7h0M159.7 159.7h0M167.9 159.7h0M356.2 159.7h0M364.4 159.7h0M372.6 159.7h0M380.8 159.7h0M389 159.7h0M397.2 159.7h0M405.4 159.7h0M413.6 159.7h0M421.8 159.7h0M429.9 159.7h0M438.1 159.7h0M446.3 159.7h0M454.5 159.7h0M462.7 159.7h0M470.9 159.7h0M479.1 159.7h0M487.3 159.7h0M495.5 159.7h0M503.7 159.7h0M511.8 159.7h0M520 159.7h0M528.2 159.7h0M536.4 159.7h0M544.6 159.7h0M552.8 159.7h0M561 159.7h0M569.2 159.7h0M577.4 159.7h0M585.5 159.7h0M593.7 159.7h0M601.9 159.7h0M610.1 159.7h0M618.3 159.7h0M626.5 159.7h0M634.7 159.7h0M642.9 159.7h0M651.1 159.7h0M659.3 159.7h0M667.4 159.7h0M675.6 159.7h0M683.8 159.7h0M692 159.7h0M700.2 159.7h0M708.4 159.7h0M716.6 159.7h0M724.8 159.7h0M733 159.7h0M69.6 167.9h0M77.8 167.9h0M86 167.9h0M94.2 167.9h0M102.4 167.9h0M110.6 167.9h0M159.7 167.9h0M167.9 167.9h0M348.1 167.9h0M356.2 167.9h0M364.4 167.9h0M372.6 167.9h0M380.8 167.9h0M389 167.9h0M397.2 167.9h0M405.4 167.9h0M413.6 167.9h0M421.8 167.9h0M429.9 167.9h0M438.1 167.9h0M446.3 167.9h0M454.5 167.9h0M462.7 167.9h0M470.9 167.9h0M479.1 167.9h0M487.3 167.9h0M495.5 167.9h0M503.7 167.9h0M511.8 167.9h0M520 167.9h0M528.2 167.9h0M536.4 167.9h0M552.8 167.9h0M561 167.9h0M569.2 167.9h0M577.4 167.9h0M585.5 167.9h0M593.7 167.9h0M601.9 167.9h0M610.1 167.9h0M618.3 167.9h0M626.5 167.9h0M634.7 167.9h0M642.9 167.9h0M651.1 167.9h0M659.3 167.9h0M667.4 167.9h0M675.6 167.9h0M683.8 167.9h0M692 167.9h0M700.2 167.9h0M708.4 167.9h0M716.6 167.9h0M724.8 167.9h0M733 167.9h0M741.2 167.9h0M77.8 176.1h0M86 176.1h0M94.2 176.1h0M102.4 176.1h0M110.6 176.1h0M151.5 176.1h0M159.7 176.1h0M167.9 176.1h0M348.1 176.1h0M356.2 176.1h0M364.4 176.1h0M372.6 176.1h0M380.8 176.1h0M389 176.1h0M397.2 176.1h0M405.4 176.1h0M413.6 176.1h0M421.8 176.1h0M429.9 176.1h0M438.1 176.1h0M446.3 176.1h0M454.5 176.1h0M462.7 176.1h0M470.9 176.1h0M479.1 176.1h0M487.3 176.1h0M495.5 176.1h0M503.7 176.1h0M511.8 176.1h0M520 176.1h0M528.2 176.1h0M536.4 176.1h0M544.6 176.1h0M552.8 176.1h0M561 176.1h0M593.7 176.1h0M601.9 176.1h0M610.1 176.1h0M618.3 176.1h0M626.5 176.1h0M634.7 176.1h0M642.9 176.1h0M651.1 176.1h0M659.3 176.1h0M667.4 176.1h0M675.6 176.1h0M683.8 176.1h0M692 176.1h0M700.2 176.1h0M708.4 176.1h0M716.6 176.1h0M724.8 176.1h0M733 176.1h0M741.2 176.1h0M86 184.3h0M94.2 184.3h0M102.4 184.3h0M110.6 184.3h0M126.9 184.3h0M135.1 184.3h0M167.9 184.3h0M176.1 184.3h0M184.3 184.3h0M339.9 184.3h0M348.1 184.3h0M356.2 184.3h0M364.4 184.3h0M372.6 184.3h0M380.8 184.3h0M389 184.3h0M397.2 184.3h0M405.4 184.3h0M413.6 184.3h0M421.8 184.3h0M429.9 184.3h0M438.1 184.3h0M446.3 184.3h0M454.5 184.3h0M462.7 184.3h0M470.9 184.3h0M479.1 184.3h0M487.3 184.3h0M495.5 184.3h0M503.7 184.3h0M511.8 184.3h0M520 184.3h0M528.2 184.3h0M536.4 184.3h0M544.6 184.3h0M552.8 184.3h0M561 184.3h0M593.7 184.3h0M601.9 184.3h0M610.1 184.3h0M618.3 184.3h0M626.5 184.3h0M634.7 184.3h0M659.3 184.3h0M667.4 184.3h0M675.6 184.3h0M683.8 184.3h0M692 184.3h0M708.4 184.3h0M94.2 192.5h0M102.4 192.5h0M110.6 192.5h0M118.7 192.5h0M126.9 192.5h0M135.1 192.5h0M167.9 192.5h0M176.1 192.5h0M184.3 192.5h0M200.6 192.5h0M348.1 192.5h0M356.2 192.5h0M364.4 192.5h0M372.6 192.5h0M380.8 192.5h0M389 192.5h0M397.2 192.5h0M405.4 192.5h0M413.6 192.5h0M421.8 192.5h0M429.9 192.5h0M438.1 192.5h0M446.3 192.5h0M454.5 192.5h0M462.7 192.5h0M470.9 192.5h0M479.1 192.5h0M487.3 192.5h0M495.5 192.5h0M503.7 192.5h0M511.8 192.5h0M520 192.5h0M528.2 192.5h0M536.4 192.5h0M544.6 192.5h0M552.8 192.5h0M601.9 192.5h0M610.1 192.5h0M618.3 192.5h0M626.5 192.5h0M667.4 192.5h0M675.6 192.5h0M683.8 192.5h0M692 192.5h0M708.4 192.5h0M741.2 192.5h0M126.9 200.6h0M135.1 200.6h0M143.3 200.6h0M339.9 200.6h0M348.1 200.6h0M356.2 200.6h0M364.4 200.6h0M372.6 200.6h0M380.8 200.6h0M389 200.6h0M397.2 200.6h0M405.4 200.6h0M413.6 200.6h0M421.8 200.6h0M429.9 200.6h0M438.1 200.6h0M446.3 200.6h0M454.5 200.6h0M462.7 200.6h0M470.9 200.6h0M479.1 200.6h0M487.3 200.6h0M495.5 200.6h0M503.7 200.6h0M520 200.6h0M528.2 200.6h0M536.4 200.6h0M610.1 200.6h0M618.3 200.6h0M675.6 200.6h0M683.8 200.6h0M692 200.6h0M700.2 200.6h0M708.4 200.6h0M741.2 200.6h0M126.9 208.8h0M135.1 208.8h0M143.3 208.8h0M339.9 208.8h0M348.1 208.8h0M356.2 208.8h0M364.4 208.8h0M372.6 208.8h0M380.8 208.8h0M389 208.8h0M397.2 208.8h0M405.4 208.8h0M413.6 208.8h0M421.8 208.8h0M429.9 208.8h0M438.1 208.8h0M446.3 208.8h0M454.5 208.8h0M462.7 208.8h0M470.9 208.8h0M479.1 208.8h0M487.3 208.8h0M495.5 208.8h0M503.7 208.8h0M511.8 208.8h0M520 208.8h0M528.2 208.8h0M610.1 208.8h0M618.3 208.8h0M675.6 208.8h0M683.8 208.8h0M692 208.8h0M700.2 208.8h0M708.4 208.8h0M749.3 208.8h0M143.3 217h0M167.9 217h0M176.1 217h0M184.3 217h0M192.5 217h0M200.6 217h0M208.8 217h0M348.1 217h0M356.2 217h0M364.4 217h0M372.6 217h0M380.8 217h0M389 217h0M397.2 217h0M405.4 217h0M413.6 217h0M421.8 217h0M429.9 217h0M438.1 217h0M446.3 217h0M454.5 217h0M462.7 217h0M470.9 217h0M479.1 217h0M487.3 217h0M495.5 217h0M503.7 217h0M511.8 217h0M520 217h0M528.2 217h0M536.4 217h0M610.1 217h0M618.3 217h0M675.6 217h0M692 217h0M700.2 217h0M708.4 217h0M733 217h0M741.2 217h0M749.3 217h0M757.5 217h0M143.3 225.2h0M151.5 225.2h0M159.7 225.2h0M167.9 225.2h0M176.1 225.2h0M184.3 225.2h0M192.5 225.2h0M200.6 225.2h0M208.8 225.2h0M217 225.2h0M356.2 225.2h0M364.4 225.2h0M372.6 225.2h0M380.8 225.2h0M389 225.2h0M397.2 225.2h0M405.4 225.2h0M413.6 225.2h0M421.8 225.2h0M429.9 225.2h0M438.1 225.2h0M446.3 225.2h0M454.5 225.2h0M462.7 225.2h0M470.9 225.2h0M479.1 225.2h0M487.3 225.2h0M495.5 225.2h0M503.7 225.2h0M511.8 225.2h0M520 225.2h0M528.2 225.2h0M536.4 225.2h0M618.3 225.2h0M626.5 225.2h0M675.6 225.2h0M683.8 225.2h0M749.3 225.2h0M757.5 225.2h0M167.9 233.4h0M176.1 233.4h0M184.3 233.4h0M192.5 233.4h0M200.6 233.4h0M208.8 233.4h0M217 233.4h0M225.2 233.4h0M233.4 233.4h0M241.6 233.4h0M364.4 233.4h0M372.6 233.4h0M380.8 233.4h0M389 233.4h0M405.4 233.4h0M413.6 233.4h0M421.8 233.4h0M429.9 233.4h0M438.1 233.4h0M446.3 233.4h0M454.5 233.4h0M462.7 233.4h0M470.9 233.4h0M479.1 233.4h0M487.3 233.4h0M495.5 233.4h0M503.7 233.4h0M511.8 233.4h0M520 233.4h0M528.2 233.4h0M675.6 233.4h0M683.8 233.4h0M692 233.4h0M724.8 233.4h0M733 233.4h0M167.9 241.6h0M176.1 241.6h0M184.3 241.6h0M192.5 241.6h0M200.6 241.6h0M208.8 241.6h0M217 241.6h0M225.2 241.6h0M233.4 241.6h0M241.6 241.6h0M421.8 241.6h0M429.9 241.6h0M438.1 241.6h0M446.3 241.6h0M454.5 241.6h0M462.7 241.6h0M470.9 241.6h0M479.1 241.6h0M487.3 241.6h0M495.5 241.6h0M503.7 241.6h0M511.8 241.6h0M520 241.6h0M675.6 241.6h0M683.8 241.6h0M692 241.6h0M724.8 241.6h0M733 241.6h0M749.3 241.6h0M159.7 249.8h0M167.9 249.8h0M176.1 249.8h0M184.3 249.8h0M192.5 249.8h0M200.6 249.8h0M208.8 249.8h0M217 249.8h0M225.2 249.8h0M233.4 249.8h0M241.6 249.8h0M413.6 249.8h0M421.8 249.8h0M429.9 249.8h0M438.1 249.8h0M446.3 249.8h0M454.5 249.8h0M462.7 249.8h0M470.9 249.8h0M479.1 249.8h0M487.3 249.8h0M495.5 249.8h0M503.7 249.8h0M511.8 249.8h0M683.8 249.8h0M692 249.8h0M716.6 249.8h0M724.8 249.8h0M733 249.8h0M741.2 249.8h0M757.5 249.8h0M765.7 249.8h0M159.7 258h0M167.9 258h0M176.1 258h0M184.3 258h0M192.5 258h0M200.6 258h0M208.8 258h0M217 258h0M225.2 258h0M233.4 258h0M241.6 258h0M249.8 258h0M258 258h0M266.2 258h0M274.3 258h0M421.8 258h0M429.9 258h0M438.1 258h0M446.3 258h0M454.5 258h0M462.7 258h0M470.9 258h0M479.1 258h0M487.3 258h0M495.5 258h0M503.7 258h0M511.8 258h0M683.8 258h0M692 258h0M700.2 258h0M716.6 258h0M724.8 258h0M733 258h0M741.2 258h0M749.3 258h0M765.7 258h0M773.9 258h0M782.1 258h0M790.3 258h0M798.5 258h0M831.2 258h0M159.7 266.2h0M167.9 266.2h0M176.1 266.2h0M184.3 266.2h0M192.5 266.2h0M200.6 266.2h0M208.8 266.2h0M217 266.2h0M225.2 266.2h0M233.4 266.2h0M241.6 266.2h0M249.8 266.2h0M258 266.2h0M266.2 266.2h0M274.3 266.2h0M282.5 266.2h0M429.9 266.2h0M438.1 266.2h0M446.3 266.2h0M454.5 266.2h0M462.7 266.2h0M470.9 266.2h0M479.1 266.2h0M487.3 266.2h0M495.5 266.2h0M503.7 266.2h0M692 266.2h0M700.2 266.2h0M741.2 266.2h0M749.3 266.2h0M782.1 266.2h0M790.3 266.2h0M798.5 266.2h0M806.7 266.2h0M814.9 266.2h0M823 266.2h0M831.2 266.2h0M839.4 266.2h0M159.7 274.3h0M167.9 274.3h0M176.1 274.3h0M184.3 274.3h0M192.5 274.3h0M200.6 274.3h0M208.8 274.3h0M217 274.3h0M225.2 274.3h0M233.4 274.3h0M241.6 274.3h0M249.8 274.3h0M258 274.3h0M266.2 274.3h0M274.3 274.3h0M282.5 274.3h0M290.7 274.3h0M429.9 274.3h0M438.1 274.3h0M446.3 274.3h0M454.5 274.3h0M462.7 274.3h0M470.9 274.3h0M479.1 274.3h0M487.3 274.3h0M495.5 274.3h0M503.7 274.3h0M700.2 274.3h0M708.4 274.3h0M716.6 274.3h0M724.8 274.3h0M733 274.3h0M741.2 274.3h0M757.5 274.3h0M798.5 274.3h0M806.7 274.3h0M814.9 274.3h0M823 274.3h0M839.4 274.3h0M847.6 274.3h0M855.8 274.3h0M167.9 282.5h0M176.1 282.5h0M184.3 282.5h0M192.5 282.5h0M200.6 282.5h0M208.8 282.5h0M217 282.5h0M225.2 282.5h0M233.4 282.5h0M241.6 282.5h0M249.8 282.5h0M258 282.5h0M266.2 282.5h0M274.3 282.5h0M282.5 282.5h0M429.9 282.5h0M438.1 282.5h0M446.3 282.5h0M454.5 282.5h0M462.7 282.5h0M470.9 282.5h0M479.1 282.5h0M487.3 282.5h0M495.5 282.5h0M503.7 282.5h0M552.8 282.5h0M741.2 282.5h0M757.5 282.5h0M823 282.5h0M831.2 282.5h0M855.8 282.5h0M167.9 290.7h0M176.1 290.7h0M184.3 290.7h0M192.5 290.7h0M200.6 290.7h0M208.8 290.7h0M217 290.7h0M225.2 290.7h0M233.4 290.7h0M241.6 290.7h0M249.8 290.7h0M258 290.7h0M266.2 290.7h0M274.3 290.7h0M282.5 290.7h0M429.9 290.7h0M438.1 290.7h0M446.3 290.7h0M454.5 290.7h0M462.7 290.7h0M470.9 290.7h0M479.1 290.7h0M487.3 290.7h0M495.5 290.7h0M503.7 290.7h0M536.4 290.7h0M773.9 290.7h0M782.1 290.7h0M806.7 290.7h0M176.1 298.9h0M184.3 298.9h0M192.5 298.9h0M200.6 298.9h0M208.8 298.9h0M217 298.9h0M225.2 298.9h0M233.4 298.9h0M241.6 298.9h0M249.8 298.9h0M258 298.9h0M266.2 298.9h0M274.3 298.9h0M429.9 298.9h0M438.1 298.9h0M446.3 298.9h0M454.5 298.9h0M462.7 298.9h0M470.9 298.9h0M479.1 298.9h0M487.3 298.9h0M495.5 298.9h0M503.7 298.9h0M528.2 298.9h0M536.4 298.9h0M757.5 298.9h0M765.7 298.9h0M773.9 298.9h0M782.1 298.9h0M806.7 298.9h0M814.9 298.9h0M184.3 307.1h0M192.5 307.1h0M200.6 307.1h0M208.8 307.1h0M217 307.1h0M225.2 307.1h0M233.4 307.1h0M241.6 307.1h0M249.8 307.1h0M258 307.1h0M266.2 307.1h0M274.3 307.1h0M429.9 307.1h0M438.1 307.1h0M446.3 307.1h0M454.5 307.1h0M462.7 307.1h0M470.9 307.1h0M479.1 307.1h0M487.3 307.1h0M495.5 307.1h0M520 307.1h0M528.2 307.1h0M741.2 307.1h0M749.3 307.1h0M757.5 307.1h0M765.7 307.1h0M773.9 307.1h0M782.1 307.1h0M790.3 307.1h0M798.5 307.1h0M806.7 307.1h0M814.9 307.1h0M192.5 315.3h0M200.6 315.3h0M208.8 315.3h0M217 315.3h0M225.2 315.3h0M233.4 315.3h0M241.6 315.3h0M249.8 315.3h0M258 315.3h0M266.2 315.3h0M274.3 315.3h0M429.9 315.3h0M438.1 315.3h0M446.3 315.3h0M454.5 315.3h0M462.7 315.3h0M470.9 315.3h0M479.1 315.3h0M487.3 315.3h0M495.5 315.3h0M520 315.3h0M528.2 315.3h0M724.8 315.3h0M733 315.3h0M741.2 315.3h0M749.3 315.3h0M757.5 315.3h0M765.7 315.3h0M773.9 315.3h0M782.1 315.3h0M790.3 315.3h0M798.5 315.3h0M806.7 315.3h0M814.9 315.3h0M864 315.3h0M192.5 323.5h0M200.6 323.5h0M208.8 323.5h0M217 323.5h0M225.2 323.5h0M233.4 323.5h0M241.6 323.5h0M249.8 323.5h0M258 323.5h0M266.2 323.5h0M274.3 323.5h0M438.1 323.5h0M446.3 323.5h0M454.5 323.5h0M462.7 323.5h0M470.9 323.5h0M479.1 323.5h0M487.3 323.5h0M495.5 323.5h0M511.8 323.5h0M520 323.5h0M528.2 323.5h0M716.6 323.5h0M724.8 323.5h0M733 323.5h0M741.2 323.5h0M749.3 323.5h0M757.5 323.5h0M765.7 323.5h0M773.9 323.5h0M782.1 323.5h0M790.3 323.5h0M798.5 323.5h0M806.7 323.5h0M814.9 323.5h0M823 323.5h0M872.2 323.5h0M192.5 331.7h0M200.6 331.7h0M208.8 331.7h0M217 331.7h0M225.2 331.7h0M233.4 331.7h0M241.6 331.7h0M249.8 331.7h0M438.1 331.7h0M446.3 331.7h0M454.5 331.7h0M462.7 331.7h0M470.9 331.7h0M479.1 331.7h0M487.3 331.7h0M520 331.7h0M716.6 331.7h0M724.8 331.7h0M733 331.7h0M741.2 331.7h0M749.3 331.7h0M757.5 331.7h0M765.7 331.7h0M773.9 331.7h0M782.1 331.7h0M790.3 331.7h0M798.5 331.7h0M806.7 331.7h0M814.9 331.7h0M823 331.7h0M192.5 339.9h0M200.6 339.9h0M208.8 339.9h0M217 339.9h0M225.2 339.9h0M233.4 339.9h0M241.6 339.9h0M249.8 339.9h0M438.1 339.9h0M446.3 339.9h0M454.5 339.9h0M462.7 339.9h0M470.9 339.9h0M479.1 339.9h0M716.6 339.9h0M724.8 339.9h0M733 339.9h0M741.2 339.9h0M749.3 339.9h0M757.5 339.9h0M765.7 339.9h0M773.9 339.9h0M782.1 339.9h0M790.3 339.9h0M798.5 339.9h0M806.7 339.9h0M814.9 339.9h0M823 339.9h0M192.5 348.1h0M200.6 348.1h0M208.8 348.1h0M217 348.1h0M225.2 348.1h0M233.4 348.1h0M241.6 348.1h0M249.8 348.1h0M446.3 348.1h0M454.5 348.1h0M462.7 348.1h0M470.9 348.1h0M716.6 348.1h0M724.8 348.1h0M733 348.1h0M741.2 348.1h0M749.3 348.1h0M757.5 348.1h0M765.7 348.1h0M773.9 348.1h0M782.1 348.1h0M790.3 348.1h0M798.5 348.1h0M806.7 348.1h0M814.9 348.1h0M823 348.1h0M192.5 356.2h0M200.6 356.2h0M208.8 356.2h0M217 356.2h0M225.2 356.2h0M233.4 356.2h0M241.6 356.2h0M446.3 356.2h0M454.5 356.2h0M462.7 356.2h0M716.6 356.2h0M724.8 356.2h0M733 356.2h0M765.7 356.2h0M773.9 356.2h0M782.1 356.2h0M790.3 356.2h0M798.5 356.2h0M806.7 356.2h0M814.9 356.2h0M192.5 364.4h0M200.6 364.4h0M208.8 364.4h0M217 364.4h0M225.2 364.4h0M233.4 364.4h0M716.6 364.4h0M724.8 364.4h0M773.9 364.4h0M782.1 364.4h0M790.3 364.4h0M798.5 364.4h0M806.7 364.4h0M872.2 364.4h0M192.5 372.6h0M200.6 372.6h0M208.8 372.6h0M217 372.6h0M225.2 372.6h0M233.4 372.6h0M782.1 372.6h0M790.3 372.6h0M798.5 372.6h0M872.2 372.6h0M192.5 380.8h0M200.6 380.8h0M208.8 380.8h0M217 380.8h0M225.2 380.8h0M782.1 380.8h0M790.3 380.8h0M855.8 380.8h0M864 380.8h0M872.2 380.8h0M200.6 389h0M208.8 389h0M217 389h0M782.1 389h0M839.4 389h0M847.6 389h0M200.6 397.2h0M208.8 397.2h0M217 397.2h0M225.2 397.2h0M831.2 397.2h0M839.4 397.2h0M200.6 405.4h0M208.8 405.4h0M217 405.4h0M225.2 405.4h0M208.8 413.6h0M217 413.6h0M225.2 421.8h0M233.4 421.8h0"/>
+                <g id="arcs"></g>
+                <g id="packets"></g>
+                <g id="dcs"></g>
+              </svg>
+            </div>
+            <ul class="map-legend" id="legend"></ul>
+            <figcaption class="map-foot"><span><b>6</b> datacenters, <b>200+</b> CDN points of presence</span><span>Head office: Dubai, UAE</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Value props -->
+  <section class="section" aria-labelledby="props-h" style="padding-top:48px">
+    <div class="container">
+      <div class="grid sec-head">
+        <h2 id="props-h" data-reveal>Four ways to put your project online.</h2>
+        <p data-reveal style="--i:1">Start with a single website and move up to bare metal without changing provider, billing or support team.</p>
+      </div>
+      <div class="props">
+        <article class="prop" data-reveal>
+          <div class="pi"><svg class="ico"><use href="#i-globe"/></svg></div>
+          <h3>Web hosting</h3>
+          <p>cPanel hosting on NVMe storage with free SSL and email accounts, in the USA, Malaysia or Singapore.</p>
+          <p class="from num">From <b>$29.99</b> a year</p>
+          <a class="link" href="/web-hosting">View hosting plans<svg class="ico"><use href="#i-arrow"/></svg></a>
+        </article>
+        <article class="prop" data-reveal style="--i:1">
+          <div class="pi"><svg class="ico"><use href="#i-cloud"/></svg></div>
+          <h3>Managed SSD cloud VPS</h3>
+          <p>Dedicated vCPU and memory on SSD-only cloud. We handle patching and monitoring for you.</p>
+          <p class="from num">Linux or Windows, <b>4–24 vCPU</b></p>
+          <a class="link" href="/cloudvps">View cloud VPS<svg class="ico"><use href="#i-arrow"/></svg></a>
+        </article>
+        <article class="prop" data-reveal style="--i:2">
+          <div class="pi"><svg class="ico"><use href="#i-wp"/></svg></div>
+          <h3>Managed WordPress</h3>
+          <p>WordPress installed, cached and updated for you, so you can spend your time on the site itself.</p>
+          <p class="from num">Free SSL and <b>daily backups</b></p>
+          <a class="link" href="/wordpress-hosting">View WordPress hosting<svg class="ico"><use href="#i-arrow"/></svg></a>
+        </article>
+        <article class="prop" data-reveal style="--i:3">
+          <div class="pi"><svg class="ico"><use href="#i-zap"/></svg></div>
+          <h3>Dedicated 10Gbps servers</h3>
+          <p>Single-tenant Intel Xeon and AMD Ryzen hardware, 5 IPs included, ports up to unmetered 10Gbps.</p>
+          <p class="from num">From <b>$39.99</b> a month</p>
+          <a class="link" href="/dedicated-servers">View dedicated servers<svg class="ico"><use href="#i-arrow"/></svg></a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plans -->
+  <section class="section section-alt" id="plans" aria-labelledby="plans-h">
+    <div class="container">
+      <div class="grid sec-head">
+        <h2 id="plans-h" data-reveal>Shared hosting, priced by the year.</h2>
+        <p data-reveal style="--i:1">Pick the location closest to your visitors. Every plan includes NVMe or SSD storage, free SSL and real 24/7 technical support.</p>
+      </div>
+      <div class="plans-bar">
+        <div class="seg" role="radiogroup" aria-label="Hosting location" id="seg">
+          <span class="seg-thumb" aria-hidden="true"></span>
+          <button role="radio" aria-checked="true" data-loc="usa">USA</button>
+          <button role="radio" aria-checked="false" data-loc="my" tabindex="-1">Malaysia</button>
+          <button role="radio" aria-checked="false" data-loc="sg" tabindex="-1">Singapore</button>
+        </div>
+        <p class="num">Billed annually in USD. Renewal price shown at checkout.</p>
+      </div>
+      <div class="plan-grid" id="plan-grid"></div>
+      <p class="plans-note">Prices shown live from our billing system.</p>
+
+      <div class="servers" id="servers">
+        <div class="servers-head">
+          <div>
+            <h3>Dedicated servers</h3>
+            <p>Current generation hardware, each with 5 IPv4 addresses. Ordered and provisioned through your client area.</p>
+          </div>
+          <a class="link" href="/dedicated-servers">All 24 configurations<svg class="ico"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="table-scroll"><table class="spec-table num" aria-label="Dedicated server configurations">
+          <thead><tr><th scope="col">Server</th><th scope="col">CPU</th><th scope="col">Memory</th><th scope="col">Storage</th><th scope="col">Network</th><th scope="col">Price</th><th scope="col"><span class="sr-only">Order</span></th></tr></thead>
+          <tbody id="server-rows"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why -->
+  <section class="section" id="why" aria-labelledby="why-h">
+    <div class="container">
+      <div class="grid sec-head">
+        <h2 id="why-h" data-reveal>What every customer gets, on every plan.</h2>
+        <p data-reveal style="--i:1">No add-on fees for the basics. These are included whether you pay $29.99 a year or $999.99 a month.</p>
+      </div>
+      <div class="grid why">
+        <aside class="rating" data-reveal aria-label="Customer rating">
+          <span class="stars" aria-hidden="true"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+          <p class="score num">4.89<span>/5</span></p>
+          <strong>Rated Excellent by our customers</strong>
+          <p>Customers rate us most highly for response times and help with migrations.</p>
+          <dl class="r-meta num">
+            <div><dt>Network uptime</dt><dd>99.93%</dd></div>
+            <div><dt>Support availability</dt><dd>24/7</dd></div>
+            <div><dt>Datacenters</dt><dd>6</dd></div>
+          </dl>
+        </aside>
+        <div class="why-grid">
+          <div class="why-item" data-reveal style="--i:1"><svg class="ico"><use href="#i-swap"/></svg><h3>Free domain transfer</h3><p>Bring your existing domain across at no charge. We handle the authorisation steps with you.</p></div>
+          <div class="why-item" data-reveal style="--i:2"><svg class="ico"><use href="#i-drive"/></svg><h3>SSD and NVMe-only cloud</h3><p>No spinning disks behind your website or VPS. Pages and databases load from flash storage.</p></div>
+          <div class="why-item" data-reveal style="--i:3"><svg class="ico"><use href="#i-headset"/></svg><h3>24/7 priority support</h3><p>Engineers answer tickets and calls at any hour, including weekends and public holidays.</p></div>
+          <div class="why-item" data-reveal style="--i:4"><svg class="ico"><use href="#i-archive"/></svg><h3>Daily and weekly backups</h3><p>Automatic restore points for your files and databases, so a mistake is never permanent.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product strip -->
+  <section class="section section-alt" aria-labelledby="more-h" style="padding:96px 0">
+    <div class="container">
+      <div class="grid sec-head">
+        <h2 id="more-h" data-reveal>More than hosting.</h2>
+        <p data-reveal style="--i:1">Tools that run on the same infrastructure and sit in the same client area as your hosting.</p>
+      </div>
+      <div class="strip">
+        <article class="strip-item" data-reveal><div class="si"><svg class="ico"><use href="#i-flow"/></svg></div><h3>n8n Automation</h3><p>Self-hosted n8n on NVMe VPS with free SSL. Choose N8N Pro or N8N Elite.</p><a class="link" href="/secure/cart.php">View plans<svg class="ico"><use href="#i-arrow"/></svg></a></article>
+        <article class="strip-item" data-reveal style="--i:1"><div class="si"><svg class="ico"><use href="#i-spark"/></svg></div><h3>AI / LLM Hosting</h3><p>Servers sized for running language models and inference APIs you control.</p><a class="link" href="/secure/cart.php">View servers<svg class="ico"><use href="#i-arrow"/></svg></a></article>
+        <article class="strip-item" data-reveal style="--i:2"><div class="si"><svg class="ico"><use href="#i-lock"/></svg></div><h3>SSL Certificates</h3><p>Comodo, Thawte and GeoTrust certificates, DV to OV, with free reissues.</p><a class="link" href="/ssl-certificate">Compare SSL<svg class="ico"><use href="#i-arrow"/></svg></a></article>
+        <article class="strip-item" data-reveal style="--i:3"><div class="si"><svg class="ico"><use href="#i-kanban"/></svg></div><h3>Project Management</h3><p>Kanban boards, time tracking and a wiki with unlimited users per workspace.</p><a class="link" href="/projects">See workspace<svg class="ico"><use href="#i-arrow"/></svg></a></article>
+        <article class="strip-item soon" data-reveal style="--i:4"><div class="si"><svg class="ico"><use href="#i-users"/></svg></div><h3>cPanel Reseller <span class="badge">Coming soon</span></h3><p>Sell hosting to your own clients under your brand, with WHM access.</p><a class="link" href="/cpanel-reseller">Get notified<svg class="ico"><use href="#i-arrow"/></svg></a></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Network -->
+  <section class="section" id="network" aria-labelledby="net-h">
+    <div class="container">
+      <div class="grid net">
+        <div class="net-copy" data-reveal>
+          <span class="kicker">Global network</span>
+          <h2 id="net-h">Six datacenters across five continents.</h2>
+          <p>Choose where your server lives. Static assets are served from more than 200 CDN points of presence, close to every visitor.</p>
+          <div class="stats num">
+            <div class="stat"><b>6</b><span>Datacenter locations</span></div>
+            <div class="stat"><b>200+</b><span>CDN points of presence</span></div>
+            <div class="stat"><b>99.93%</b><span>Measured network uptime</span></div>
+          </div>
+          <a class="link" href="/status-page" style="margin-top:24px">Check live status<svg class="ico"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="net-viz" data-reveal style="--i:1">
+          <svg class="band" id="band" viewBox="0 0 720 300" role="img" aria-label="Datacenter locations by longitude, from the USA in the west to India in the east"></svg>
+          <table class="dc-table">
+            <thead><tr><th scope="col">Location</th><th scope="col">Region</th></tr></thead>
+            <tbody id="dc-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compare -->
+  <section class="section section-alt" aria-labelledby="cmp-h">
+    <div class="container">
+      <div class="grid sec-head">
+        <h2 id="cmp-h" data-reveal>Globalhostia next to a typical host.</h2>
+        <p data-reveal style="--i:1">What matters after the first invoice: the hardware under your site, what is included, and who answers when something breaks.</p>
+      </div>
+      <div class="compare-wrap" data-reveal>
+        <table class="compare">
+          <thead><tr><th scope="col"><span class="sr-only">Feature</span></th><th scope="col" class="us">Globalhostia</th><th scope="col">Typical budget host</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Server storage</th><td class="us"><div class="cell"><svg class="ico"><use href="#i-check"/></svg>NVMe and SSD only</div></td><td class="them"><div class="cell"><svg class="ico"><use href="#i-minus"/></svg>Often mixed with SATA hard drives</div></td></tr>
+            <tr><th scope="row">Shared hosting from</th><td class="us num"><div class="cell"><svg class="ico"><use href="#i-check"/></svg>$29.99 per year</div></td><td class="them"><div class="cell"><svg class="ico"><use href="#i-minus"/></svg>Low intro price, higher on renewal</div></td></tr>
+            <tr><th scope="row">Dedicated servers from</th><td class="us num"><div class="cell"><svg class="ico"><use href="#i-check"/></svg>$39.99 per month, 5 IPs</div></td><td class="them"><div class="cell"><svg class="ico"><use href="#i-minus"/></svg>Extra IPs often charged separately</div></td></tr>
+            <tr><th scope="row">Domain transfer</th><td class="us"><div class="cell"><svg class="ico"><use href="#i-check"/></svg>Free</div></td><td class="them"><div class="cell"><svg class="ico"><use href="#i-minus"/></svg>Usually a paid transfer fee</div></td></tr>
+            <tr><th scope="row">Backups</th><td class="us"><div class="cell"><svg class="ico"><use href="#i-check"/></svg>Daily and weekly, included</div></td><td class="them"><div class="cell"><svg class="ico"><use href="#i-minus"/></svg>Paid add-on</div></td></tr>
+            <tr><th scope="row">Support</th><td class="us"><div class="cell"><svg class="ico"><use href="#i-check"/></svg>24/7 priority, by engineers</div></td><td class="them"><div class="cell"><svg class="ico"><use href="#i-minus"/></svg>Tiered queues, chatbots first</div></td></tr>
+            <tr><th scope="row">Port speed on dedicated</th><td class="us"><div class="cell"><svg class="ico"><use href="#i-check"/></svg>Up to unmetered 10Gbps</div></td><td class="them"><div class="cell"><svg class="ico"><use href="#i-minus"/></svg>1Gbps, metered</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="compare-note">Comparison reflects common industry practice and is provided for general guidance.</p>
+    </div>
+  </section>
+
+  <!-- Clients -->
+  <section aria-label="Clients and partners" style="padding:72px 0 0">
+    <div class="container">
+      <div class="clients">
+        <p>Teams and partners building on Globalhostia</p>
+        <ul>
+          <li class="wm">ADPList</li>
+          <li class="wm w2">1Mentorship</li>
+          <li class="wm w3">INFRA</li>
+          <li class="wm w4">AllCode</li>
+          <li class="wm w5">Token247</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" aria-labelledby="faq-h">
+    <div class="container">
+      <div class="grid faq">
+        <div class="faq-side" data-reveal>
+          <h2 id="faq-h">Questions, answered.</h2>
+          <p>Can't find what you need? Our engineers are available 24/7.</p>
+          <div class="faq-contact">
+            <a href="tel:+971507341578"><svg class="ico"><use href="#i-phone"/></svg>+971 50 734 1578</a>
+            <a href="mailto:support@globalhostia.com"><svg class="ico"><use href="#i-mail"/></svg>support@globalhostia.com</a>
+            <a href="/help-center"><svg class="ico"><use href="#i-book"/></svg>Visit the Help Center</a>
+          </div>
+        </div>
+        <div class="faq-list" id="faq" data-reveal style="--i:1"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta" aria-labelledby="cta-h">
+    <div class="container">
+      <div class="cta-box" data-reveal>
+        <h2 id="cta-h">Move your website to Globalhostia.</h2>
+        <p>Domain transfers are free and our team will help you migrate files, email and databases.</p>
+        <div class="cta-actions">
+          <a class="btn btn-ghost" href="/contact">Talk to an engineer</a>
+          <a class="btn btn-cta" href="#plans">Get started</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="grid foot-top">
+      <div class="foot-brand">
+        <img src="/image/logo-main-black.png" alt="Globalhostia" width="140" height="30">
+        <p>Web hosting, servers and domains, operated from Dubai, UAE.</p>
+        <address>
+          <a href="tel:+971507341578"><svg class="ico"><use href="#i-phone"/></svg>+971 50 734 1578</a>
+          <a href="mailto:support@globalhostia.com"><svg class="ico"><use href="#i-mail"/></svg>support@globalhostia.com</a>
+        </address>
+      </div>
+      <nav class="foot-cols" aria-label="Footer">
+        <div><h3>Hosting</h3><a href="/web-hosting">Web Hosting</a><a href="/wordpress-hosting">WordPress Hosting</a><a href="/shared-hosting">Shared Hosting</a><a href="/cpanel-reseller">Reseller (cPanel)</a></div>
+        <div><h3>Servers</h3><a href="/vps-hosting">VPS</a><a href="/cloudvps">Cloud VPS</a><a href="/dedicated-servers">Dedicated Servers</a><a href="/secure/cart.php">Windows VPS</a><a href="/secure/cart.php">Forex VPS</a><a href="/secure/cart.php">AI/LLM Hosting</a><a href="/secure/cart.php">n8n Automation</a></div>
+        <div><h3>Domains</h3><a href="/domains-registration">Register a domain</a><a href="/secure/cart.php?a=add&amp;domain=transfer">Transfer a domain</a><a href="/domains-registration#pricing">Domain pricing</a><a href="/ssl-certificate">SSL Certificates</a></div>
+        <div><h3>Business</h3><a href="/projects">Project Management</a><a href="/google-workspace">Google Workspace</a><a href="/binance">Binance MCPs</a></div>
+        <div><h3>Support</h3><a href="/help-center">Help Center</a><a href="/all-topics">All topics</a><a href="/status-page">Status page</a><a href="/incident-history">Incident history</a><a href="/contact">Contact</a></div>
+      </nav>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Globalhostia. Operated by Desert Tech Cloud Services LLC, Dubai, UAE. Prices shown live from our billing system.</span>
+      <div class="pay" aria-label="Accepted payment methods"><span>Visa</span><span>Mastercard</span><span>American Express</span><span>Discover</span><span>JCB</span><span>Maestro</span><span>Bitcoin</span></div>
+    </div>
+  </div>
+</footer>
+
+<a class="preview-pill" href="/previews/index.html"><i aria-hidden="true"></i>Concept 1 · Atlas — preview</a>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $ = function(s,r){return (r||document).querySelector(s)};
+  var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent){var n=document.createElementNS(SVGNS,tag);for(var k in attrs)n.setAttribute(k,attrs[k]);if(parent)parent.appendChild(n);return n}
+  function ico(id,cls){return '<svg class="ico'+(cls?' '+cls:'')+'" aria-hidden="true"><use href="#'+id+'"/></svg>'}
+
+  /* ---------- Data (from content.json) ---------- */
+  var TLDS = [[".com",13.65],[".net",8.29],[".shop",1.2],[".org",8.65],[".live",2.99]];
+  var LOCS = {usa:{label:"USA",suffix:"USA",dc:"United States"},my:{label:"Malaysia",suffix:"MY",dc:"Malaysia"},sg:{label:"Singapore",suffix:"SG",dc:"Singapore"}};
+  var PLANS = [
+    {base:"Hostia Lite",price:"29.99",tagline:"Fast NVMe storage and real 24/7 technical support.",feat:["2 GB of space","50 GB bandwidth","10 email accounts","-1 website","-10 databases"]},
+    {base:"Hostia Ultra",price:"39.99",featured:true,tagline:"Fast NVMe storage and real 24/7 technical support.",feat:["5 GB of space","100 GB bandwidth","Unlimited email accounts","5 websites","-25 databases"]},
+    {base:"Hostia Infinity",price:"49.99",tagline:"Fast SSD storage and real 24/7 technical support.",feat:["Unlimited space","Unlimited bandwidth","Unlimited email accounts","10 websites","Unlimited databases"]}
+  ];
+  var SERVERS = [
+    {n:"Hostia Prime",m:"Dual L5420",cpu:"8C/8T @ 2.5GHz",ram:"16GB DDR2",st:"500GB SATA",bw:"30TB @ 1Gbps",p:"45.99"},
+    {n:"Premium Server A",m:"2× E5-2683v4",badge:["Hot","b-orange"],cpu:"32C/64T @ 2.10GHz",ram:"128GB DDR4",st:"2TB SSD",bw:"Unmetered 1Gbps",p:"129.99"},
+    {n:"Hostia Flex",m:"Ryzen 9 5950X",badge:["Special","b-blue"],cpu:"32T @ 3.4GHz",ram:"128GB DDR4 ECC",st:"2× 1TB NVMe",bw:"Unmetered 1Gbps",p:"150.00"},
+    {n:"Premium Server B",m:"2× E5-2683v4",badge:["Sale","b-orange"],cpu:"32C/64T @ 2.10GHz",ram:"128GB DDR4",st:"2× 2TB SSD",bw:"Unmetered 1Gbps",p:"154.99"},
+    {n:"Hostia Flex Plus",m:"Ryzen 9 7950X",badge:["Pre-order",""],cpu:"16C/32T @ 4.9GHz",ram:"128GB DDR5 ECC",st:"2× 2TB NVMe",bw:"Unmetered 1Gbps",p:"249.99"},
+    {n:"Premium 10Gbps Server",m:"2× E5-2683v4",badge:["10Gbps","b-blue"],cpu:"32C/64T @ 2.10GHz",ram:"128GB DDR4",st:"2TB SSD",bw:"Unmetered 10Gbps",p:"999.99"}
+  ];
+  // map coords in 880x424 viewBox; lon for band diagram
+  var DCS = [
+    {id:"usa",name:"United States",region:"North America",x:156,y:127,lon:-95},
+    {id:"bra",name:"Brazil",region:"South America",x:246,y:296,lon:-47},
+    {id:"alg",name:"Algeria (EU)",region:"EU region",x:387,y:150,lon:3},
+    {id:"zaf",name:"South Africa",region:"Southern Africa",x:469,y:326,lon:28},
+    {id:"rus",name:"Russia",region:"Eastern Europe",x:484,y:72,lon:37},
+    {id:"ind",name:"India",region:"South Asia",x:610,y:186,lon:77}
+  ];
+  var LINKS = [["usa","bra"],["usa","alg"],["alg","rus"],["alg","zaf"],["rus","ind"],["ind","zaf"],["bra","zaf"],["usa","rus"]];
+  var FAQ = [
+    ["Can I transfer my existing domain for free?","Yes. Domain transfers to Globalhostia are free. Unlock the domain at your current registrar, request the authorisation (EPP) code, and start the transfer from the Domains menu. Most transfers complete within five to seven days and your website stays online throughout."],
+    ["Which hosting location should I choose?","Choose the location closest to most of your visitors. Shared hosting is available in the USA, Malaysia and Singapore. Servers are available across our six datacenters, and static files are served from more than 200 CDN points of presence regardless of where your site is hosted."],
+    ["Do you help migrate my website from another host?","Yes. Open a ticket after ordering and our engineers will help you move files, databases and email accounts. We schedule the final switch to keep downtime to a minimum."],
+    ["How do backups work?","Hosting accounts are backed up automatically every day and every week. You can restore files or databases from your control panel, or ask support to restore a specific point for you."],
+    ["Which payment methods do you accept?","We accept Visa, Mastercard, American Express, Discover, JCB, Maestro and Bitcoin. All payments are processed through our secure billing system, and you can download every invoice from your client area."]
+  ];
+
+  /* ---------- Render: TLDs ---------- */
+  function money(v){return "$"+Number(v).toFixed(2)}
+  $("#tlds").innerHTML = TLDS.map(function(t){return '<a class="tld" href="https://globalhostia.com/secure/cart.php?a=add&domain=register&query='+encodeURIComponent("yourname"+t[0])+'"><b>'+t[0]+'</b><span>'+money(t[1])+'</span></a>'}).join("");
+  $("#tld-mini").innerHTML = TLDS.map(function(t){return '<a href="/domains-registration"><b>'+t[0]+'</b><span>'+money(t[1])+'</span></a>'}).join("");
+
+  /* ---------- Render: Plans ---------- */
+  var planGrid = $("#plan-grid");
+  function renderPlans(loc){
+    var L = LOCS[loc];
+    planGrid.innerHTML = PLANS.map(function(p){
+      var parts = p.price.split(".");
+      return '<article class="plan'+(p.featured?' featured':'')+'">'+
+        (p.featured?'<span class="flag">Most popular</span>':'')+
+        '<h3>'+p.base+'</h3>'+
+        '<p class="loc swap">Datacenter: <b>'+L.dc+'</b></p>'+
+        '<p class="tagline">'+p.tagline+'</p>'+
+        '<div class="price num"><span class="cur">$</span><span class="amt">'+parts[0]+'.'+parts[1]+'</span><span class="per">/ year</span></div>'+
+        '<a class="btn '+(p.featured?'btn-cta':'btn-ghost')+'" href="/shared-hosting" aria-label="Order '+p.base+' '+L.suffix+'">Order '+p.base.replace("Hostia ","")+'</a>'+
+        '<ul class="feat">'+p.feat.map(function(f){
+          var no = f.charAt(0)==="-"; var t = no?f.slice(1):f;
+          return '<li'+(no?' class="no"':'')+'>'+ico(no?"i-minus":"i-check")+(no?'<span>'+t+' <span class="sr-only">(limit)</span></span>':'<span>'+t+'</span>')+'</li>';
+        }).join("")+
+        '<li>'+ico("i-check")+'<span>Free SSL certificate</span></li></ul>'+
+      '</article>';
+    }).join("");
+  }
+  renderPlans("usa");
+
+  // Segmented control
+  var seg = $("#seg"), thumb = $(".seg-thumb", seg), segBtns = $$("button", seg);
+  function placeThumb(btn){thumb.style.width = btn.offsetWidth+"px"; thumb.style.transform = "translateX("+btn.offsetLeft+"px)"}
+  function selectLoc(loc, focus){
+    segBtns.forEach(function(b){var on=b.dataset.loc===loc;b.setAttribute("aria-checked",on);b.tabIndex=on?0:-1;if(on){placeThumb(b);if(focus)b.focus()}});
+    var locs = $$(".loc", planGrid);
+    locs.forEach(function(n){n.classList.add("fade")});
+    setTimeout(function(){renderPlans(loc)}, reduce?0:160);
+  }
+  segBtns.forEach(function(b,i){
+    b.addEventListener("click",function(){selectLoc(b.dataset.loc)});
+    b.addEventListener("keydown",function(e){
+      var d = e.key==="ArrowRight"||e.key==="ArrowDown"?1:e.key==="ArrowLeft"||e.key==="ArrowUp"?-1:0;
+      if(!d) return; e.preventDefault();
+      var n = segBtns[(i+d+segBtns.length)%segBtns.length]; selectLoc(n.dataset.loc,true);
+    });
+  });
+  function syncThumb(){var on=$('[aria-checked="true"]',seg); if(on) placeThumb(on)}
+  window.addEventListener("resize", syncThumb);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(syncThumb);
+  syncThumb();
+  $$("[data-loc-link]").forEach(function(a){a.addEventListener("click",function(){selectLoc(a.dataset.locLink); closeMenus()})});
+
+  /* ---------- Render: servers ---------- */
+  $("#server-rows").innerHTML = SERVERS.map(function(s){
+    return '<tr><td class="nm" data-l="Server">'+s.n+(s.badge?'<span class="badge '+s.badge[1]+'">'+s.badge[0]+'</span>':'')+'<small>'+s.m+'</small></td>'+
+      '<td data-l="CPU">'+s.cpu+'</td><td data-l="Memory">'+s.ram+'</td><td data-l="Storage">'+s.st+'</td><td data-l="Network">'+s.bw+'</td>'+
+      '<td data-l="Price" class="pr"><span class="pv">$'+s.p+' <span>/mo</span></span></td>'+
+      '<td><a class="btn btn-ghost" href="/dedicated-servers" aria-label="Configure '+s.n+'">Configure</a></td></tr>';
+  }).join("");
+
+  /* ---------- Render: FAQ ---------- */
+  $("#faq").innerHTML = FAQ.map(function(f,i){
+    return '<div class="faq-item"><h3 style="margin:0"><button class="faq-q" aria-expanded="'+(i===0)+'" aria-controls="fa'+i+'" id="fq'+i+'">'+f[0]+'<span class="pm" aria-hidden="true"></span></button></h3>'+
+      '<div class="faq-a'+(i===0?' open':'')+'" id="fa'+i+'" role="region" aria-labelledby="fq'+i+'"><div><p>'+f[1]+'</p></div></div></div>';
+  }).join("");
+  $$(".faq-q").forEach(function(b){b.addEventListener("click",function(){
+    var open = b.getAttribute("aria-expanded")==="true";
+    b.setAttribute("aria-expanded",!open); $("#"+b.getAttribute("aria-controls")).classList.toggle("open",!open);
+  })});
+
+  /* ---------- World map ---------- */
+  var map = $("#worldmap"), gArcs = $("#arcs"), gPk = $("#packets"), gDc = $("#dcs");
+  var byId = {}; DCS.forEach(function(d){byId[d.id]=d});
+  LINKS.forEach(function(l,i){
+    var a=byId[l[0]], b=byId[l[1]];
+    var mx=(a.x+b.x)/2, my=(a.y+b.y)/2, dist=Math.hypot(b.x-a.x,b.y-a.y);
+    var cy = my - dist*0.32;
+    var d = "M"+a.x+" "+a.y+" Q"+mx+" "+cy+" "+b.x+" "+b.y;
+    var p = el("path",{d:d,"class":"arc",pathLength:"1",id:"arc"+i},gArcs);
+    p.style.transitionDelay = (600 + i*260)+"ms";
+    if(!reduce){
+      var c = el("circle",{r:"2.4","class":"packet",opacity:"0"},gPk);
+      var dur = (7 + (i%4)*1.5)+"s", begin = (3.2 + i*1.1)+"s";
+      var am = el("animateMotion",{dur:dur,begin:begin,repeatCount:"indefinite",keyPoints:i%2?"1;0":"0;1",keyTimes:"0;1",calcMode:"linear"},c);
+      el("mpath",{href:"#arc"+i},am);
+      el("animate",{attributeName:"opacity",values:"0;.9;.9;0",keyTimes:"0;.15;.85;1",dur:dur,begin:begin,repeatCount:"indefinite"},c);
+    }
+  });
+  // HQ marker (Dubai)
+  var hq = el("g",{},gDc); el("rect",{x:"551",y:"166",width:"7",height:"7",transform:"rotate(45 554.5 169.5)","class":"hq"},hq);
+  DCS.forEach(function(d,i){
+    var g = el("g",{"class":"dc","data-id":d.id},gDc);
+    var r = el("circle",{cx:d.x,cy:d.y,r:"5","class":"dc-ring"},g); r.style.animationDelay = (i*0.8)+"s";
+    el("circle",{cx:d.x,cy:d.y,r:"5","class":"dc-core"},g);
+    var t = el("text",{x:d.x+10,y:d.y-9,"class":"dc-label"},g); t.textContent = d.name;
+  });
+  $("#legend").innerHTML = DCS.map(function(d){return '<li data-id="'+d.id+'" tabindex="0"><b>'+d.name+'</b><span>'+d.region+'</span></li>'}).join("");
+  $$("#legend li").forEach(function(li){
+    var g = $('.dc[data-id="'+li.dataset.id+'"]', map);
+    function on(){g.classList.add("hl")} function off(){g.classList.remove("hl")}
+    li.addEventListener("mouseenter",on); li.addEventListener("mouseleave",off);
+    li.addEventListener("focus",on); li.addEventListener("blur",off);
+  });
+  if(reduce){ map.classList.add("drawn") }
+  else { requestAnimationFrame(function(){requestAnimationFrame(function(){map.classList.add("drawn")})}) }
+  // Pause ambient animation off-screen
+  if("IntersectionObserver" in window){
+    new IntersectionObserver(function(es){es.forEach(function(e){
+      map.classList.toggle("paused",!e.isIntersecting);
+      try{ e.isIntersecting ? map.unpauseAnimations() : map.pauseAnimations() }catch(_){}
+    })},{threshold:0}).observe(map);
+  }
+
+  /* ---------- Longitude band diagram ---------- */
+  (function(){
+    var svg = $("#band"), W=720, L=40, R=680, AX=200;
+    function X(lon){return L + (lon+120)/(220)*(R-L)} // -120..100 visible span
+    for(var lon=-120; lon<=100; lon+=20){
+      var x=X(lon); el("line",{x1:x,x2:x,y1:AX-4,y2:AX+4,"class":"tick"},svg);
+      var t=el("text",{x:x,y:AX+22,"text-anchor":"middle","class":"tick-l lbl"},svg); t.textContent = lon===0?"0°":(Math.abs(lon)+"°"+(lon<0?"W":"E"));
+    }
+    el("line",{x1:L,x2:R,y1:AX,y2:AX,"class":"axis"},svg);
+    // arcs between successive datacenters ordered by longitude
+    var sorted = DCS.slice().sort(function(a,b){return a.lon-b.lon});
+    for(var i=0;i<sorted.length-1;i++){
+      var a=X(sorted[i].lon), b=X(sorted[i+1].lon), h=Math.max(28,(b-a)*0.55);
+      el("path",{d:"M"+a+" "+AX+" C"+a+" "+(AX-h)+" "+b+" "+(AX-h)+" "+b+" "+AX,"class":"barc"},svg);
+    }
+    var hqx = X(55); el("line",{x1:hqx,x2:hqx,y1:AX,y2:AX+44,"class":"lat"},svg);
+    var hqt = el("text",{x:hqx,y:AX+58,"text-anchor":"middle","class":"sub lbl"},svg); hqt.textContent="Dubai HQ";
+    sorted.forEach(function(d,i){
+      var x=X(d.lon), ly = [38,64,38,90,64,38][i];
+      el("line",{x1:x,x2:x,y1:ly+10,y2:AX,"class":"stem"},svg);
+      el("circle",{cx:x,cy:AX,r:"6","class":"pin"},svg);
+      var anchor = i===0?"start":(i===sorted.length-1?"end":"middle");
+      var dx = i===0?-6:(i===sorted.length-1?6:0);
+      var t=el("text",{x:x+dx,y:ly-6,"text-anchor":anchor,"class":"nm lbl"},svg); t.textContent=d.name;
+      var s=el("text",{x:x+dx,y:ly+8,"text-anchor":anchor,"class":"sub lbl"},svg); s.textContent=(Math.abs(d.lon))+"°"+(d.lon<0?"W":"E");
+    });
+    el("text",{x:L,y:AX+70,"class":"sub lbl"},svg).textContent = "Datacenters by longitude, west to east";
+    $("#dc-rows").innerHTML = sorted.map(function(d){return '<tr><td>'+d.name+'</td><td>'+d.region+'</td></tr>'}).join("");
+  })();
+
+  /* ---------- Mega menus ---------- */
+  var header = $("#header"), navBtns = $$(".nav-btn"), openId = null, openT, closeT;
+  function openMenu(id){
+    clearTimeout(closeT);
+    if(openId===id) return;
+    navBtns.forEach(function(b){b.setAttribute("aria-expanded", b.dataset.menu===id)});
+    $$("[data-panel]").forEach(function(p){p.classList.toggle("open", p.id===id)});
+    header.classList.add("menu-open"); openId=id;
+  }
+  function closeMenus(){
+    clearTimeout(openT);
+    navBtns.forEach(function(b){b.setAttribute("aria-expanded","false")});
+    $$("[data-panel]").forEach(function(p){p.classList.remove("open")});
+    header.classList.remove("menu-open"); openId=null;
+  }
+  navBtns.forEach(function(b){
+    var id=b.dataset.menu;
+    b.addEventListener("mouseenter",function(){clearTimeout(openT);clearTimeout(closeT);openT=setTimeout(function(){openMenu(id)}, openId?0:120)});
+    b.addEventListener("mouseleave",function(){clearTimeout(openT);closeT=setTimeout(closeMenus,180)});
+    b.addEventListener("click",function(){ openId===id ? closeMenus() : openMenu(id) });
+    b.addEventListener("keydown",function(e){
+      if(e.key==="ArrowDown"){e.preventDefault();openMenu(id);var f=$("#"+id+" a");if(f)f.focus()}
+      if(e.key==="Escape"){closeMenus();b.focus()}
+    });
+  });
+  $$("[data-panel]").forEach(function(p){
+    p.addEventListener("mouseenter",function(){clearTimeout(closeT)});
+    p.addEventListener("mouseleave",function(){closeT=setTimeout(closeMenus,180)});
+    p.addEventListener("keydown",function(e){if(e.key==="Escape"){var b=$('.nav-btn[data-menu="'+p.id+'"]');closeMenus();b.focus()}});
+    p.addEventListener("focusout",function(e){ if(!header.contains(e.relatedTarget)) closeMenus() });
+  });
+  document.addEventListener("click",function(e){ if(openId && !header.contains(e.target)) closeMenus() });
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape" && openId){var b=$('.nav-btn[data-menu="'+openId+'"]');closeMenus();if(b)b.focus()} });
+
+  // Compact header on scroll
+  function onScroll(){header.classList.toggle("scrolled", window.scrollY>8)}
+  window.addEventListener("scroll", onScroll, {passive:true}); onScroll();
+
+  /* ---------- Mobile drawer ---------- */
+  var drawer=$("#drawer"), burger=$("#burger"), body=$("#drawer-body");
+  body.innerHTML = $$("[data-panel]").map(function(p,i){
+    var label = $('.nav-btn[data-menu="'+p.id+'"]').textContent.trim();
+    var links = $$(".mega-link", p).map(function(a){
+      var use = $("use",a).getAttribute("href"); var t=$("strong",a).firstChild.textContent;
+      return '<li><a href="'+a.getAttribute("href")+'">'+ico(use.slice(1))+t+'</a></li>';
+    }).join("");
+    return '<button class="acc-btn" aria-expanded="false" aria-controls="dp'+i+'">'+label+ico("i-chev")+'</button><div class="acc-panel" id="dp'+i+'"><div><ul>'+links+'</ul></div></div>';
+  }).join("");
+  $$(".acc-btn", body).forEach(function(b){b.addEventListener("click",function(){
+    var open=b.getAttribute("aria-expanded")==="true";
+    b.setAttribute("aria-expanded",!open); $("#"+b.getAttribute("aria-controls")).classList.toggle("open",!open);
+  })});
+  function setDrawer(open){
+    drawer.classList.toggle("open",open); drawer.setAttribute("aria-hidden",!open);
+    burger.setAttribute("aria-expanded",open); document.body.style.overflow = open?"hidden":"";
+    if(open){ setTimeout(function(){$(".drawer-head [data-close]").focus()},50) } else burger.focus();
+  }
+  burger.addEventListener("click",function(){setDrawer(true)});
+  $$("[data-close]", drawer).forEach(function(c){c.addEventListener("click",function(){setDrawer(false)})});
+  $$("a", body).forEach(function(a){a.addEventListener("click",function(){setDrawer(false)})});
+  drawer.addEventListener("keydown",function(e){
+    if(e.key==="Escape") setDrawer(false);
+    if(e.key==="Tab"){
+      var f=$$("button, a",drawer).filter(function(n){return n.offsetParent!==null});
+      if(!f.length) return; var first=f[0], last=f[f.length-1];
+      if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus()}
+      else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus()}
+    }
+  });
+
+  /* ---------- Scroll reveal ---------- */
+  var rev = $$("[data-reveal]");
+  if(reduce || !("IntersectionObserver" in window)){ rev.forEach(function(n){n.classList.add("in")}) }
+  else{
+    var io = new IntersectionObserver(function(es){es.forEach(function(e){ if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)} })},{rootMargin:"0px 0px -8% 0px",threshold:.08});
+    rev.forEach(function(n){io.observe(n)});
+  }
+})();
+</script>
+</body>
+</html>
