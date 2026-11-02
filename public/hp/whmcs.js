@@ -315,10 +315,11 @@
     var sel = document.getElementById('inputBillingcycle'); if (!sel || sel.dataset.gh) return;
     sel.dataset.gh = 1;
     var opts = [].slice.call(sel.options); if (opts.length < 2) return;
-    var cur = ((opts[0].text.match(/\b([A-Z]{3})\s*$/) || [])[1]) || 'USD';
+    var hdr = document.querySelector('.site-header, header'); var hm = hdr && hdr.textContent.match(/\b(USD|AED|INR|GBP|EUR|SAR|CAD|AUD|SGD|MYR)\b/);
+    var cur = ((opts[0].text.match(/\b(USD|AED|INR|GBP|EUR|SAR|CAD|AUD|SGD|MYR)\b/) || [])[1]) || (hm && hm[1]) || 'USD';
     var tbl = spec && spec.prices && spec.prices[cur];
-    var pre = ((opts[0].text.match(/-\s*([^\d\s]*)\s*[\d]/) || [])[1]) || '';
-    var fmt = function (n) { return pre + n.toFixed(2) + ' ' + cur; };
+    var SYM = { USD: '$', EUR: '€', GBP: '£', INR: '₹' };
+    var fmt = function (n) { return SYM[cur] ? SYM[cur] + n.toFixed(2) : cur + ' ' + n.toFixed(2); };
     var parse = function (o) { var m = o.text.match(/^(.*?)\s*-\s*(.+)$/); return { k: o.value, label: CYCLE_NAME[o.value] || (m ? m[1].replace(/\s*Price$/i, '') : o.text), raw: m ? m[2] : '' }; };
     var list = opts.map(parse), mon = tbl && tbl.monthly;
     var host = sel.closest('.form-group') || sel.parentElement;
@@ -359,7 +360,7 @@
       top.innerHTML = (meta.length ? '<div class="gh-cfg-meta">' + meta.map(function (m) { return '<span>' + esc(m) + '</span>'; }).join('') + '</div>' : '') +
         (spec && spec.tagline ? '<p class="gh-cfg-tag">' + esc(spec.tagline) + '</p>' : '');
       if (t) t.after(top);
-      var have = (info.textContent || '').toLowerCase(); var feats = (spec && spec.allFeatures || []).filter(function (f) { return f.length > 3 && have.indexOf(f.toLowerCase()) < 0; });
+      var have = (info.textContent || '').toLowerCase(); var specCount = info.querySelectorAll('.list-info, li').length; var feats = specCount >= 3 ? [] : (spec && spec.allFeatures || []).filter(function (f) { return f.length > 3 && have.indexOf(f.toLowerCase()) < 0; });
       if (feats.length) {
         var d = document.createElement('div'); d.className = 'gh-cfg-feats';
         d.innerHTML = '<b>Everything included</b><ul>' + feats.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>';
