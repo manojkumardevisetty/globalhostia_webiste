@@ -623,5 +623,21 @@
     });
   }
 
-  ready(function () { try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  function brokerCta() {
+    var run = function () {
+      document.querySelectorAll('.domain-unavailable, .domain-checker-unavailable').forEach(function (el) {
+        if (el.dataset.ghb || !/block|flex/.test(getComputedStyle(el).display) || el.offsetParent === null) return;
+        var res = el.closest('.domain-lookup-primary-results, #primaryLookupResult, #DomainSearchResults') || el.parentNode;
+        var b = res && res.querySelector('[data-domain]'); var txt = (el.textContent.match(/[a-z0-9-]+\.[a-z.]{2,}/i) || [])[0];
+        var dom = (b && b.getAttribute('data-domain')) || txt || ((document.querySelector('#inputDomain, input[name=domain], #registersld') || {}).value || '');
+        el.dataset.ghb = 1;
+        var a = document.createElement('div'); a.className = 'gh-broker';
+        a.innerHTML = '<div><b>Domain taken? We can still try to get it.</b><span>Our brokers contact the owner anonymously and negotiate within your budget.</span></div><a href="' + ORIGIN + '/domain-broker' + (dom ? '?domain=' + encodeURIComponent(dom) : '') + '">Request a broker →</a>';
+        el.appendChild(a);
+      });
+    };
+    run(); new MutationObserver(function () { clearTimeout(run.t); run.t = setTimeout(run, 200); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+  }
+
+  ready(function () { try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
