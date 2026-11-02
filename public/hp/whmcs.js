@@ -533,5 +533,22 @@
     document.body.appendChild(a);
   }
 
-  ready(function () { try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  function clientFixes() {
+    // domains table: the template labels the auto-renew column "Next Due Date" twice
+    var dt = document.getElementById('tableDomainsList');
+    if (dt) { var ths = dt.querySelectorAll('thead th'), seen = 0; ths.forEach(function (th) { if (/next due date/i.test(th.textContent)) { seen++; if (seen === 2) th.textContent = 'Auto renew'; } }); }
+    // friendly empty states
+    document.querySelectorAll('.dataTables_empty').forEach(function (td) {
+      if (td.dataset.gh) return; td.dataset.gh = 1;
+      var tickets = /supporttickets/.test(location.pathname);
+      var services = /action=services/.test(location.search), domains = /action=domains/.test(location.search), inv = /action=invoices/.test(location.search);
+      var cta = tickets ? ['Open a ticket', B + '/submitticket.php', 'No tickets yet. Our engineers reply 24/7 by ticket and WhatsApp.']
+        : services ? ['Browse plans', B + '/cart.php', 'You have no services yet.']
+        : domains ? ['Find a domain', B + '/cart.php?a=add&domain=register', 'You have no domains yet.']
+        : inv ? ['', '', 'No invoices here.'] : null;
+      if (cta) td.innerHTML = '<div class="gh-empty"><b>' + esc(cta[2]) + '</b>' + (cta[0] ? '<a class="btn btn-primary" href="' + cta[1] + '">' + esc(cta[0]) + '</a>' : '') + '</div>';
+    });
+  }
+
+  ready(function () { try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();

@@ -603,3 +603,8 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 /* "What's new" announcements: clamp text */
 .main-page-contents .col-md-3 p, .main-page-contents aside p { overflow-wrap: anywhere; }
 .main-page-contents .col-md-3 h5 + div, .announcements-list .announcement-text { max-height: 140px; overflow: hidden; }
+.gh-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 34px 12px; color: var(--gh-muted); }
+.gh-empty b { color: var(--gh-ink); font-weight: 600; }
+/* domain bulk-action pills: one calm brand style instead of rainbow */
+.main-page-contents .btn-group .btn[class*="btn-"], .main-page-contents .domain-bulk-actions .btn, .main-page-contents a.btn-sm[class*="bg-"] { background: #fff !important; color: var(--gh-ink) !important; border: 1.5px solid var(--gh-line) !important; border-radius: 999px !important; }
+.main-page-contents .btn-group .btn:hover { border-color: var(--gh-brand) !important; color: var(--gh-brand-d) !important; }
