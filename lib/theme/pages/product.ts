@@ -157,10 +157,10 @@ function hexVisual(k: Kind, name: string) {
 /* ------------------------------------------------------------------ configurator (WHMCS configurable options) */
 /** OS / extra RAM, vCPU, disk… exactly as configured in WHMCS. Prices are the selling prices (after your margin) synced from WHMCS;
  *  the client recalculates the total per billing cycle and passes configoption[ID]=value to the WHMCS cart. */
-function configurator(p: TProduct, cs: Cyc[]) {
+function configurator(p: TProduct, currency: string) {
   const opts = (p.configOptions || []).filter((o) => o.options.length);
   if (!opts.length) return '';
-  const cur = p.prices.find((x) => x.cycle === cs[0]?.cycle)?.currency || 'USD';
+  const cur = currency;
   const priceMap = (c: { pricing: Record<string, Record<string, number>>; setup: Record<string, Record<string, number>> }) =>
     esc(JSON.stringify({ p: c.pricing[cur] || {}, s: c.setup[cur] || {} }));
   const isOS = (n: string) => /operating|os\b|system|template|image/i.test(n);
@@ -187,7 +187,7 @@ function configurator(p: TProduct, cs: Cyc[]) {
 }
 
 /* ------------------------------------------------------------------ buy box */
-function buyBox(p: TProduct, name: string, cs: Cyc[], def: Cyc | null, base: string, kind: Kind) {
+function buyBox(p: TProduct, name: string, cs: Cyc[], def: Cyc | null, base: string, kind: Kind, currency: string) {
   const monthly = cs.find((c) => c.cycle === 'monthly');
   const trust: Record<Kind, string[]> = {
     hosting: ['Free SSL certificate', 'Daily and weekly backups', '24/7 support'],
@@ -218,10 +218,10 @@ function buyBox(p: TProduct, name: string, cs: Cyc[], def: Cyc | null, base: str
   <h2 id="pd-buy-h">Order ${esc(name)}</h2>
   <div class="pd-buy__price num" aria-live="polite"><span data-buy-price>${esc(money(def.price, def.prefix))}</span><small data-buy-unit>${esc(UNIT[def.cycle] || '')}</small></div>
   ${cs.length > 1 ? `<fieldset class="pd-opts"><legend>Billing period</legend>${opts}</fieldset>` : `<div class="pd-opts pd-opts--one">${opts}</div>`}
-  ${configurator(p, cs)}
+  ${configurator(p, currency)}
   <dl class="pd-due"><div><dt>First invoice${def.setup > 0 || cs.some((c) => c.setup > 0) ? ', including setup' : ''}</dt><dd class="num" data-buy-due>${esc(money(def.price + def.setup, def.prefix))}</dd></div></dl>
   <a class="hp-btn hp-btn--brand hp-btn--block hp-btn--lg" href="${esc(orderUrl(p, base, def.cycle))}" data-buy-order>${icon('cart')}Order now</a>
-  <p class="pd-buy__note">Prices in ${esc(cs[0] ? (p.prices.find((x) => x.cycle === cs[0].cycle)?.currency || 'USD') : 'USD')}, before any tax. You review the total in our secure order form before paying.</p>
+  <p class="pd-buy__note">Prices in ${esc(currency)}, before any tax. You review the total in our secure order form before paying.</p>
   <ul class="pd-buy__trust">${trust[kind].map((t) => `<li>${icon('check')}${esc(t)}</li>`).join('')}</ul>
 </aside>`;
 }
@@ -353,7 +353,7 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
       ${included}
       ${cmp ? `<div class="pd-cmp-wrap" id="compare"><h2 class="hp-hline">Compare with similar plans</h2><p class="pd-fit">The plans closest to ${esc(name)} in price. Prices are the lowest available billing period.</p>${cmp}${route ? `<p><a class="hp-link" href="/${esc(route.slug)}">See all ${esc(route.title.toLowerCase())}${icon('arrow')}</a></p>` : ''}</div>` : ''}
     </div>
-    <div class="pd-side" id="buy">${buyBox(p, name, cs, def || null, base, kind)}</div>
+    <div class="pd-side" id="buy">${buyBox(p, name, cs, def || null, base, kind, currency)}</div>
   </div></section>`;
 
   /* related */
