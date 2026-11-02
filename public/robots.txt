@@ -1,10 +1,41 @@
 # robots.txt for https://globalhostia.com
-# All crawlers (search engines and AI assistants such as GPTBot, ClaudeBot, PerplexityBot) are welcome
-# on the public site. Admin, client account and private API routes are excluded.
+# All crawlers (search engines and AI assistants) are welcome on the public site.
+# Admin, client account and private API routes are excluded for everyone.
+# AI agents: see /llms.txt, the MCP server at /api/mcp (/.well-known/mcp.json) and /openapi.json.
 
 User-agent: *
 Allow: /
 Allow: /api/store/
+Allow: /api/catalog
+Allow: /api/mcp
+Allow: /api/domain-check
+Disallow: /admin
+Disallow: /account
+Disallow: /api/
+Disallow: /cgi-bin/
+Disallow: /mailer/
+
+# AI search, assistant and training crawlers: explicitly allowed (same exclusions)
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bingbot
+User-agent: CCBot
+User-agent: Amazonbot
+User-agent: meta-externalagent
+User-agent: DuckAssistBot
+Allow: /
+Allow: /api/store/
+Allow: /api/catalog
+Allow: /api/mcp
+Allow: /api/domain-check
 Disallow: /admin
 Disallow: /account
 Disallow: /api/
@@ -12,3 +43,4 @@ Disallow: /cgi-bin/
 Disallow: /mailer/
 
 Sitemap: https://globalhostia.com/sitemap.xml
+Sitemap: https://globalhostia.com/feeds/products.xml

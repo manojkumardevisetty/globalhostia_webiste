@@ -2,7 +2,8 @@
 import { esc } from '../render/util';
 import { money } from '../pricing';
 import type { PageCtx } from './index';
-import { getCatalog, whmcsLinks, availableCurrencies, type Catalog } from './data';
+import { getCatalog, whmcsLinks, availableCurrencies, productsFor, type Catalog } from './data';
+import { itemListLd, offerCatalogLd } from '../agents/ld';
 import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
@@ -132,6 +133,13 @@ export async function page(o: PageOpts): Promise<string> {
   const promo = activeFor(s.promotions, 'website');
   const lds = ([] as string[]).concat(o.jsonLd || []).filter((x) => x && !x.includes('"mainEntity":[]'));
   const isHome = !o.path || o.path === '/';
+  // category pages: ItemList of their products when the page module didn't add one; home: Organization OfferCatalog
+  const routeCats = o.ctx.route?.categories;
+  if (routeCats?.length && o.ctx.route.kind !== 'product' && !lds.some((x) => x.includes('"ItemList"'))) {
+    const l = itemListLd(cat, productsFor(cat, routeCats), o.ctx.route.title || o.title, canonical);
+    if (l) lds.push(l);
+  }
+  if (o.ctx.route?.kind === 'home') { const oc = offerCatalogLd(cat); if (oc) lds.push(oc); }
   const og = o.ogImage ? new URL(o.ogImage, site + '/').toString()
     : isHome ? `${site}/og/default.png` : ogImageUrl(site, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.ogKicker, ASSET_V);
   const ogAlt = isHome && !o.ogImage ? 'GlobalHostia: web hosting, VPS and dedicated servers' : o.title;

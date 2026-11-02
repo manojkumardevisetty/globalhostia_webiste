@@ -18,6 +18,10 @@ export default {
       { source: '/secure/:path*', destination: 'https://my.globalhostia.com/:path*', permanent: true },
     ];
   },
+  // app/ ignores dot-folders, so /.well-known/mcp.json is served by a rewrite
+  async rewrites() {
+    return [{ source: '/.well-known/mcp.json', destination: '/api/well-known/mcp' }];
+  },
   async headers() {
     return [
       { source: '/:path*', headers: security },

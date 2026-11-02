@@ -8,6 +8,7 @@ import { CYCLE_MONTHS, money } from '../../pricing';
 import { ROUTES } from '../routes';
 import { getCatalog, productBySlug, categoryBySlug, cycles, orderUrl, deriveSpecs, SPEC_LABEL, fromPrice, type TProduct, type Catalog } from '../data';
 import { page } from '../shell';
+import { ogImageUrl } from '../../seo';
 import {
   pageHero, sectionHead, planCards, faq, faqJsonLd, ctaBand, breadcrumbJsonLd, ld, icon, hexIcon, available, type IconName,
 } from '../ui';
@@ -378,10 +379,20 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
     '@context': 'https://schema.org', '@type': 'Product', name, description: lead || `${name} by Globalhostia`, sku: p.whmcsPid ? String(p.whmcsPid) : p.slug,
     brand: { '@type': 'Brand', name: cat.settings.site_name || 'Globalhostia' }, category: catLabel, url: `${site}/p/${p.slug}`,
   };
-  if (cs.length) product.offers = cs.map((c) => ({
-    '@type': 'Offer', price: c.price.toFixed(2), priceCurrency: currency, availability: 'https://schema.org/InStock', url: orderUrl(p!, base, c.cycle),
-    ...(ISO[c.cycle] ? { priceSpecification: { '@type': 'UnitPriceSpecification', price: c.price.toFixed(2), priceCurrency: currency, billingDuration: ISO[c.cycle] } } : {}),
-  }));
+  product.image = ogImageUrl(site, name, catLabel);
+  if (cs.length) {
+    const seller = { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia' };
+    const availability = /^(out|sold ?out)$/i.test((p.badge || '').trim()) ? 'https://schema.org/OutOfStock' : /pre-?order/i.test(p.badge || '') ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock';
+    const offers = cs.map((c) => ({
+      '@type': 'Offer', name: `${name} (${c.cycle})`, price: c.price.toFixed(2), priceCurrency: currency, availability, url: orderUrl(p!, base, c.cycle), seller,
+      priceSpecification: [
+        { '@type': 'UnitPriceSpecification', price: c.price.toFixed(2), priceCurrency: currency, ...(ISO[c.cycle] ? { billingDuration: ISO[c.cycle] } : {}) },
+        ...(c.setup > 0 ? [{ '@type': 'UnitPriceSpecification', priceType: 'https://schema.org/InvoicePrice', name: 'Setup fee', price: c.setup.toFixed(2), priceCurrency: currency }] : []),
+      ],
+    }));
+    const ps = cs.map((c) => c.price);
+    product.offers = { '@type': 'AggregateOffer', priceCurrency: currency, lowPrice: Math.min(...ps).toFixed(2), highPrice: Math.max(...ps).toFixed(2), offerCount: offers.length, availability, url: `${site}/p/${p.slug}`, seller, offers };
+  }
 
   return page({
     ctx, catalog: cat, path: `/p/${p.slug}`,
