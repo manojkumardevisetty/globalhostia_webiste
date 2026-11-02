@@ -162,7 +162,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   const plans = `<section class="hp-section" id="plans" aria-labelledby="plans-h"><div class="hp-container">
     ${sectionHead({ id: 'plans-h', title: 'Every VPS plan, side by side', lead: `${vps.length} plans${oses.length > 1 ? ', split by operating system' : ''}. The core count and memory are reserved for your server alone.` })}
-    <div class="vx-plans">${planCards(vps, { currency, base, groupBy: oses.length > 1 ? 'os' : undefined, groupLabel: 'Operating system', id: 'vps-plans', orderLabel: 'Order VPS',
+    <div class="vx-plans">${planCards(vps, { currency, base, groupBy: vps.some((p) => p.attributes?.tier) ? ((p: any) => [p.attributes?.tier || 'Other', p.attributes?.location].filter(Boolean).join(' · ')) : oses.length > 1 ? 'os' : undefined, groupLabel: vps.some((p) => p.attributes?.tier) ? 'Plan type and region' : 'Operating system', details: true, id: 'vps-plans', orderLabel: 'Order VPS',
       note: 'Pick the system you know. Linux suits most web stacks; choose Windows for .NET, MSSQL or desktop software over Remote Desktop.' })}</div>
     ${plansNote(currency, link('Need more power? Dedicated servers', '/dedicated-servers'))}
     ${osRow}

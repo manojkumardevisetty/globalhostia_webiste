@@ -23,6 +23,7 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   auth: () => import('./pages/auth'),
   contact: () => import('./pages/contact'),
   content: () => import('./pages/content'),
+  servers: () => import('./pages/servers'),
 };
 
 /** Returns themed HTML, or null when this URL isn't part of the theme (caller falls back to the original theme). */

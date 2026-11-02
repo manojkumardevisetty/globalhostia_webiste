@@ -61,6 +61,8 @@ export const categories = pgTable('categories', {
   updatedAt: now('updated_at'),
 });
 
+export type ConfigOptionChoice = { id: number; name: string; pricing: Record<string, Record<string, number>>; setup: Record<string, Record<string, number>> };
+export type ConfigOption = { id: number; name: string; type: 'select' | 'radio' | 'yesno' | 'quantity'; min?: number; max?: number; options: ConfigOptionChoice[] };
 export const products = pgTable('products', {
   id: id(),
   categoryId: text('category_id').references(() => categories.id, { onDelete: 'set null' }),
@@ -70,6 +72,8 @@ export const products = pgTable('products', {
   description: text('description').notNull().default(''),
   features: jsonb('features').$type<string[]>().notNull().default([]), // "-" prefix = not included
   attributes: jsonb('attributes').$type<Record<string, string>>().notNull().default({}),
+  // WHMCS configurable options (OS, extra RAM/vCPU/disk…) with per-cycle prices, mirrored by sync
+  configOptions: jsonb('config_options').$type<ConfigOption[]>().notNull().default([]),
   badge: text('badge').notNull().default(''),
   badgeColor: text('badge_color').notNull().default('primary'),
   featured: boolean('featured').notNull().default(false),

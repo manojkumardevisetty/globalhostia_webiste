@@ -47,7 +47,7 @@ async function previewProduct(slug: string, cat: Catalog): Promise<TProduct | nu
   return {
     id: r.id, slug: r.slug, name: r.name, tagline: r.tagline, description: r.description, features: (r.features || []).filter((f) => typeof f === 'string' && f.trim()),
     attributes: r.attributes || {}, badge: r.badge, badgeColor: r.badgeColor, featured: r.featured, displayCycle: r.displayCycle, orderUrl: r.orderUrl,
-    whmcsPid: r.whmcsPid, categoryId: r.categoryId, sortOrder: r.sortOrder, whmcsType: r.whmcsType, payType: r.payType, categorySlug: c?.slug || '',
+    whmcsPid: r.whmcsPid, categoryId: r.categoryId, sortOrder: r.sortOrder, whmcsType: r.whmcsType, payType: r.payType, categorySlug: c?.slug || '', configOptions: r.configOptions || [],
     prices: prices.map((p) => ({ currency: p.currency, prefix: p.prefix, suffix: p.suffix, cycle: p.cycle, price: String(p.price), setupFee: String(p.setupFee) })),
   };
 }
@@ -154,6 +154,38 @@ function hexVisual(k: Kind, name: string) {
   return `<div class="pd-vis pd-vis--hex" aria-hidden="true"><div class="pd-hexes">${cells.map(([x, y], i) => `<span class="pd-hx${i ? '' : ' is-core'}" style="--x:${x};--y:${y};--i:${i}">${i ? '' : icon(ic)}</span>`).join('')}</div><p class="pd-vis__name">${esc(name)}</p></div>`;
 }
 
+/* ------------------------------------------------------------------ configurator (WHMCS configurable options) */
+/** OS / extra RAM, vCPU, disk… exactly as configured in WHMCS. Prices are the selling prices (after your margin) synced from WHMCS;
+ *  the client recalculates the total per billing cycle and passes configoption[ID]=value to the WHMCS cart. */
+function configurator(p: TProduct, cs: Cyc[]) {
+  const opts = (p.configOptions || []).filter((o) => o.options.length);
+  if (!opts.length) return '';
+  const cur = p.prices.find((x) => x.cycle === cs[0]?.cycle)?.currency || 'USD';
+  const priceMap = (c: { pricing: Record<string, Record<string, number>>; setup: Record<string, Record<string, number>> }) =>
+    esc(JSON.stringify({ p: c.pricing[cur] || {}, s: c.setup[cur] || {} }));
+  const isOS = (n: string) => /operating|os\b|system|template|image/i.test(n);
+  const fields = opts.map((o) => {
+    const fid = `pd-cfg-${o.id}`;
+    if (o.type === 'quantity') {
+      const c = o.options[0];
+      const max = o.max && o.max > 0 ? o.max : 256;
+      return `<div class="pd-cfg__row"><label for="${fid}">${esc(o.name)}</label>
+        <div class="pd-step" data-step><button type="button" class="pd-step__b" data-d="-1" aria-label="Less ${esc(o.name)}">−</button>
+        <input type="number" inputmode="numeric" id="${fid}" data-cfg="${o.id}" data-kind="qty" data-price="${priceMap(c)}" min="${o.min ?? 0}" max="${max}" step="1" value="${o.min ?? 0}">
+        <button type="button" class="pd-step__b" data-d="1" aria-label="More ${esc(o.name)}">+</button></div>
+        <small class="pd-cfg__unit" data-unitprice></small></div>`;
+    }
+    if (o.type === 'yesno') {
+      const c = o.options[0];
+      return `<div class="pd-cfg__row pd-cfg__row--check"><label><input type="checkbox" id="${fid}" data-cfg="${o.id}" data-kind="yesno" data-val="${c.id}" data-price="${priceMap(c)}"> ${esc(o.name)}</label></div>`;
+    }
+    return `<div class="pd-cfg__row${isOS(o.name) ? ' pd-cfg__row--os' : ''}"><label for="${fid}">${esc(o.name)}</label>
+      <select id="${fid}" data-cfg="${o.id}" data-kind="select">${o.options.map((c) => `<option value="${c.id}" data-price="${priceMap(c)}">${esc(c.name)}</option>`).join('')}</select></div>`;
+  }).join('');
+  return `<fieldset class="pd-cfg" data-cfgbox><legend>Configure your server</legend>${fields}
+    <p class="pd-cfg__note">Add-ons are billed with every renewal at the period you choose. Disk can only be increased later.</p></fieldset>`;
+}
+
 /* ------------------------------------------------------------------ buy box */
 function buyBox(p: TProduct, name: string, cs: Cyc[], def: Cyc | null, base: string, kind: Kind) {
   const monthly = cs.find((c) => c.cycle === 'monthly');
@@ -177,7 +209,7 @@ function buyBox(p: TProduct, name: string, cs: Cyc[], def: Cyc | null, base: str
     const sub = [m > 1 ? `about ${money(c.perMonth, c.prefix)} a month` : c.cycle === 'monthly' ? 'Pay month to month' : '', c.setup > 0 ? `plus ${money(c.setup, c.prefix)} setup` : ''].filter(Boolean).join(', ');
     const id = `pd-c-${c.cycle}`;
     return `<label class="pd-opt" for="${id}"><input type="radio" name="pd-cycle" id="${id}" value="${esc(c.cycle)}"${c === def ? ' checked' : ''}
-      data-href="${esc(orderUrl(p, base, c.cycle))}" data-price="${esc(money(c.price, c.prefix))}" data-unit="${esc(UNIT[c.cycle] || '')}" data-due="${esc(money(c.price + c.setup, c.prefix))}" data-setup="${c.setup > 0 ? esc(money(c.setup, c.prefix)) : ''}">
+      data-href="${esc(orderUrl(p, base, c.cycle))}" data-price="${esc(money(c.price, c.prefix))}" data-unit="${esc(UNIT[c.cycle] || '')}" data-due="${esc(money(c.price + c.setup, c.prefix))}" data-setup="${c.setup > 0 ? esc(money(c.setup, c.prefix)) : ''}" data-amt="${c.price}" data-setupamt="${c.setup}" data-prefix="${esc(c.prefix)}">
       <span class="pd-opt__radio" aria-hidden="true"></span>
       <span class="pd-opt__txt"><b>${esc(CYCLE_NAME[c.cycle] || c.cycle)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</span>
       <span class="pd-opt__p num">${esc(money(c.price, c.prefix))}${save >= 3 ? `<em>Save ${save}%</em>` : ''}</span></label>`;
@@ -186,6 +218,7 @@ function buyBox(p: TProduct, name: string, cs: Cyc[], def: Cyc | null, base: str
   <h2 id="pd-buy-h">Order ${esc(name)}</h2>
   <div class="pd-buy__price num" aria-live="polite"><span data-buy-price>${esc(money(def.price, def.prefix))}</span><small data-buy-unit>${esc(UNIT[def.cycle] || '')}</small></div>
   ${cs.length > 1 ? `<fieldset class="pd-opts"><legend>Billing period</legend>${opts}</fieldset>` : `<div class="pd-opts pd-opts--one">${opts}</div>`}
+  ${configurator(p, cs)}
   <dl class="pd-due"><div><dt>First invoice${def.setup > 0 || cs.some((c) => c.setup > 0) ? ', including setup' : ''}</dt><dd class="num" data-buy-due>${esc(money(def.price + def.setup, def.prefix))}</dd></div></dl>
   <a class="hp-btn hp-btn--brand hp-btn--block hp-btn--lg" href="${esc(orderUrl(p, base, def.cycle))}" data-buy-order>${icon('cart')}Order now</a>
   <p class="pd-buy__note">Prices in ${esc(cs[0] ? (p.prices.find((x) => x.cycle === cs[0].cycle)?.currency || 'USD') : 'USD')}, before any tax. You review the total in our secure order form before paying.</p>

@@ -34,7 +34,8 @@ export function defaultMenu(cat: Catalog): ThemeMenu[] {
     { id: 'servers', label: 'Servers', groups: [
       { title: 'Virtual servers', items: [
         { label: 'VPS', href: '/vps-hosting', icon: 'server', desc: 'Linux and Windows VPS with full root access.', cats: ['hostiavps'] },
-        { label: 'Cloud VPS', href: '/cloudvps-hosting', icon: 'cloud', desc: 'Fully managed SSD cloud servers.', cats: ['hostiavps'] },
+        { label: 'Windows RDP', href: '/windows-rdp', icon: 'win', desc: 'Always-on Windows desktop in the cloud.', cats: ['windows-rdp'] },
+        { label: 'All cloud servers', href: '/cloud-servers', icon: 'layers', desc: 'Compare VPS, dedicated and RDP plans.', cats: ['hostiavps'] },
         { label: 'Forex VPS', href: '/forex-vps', icon: 'chart', desc: 'Always-on servers for trading platforms.', cats: ['forex-vps'] },
       ] },
       { title: 'Dedicated and specialised', items: [

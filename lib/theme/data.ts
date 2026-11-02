@@ -11,7 +11,7 @@ import { CYCLE_MONTHS, money } from '../pricing';
 
 export { cycles, orderUrl, deriveSpecs, SPEC_LABEL, money };
 
-export type TProduct = RProduct & { sortOrder: number; categorySlug: string; whmcsType: string; payType: string };
+export type TProduct = RProduct & { sortOrder: number; categorySlug: string; whmcsType: string; payType: string; configOptions: import('../schema').ConfigOption[] };
 export type TCategory = { id: string; slug: string; name: string; description: string; layout: string; cardTemplate: string; sortOrder: number; parentId: string | null; seoTitle: string; seoDescription: string };
 export type TTld = { tld: string; currency: string; register: number | null; transfer: number | null; renew: number | null; featured: boolean; promo: string; sortOrder: number };
 export type Catalog = { settings: Settings; currency: string; base: string; categories: TCategory[]; products: TProduct[]; tlds: TTld[] };
@@ -38,7 +38,7 @@ const loadCatalog = unstable_cache(async () => {
       id: r.id, slug: r.slug, name: r.name, tagline: r.tagline, description: r.description,
       features: (r.features || []).filter((f) => typeof f === 'string' && f.trim()), attributes: r.attributes || {},
       badge: r.badge, badgeColor: r.badgeColor, featured: r.featured, displayCycle: r.displayCycle, orderUrl: r.orderUrl,
-      whmcsPid: r.whmcsPid, categoryId: r.categoryId, sortOrder: r.sortOrder, whmcsType: r.whmcsType, payType: r.payType,
+      whmcsPid: r.whmcsPid, categoryId: r.categoryId, sortOrder: r.sortOrder, whmcsType: r.whmcsType, payType: r.payType, configOptions: (r as any).configOptions || [],
       categorySlug: (r.categoryId && catById.get(r.categoryId)?.slug) || '',
       prices: (byProduct.get(r.id) || []).map((p) => ({ currency: p.currency, prefix: p.prefix, suffix: p.suffix, cycle: p.cycle, price: String(p.price), setupFee: String(p.setupFee) })),
     }));

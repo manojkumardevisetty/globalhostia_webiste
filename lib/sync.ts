@@ -50,10 +50,24 @@ export async function syncProducts(trigger = 'manual') {
           await db.update(schema.categories).set({ whmcsGroupId: gid }).where(eq(schema.categories.id, cat.id));
           cat.whmcsGroupId = gid; byGid.set(gid, cat);
         }
+        // placement rules: products of a catch-all WHMCS group (e.g. "servers" from the VPS Automation module) go to the
+        // closest existing site category; the category is created (with SEO text) when none matches.
+        const rule = placementRule(gslug || cat.slug, wp.name, s);
+        if (rule) {
+          let rc = bySlug.get(rule.category);
+          if (!rc) {
+            [rc] = await db.insert(schema.categories).values({ slug: rule.category, name: rule.name, description: rule.description || '', seoTitle: rule.seoTitle || '', seoDescription: rule.seoDescription || '' })
+              .onConflictDoNothing().returning();
+            if (!rc) [rc] = await db.select().from(schema.categories).where(eq(schema.categories.slug, rule.category));
+            bySlug.set(rc.slug, rc); stats.categoriesCreated++;
+          }
+          cat = rc;
+        }
         const mirror = {
           whmcsGid: gid, whmcsName: wp.name, whmcsType: wp.type || '', payType: wp.paytype || '',
           whmcsHidden: !!Number(wp.hidden ?? 0), whmcsRetired: !!Number(wp.retired ?? 0),
           whmcsUrl: wp.product_url || '', syncedAt: new Date(), syncError: '',
+          configOptions: parseConfigOptions((wp as any).configoptions),
         };
         // WHMCS text, enriched with the detailed specs/features from the original website when available
         const rich = enrichment(legacyDetails as any, wp.product_url, wp.slug) as null | { tagline: string; features: string[]; attributes: Record<string, string>; badge: string };
@@ -62,11 +76,12 @@ export async function syncProducts(trigger = 'manual') {
           name: wp.name, description: wp.description || '',
           features: rich && rich.features.length >= whmcsFeatures.length ? rich.features : whmcsFeatures,
           ...(rich ? { tagline: rich.tagline, attributes: rich.attributes, ...(rich.badge ? { badge: rich.badge } : {}) } : {}),
+          ...(!rich && (rule?.location || rule?.tier) ? { attributes: { ...(rule.location ? { location: rule.location } : {}), ...(rule.tier ? { tier: rule.tier } : {}) } } : {}),
         };
         let productId: string;
         const ex = byPid.get(pid);
         if (ex) {
-          await db.update(schema.products).set({ ...mirror, ...(ex.locked ? {} : content), updatedAt: new Date() }).where(eq(schema.products.id, ex.id));
+          await db.update(schema.products).set({ ...mirror, ...(ex.locked ? {} : content), ...(rule ? { categoryId: cat.id } : {}), updatedAt: new Date() }).where(eq(schema.products.id, ex.id));
           productId = ex.id; stats.updated++;
         } else {
           let slug = wp.slug || slugify(wp.name);
@@ -133,4 +148,57 @@ export async function syncAll(trigger = 'manual') {
   const products = await syncProducts(trigger);
   const tlds = await syncTlds(trigger);
   return { products, tlds };
+}
+
+// ---- configurable options (GetProducts → configoptions.configoption[]) ----
+const CFG_TYPE: Record<string, 'select' | 'radio' | 'yesno' | 'quantity'> = { '1': 'select', '2': 'radio', '3': 'yesno', '4': 'quantity' };
+const CYCLES = ['monthly', 'quarterly', 'semiannually', 'annually', 'biennially', 'triennially'];
+const SETUP: Record<string, string> = { monthly: 'msetupfee', quarterly: 'qsetupfee', semiannually: 'ssetupfee', annually: 'asetupfee', biennially: 'bsetupfee', triennially: 'tsetupfee' };
+/** WHMCS names may be "internal|Display name": keep the display part. */
+const label = (n: unknown) => { const t = String(n ?? '').trim(); return t.includes('|') ? t.split('|').slice(1).join('|').trim() : t; };
+const arr = <T,>(v: any): T[] => (Array.isArray(v) ? v : v ? [v] : []);
+export function parseConfigOptions(raw: any): import('./schema').ConfigOption[] {
+  return arr<any>(raw?.configoption).map((o) => ({
+    id: Number(o.id), name: label(o.name), type: CFG_TYPE[String(o.type)] || 'select',
+    ...(o.minqty != null ? { min: Number(o.minqty) } : {}), ...(o.maxqty != null && Number(o.maxqty) > 0 ? { max: Number(o.maxqty) } : {}),
+    options: arr<any>(o.options?.option).map((c) => {
+      const pricing: Record<string, Record<string, number>> = {}, setup: Record<string, Record<string, number>> = {};
+      for (const [cur, pr] of Object.entries<any>(c.pricing || {})) {
+        pricing[cur] = {}; setup[cur] = {};
+        for (const cy of CYCLES) {
+          const v = Number(pr?.[cy]); if (Number.isFinite(v) && v >= 0) pricing[cur][cy] = v;
+          const sf = Number(pr?.[SETUP[cy]]); if (Number.isFinite(sf) && sf > 0) setup[cur][cy] = sf;
+        }
+      }
+      return { id: Number(c.id), name: label(c.name), pricing, setup };
+    }).filter((c) => c.id),
+  })).filter((o) => o.id);
+}
+
+// ---- product placement rules ----
+export type PlacementRule = { group: string; match: string; category: string; name: string; tier?: string; location?: string; description?: string; seoTitle?: string; seoDescription?: string };
+/** Defaults for the rdp.monster VPS Automation catalog (WHMCS group "servers"). Override/extend with settings.category_rules (JSON array). */
+export const DEFAULT_RULES: PlacementRule[] = [
+  // any group: product names decide first (Windows RDP / Linux RDP / bare metal)
+  { group: '*', match: 'windows.*rdp|rdp.*windows|^windows rdp', category: 'windows-rdp', name: 'Windows RDP',
+    description: 'Always-on Windows desktops in the cloud for trading platforms, bots and remote work.',
+    seoTitle: 'Windows RDP Server | Always-On Remote Desktop', seoDescription: 'Buy a Windows RDP server with NVMe storage and full administrator access. Connect from any device, set up automatically after payment.' },
+  { group: '*', match: 'linux.*rdp|rdp.*linux|linux desktop', category: 'linux-rdp', name: 'Linux RDP',
+    description: 'Linux desktops in the cloud with remote access, for development, automation and secure browsing.',
+    seoTitle: 'Linux RDP Server | Cloud Linux Desktop with Remote Access', seoDescription: 'Linux RDP servers with NVMe storage and full root access. Ubuntu, Debian and more, connect from anywhere, set up automatically after payment.' },
+  { group: 'windows-rdp', match: '.', category: 'windows-rdp', name: 'Windows RDP' },
+  { group: 'linux-rdp', match: '.', category: 'linux-rdp', name: 'Linux RDP' },
+  // rdp.monster VPS Automation catalog (WHMCS group "servers")
+  { group: 'servers', match: '^(basic|standard|pro|advanced|elite)\\b', category: 'hostiavps', name: 'VPS Hosting', tier: 'Classic' },
+  { group: 'servers', match: '^(swift|velocity|turbo|boost|mega)\\b', category: 'hostiavps', name: 'VPS Hosting', tier: 'High performance' },
+  // anything else in "servers" that looks like bare metal → Dedicated Servers
+  { group: 'servers', match: 'ryzen|xeon|epyc|e5-\\d|e3-\\d|dedicated|bare.?metal|^(france|usa|germany|netherlands|uk|finland|canada)\\s*-', category: 'dedicated-servers', name: 'Dedicated Servers' },
+];
+function placementRule(groupSlug: string, name: string, s: Record<string, any>) {
+  let custom: PlacementRule[] = [];
+  try { const v = s.category_rules; custom = Array.isArray(v) ? v : typeof v === 'string' && v.trim() ? JSON.parse(v) : []; } catch { custom = []; }
+  const r = [...custom, ...DEFAULT_RULES].find((x) => (x.group === '*' || x.group === groupSlug) && new RegExp(x.match, 'i').test(name.trim()));
+  if (!r) return null;
+  const location = /\b(usa|us)\b/i.test(name) ? 'USA' : /\b(europe|france|germany|netherlands|uk)\b/i.test(name) ? 'Europe' : undefined;
+  return { ...r, location: r.location || location };
 }

@@ -230,6 +230,22 @@ try {
         await tx`insert into blocks (key,name,html) values (${'tp-' + f},${label},${fs.readFileSync(file, 'utf8')}) on conflict (key) do nothing`;
       }
     },
+    '012-config-options': async (tx) => {
+      await tx`alter table products add column if not exists config_options jsonb not null default '[]'::jsonb`;
+      // categories for the VPS Automation (rdp.monster) catalog, with SEO text; existing ones only get empty fields filled
+      const cats = [
+        ['windows-rdp', 'Windows RDP', 'Always-on Windows desktops in the cloud for trading platforms, bots and remote work.',
+          'Windows RDP Server | Always-On Remote Desktop', 'Buy a Windows RDP server with NVMe storage and full administrator access. Connect from any device, set up automatically after payment.'],
+        ['hostiavps', 'VPS Hosting', 'Linux and Windows KVM VPS in Europe and the USA with NVMe storage and full root access.',
+          'VPS Hosting in Europe & USA | Linux and Windows KVM VPS', 'KVM VPS with NVMe storage, full root access and your choice of Ubuntu, Debian, CentOS, Kali or Windows Server. Automatic setup in minutes.'],
+      ];
+      for (const [slug, name, d, st, sd] of cats) {
+        await tx`insert into categories (id, slug, name, description, seo_title, seo_description) values (gen_random_uuid()::text, ${slug}, ${name}, ${d}, ${st}, ${sd})
+          on conflict (slug) do update set description = case when categories.description = '' then excluded.description else categories.description end,
+            seo_title = case when categories.seo_title = '' then excluded.seo_title else categories.seo_title end,
+            seo_description = case when categories.seo_description = '' then excluded.seo_description else categories.seo_description end`;
+      }
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

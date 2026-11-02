@@ -1,0 +1,6 @@
+/* Cloud servers / Windows RDP page */
+.sv-os{list-style:none;margin:0;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.sv-os li{display:flex;align-items:center;gap:10px;padding:14px 16px;border:1px solid var(--hp-line,#e6e9ee);border-radius:14px;background:#fff;font-weight:600;color:#23313d;transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s}
+.sv-os li svg{width:20px;height:20px;color:#c5386f;flex:none}
+.sv-os li:hover{transform:translateY(-2px);box-shadow:0 14px 30px -20px rgba(22,33,43,.45)}
+@media (prefers-reduced-motion:reduce){.sv-os li{transition:none}}
