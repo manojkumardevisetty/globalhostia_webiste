@@ -353,5 +353,29 @@
     }).catch(function () { aside.querySelector('.gh-co__sum').textContent = ''; });
   }
 
-  ready(function () { try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  function storeMega() {
+    var li = document.getElementById('Primary_Navbar-Store'); if (!li) return;
+    var ul = li.querySelector('ul.dropdown-menu'); if (!ul || ul.dataset.gh) return; ul.dataset.gh = 1;
+    var links = [].slice.call(ul.querySelectorAll('a.dropdown-item')).map(function (a) { return { t: a.textContent.trim(), h: a.getAttribute('href') }; });
+    var all = links.filter(function (l) { return /browse/i.test(l.t); })[0];
+    var cols = [
+      { label: 'Hosting', d: 'Websites, WordPress & AI', icon: GROUPS[0].icon, m: /website|wordpress|shared|hosting/i },
+      { label: 'VPS & Cloud', d: 'Root access, NVMe, any OS', icon: GROUPS[1].icon, m: /vps|virtual|^servers$|cloud|forex/i },
+      { label: 'Dedicated & RDP', d: 'Bare metal and remote desktops', icon: GROUPS[2].icon, m: /dedicated|rdp|remote/i },
+      { label: 'Security & Apps', d: 'SSL, MCPs and tools', icon: GROUPS[4].icon, m: /ssl|mcp|project|management|n8n|email|workspace/i },
+      { label: 'Domains', d: 'Register or transfer', icon: 'M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18', m: /domain/i }
+    ];
+    cols.forEach(function (c) { c.items = []; });
+    var order = [4, 2, 3, 1, 0];
+    links.forEach(function (l) { if (l === all) return; for (var i = 0; i < order.length; i++) { var c = cols[order[i]]; if (c.m.test(l.t)) { c.items.push(l); return; } } cols[3].items.push(l); });
+    var nice = function (t) { return RENAME[t] || t.replace(/^Ai\/llm/i, 'AI / LLM').replace(/^AI\/LLM/, 'AI / LLM'); };
+    ul.classList.add('gh-mega');
+    ul.innerHTML = '<li class="gh-mega__in"><div class="gh-mega__cols">' + cols.filter(function (c) { return c.items.length; }).map(function (c) {
+      return '<div class="gh-mega__col"><div class="gh-mega__head"><span class="gh-hex">' + svg(c.icon) + '</span><div><b>' + c.label + '</b><small>' + c.d + '</small></div></div><ul>' +
+        c.items.map(function (l) { return '<li><a href="' + esc(l.h) + '">' + esc(nice(l.t)) + '</a></li>'; }).join('') + '</ul></div>';
+    }).join('') + '</div><div class="gh-mega__foot"><span>Not sure what you need? Our engineers help you choose, 24/7.</span>' +
+      (all ? '<a class="gh-mega__all" href="' + esc(all.h) + '">Browse all products →</a>' : '') + '</div></li>';
+  }
+
+  ready(function () { try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();

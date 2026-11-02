@@ -443,3 +443,19 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 @media (max-width: 640px) { .domain-lookup-primary-results:not(.w-hidden) { grid-template-columns: 1fr; } .domain-lookup-primary-results .domain-price { text-align: left; } }
 .domain-lookup-loader { color: var(--gh-brand); }
 #btnDomainContinue, .domain-checker-continue .btn, button#btnDomainContinue { min-height: 52px; padding: 0 36px !important; }
+
+/* Store mega menu (replaces the long single-column dropdown) */
+.gh-mega.dropdown-menu { padding: 0 !important; width: min(1080px, calc(100vw - 32px)); left: 50% !important; transform: translateX(-35%); border-radius: 20px !important; overflow: hidden; }
+.gh-mega__in { list-style: none; }
+.gh-mega__cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px 22px; padding: 24px 26px 18px; }
+.gh-mega__head { display: flex; gap: 10px; align-items: center; padding-bottom: 10px; margin-bottom: 6px; border-bottom: 1px solid var(--gh-line); }
+.gh-mega__head .gh-hex { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #fbe8ef; color: var(--gh-brand); flex: none; }
+.gh-mega__head b { display: block; font: 800 15px/1.2 Manrope, Inter, sans-serif; color: var(--gh-ink); }
+.gh-mega__head small { display: block; font-size: 12px; color: var(--gh-muted); }
+.gh-mega__col ul { list-style: none; margin: 0; padding: 0; }
+.gh-mega__col a { display: block; padding: 7px 8px; margin: 0 -8px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--gh-ink) !important; text-decoration: none !important; white-space: nowrap; }
+.gh-mega__col a:hover { background: #fbe8ef; color: var(--gh-brand-d) !important; }
+.gh-mega__foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 26px; background: var(--gh-tint); border-top: 1px solid var(--gh-line); font-size: 13px; color: var(--gh-muted); }
+.gh-mega__all { font-weight: 700; color: var(--gh-brand) !important; }
+@media (max-width: 1199px) { .gh-mega.dropdown-menu { width: 100%; transform: none; left: 0 !important; position: static !important; box-shadow: none !important; } .gh-mega__cols { grid-template-columns: 1fr 1fr; padding: 14px; } .gh-mega__foot { padding: 12px 14px; } }
+@media (max-width: 560px) { .gh-mega__cols { grid-template-columns: 1fr; } .gh-mega__col a { white-space: normal; } }
