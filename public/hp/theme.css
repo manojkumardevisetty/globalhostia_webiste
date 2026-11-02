@@ -715,3 +715,7 @@ main{display:block}
   .hp-plan::after{display:none}
 }
 .hp-table-wrap{position:relative}
+
+/* utility bar never wraps: on tablets keep phone + login only, single line */
+.hp-util a,.hp-util .hp-u-item{white-space:nowrap}
+@media (max-width:1023px){.hp-util .hp-u-item,.hp-u-left a:not(:first-child),.hp-util .hp-sep{display:none}.hp-util .hp-container{justify-content:space-between}}
