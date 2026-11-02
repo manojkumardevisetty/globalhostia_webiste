@@ -515,3 +515,4 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .domain-suggestion.gh-rec { position: relative; border: 2px solid var(--gh-brand) !important; background: #fff7fa !important; padding-top: 26px !important; }
 .gh-rec-tag { position: absolute; top: -11px; left: 16px; background: var(--gh-brand); color: #fff; font: 700 11px/1 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; }
 .domain-suggestion.gh-rec .extension, .domain-suggestion.gh-rec .domain { font-size: 20px !important; }
+.domain-suggestion.gh-dup { display: none !important; }

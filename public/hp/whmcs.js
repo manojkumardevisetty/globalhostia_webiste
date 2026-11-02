@@ -411,6 +411,16 @@
       var rows = [].slice.call(box.querySelectorAll('.domain-suggestion.clone')).filter(function (r) { return r.querySelector('.extension') && r.querySelector('.extension').textContent.trim(); });
       if (!rows.length) return;
       rows.forEach(function (r) { if (!/block/.test(r.style.display)) r.style.display = 'block'; });
+      // drop duplicates: same full domain twice, the searched domain itself, and exact-name TLDs already shown as cards above
+      var seen = {}, spot = {}, pq = ((document.querySelector('#primaryIndividualResult [data-domain], #primaryLookupResult [data-domain]') || { getAttribute: function () { return ''; } }).getAttribute('data-domain') || '').toLowerCase();
+      document.querySelectorAll('.spotlight-tld-name').forEach(function (n) { spot[n.textContent.trim().toLowerCase()] = 1; });
+      var qn = pq.split('.')[0];
+      rows = rows.filter(function (r) {
+        var d = ((r.querySelector('.domain') || {}).textContent || '').trim().toLowerCase(), e = r.querySelector('.extension').textContent.trim().toLowerCase(), full = d + e;
+        var dup = seen[full] || full === pq || (d === qn && spot[e]);
+        seen[full] = 1; r.classList.toggle('gh-dup', !!dup); return !dup;
+      });
+      if (!rows.length) return;
       var sig = rows.length + ':' + (box.dataset.ghshow || STEP); if (box.dataset.ghsig === sig) return; box.dataset.ghsig = sig;
       var q = ((document.querySelector('#primaryIndividualResult [data-domain], #primaryLookupResult [data-domain]') || {}).getAttribute ? document.querySelector('#primaryIndividualResult [data-domain], #primaryLookupResult [data-domain]').getAttribute('data-domain') : '').split('.')[0].toLowerCase();
       var rank = function (r) { var t = r.querySelector('.extension').textContent.trim().toLowerCase(), i = TOP.indexOf(t), d = (r.querySelector('.domain') || {}).textContent; return (i < 0 ? 100 : i) + (q && d && d.trim().toLowerCase() !== q ? 200 : 0); };
