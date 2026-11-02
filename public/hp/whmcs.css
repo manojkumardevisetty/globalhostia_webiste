@@ -516,3 +516,12 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .gh-rec-tag { position: absolute; top: -11px; left: 16px; background: var(--gh-brand); color: #fff; font: 700 11px/1 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; }
 .domain-suggestion.gh-rec .extension, .domain-suggestion.gh-rec .domain { font-size: 20px !important; }
 .domain-suggestion.gh-dup { display: none !important; }
+/* client-area home: latest blog posts */
+.gh-blog { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.gh-post { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--gh-line); border-radius: 18px; overflow: hidden; text-decoration: none !important; color: var(--gh-ink) !important; transition: transform .2s cubic-bezier(.2,.7,.2,1), box-shadow .2s; }
+.gh-post:hover { transform: translateY(-2px); box-shadow: var(--gh-shadow); }
+.gh-post img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.gh-post div { padding: 16px 18px 18px; }
+.gh-post span { font-size: 12px; color: var(--gh-brand); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.gh-post b { display: block; margin: 6px 0; font: 800 17px/1.3 Manrope, Inter, sans-serif; }
+.gh-post p { margin: 0; font-size: 14px; color: var(--gh-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

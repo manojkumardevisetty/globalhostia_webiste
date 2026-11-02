@@ -461,5 +461,21 @@
     new MutationObserver(function () { clearTimeout(fill.t); fill.t = setTimeout(fill, 120); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
   }
 
-  ready(function () { try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  function promos() {
+    if (document.querySelector('script[src*="/hp/promo.js"]')) return;
+    var sc = document.createElement('script'); sc.src = ORIGIN + '/hp/promo.js'; sc.defer = true; sc.setAttribute('data-surface', 'clientarea'); document.body.appendChild(sc);
+  }
+  function blogHub() {
+    var body = document.querySelector('.gh-hub-body'); if (!body) return;
+    fetch(ORIGIN + '/api/blog/latest?limit=3').then(function (r) { return r.json(); }).then(function (posts) {
+      if (!posts || !posts.length) return;
+      var html = '<div class="gh-sec-head"><h2>From our blog</h2><a href="' + ORIGIN + '/blog">All articles</a></div><div class="gh-blog">' + posts.map(function (p) {
+        return '<a class="gh-post" href="' + esc(p.url) + '">' + (p.coverImage ? '<img src="' + esc(p.coverImage) + '" alt="" loading="lazy">' : '') + '<div><span>' + esc(p.category || 'Guide') + ' · ' + (p.readingMinutes || 3) + ' min read</span><b>' + esc(p.title) + '</b><p>' + esc(p.excerpt || '') + '</p></div></a>';
+      }).join('') + '</div>';
+      var help = body.querySelector('.gh-help'); var box = document.createElement('section'); box.innerHTML = html;
+      body.insertBefore(box, help || null);
+    }).catch(function () {});
+  }
+
+  ready(function () { try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
