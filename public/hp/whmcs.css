@@ -22,8 +22,9 @@ a { color: var(--gh-brand); } a:hover { color: var(--gh-brand-d); }
 
 /* ---------- header ---------- */
 .site-header { background: #fff !important; box-shadow: 0 1px 0 var(--gh-line); }
-.site-header > .container-fluid:first-child, .site-header .top-header, .header-top-bar { background: var(--gh-deep) !important; }
-.site-header a.online, .site-header .top-header a { background: rgba(255,255,255,.08) !important; color: #fff !important; border-radius: 999px !important; border: 1px solid rgba(255,255,255,.14) !important; }
+.top-header-area-menu, .top-header-area-menu-wrapper { background: var(--gh-deep) !important; }
+.right-top-header-area-menu-support a, .top-header-area-menu a { background: rgba(255,255,255,.08) !important; color: #fff !important; border-radius: 999px !important; border: 1px solid rgba(255,255,255,.16) !important; box-shadow: none !important; }
+.right-top-header-area-menu-support a:hover, .top-header-area-menu a:hover { background: var(--gh-brand) !important; border-color: var(--gh-brand) !important; }
 .client-login-header-btn, .btn-black { background: var(--gh-brand) !important; border-color: var(--gh-brand) !important; color: #fff !important; border-radius: 12px !important; }
 .client-login-header-btn:hover, .btn-black:hover { background: var(--gh-brand-d) !important; border-color: var(--gh-brand-d) !important; }
 .contact-header-btn, .minnimalist-btn { color: var(--gh-ink) !important; font-weight: 600; }
