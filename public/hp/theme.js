@@ -539,3 +539,6 @@
   var q=HP._q||[]; HP._q=null; HP.on=function(fn){ try{fn(HP)}catch(e){ if(W.console) console.error(e) } };
   q.forEach(HP.on);
 })();
+
+/* currency picker: close when clicking elsewhere */
+document.addEventListener('click', function (e) { document.querySelectorAll('details.hp-cur[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); }); });

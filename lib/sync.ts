@@ -135,6 +135,18 @@ export async function syncTlds(trigger = 'manual') {
         .onConflictDoUpdate({ target: schema.tlds.tld, set: { currency: currency || cur?.code || s.currency, register: first(p.register), transfer: first(p.transfer), renew: first(p.renew), syncedAt: new Date() } });
       stats.upserted++;
     }
+    // every other WHMCS currency → tld_prices (prices WHMCS calculates/stores per currency)
+    for (const c of currencies) {
+      if (cur && Number(c.id) === Number(cur.id)) continue;
+      const r = await getTldPricing(Number(c.id)).catch(() => null);
+      if (!r) continue;
+      for (const [ext, p] of Object.entries(r.pricing)) {
+        const tld = '.' + ext.replace(/^\./, '');
+        const v = { register: first(p.register), transfer: first(p.transfer), renew: first(p.renew), syncedAt: new Date() };
+        await db.insert(schema.tldPrices).values({ tld, currency: c.code, ...v })
+          .onConflictDoUpdate({ target: [schema.tldPrices.tld, schema.tldPrices.currency], set: v });
+      }
+    }
     await endRun(runId, 'ok', stats);
     revalidateTag('site');
     return { ok: true, runId, stats };

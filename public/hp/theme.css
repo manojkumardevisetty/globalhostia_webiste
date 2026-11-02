@@ -719,3 +719,14 @@ main{display:block}
 /* utility bar never wraps: on tablets keep phone + login only, single line */
 .hp-util a,.hp-util .hp-u-item{white-space:nowrap}
 @media (max-width:1023px){.hp-util .hp-u-item,.hp-u-left a:not(:first-child),.hp-util .hp-sep{display:none}.hp-util .hp-container{justify-content:space-between}}
+
+/* currency picker (utility bar) — stays visible on every screen size */
+.hp-cur{position:relative}
+.hp-cur>summary{list-style:none;cursor:pointer;display:inline-flex!important}
+.hp-cur>summary::-webkit-details-marker{display:none}
+.hp-cur>summary::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);margin-left:2px;opacity:.7}
+.hp-cur__menu{position:absolute;right:0;top:calc(100% + 4px);z-index:60;list-style:none;margin:0;padding:6px;min-width:200px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 24px 50px -24px rgba(22,33,43,.45)}
+.hp-cur__menu a{display:flex!important;gap:10px;min-height:42px!important;padding:0 12px!important;border-radius:10px;color:var(--ink)!important;font-size:14px}
+.hp-cur__menu a b{min-width:36px}
+.hp-cur__menu a:hover,.hp-cur__menu a[aria-current]{background:#fbe8ef;color:var(--brand-d,#a6225f)!important}
+@media (max-width:1023px){.hp-util .hp-cur>summary.hp-u-item{display:inline-flex!important}}

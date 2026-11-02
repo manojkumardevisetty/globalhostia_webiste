@@ -246,6 +246,10 @@ try {
             seo_description = case when categories.seo_description = '' then excluded.seo_description else categories.seo_description end`;
       }
     },
+    '014-tld-prices': async (tx) => {
+      await tx`create table if not exists tld_prices (tld text not null, currency text not null, register numeric(12,2), transfer numeric(12,2), renew numeric(12,2), synced_at timestamptz)`;
+      await tx`create unique index if not exists tld_prices_tld_cur on tld_prices (tld, currency)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

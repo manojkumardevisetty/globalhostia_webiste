@@ -122,6 +122,17 @@ export const tlds = pgTable('tlds', {
   syncedAt: timestamp('synced_at', { withTimezone: true }),
 });
 
+// Extra currencies for TLD prices (tlds holds the default currency + admin flags).
+export const tldPrices = pgTable('tld_prices', {
+  tld: text('tld').notNull(),
+  currency: text('currency').notNull(),
+  register: numeric('register', { precision: 12, scale: 2 }),
+  transfer: numeric('transfer', { precision: 12, scale: 2 }),
+  renew: numeric('renew', { precision: 12, scale: 2 }),
+  syncedAt: timestamp('synced_at', { withTimezone: true }),
+}, (t) => [uniqueIndex('tld_prices_tld_cur').on(t.tld, t.currency)]);
+
+
 export const blocks = pgTable('blocks', {
   key: text('key').primaryKey(),
   name: text('name').notNull(),

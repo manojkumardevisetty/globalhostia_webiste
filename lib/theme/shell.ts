@@ -2,7 +2,8 @@
 import { esc } from '../render/util';
 import { money } from '../pricing';
 import type { PageCtx } from './index';
-import { getCatalog, whmcsLinks, type Catalog } from './data';
+import { getCatalog, whmcsLinks, availableCurrencies, type Catalog } from './data';
+import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
 
@@ -60,7 +61,7 @@ function utilBar(cat: Catalog, L: ReturnType<typeof whmcsLinks>, phone: string, 
   return `<div class="hp-util"><div class="hp-container">
   <div class="hp-u-left">${phone ? `<a href="${esc(telHref(phone))}">${icon('phone')}<span class="num">${esc(phone)}</span></a>` : ''}${phone && email ? '<span class="hp-sep" aria-hidden="true"></span>' : ''}${email ? `<a href="mailto:${esc(email)}">${icon('mail')}${esc(email)}</a>` : ''}</div>
   <div class="hp-u-right">
-    <span class="hp-u-item">${icon('coin')}Currency <b>${esc(cat.currency)}</b></span>
+    ${currencyPicker(cat)}
     <span class="hp-u-item">${icon('globe')}Language <b>English</b></span>
     <span class="hp-sep" aria-hidden="true"></span>
     <a href="${esc(L.ticket)}" class="hp-hide-md">${icon('ticket')}Submit a ticket</a>
@@ -119,7 +120,7 @@ export async function page(o: PageOpts): Promise<string> {
   const lds = ([] as string[]).concat(o.jsonLd || []);
   const og = o.ogImage ? new URL(o.ogImage, site + '/').toString() : `${site}/image/logo-main-black.png`;
 
-  return `<!DOCTYPE html>
+  return withCurrency(`<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -155,7 +156,7 @@ ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=or
 <script src="${asset('/hp/theme.js')}" defer></script>
 ${js.map((k) => `<script src="${asset(`/hp/pages/${k}.js`)}" defer></script>`).join('\n')}
 </body>
-</html>`;
+</html>`, cat);
 }
 
 function ldOrg(s: Catalog['settings'], site: string) {
@@ -166,3 +167,21 @@ function ldOrg(s: Catalog['settings'], site: string) {
 
 /** Shared helper for page modules: "$X / month" text. */
 export const priceText = (v: number, prefix = '$') => money(v, prefix);
+
+/** Currency picker in the utility bar: links set the gh_cur cookie via middleware (?currency=XXX). */
+function currencyPicker(cat: Catalog) {
+  const list = availableCurrencies(cat.products);
+  if (list.length < 2) return `<span class="hp-u-item">${icon('coin')}Currency <b>${esc(cat.currency)}</b></span>`;
+  return `<details class="hp-cur"><summary class="hp-u-item">${icon('coin')}Currency <b>${esc(cat.currency)}</b></summary><ul class="hp-cur__menu">${list.map((c) =>
+    `<li><a href="?currency=${c}" rel="nofollow"${c === cat.currency ? ' aria-current="true"' : ''}><b>${c}</b> ${esc(CURRENCY_LABEL[c] || '')}</a></li>`).join('')}</ul></details>`;
+}
+
+/** Send the visitor's currency to WHMCS so the cart and checkout use it too. */
+function withCurrency(html: string, cat: Catalog) {
+  const id = cat.currencyIds?.[cat.currency];
+  if (!id || cat.currency === (cat.settings.currency || 'USD')) return html;
+  const base = cat.base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return html
+    .replace(new RegExp(`(href="${base}/cart\\.php\\?)`, 'g'), `$1currency=${id}&amp;`)
+    .replace(new RegExp(`href="(${base}/(?:store|cart\\.php)[^"?]*)"`, 'g'), `href="$1?currency=${id}"`);
+}

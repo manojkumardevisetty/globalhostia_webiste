@@ -14,7 +14,7 @@ export { cycles, orderUrl, deriveSpecs, SPEC_LABEL, money };
 export type TProduct = RProduct & { sortOrder: number; categorySlug: string; whmcsType: string; payType: string; configOptions: import('../schema').ConfigOption[] };
 export type TCategory = { id: string; slug: string; name: string; description: string; layout: string; cardTemplate: string; sortOrder: number; parentId: string | null; seoTitle: string; seoDescription: string };
 export type TTld = { tld: string; currency: string; register: number | null; transfer: number | null; renew: number | null; featured: boolean; promo: string; sortOrder: number };
-export type Catalog = { settings: Settings; currency: string; base: string; categories: TCategory[]; products: TProduct[]; tlds: TTld[] };
+export type Catalog = { settings: Settings; currency: string; currencyIds?: Record<string, number>; base: string; categories: TCategory[]; products: TProduct[]; tlds: TTld[] };
 
 const num = (v: unknown) => (v === null || v === undefined || v === '' ? null : Number.isFinite(parseFloat(String(v))) ? parseFloat(String(v)) : null);
 
@@ -28,6 +28,7 @@ const loadCatalog = unstable_cache(async () => {
   )).orderBy(asc(schema.products.sortOrder), asc(schema.products.name));
   const prices = rows.length ? await db.select().from(schema.productPrices) : [];
   const tlds = await db.select().from(schema.tlds).where(eq(schema.tlds.visible, true));
+  const tldExtra = await db.select().from(schema.tldPrices).catch(() => [] as (typeof schema.tldPrices.$inferSelect)[]);
   const catById = new Map(cats.map((c) => [c.id, c]));
   const byProduct = new Map<string, typeof prices>();
   for (const p of prices) { const l = byProduct.get(p.productId) || []; l.push(p); byProduct.set(p.productId, l); }
@@ -46,15 +47,37 @@ const loadCatalog = unstable_cache(async () => {
   return {
     categories: cats.map((c) => ({ id: c.id, slug: c.slug, name: c.name, description: c.description, layout: c.layout, cardTemplate: c.cardTemplate, sortOrder: c.sortOrder, parentId: c.parentId, seoTitle: c.seoTitle, seoDescription: c.seoDescription })),
     products,
-    tlds: tlds.map((t) => ({ tld: t.tld, currency: t.currency, register: num(t.register), transfer: num(t.transfer), renew: num(t.renew), featured: t.featured, promo: t.promo, sortOrder: t.sortOrder }))
+    tlds: [
+      ...tlds.map((t) => ({ tld: t.tld, currency: t.currency, register: num(t.register), transfer: num(t.transfer), renew: num(t.renew), featured: t.featured, promo: t.promo, sortOrder: t.sortOrder })),
+      ...tldExtra.flatMap((x) => { const m = tlds.find((t) => t.tld === x.tld); return m && x.currency !== m.currency ? [{ tld: x.tld, currency: x.currency, register: num(x.register), transfer: num(x.transfer), renew: num(x.renew), featured: m.featured, promo: m.promo, sortOrder: m.sortOrder }] : []; }),
+    ]
       .sort((a, b) => a.sortOrder - b.sortOrder || Number(b.featured) - Number(a.featured)),
   };
 }, ['theme-catalog', process.env.VERCEL_GIT_COMMIT_SHA || 'dev'], { tags: ['site'], revalidate: 3600 });
 
 /** Settings + visible categories + published, non-retired products (with prices) + visible TLDs. Cached (tag `site`). */
 export async function getCatalog(): Promise<Catalog> {
-  const [settings, data] = await Promise.all([getSettings(), loadCatalog()]);
-  return { settings, currency: settings.currency || 'USD', base: whmcsBase(settings), ...data };
+  const [settings, data, currencyIds] = await Promise.all([getSettings(), loadCatalog(), loadCurrencyIds()]);
+  const def = settings.currency || 'USD';
+  let currency = def;
+  try {
+    const { headers } = await import('next/headers');
+    const want = (await headers()).get('x-gh-cur');
+    if (want && want !== def && availableCurrencies(data.products).includes(want)) currency = want;
+  } catch { /* outside a request (build, cache) → default */ }
+  return { settings, currency, currencyIds, base: whmcsBase(settings), ...data };
+}
+
+const loadCurrencyIds = unstable_cache(async () => {
+  try { const { getCurrencies } = await import('../whmcs'); return Object.fromEntries((await getCurrencies()).map((c) => [c.code, Number(c.id)])) as Record<string, number>; }
+  catch { return {} as Record<string, number>; }
+}, ['whmcs-currency-ids'], { tags: ['site'], revalidate: 86400 });
+
+/** Currencies that actually have synced product prices. */
+export function availableCurrencies(products: Pick<RProduct, 'prices'>[]) {
+  const set = new Set<string>();
+  for (const p of products) for (const x of p.prices) set.add(x.currency);
+  return [...set].sort((a, b) => (a === 'USD' ? -1 : b === 'USD' ? 1 : a.localeCompare(b)));
 }
 
 export const whmcsBase = (s: Partial<Settings>) => String(s.whmcs_base_url || process.env.WHMCS_BASE_URL || 'https://globalhostia.com/secure').replace(/\/$/, '');
