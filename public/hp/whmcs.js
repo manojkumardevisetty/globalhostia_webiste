@@ -427,5 +427,21 @@
     new MutationObserver(function () { clearTimeout(run.t); run.t = setTimeout(run, 120); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
   }
 
-  ready(function () { try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  function domainPage() {
+    var hero = document.querySelector('.domain-registiration-hero'); if (!hero) return;
+    var h = hero.querySelector('h1'); if (h && /find your new domain/i.test(h.textContent)) { h.textContent = 'Find the perfect domain'; var p = h.parentElement.querySelector('p'); if (p) p.textContent = 'Search any name and we show what is free, across 300+ extensions, with honest renewal prices.'; }
+    if (h && /transfer/i.test(h.textContent) && h.textContent.length > 60) { h.textContent = 'Transfer your domain to us'; }
+    document.querySelectorAll('h1,h2,h3').forEach(function (x) { if (/generating suggestions for you/i.test(x.textContent)) x.textContent = 'More extensions for your name'; });
+    var fill = function () {
+      var r = document.getElementById('primaryIndividualResult'); if (!r || r.dataset.gh) return;
+      var b = r.querySelector('[data-domain]'); if (!b) return;
+      var avail = r.classList.contains('domain-available');
+      var p = r.querySelector('p'); if (p && /click on the link below/i.test(p.textContent)) p.style.display = 'none';
+      var hd = document.createElement('div'); hd.className = 'gh-avail'; hd.innerHTML = esc(b.getAttribute('data-domain')) + (avail ? '<small>✓ Available — register it before someone else does</small>' : '');
+      r.insertBefore(hd, r.firstChild); r.dataset.gh = 1;
+    };
+    new MutationObserver(function () { clearTimeout(fill.t); fill.t = setTimeout(fill, 120); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+  }
+
+  ready(function () { try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
