@@ -91,3 +91,9 @@ input[type=radio]:checked, input[type=checkbox]:checked { accent-color: var(--gh
 
 /* ---------- motion ---------- */
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* client area extras */
+.btn-dark, a.btn-dark, .label-default, .badge-dark { background: var(--gh-brand) !important; border-color: var(--gh-brand) !important; color: #fff !important; border-radius: 10px !important; }
+.btn-dark:hover { background: var(--gh-brand-d) !important; }
+.client-home-cards .card, .tiles .tile, [class*="emyui"][class*="box"] { border-radius: var(--gh-r) !important; transition: transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s; }
+.client-home-cards .card:hover, .tiles .tile:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -24px rgba(22,33,43,.4) !important; }
