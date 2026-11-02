@@ -549,3 +549,8 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .gh-wa { position: fixed; left: 18px; bottom: 18px; z-index: 900; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px 0 12px; border-radius: 999px; background: #1fa855; color: #fff !important; font: 700 14px/1 Inter, sans-serif; text-decoration: none !important; box-shadow: 0 14px 30px -12px rgba(16,90,48,.6); transition: transform .2s cubic-bezier(.2,.7,.2,1); }
 .gh-wa:hover { transform: translateY(-2px); }
 @media (max-width: 575px) { .gh-wa span { display: none; } .gh-wa { padding: 0 11px; } }
+/* mega menu: force full width (template forces narrow dropdowns) */
+.navbar-nav .gh-mega.dropdown-menu, .coodiv-menu-dropdown.gh-mega { width: min(1080px, calc(100vw - 32px)) !important; min-width: min(1080px, calc(100vw - 32px)) !important; max-width: none !important; }
+.gh-mega .gh-mega__in { display: block !important; width: 100% !important; padding: 0 !important; }
+@media (min-width: 1200px) { .gh-mega__cols { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
+@media (max-width: 1199px) { .navbar-nav .gh-mega.dropdown-menu, .coodiv-menu-dropdown.gh-mega { width: 100% !important; min-width: 0 !important; } }
