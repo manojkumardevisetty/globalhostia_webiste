@@ -2,6 +2,7 @@ import { eq, and } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { getSettings } from '@/lib/settings';
 import { getPosts, blogCategories } from '@/lib/blog';
+import { SITEMAP_EXCLUDE } from '@/lib/seo';
 
 export const revalidate = 3600;
 
@@ -19,7 +20,7 @@ export async function GET() {
     ...posts.filter((p) => !p.canonical || p.canonical.startsWith(base)).map((p) => `<url><loc>${base}/blog/${p.slug}</loc><lastmod>${p.updatedAt}</lastmod></url>`),
   ].join('\n');
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${rows
-    .filter((r) => !['404', 'sign-in', 'sign-up', 'forget-password', 'blog'].includes(r.slug))
+    .filter((r) => !SITEMAP_EXCLUDE.has(r.slug) && r.slug !== 'blog')
     .map((r) => `<url><loc>${base}${r.slug === 'index' ? '/' : '/' + r.slug}</loc><lastmod>${new Date(r.updatedAt).toISOString()}</lastmod></url>`).join('\n')}\n${prods.map((p) => `<url><loc>${base}/p/${p.slug}</loc><lastmod>${new Date(p.updatedAt).toISOString()}</lastmod></url>`).join('\n')}\n<url><loc>${base}/ai</loc></url>\n${blog}\n</urlset>`;
   return new Response(xml, { headers: { 'content-type': 'application/xml' } });
 }

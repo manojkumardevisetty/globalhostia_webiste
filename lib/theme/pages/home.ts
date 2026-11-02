@@ -179,7 +179,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     { icon: 'archive', q: 'Daily and weekly backups', a: 'Your files and databases are backed up automatically every day and every week. Restore from your control panel or ask support.' },
   ];
   const trio = `<section class="hp-section" aria-label="Customers, reasons to choose us and help articles"><div class="hp-container hp-trio" data-stagger>
-    <div data-reveal>${colHead('Happy customers')}${testimonials({ score: '4.89', label: 'Excellent', reviews: [
+    <div data-reveal>${colHead('Happy customers')}${testimonials({ /* no rating score until there is a verified review source to quote */ reviews: [
       { quote: 'We moved our store from another host over a weekend. Support handled the migration and pages now load noticeably faster on NVMe.', who: 'Online store owner', meta: 'Shared hosting, Singapore', avatar: '/hp/img/avatar-1.jpg' },
       { quote: 'We run client projects on a cloud VPS. When we needed help at 2am, an engineer answered within minutes and stayed until it was fixed.', who: 'Agency founder', meta: 'Cloud VPS, Linux', avatar: '/hp/img/avatar-2.jpg' },
     ] })}</div>

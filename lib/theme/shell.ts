@@ -8,7 +8,7 @@ import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
 import { activeFor, barHtml, promoDataScript, hasPromo } from '../promo';
-import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta } from '../seo';
+import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta, blogListingDescription } from '../seo';
 
 export type PageOpts = {
   title: string; description: string; path: string; body: string; ctx: PageCtx;
@@ -123,8 +123,12 @@ export async function page(o: PageOpts): Promise<string> {
   const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
   const canonical = o.canonical || site + (o.path === '/' || !o.path ? '/' : o.path);
   const siteName = String(s.site_name || 'Globalhostia');
-  const fullTitle = seoTitle(o.title, siteName);
-  const description = seoDescription(o.description);
+  // routes.ts seoTitle/meta replace the visible title/description in <title> and meta tags only
+  const r = o.ctx.route;
+  const isBlogList = r.kind === 'blog' && (o.path === '/blog' || o.path.startsWith('/blog/category/'));
+  const fullTitle = seoTitle(r.seoTitle && o.title === r.title ? r.seoTitle : o.title, siteName);
+  const description = seoDescription(r.meta && o.description === r.description ? r.meta
+    : isBlogList ? blogListingDescription(o.description, o.title) : o.description);
   const preview = o.ctx.query.get('theme') === 'hostpen';
   const noindex = preview || o.noindex || NOINDEX_SLUGS.has(o.ctx.slug);
   const css = (o.css || []).map(safeKey).filter(Boolean);

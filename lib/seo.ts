@@ -1,6 +1,7 @@
 // Site-wide technical SEO helpers: robots/verification meta, Organization + WebSite JSON-LD, IndexNow.
 import type { Settings } from './settings';
 import { esc } from './render/util';
+import { ALIAS_SLUGS } from './aliases.mjs';
 
 /** IndexNow key. The matching key file is served from public/<key>.txt. */
 export const INDEXNOW_KEY = '6a67d36c3c478068d0f08ecff6923e8a';
@@ -9,8 +10,42 @@ export const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
 export const ROBOTS_INDEX = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 export const ROBOTS_NOINDEX = 'noindex,follow';
 
-/** Utility pages that must never be indexed (sign-in flows, error pages). */
-export const NOINDEX_SLUGS = new Set(['sign-in', 'sign-up', 'forget-password', '404']);
+/**
+ * Pages that must not be indexed: sign-in flows and error pages, plus the incident pages, which hold no incident
+ * data of their own (the CMS copies are template samples, so the theme only links to the live status in WHMCS):
+ * /incident-post is an empty "incident report" template and /incident-history repeats /status-page.
+ */
+export const NOINDEX_SLUGS = new Set(['sign-in', 'sign-up', 'forget-password', '404', 'incident-post', 'incident-history']);
+
+/** CMS page slugs left out of the sitemap: noindex pages, the legacy template blog and 301-redirected aliases. */
+export const SITEMAP_EXCLUDE = new Set<string>([...NOINDEX_SLUGS, 'blog', ...ALIAS_SLUGS]);
+
+/** Fit `base` + one of `extras` into 140-160 characters (the longest extra that fits; base alone when none does). */
+export function fitDescription(base: string, extras: string[], min = 140, max = 160) {
+  const b = base.replace(/\s+/g, ' ').trim();
+  if (b.length >= min) return b;
+  const fits = extras.map((e) => `${b} ${e.trim()}`).filter((t) => t.length <= max);
+  return fits.find((t) => t.length >= min) || fits.sort((x, y) => y.length - x.length)[0] || b;
+}
+
+/**
+ * Blog listing pages (/blog, /blog/category/<slug>) get a short generated lead from lib/theme/pages/blog.ts
+ * ("3 articles on servers from the Globalhostia team."). Extend it into a full-length meta description.
+ */
+export function blogListingDescription(desc: string, title: string) {
+  const t = desc.replace(/\s+/g, ' ').trim();
+  if (t.length >= 120) return t;
+  const cat = title.replace(/\s*\(page \d+\)$/i, '').replace(/\s+articles$/i, '').trim();
+  const topic = !cat || /^blog$/i.test(cat) ? 'web hosting, VPS, servers, domains and email' : cat.toLowerCase().replace(/\s+guides?$/, '') || 'web hosting';
+  return fitDescription(t, [
+    `Practical guides, tutorials and tips on ${topic} for site owners and developers, written by the engineers who run GlobalHostia.`,
+    `Practical guides, tutorials and tips on ${topic}, written by the engineers who run GlobalHostia.`,
+    'Step-by-step tutorials and tips for site owners and developers.',
+    'Tutorials and tips for site owners and developers.',
+    `Practical guides and tips on ${topic} from our engineers.`,
+    'Guides and tips from the GlobalHostia engineers.',
+  ]);
+}
 
 export const DEFAULT_DESCRIPTION = 'NVMe web hosting, cloud VPS and dedicated servers in Dubai, Europe, the USA and Asia, with free SSL, daily backups and 24/7 support.';
 export const DEFAULT_PHONE = '+971 50 734 1578';

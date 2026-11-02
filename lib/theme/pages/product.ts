@@ -8,7 +8,8 @@ import { CYCLE_MONTHS, money } from '../../pricing';
 import { ROUTES } from '../routes';
 import { getCatalog, productBySlug, categoryBySlug, cycles, orderUrl, deriveSpecs, SPEC_LABEL, fromPrice, type TProduct, type Catalog } from '../data';
 import { page } from '../shell';
-import { ogImageUrl } from '../../seo';
+import { ogImageUrl, fitDescription } from '../../seo';
+import { productTitle, nounOf, inLoc } from '../../seo-product';
 import {
   pageHero, sectionHead, planCards, faq, faqJsonLd, ctaBand, breadcrumbJsonLd, ld, icon, hexIcon, available, type IconName,
 } from '../ui';
@@ -271,6 +272,51 @@ function faqFor(kind: Kind, p: TProduct, name: string, specs: Record<string, str
   return q.slice(0, 6);
 }
 
+/* ------------------------------------------------------------------ SEO description (title: lib/seo-product.ts) */
+const PER: Record<string, string> = { monthly: '/mo', quarterly: ' per quarter', semiannually: ' per 6 months', annually: '/year', biennially: ' per 2 years', triennially: ' per 3 years', onetime: ' one-time' };
+
+/**
+ * Meta description (140-160 characters) built only from real product data: name, category, derived specs,
+ * location and the synced "from" price in the visitor's currency (never an invented price).
+ */
+export function productDescription(p: TProduct, name: string, kind: Kind, catName: string, specs: Record<string, string>, currency: string) {
+  const noun = catName ? nounOf(catName) : '';
+  const nl = noun.toLowerCase();
+  const head = !noun || name.toLowerCase().includes(nl) || name.toLowerCase().includes(nl.split(' ')[0]) ? name : `${name} ${nl.replace(/\bssl\b/, 'SSL').replace(/\bvps\b/, 'VPS').replace(/\brdp\b/, 'RDP')}`;
+  const loc = specs.location && !name.toLowerCase().includes(specs.location.toLowerCase()) ? ` ${inLoc(specs.location)}` : '';
+  const f = fromPrice(p, currency);
+  const price = f ? ` From ${money(f.price, f.prefix)}${PER[f.cycle] || ''}.` : '';
+  const inc = p.features.filter((x) => !x.trim().startsWith('-')).map((x) => pretty(x.trim()));
+  let keys: string[];
+  if (kind === 'ssl') {
+    const s = sslLevel(p);
+    keys = [s.level.toLowerCase(), s.wildcard ? 'covers the domain and all subdomains' : 'secures one domain', ...inc.filter((x) => /bit|issu|warranty/i.test(x))];
+  } else {
+    keys = (['cpu', 'ram', 'storage', 'bandwidth', 'websites', 'email', 'ips', 'os'] as const).filter((k) => specs[k]).map((k) => specs[k]);
+    if (keys.length < 2) keys = [...keys, ...inc.filter((x) => !keys.includes(x))].slice(0, 4);
+  }
+  // "Fast issuance in minutes" reads as a list item: lower-case plain leading words inside the sentence
+  keys = [...new Set(keys.map((k) => k.replace(/\.$/, '')).map((k) => (/^[A-Z][a-z]+(\s+[^A-Z\s]\S*)*$/.test(k) ? k[0].toLowerCase() + k.slice(1) : k)))];
+  // root access is only promised where the listing pages promise it (dedicated servers, VPS, RDP)
+  const root = /dedicated|vps|rdp/.test(p.categorySlug) && !/forex|mcps|ai-llm/.test(p.categorySlug);
+  const extras: Record<Kind, string[]> = {
+    server: root ? ['Full root access, live pricing and 24/7 expert support.', 'Full root access and 24/7 support.', 'Root access and 24/7 support.', '24/7 support.']
+      : ['Live pricing and 24/7 expert support from our engineers.', 'Live pricing and 24/7 expert support.', '24/7 support.'],
+    hosting: ['Free SSL, daily backups and 24/7 expert support included.', 'Free SSL, daily backups and 24/7 support.', 'Free SSL and 24/7 support.', '24/7 support.'],
+    ssl: ['Order online; our team can help with the CSR and installation.', 'Our team can help with the CSR and installation.', 'Order online today.'],
+    email: ['Professional email on your own domain, with 24/7 support.', 'Email on your own domain, 24/7 support.', '24/7 support.'],
+    other: ['Order online and get help from our team 24/7.', 'Order online, with 24/7 support.', '24/7 support.'],
+  };
+  // drop the least important specs until the sentence fits; then top it up with true, generic plan facts
+  const more = ['Compare similar plans and see everything that is included.', 'Compare similar plans before you order.', 'Compare similar plans.'];
+  for (let n = keys.length; n >= 0; n--) {
+    const core = `${head}${n ? ' with ' : ''}${keys.slice(0, n).join(', ')}${loc}.${price}`.replace(/\s+/g, ' ').trim();
+    if (core.length > 160 && n > 0) continue;
+    return fitDescription(fitDescription(core, extras[kind]), more);
+  }
+  return name;
+}
+
 /* ------------------------------------------------------------------ page */
 export default async function render(ctx: PageCtx): Promise<string | null> {
   const cat = await getCatalog();
@@ -396,8 +442,8 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
 
   return page({
     ctx, catalog: cat, path: `/p/${p.slug}`,
-    title: `${name}${catRow ? ` | ${catRow.name}` : ''}`,
-    description: (lead || `${name}: specifications, what is included and live pricing.`).slice(0, 300),
+    title: productTitle(name, catRow?.name || route?.title || '', String(cat.settings.site_name || 'Globalhostia')),
+    description: productDescription(p, name, kind, catRow?.name || route?.title || '', specs, currency),
     css: ['product'], js: ['product'], ogKicker: catLabel, noindex: !productBySlug(cat, ctx.slug),
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(qs), ld(product)],
     body: [hero, tilesHtml, main, relatedHtml, faqHtml, cta].join('\n'),

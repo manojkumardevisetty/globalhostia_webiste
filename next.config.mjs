@@ -1,3 +1,5 @@
+import { ALIAS_REDIRECTS } from './lib/aliases.mjs';
+
 /** @type {import('next').NextConfig} */
 const security = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -16,6 +18,8 @@ export default {
     return [
       { source: '/secure', destination: 'https://my.globalhostia.com/', permanent: true },
       { source: '/secure/:path*', destination: 'https://my.globalhostia.com/:path*', permanent: true },
+      // duplicate legacy template URLs -> their canonical page (one URL per page; query strings are kept)
+      ...Object.entries(ALIAS_REDIRECTS).map(([slug, to]) => ({ source: `/${slug}`, destination: to, statusCode: 301 })),
     ];
   },
   // app/ ignores dot-folders, so /.well-known/mcp.json is served by a rewrite

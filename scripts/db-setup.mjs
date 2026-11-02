@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { enrichment } from '../lib/enrich-core.mjs';
 import { BLOG_SEED, BLOG_SEED_V1 } from './blog-seed.mjs';
+import { ALIAS_REDIRECTS } from '../lib/aliases.mjs';
 
 const url = process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL;
 if (!url) { console.log('[db-setup] no DATABASE_URL — skipping'); process.exit(0); }
@@ -304,6 +305,16 @@ try {
     '014-tld-prices': async (tx) => {
       await tx`create table if not exists tld_prices (tld text not null, currency text not null, register numeric(12,2), transfer numeric(12,2), renew numeric(12,2), synced_at timestamptz)`;
       await tx`create unique index if not exists tld_prices_tld_cur on tld_prices (tld, currency)`;
+    },
+    // 15. SEO: duplicate template alias pages (/aws-pro-*, /vps-2) now 301 to their main page (next.config.mjs).
+    // Point old *.html redirects straight at the final URL (no redirect chains) and keep aliases and the
+    // noindex incident pages out of the sitemap.
+    '015-seo-alias-redirects': async (tx) => {
+      for (const [slug, to] of Object.entries(ALIAS_REDIRECTS)) {
+        await tx`update redirects set "to" = ${to} where lower("to") = ${'/' + slug}`;
+        await tx`update pages set in_sitemap = false where slug = ${slug}`;
+      }
+      await tx`update pages set in_sitemap = false where slug in ('incident-post', 'incident-history')`;
     },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
