@@ -178,7 +178,7 @@ body.loading, body.preloader-active { overflow: auto !important; }
 #products.gh-cards .emyui-ews-plans-features li::before { content: ""; position: absolute; left: 2px; top: 6px; width: 10px; height: 6px; border-left: 2px solid var(--gh-brand); border-bottom: 2px solid var(--gh-brand); transform: rotate(-45deg); }
 
 /* client-area home hub (built by whmcs.js) */
-.gh-hub { position: relative; overflow: hidden; color: #fff; padding: 72px 20px 88px; text-align: center;
+.gh-hub { position: relative; overflow: hidden; color: #fff; padding: 150px 20px 96px; text-align: center;
   background: radial-gradient(60% 80% at 15% 10%, rgba(225,76,127,.28), transparent 60%), radial-gradient(50% 70% at 90% 20%, rgba(253,215,0,.10), transparent 60%), linear-gradient(180deg, #16212b, #23313d); }
 .gh-hub::before { content: ""; position: absolute; inset: 0; opacity: .07; pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='64' viewBox='0 0 56 64'%3E%3Cpath d='M28 2 54 17v30L28 62 2 47V17z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E"); }
@@ -219,5 +219,5 @@ body.loading, body.preloader-active { overflow: auto !important; }
 .gh-help__a a { border: 1.5px solid var(--gh-line); border-radius: 12px; padding: 10px 14px; font-weight: 600; color: var(--gh-ink) !important; text-decoration: none !important; }
 .gh-help__a a:hover { border-color: var(--gh-brand); color: var(--gh-brand) !important; }
 @media (max-width: 1100px) { .gh-tiles { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 760px) { .gh-tiles { grid-template-columns: repeat(2, 1fr); } .gh-cats { grid-template-columns: 1fr; } .gh-hub { padding: 48px 16px 72px; } .gh-hub__search { flex-wrap: wrap; } .gh-hub__search button { width: 100%; } }
+@media (max-width: 760px) { .gh-tiles { grid-template-columns: repeat(2, 1fr); } .gh-cats { grid-template-columns: 1fr; } .gh-hub { padding: 120px 16px 80px; } .gh-hub__search { flex-wrap: wrap; } .gh-hub__search button { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .gh-tile, .gh-cat, .gh-cat i { transition: none; } }
