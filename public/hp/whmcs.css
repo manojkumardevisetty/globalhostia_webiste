@@ -608,3 +608,5 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 /* domain bulk-action pills: one calm brand style instead of rainbow */
 .main-page-contents .btn-group .btn[class*="btn-"], .main-page-contents .domain-bulk-actions .btn, .main-page-contents a.btn-sm[class*="bg-"] { background: #fff !important; color: var(--gh-ink) !important; border: 1.5px solid var(--gh-line) !important; border-radius: 999px !important; }
 .main-page-contents .btn-group .btn:hover { border-color: var(--gh-brand) !important; color: var(--gh-brand-d) !important; }
+.gh-newportal { display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 16px; background: var(--gh-brand); color: #fff; font: 600 14px/1.3 Inter, sans-serif; position: relative; z-index: 1000; }
+.gh-newportal a { color: #fff !important; text-decoration: underline !important; font-weight: 700; }

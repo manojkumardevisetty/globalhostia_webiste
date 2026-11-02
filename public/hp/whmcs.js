@@ -550,5 +550,41 @@
     });
   }
 
-  ready(function () { try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  function connectLinks() {
+    var SITE = 'https://globalhostia.com';
+    var path = location.pathname, q = location.search;
+    var loggedIn = !!document.querySelector('a[href*="logout"]');
+    // standalone sign-in page → the new account portal (the cart's own "Already registered?" login stays)
+    if (!loggedIn && /^(\/secure)?\/(login(\.php)?|clientarea\.php)$/.test(path) && !/cart/.test(document.referrer || '') && !/[?&](goto|redirect)=/.test(q)) {
+      location.replace(SITE + '/account/login'); return;
+    }
+    var MAP = [
+      [/clientarea\.php$/, '', SITE + '/account'],
+      [/clientarea\.php$/, 'action=services', SITE + '/account/services'],
+      [/clientarea\.php$/, 'action=domains', SITE + '/account/domains'],
+      [/clientarea\.php$/, 'action=invoices', SITE + '/account/invoices'],
+      [/supporttickets\.php$/, '', SITE + '/account/support'],
+      [/clientarea\.php$/, 'action=details', SITE + '/account/profile'],
+    ];
+    document.querySelectorAll('header a[href], .site-header a[href], .footer-emyui-aws a[href]').forEach(function (a) {
+      var h = a.getAttribute('href') || ''; if (!h || h.charAt(0) === '#' || /^javascript/i.test(h)) return;
+      var u; try { u = new URL(h, location.href); } catch (e) { return; }
+      if (u.host !== location.host) return;
+      var txt = a.textContent.trim().toLowerCase();
+      if (/^(\/secure)?\/(index\.php)?$/.test(u.pathname) && (txt === 'home' || a.closest('.brand-logo, .site-brand, .navbar-brand, [class*="logo"]'))) { a.href = loggedIn ? SITE + '/account' : SITE + '/'; return; }
+      if (/contact\.php$/.test(u.pathname)) { a.href = SITE + '/contact'; return; }
+      if (/(\/login(\.php)?)$/.test(u.pathname)) { a.href = SITE + '/account/login'; return; }
+      for (var i = 0; i < MAP.length; i++) {
+        var m = MAP[i]; if (m[0].test(u.pathname) && (u.search.replace(/^\?/, '') === m[1])) { a.href = m[2]; return; }
+      }
+    });
+    // logged-in WHMCS dashboard → the new dashboard
+    if (loggedIn && /clientarea\.php$/.test(path) && !q) {
+      var bar = document.createElement('div'); bar.className = 'gh-newportal';
+      bar.innerHTML = '<span>Your account has a new home.</span><a href="' + SITE + '/account">Open the new dashboard →</a>';
+      document.body.insertBefore(bar, document.body.firstChild);
+    }
+  }
+
+  ready(function () { try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();

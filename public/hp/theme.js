@@ -542,3 +542,18 @@
 
 /* currency picker: close when clicking elsewhere */
 document.addEventListener('click', function (e) { document.querySelectorAll('details.hp-cur[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); }); });
+
+/* signed-in customers: swap "Client login / Sign up" for their account */
+(function () {
+  try {
+    fetch('/account/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (m) {
+      if (!m || !m.in) return;
+      document.querySelectorAll('a[href="/account"], a[href="/account/login"]').forEach(function (a) {
+        if (/client login/i.test(a.textContent)) { a.lastChild && (a.lastChild.textContent = ' My account'); if (!a.querySelector('svg')) a.textContent = 'My account'; }
+      });
+      document.querySelectorAll('a').forEach(function (a) {
+        if (/^\s*sign up\s*$/i.test(a.textContent)) { a.textContent = 'Hi, ' + m.name; a.setAttribute('href', '/account'); }
+      });
+    }).catch(function () {});
+  } catch (e) {}
+})();

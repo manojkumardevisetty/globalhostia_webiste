@@ -52,6 +52,10 @@ export async function GET(req: NextRequest, ctx: Ctx) {
   const q = req.nextUrl.searchParams;
   const sess = await readClient(req);
 
+  if (segs[0] === 'me') {
+    return new NextResponse(JSON.stringify(sess ? { in: true, name: sess.name.split(' ')[0] || 'Account' } : { in: false }),
+      { headers: { 'content-type': 'application/json', 'cache-control': 'private, no-store' } });
+  }
   if (segs[0] === 'login') {
     if (sess) return go(req, '/account');
     const st: LoginState = { secureUrl: `${await secureBase()}/clientarea.php`, next: safeNext(q.get('next')) || undefined, reset: q.has('reset'), signedOut: q.has('out') };
