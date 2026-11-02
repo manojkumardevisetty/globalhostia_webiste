@@ -319,10 +319,10 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .spotlight-tld .btn.checkout, .spotlight-tld .btn-primary { background: #1c9a5b !important; border-color: #1c9a5b !important; }
 .spotlight-tld [class*="ribbon"], .spotlight-tld .label { border-radius: 999px !important; font-size: 10px !important; }
 .suggested-domains, #domainSuggestions { border: 0 !important; }
-.domain-suggestion:not(.w-hidden) { display: flex !important; }
+.domain-suggestion[style*="block"] { display: flex !important; }
 .domain-suggestion { align-items: center; gap: 14px; padding: 14px 18px !important; border: 1px solid var(--gh-line) !important; border-radius: 14px !important; margin-bottom: 8px !important; background: #fff !important; transition: border-color .2s, box-shadow .2s; }
 .domain-suggestion:hover { border-color: #e7b3c7 !important; box-shadow: var(--gh-shadow); }
-.domain-suggestion .domain { font: 700 17px/1.2 Manrope, Inter, sans-serif; color: var(--gh-ink); margin-right: -14px; }
+.domain-suggestion .domain { font: 700 17px/1.2 Manrope, Inter, sans-serif; color: var(--gh-ink); }
 .domain-suggestion .extension { font: 700 17px/1.2 Manrope, Inter, sans-serif; color: var(--gh-brand) !important; flex: 1; }
 .domain-suggestion .actions { margin-left: auto; display: flex; align-items: center; gap: 14px; }
 .domain-suggestion .price { font: 800 17px/1 Manrope, Inter, sans-serif; color: var(--gh-ink); }
@@ -430,7 +430,7 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .spotlight-tld .price { font-size: 13px; color: var(--gh-muted); }
 .spotlight-tld-sale, .spotlight-tld-hot, .spotlight-tld-new, .spotlight-tld [class*="spotlight-tld-"]:not(.spotlight-tld-name) { position: absolute !important; top: 10px !important; right: 10px !important; transform: none !important; width: auto !important; padding: 2px 8px !important; border-radius: 999px !important; font-size: 10px !important; font-weight: 700; text-transform: uppercase; line-height: 1.5 !important; }
 .spotlight-tld { position: relative; padding-top: 30px !important; }
-.domain-lookup-primary-results:not(.w-hidden) { display: grid !important; grid-template-columns: 1fr auto; align-items: center; gap: 10px 24px; background: #fff; border: 1px solid var(--gh-line); border-left: 5px solid #1c9a5b; border-radius: 18px; padding: 20px 26px; box-shadow: var(--gh-shadow); margin: 0 0 22px !important; }
+.domain-lookup-primary-results[style*="block"] { display: grid !important; grid-template-columns: 1fr auto; align-items: center; gap: 10px 24px; background: #fff; border: 1px solid var(--gh-line); border-left: 5px solid #1c9a5b; border-radius: 18px; padding: 20px 26px; box-shadow: var(--gh-shadow); margin: 0 0 22px !important; }
 .domain-lookup-primary-results .alert { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
 .domain-lookup-primary-results .alert-heading { font: 800 24px/1.2 Manrope, Inter, sans-serif !important; color: var(--gh-ink) !important; margin: 0 0 4px !important; }
 .domain-lookup-primary-results .alert p { margin: 0 !important; color: #1c9a5b !important; font-weight: 600; }
@@ -440,7 +440,7 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .domain-lookup-primary-results .price { font: 800 26px/1.1 Manrope, Inter, sans-serif; color: var(--gh-ink); }
 .domain-lookup-primary-results .domain-unavailable { border: 0 !important; }
 .domain-lookup-primary-results:has(.domain-unavailable:not(.w-hidden)) { border-left-color: var(--gh-brand); }
-@media (max-width: 640px) { .domain-lookup-primary-results:not(.w-hidden) { grid-template-columns: 1fr; } .domain-lookup-primary-results .domain-price { text-align: left; } }
+@media (max-width: 640px) { .domain-lookup-primary-results[style*="block"] { grid-template-columns: 1fr; } .domain-lookup-primary-results .domain-price { text-align: left; } }
 .domain-lookup-loader { color: var(--gh-brand); }
 #btnDomainContinue, .domain-checker-continue .btn, button#btnDomainContinue { min-height: 52px; padding: 0 36px !important; }
 
@@ -460,3 +460,19 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .gh-mega__all { font-weight: 700; color: var(--gh-brand) !important; }
 @media (max-width: 1199px) { .gh-mega.dropdown-menu { width: 100%; transform: none; left: 0 !important; position: static !important; box-shadow: none !important; } .gh-mega__cols { grid-template-columns: 1fr 1fr; padding: 14px; } .gh-mega__foot { padding: 12px 14px; } }
 @media (max-width: 560px) { .gh-mega__cols { grid-template-columns: 1fr; } .gh-mega__col a { white-space: normal; } }
+
+.domain-suggestion { gap: 0 !important; }
+.domain-suggestion .actions { gap: 16px !important; padding-left: 16px; }
+.domain-suggestion .price { white-space: nowrap; }
+.domain-lookup-primary-results > .alert[style*="none"], .domain-lookup-primary-results > .alert.w-hidden:not([style*="block"]):not([style*="flex"]) { display: none !important; }
+.domain-lookup-primary-results .domain-available { display: block !important; }
+.domain-lookup-primary-results .domain-available[style*="none"] { display: none !important; }
+.domain-lookup-primary-results .alert p { font-size: 15px; }
+.domain-lookup-primary-results .domain-price { grid-column: 2; grid-row: 1; }
+/* domain step: option card backgrounds consistent, search icon on brand */
+.domain-productconfigiration-options-item, .domain-productconfigiration-options-item label, .domain-productconfigiration-options-item * { background-color: transparent; }
+.domain-productconfigiration-options-item { background: #fff !important; text-align: left !important; }
+.domain-productconfigiration-options-item .domain-productconfigiration-options-text { text-align: left !important; }
+.domain-input-group [class*="icon"] i, .domain-input-group .fad.fa-globe, .domain-input-group .icon-domain { background: var(--gh-brand) !important; }
+.domain-input-group .fa-globe, .domain-input-group [class*="circle"] { background-image: none !important; }
+@media (max-width: 640px) { .domain-lookup-primary-results .domain-price { grid-column: auto; grid-row: auto; } }
