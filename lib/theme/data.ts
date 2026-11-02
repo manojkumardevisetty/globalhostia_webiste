@@ -93,7 +93,10 @@ export type FromPrice = { amount: number; price: number; prefix: string; cycle: 
 export function fromPrice(p: Pick<RProduct, 'prices'>, currency = 'USD'): FromPrice | null {
   const cs = cycles(p as RProduct, currency).filter((c) => Number.isFinite(c.price));
   if (!cs.length) return null;
-  const best = cs.reduce((a, b) => (b.perMonth < a.perMonth ? b : a));
+  // headline price = the shortest billing cycle (monthly when offered): longer cycles are shown as savings, not as the "from" price
+  const order = ['monthly', 'quarterly', 'semiannually', 'annually', 'biennially', 'triennially'];
+  const rank = (c: string) => { const i = order.indexOf(c); return i < 0 ? -1 : i; };
+  const best = cs.reduce((a, b) => (rank(b.cycle) < rank(a.cycle) ? b : a));
   return { amount: best.perMonth, price: best.price, prefix: best.prefix || '$', cycle: best.cycle, months: CYCLE_MONTHS[best.cycle] || 0 };
 }
 
