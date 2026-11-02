@@ -105,3 +105,33 @@ body.loading, body.preloader-active { overflow: auto !important; }
 #order-standard_cart .order-summary, .order-summary { border-radius: var(--gh-r) !important; }
 #order-standard_cart .btn-checkout.disabled, #checkout.disabled { opacity: .45 !important; box-shadow: none !important; }
 .order-summary .total-due-today, #totalDueToday { background: var(--gh-tint) !important; border-radius: 12px !important; }
+
+/* grouped store categories (replaces the long horizontal scroller; built by whmcs.js) */
+.gh-hidden { display: none !important; }
+.gh-catnav { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0 auto 22px; position: relative; z-index: 20; }
+.gh-catnav__grp { position: relative; }
+.gh-catnav__btn { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 18px; border-radius: 999px; border: 1.5px solid var(--gh-line); background: #fff; color: var(--gh-ink); font: 600 15px/1 Inter, system-ui, sans-serif; cursor: pointer; transition: border-color .2s, color .2s, box-shadow .2s, transform .2s cubic-bezier(.2,.7,.2,1); }
+.gh-catnav__btn svg { color: var(--gh-brand); }
+.gh-catnav__btn i { width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); margin-left: 2px; opacity: .55; transition: transform .2s; }
+.gh-catnav__btn:hover, .gh-catnav__grp.is-open .gh-catnav__btn { border-color: var(--gh-brand); color: var(--gh-brand-d); box-shadow: var(--gh-shadow); }
+.gh-catnav__grp.is-active .gh-catnav__btn { background: var(--gh-deep); color: #fff; border-color: var(--gh-deep); }
+.gh-catnav__grp.is-active .gh-catnav__btn svg { color: var(--gh-gold); }
+.gh-catnav__grp.is-open .gh-catnav__btn i { transform: rotate(-135deg) translateY(-2px); }
+.gh-catnav__menu { list-style: none; margin: 0; padding: 8px; position: absolute; top: calc(100% + 8px); left: 50%; min-width: 240px; background: #fff; border: 1px solid var(--gh-line); border-radius: 16px; box-shadow: 0 24px 50px -24px rgba(22,33,43,.45);
+  opacity: 0; visibility: hidden; transform: translate(-50%, -6px); transition: opacity .18s ease, transform .2s cubic-bezier(.2,.7,.2,1), visibility 0s .2s; }
+.gh-catnav__grp.is-open .gh-catnav__menu { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition-delay: 0s; }
+.gh-catnav__menu a { display: block; padding: 11px 14px; border-radius: 10px; color: var(--gh-ink) !important; font-weight: 500; text-decoration: none !important; }
+.gh-catnav__menu a:hover, .gh-catnav__menu a[aria-current] { background: #fbe8ef; color: var(--gh-brand-d) !important; }
+@media (max-width: 640px) { .gh-catnav { display: grid; grid-template-columns: 1fr 1fr; } .gh-catnav__btn { width: 100%; justify-content: center; } .gh-catnav__menu { left: 0; transform: translateY(-6px); min-width: 100%; } .gh-catnav__grp.is-open .gh-catnav__menu { transform: none; } }
+
+/* promo banner */
+.gh-promo { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 0 auto 28px; padding: 18px 22px; border-radius: 18px; color: #fff;
+  background: radial-gradient(120% 140% at 0% 0%, #2c3c4a 0%, var(--gh-deep) 60%), var(--gh-deep); box-shadow: var(--gh-shadow); position: relative; overflow: hidden; }
+.gh-promo::after { content: ""; position: absolute; right: -40px; top: -40px; width: 220px; height: 220px; background: radial-gradient(closest-side, rgba(225,76,127,.45), transparent); pointer-events: none; }
+.gh-promo__txt { display: grid; gap: 4px; position: relative; z-index: 1; }
+.gh-promo__txt b { font: 800 18px/1.25 Manrope, Inter, sans-serif; }
+.gh-promo__txt span:last-child { color: rgba(255,255,255,.75); font-size: 14px; }
+.gh-promo__tag { justify-self: start; background: var(--gh-gold); color: #16212b; font: 700 11px/1 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; padding: 5px 9px; border-radius: 999px; }
+.gh-promo__btn { position: relative; z-index: 1; background: var(--gh-brand); color: #fff !important; font-weight: 600; padding: 12px 20px; border-radius: 12px; text-decoration: none !important; transition: background .2s, transform .2s; }
+.gh-promo__btn:hover { background: var(--gh-brand-d); transform: translateY(-1px); }
+@media (prefers-reduced-motion: reduce) { .gh-catnav__menu, .gh-catnav__btn, .gh-promo__btn { transition: none; } }
