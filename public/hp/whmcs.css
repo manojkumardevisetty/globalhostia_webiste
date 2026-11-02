@@ -610,3 +610,21 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .main-page-contents .btn-group .btn:hover { border-color: var(--gh-brand) !important; color: var(--gh-brand-d) !important; }
 .gh-newportal { display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 16px; background: var(--gh-brand); color: #fff; font: 600 14px/1.3 Inter, sans-serif; position: relative; z-index: 1000; }
 .gh-newportal a { color: #fff !important; text-decoration: underline !important; font-weight: 700; }
+/* cart cross-sell / bundles */
+.gh-offers { margin: 22px 0; }
+.gh-offers h3 { font: 800 18px/1.2 Manrope, Inter, sans-serif; margin: 0 0 12px; color: var(--gh-ink); }
+.gh-offers__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.gh-offer { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 18px; background: #fff; border: 1.5px dashed #e7b3c7; border-radius: 16px; }
+.gh-offer b { font: 700 15px/1.3 Manrope, Inter, sans-serif; color: var(--gh-ink); }
+.gh-offer p { margin: 0; font-size: 13px; color: var(--gh-muted); flex: 1; }
+.gh-offer__tag { align-self: flex-start; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: #fbe8ef; color: var(--gh-brand-d); border-radius: 999px; padding: 3px 9px; }
+.gh-offer__foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 6px; font-weight: 700; color: var(--gh-ink); }
+.gh-offer__btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 10px; background: var(--gh-brand); color: #fff !important; font-weight: 700; font-size: 14px; text-decoration: none !important; }
+.gh-offer__btn:hover { background: var(--gh-brand-d); }
+/* WHMCS invoice + payment method pages */
+.invoice-container { max-width: 980px; margin: 24px auto !important; background: #fff !important; border: 1px solid var(--gh-line) !important; border-radius: 22px !important; box-shadow: var(--gh-shadow); padding: clamp(18px, 3vw, 40px) !important; }
+.invoice-container .invoice-status .paid, .invoice-status .paid { color: #0f7a46 !important; } .invoice-status .unpaid { color: #a6225f !important; }
+.invoice-container table { border-radius: 12px; overflow: hidden; }
+.invoice-container .panel, .invoice-container .card { box-shadow: none !important; }
+.payment-btn-container .btn, .invoice-container .btn-success, .invoice-container input[type=submit] { background: var(--gh-brand) !important; border-color: var(--gh-brand) !important; border-radius: 12px !important; min-height: 46px; padding: 0 24px !important; }
+.paymethod-info, .pay-method, [class*="paymethod"] .card { border-radius: 14px !important; }

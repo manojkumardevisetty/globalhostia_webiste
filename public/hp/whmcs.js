@@ -586,5 +586,35 @@
     }
   }
 
-  ready(function () { try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  function cartOffers() {
+    if (!/cart\.php/.test(location.pathname) || !/a=view/.test(location.search) && !document.querySelector('.view-cart-items, #orderSummary .btn-checkout, #checkout')) return;
+    var items = [].slice.call(document.querySelectorAll('.secondary-cart-body .item, .view-cart-items .item, .emyui-cart-aws .row'));
+    var text = (document.querySelector('.secondary-cart-body') || document.body).innerText.toLowerCase();
+    if (!/checkout/.test(text) && !document.getElementById('checkout')) return;
+    var hdr = document.querySelector('.site-header, header'); var hm = hdr && hdr.textContent.match(/\b(USD|AED|INR|GBP|EUR|SAR|CAD|AUD|SGD|MYR)\b/); var cur = hm ? hm[1] : 'USD';
+    var SYM = { USD: '$', EUR: '€', GBP: '£', INR: '₹' }; var fmt = function (n) { return SYM[cur] ? SYM[cur] + n.toFixed(2) : cur + ' ' + n.toFixed(2); };
+    var hasHosting = /hostia|hosting|wordpress|vps|server|rdp/.test(text), hasDomain = /domain registration|domain transfer/.test(text), hasSsl = /ssl/.test(text);
+    fetch(ORIGIN + '/api/store/specs?h=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.json(); }).then(function (all) {
+      var pick = function (slug) { var p = all[slug]; return p && p.pid && p.prices && p.prices[cur] ? p : null; };
+      var price = function (p) { var t = p.prices[cur]; return t.monthly != null ? fmt(t.monthly) + '/mo' : t.annually != null ? fmt(t.annually) + '/yr' : ''; };
+      var offers = [];
+      var ssl = pick('positivessl-dv');
+      if (hasHosting && !hasSsl && ssl) offers.push({ t: 'Add a trusted SSL certificate', d: 'Green padlock and the business trust boost for checkout pages.', p: price(ssl), h: B + '/cart.php?a=add&pid=' + ssl.pid, tag: 'Security' });
+      var lite = pick('hostia-ultra') || pick('hostia-lite');
+      if (hasDomain && !hasHosting && lite) offers.push({ t: 'Add website hosting', d: 'Put your new domain online today: NVMe hosting, free SSL and email included.', p: price(lite), h: B + '/cart.php?a=add&pid=' + lite.pid, tag: 'Bundle' });
+      if (hasHosting && !hasDomain) offers.push({ t: 'Add a matching domain', d: 'Register your name alongside the plan, we connect everything automatically.', p: '', h: B + '/cart.php?a=add&domain=register', tag: 'Bundle' });
+      if (/monthly/.test(text)) offers.push({ t: 'Switch to yearly and save', d: 'Longer terms cost less per month and lock your price. Edit the item and pick 1, 2 or 3 years.', p: '', h: '', tag: 'Save', edit: true });
+      if (!offers.length) return;
+      var box = document.createElement('section'); box.className = 'gh-offers';
+      box.innerHTML = '<h3>Complete your setup</h3><div class="gh-offers__grid">' + offers.map(function (o) {
+        return '<div class="gh-offer"><span class="gh-offer__tag">' + esc(o.tag) + '</span><b>' + esc(o.t) + '</b><p>' + esc(o.d) + '</p><div class="gh-offer__foot">' + (o.p ? '<span>' + esc(o.p) + '</span>' : '<span></span>') +
+          (o.edit ? '<a class="gh-offer__btn" href="#" data-edit>Edit billing</a>' : '<a class="gh-offer__btn" href="' + esc(o.h) + '">Add' + (o.p ? ' for ' + esc(o.p) : '') + '</a>') + '</div></div>';
+      }).join('') + '</div>';
+      var anchor = document.querySelector('.secondary-cart-body .empty-cart, #btnEmptyCart, .secondary-cart-body > .row:last-child') || document.querySelector('.secondary-cart-body');
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(box, anchor.nextSibling);
+      var ed = box.querySelector('[data-edit]'); if (ed) ed.addEventListener('click', function (e) { e.preventDefault(); var a = document.querySelector('a[href*="a=confproduct"]'); if (a) location.href = a.href; });
+    }).catch(function () {});
+  }
+
+  ready(function () { try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
