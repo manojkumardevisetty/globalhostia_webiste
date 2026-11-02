@@ -673,3 +673,33 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .affiliate-stat i, .affiliate-stat .fas, .affiliate-stat svg { color: var(--gh-brand) !important; opacity: .9; }
 .affiliate-stat span, .affiliate-stat .h1, .affiliate-stat strong { color: var(--gh-ink) !important; font-family: Manrope, Inter, sans-serif; }
 .gh-offers, .gh-offers * { text-align: left !important; } .gh-offers h3 { margin-top: 8px; }
+
+/* ===== domain bundle card (cart + domain search) in Hostpen style ===== */
+#checkoutDomainBundle.gh2-bundle, .gh2-bundle { position: relative; overflow: hidden; padding: clamp(20px, 3vw, 32px) !important; border-radius: 22px !important; border: 0 !important; color: #fff !important;
+  background: radial-gradient(90% 120% at 100% 0%, rgba(197,56,111,.55) 0%, rgba(197,56,111,0) 60%), linear-gradient(150deg, #16212b 0%, #23313d 100%) !important; box-shadow: 0 30px 60px -36px rgba(22,33,43,.7) !important; }
+.gh2-bundle::after { content: ""; position: absolute; right: -40px; bottom: -60px; width: 260px; height: 260px; opacity: .08; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 115'%3E%3Cpath d='M50 2l46 26v58L50 112 4 86V28z' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E") center/contain no-repeat; }
+.gh2-bundle .gh2-top { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+.gh2-bundle .gh2-eyebrow { display: inline-flex !important; align-items: center; gap: 8px; color: var(--gh-gold) !important; font: 700 12px/1 Inter, sans-serif !important; letter-spacing: .1em; text-transform: uppercase; background: rgba(253,215,0,.1); border-radius: 999px; padding: 6px 12px; }
+.gh2-bundle .gh2-eyebrow i { color: var(--gh-gold) !important; }
+.gh2-bundle h4 { color: #fff !important; font: 800 clamp(22px, 2.4vw, 30px)/1.15 Manrope, Inter, sans-serif !important; margin: 12px 0 6px !important; letter-spacing: -.02em; }
+.gh2-bundle .gh2-copy p { color: rgba(255,255,255,.72) !important; margin: 0 !important; }
+.gh2-bundle .gh2-price { text-align: right; }
+.gh2-bundle .gh2-price strong { color: #fff !important; font: 800 clamp(34px, 4vw, 46px)/1 Manrope, Inter, sans-serif !important; }
+.gh2-bundle .gh2-price span:not(.gh2-save), .gh2-bundle .gh2-price small { color: rgba(255,255,255,.65) !important; }
+.gh2-bundle .gh2-price small { text-decoration: line-through; }
+.gh2-bundle .gh2-save { display: inline-block; background: var(--gh-gold) !important; color: #3a3000 !important; font-weight: 800 !important; border-radius: 999px !important; padding: 4px 10px !important; margin-bottom: 6px; }
+.gh2-bundle .gh2-domain-row { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px !important; margin: 20px 0 !important; }
+.gh2-bundle .gh2-domain { background: rgba(255,255,255,.06) !important; border: 1px solid rgba(255,255,255,.14) !important; border-radius: 14px !important; padding: 14px 16px !important; display: flex; align-items: center; gap: 12px; }
+.gh2-bundle .gh2-domain small { color: var(--gh-gold) !important; font-weight: 700 !important; letter-spacing: .08em; }
+.gh2-bundle .gh2-domain strong { color: #fff !important; font: 700 15px/1.3 Manrope, Inter, sans-serif !important; word-break: break-all; }
+.gh2-bundle .gh2-dot { width: 10px !important; height: 10px !important; border-radius: 50% !important; box-shadow: 0 0 0 4px rgba(255,255,255,.08); background: var(--gh-brand-l) !important; }
+.gh2-bundle .gh2-dot.gh2-green { background: #3ddc97 !important; } .gh2-bundle .gh2-dot.gh2-orange { background: var(--gh-gold) !important; }
+.gh2-bundle .gh2-bottom { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,.12) !important; padding-top: 18px !important; }
+.gh2-bundle .gh2-note { display: flex; align-items: center; gap: 12px; }
+.gh2-bundle .gh2-note strong { color: #fff !important; } .gh2-bundle .gh2-note small { color: rgba(255,255,255,.6) !important; }
+.gh2-bundle .gh2-stack { width: 40px !important; height: 44px !important; display: grid !important; place-items: center; clip-path: polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); background: var(--gh-gold) !important; color: #3a3000 !important; font-weight: 800 !important; border-radius: 0 !important; }
+.gh2-bundle .gh2-button { display: inline-flex !important; align-items: center; gap: 12px; min-height: 52px; padding: 0 10px 0 22px !important; border-radius: 999px !important; background: var(--gh-brand) !important; color: #fff !important; font-weight: 700 !important; text-decoration: none !important; box-shadow: 0 14px 30px -14px rgba(197,56,111,.9) !important; transition: transform .2s cubic-bezier(.2,.7,.2,1), background .2s; }
+.gh2-bundle .gh2-button:hover { background: var(--gh-brand-d) !important; transform: translateY(-1px); }
+.gh2-bundle .gh2-arrow { width: 36px !important; height: 36px !important; border-radius: 50% !important; display: grid !important; place-items: center; background: rgba(255,255,255,.18) !important; color: #fff !important; }
+@media (max-width: 575px) { .gh2-bundle .gh2-price { text-align: left; } .gh2-bundle .gh2-button { width: 100%; justify-content: space-between; } }
