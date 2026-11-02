@@ -445,7 +445,8 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 #btnDomainContinue, .domain-checker-continue .btn, button#btnDomainContinue { min-height: 52px; padding: 0 36px !important; }
 
 /* Store mega menu (replaces the long single-column dropdown) */
-.gh-mega.dropdown-menu { padding: 0 !important; width: min(1080px, calc(100vw - 32px)); left: 50% !important; transform: translateX(-35%); border-radius: 20px !important; overflow: hidden; }
+@media (min-width: 1200px) { #Primary_Navbar-Store { position: static !important; } }
+.gh-mega.dropdown-menu { padding: 0 !important; width: min(1080px, calc(100vw - 32px)); left: 50% !important; right: auto !important; transform: translateX(-50%); border-radius: 20px !important; overflow: hidden; }
 .gh-mega__in { list-style: none; }
 .gh-mega__cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px 22px; padding: 24px 26px 18px; }
 .gh-mega__head { display: flex; gap: 10px; align-items: center; padding-bottom: 10px; margin-bottom: 6px; border-bottom: 1px solid var(--gh-line); }
