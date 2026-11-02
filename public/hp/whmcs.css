@@ -240,7 +240,7 @@ body.loading, body.preloader-active { overflow: auto !important; }
 @media (max-width: 640px) { .gh-catbanner { padding: 20px; } .gh-catbanner .gh-hex { display: none; } }
 
 /* ---------- one consistent page width: header, top bar and content share the same 1440px grid ---------- */
-:root { --gh-page: 1440px; }
+:root { --gh-page: 1760px; }
 .whmcs-top-header-area > .container-fluid, .whmcs-top-header-area .top-header-area-menu,
 header.site-header > .container-fluid > .d-flex,
 .header-overline-container > .container-fluid > *, .header-overline-container .container { max-width: var(--gh-page); margin-left: auto !important; margin-right: auto !important; }

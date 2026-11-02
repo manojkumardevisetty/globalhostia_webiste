@@ -9,7 +9,7 @@
   --ok:#16a34a; --on-dark:#e9edf1; --on-dark-mute:#a9b4bf;
   --head:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-  --container:1200px; --gutter:32px;
+  --container:1760px; --gutter:clamp(16px,4vw,64px);
   --r-sm:8px; --r:12px; --r-lg:18px;
   --ease:cubic-bezier(.2,.7,.2,1); --ease-o:cubic-bezier(.16,1,.3,1);
   --header-h:76px;
