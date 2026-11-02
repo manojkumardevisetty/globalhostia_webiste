@@ -476,3 +476,12 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .domain-input-group [class*="icon"] i, .domain-input-group .fad.fa-globe, .domain-input-group .icon-domain { background: var(--gh-brand) !important; }
 .domain-input-group .fa-globe, .domain-input-group [class*="circle"] { background-image: none !important; }
 @media (max-width: 640px) { .domain-lookup-primary-results .domain-price { grid-column: auto; grid-row: auto; } }
+/* GoDaddy comparison badges */
+.gh-cmp-wrap { flex: 1; padding-left: 14px; }
+.gh-cmp { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; color: var(--gh-muted); font-weight: 500; }
+.gh-cmp s { color: #98a2ad; }
+.gh-cmp b { background: #e7f6ee; color: #0f7a46; border-radius: 999px; padding: 2px 8px; font-size: 11.5px; font-weight: 700; }
+.gh-cmp--card { justify-content: center; margin-top: 8px; font-size: 11.5px; line-height: 1.5; }
+.domain-suggestion .extension { flex: 0 0 auto !important; }
+.domain-suggestion .actions { margin-left: auto !important; }
+@media (max-width: 760px) { .gh-cmp-wrap { flex-basis: 100%; order: 3; padding: 6px 0 0; } }

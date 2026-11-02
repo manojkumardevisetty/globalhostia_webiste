@@ -5,6 +5,7 @@
 (function () {
   'use strict';
   // works both at globalhostia.com/secure/... and at my.globalhostia.com/...
+  var ORIGIN = (function () { try { return new URL(document.currentScript.src).origin; } catch (e) { return 'https://globalhostia.com'; } })();
   var B = /^\/secure(\/|$)/.test(location.pathname) ? '/secure' : '';
   function ready(f) { if (document.readyState !== 'loading') f(); else document.addEventListener('DOMContentLoaded', f); }
 
@@ -377,5 +378,30 @@
       (all ? '<a class="gh-mega__all" href="' + esc(all.h) + '">Browse all products →</a>' : '') + '</div></li>';
   }
 
-  ready(function () { try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  function compare() {
+    if (!document.querySelector('#DomainSearchResults, #spotlightTlds, .domain-suggestion')) return;
+    fetch(ORIGIN + '/api/store/tlds').then(function (r) { return r.json(); }).then(function (d) {
+      var items = d.items || {};
+      var fmt = function (n) { return '$' + n.toFixed(2); };
+      var badge = function (tld) {
+        var it = items[tld]; if (!it || !it.gd || !it.renew) return '';
+        var save = Math.round((1 - it.renew / it.gd.renew) * 100);
+        if (save < 5) return '<span class="gh-cmp gh-cmp--plain">Renews ' + fmt(it.renew) + '/yr</span>';
+        return '<span class="gh-cmp" title="GoDaddy list renewal price, checked ' + esc(d.compareChecked) + '">Renews ' + fmt(it.renew) + '/yr <s>GoDaddy ' + fmt(it.gd.renew) + '</s> <b>Save ' + save + '%</b></span>';
+      };
+      var run = function () {
+        document.querySelectorAll('.domain-suggestion').forEach(function (row) {
+          if (row.dataset.ghc) return; var ext = row.querySelector('.extension'); if (!ext || !ext.textContent.trim()) return;
+          row.dataset.ghc = 1; var b = badge(ext.textContent.trim().toLowerCase()); if (b) { var dm = document.createElement('span'); dm.className = 'gh-cmp-wrap'; dm.innerHTML = b; ext.after(dm); }
+        });
+        document.querySelectorAll('.spotlight-tld').forEach(function (c) {
+          if (c.dataset.ghc) return; var n = c.querySelector('.spotlight-tld-name'); if (!n) return;
+          c.dataset.ghc = 1; var b = badge(n.textContent.trim().toLowerCase()); if (b) c.insertAdjacentHTML('beforeend', b.replace('gh-cmp', 'gh-cmp gh-cmp--card'));
+        });
+      };
+      run(); new MutationObserver(function () { clearTimeout(run.t); run.t = setTimeout(run, 150); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+    }).catch(function () {});
+  }
+
+  ready(function () { try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
