@@ -62,5 +62,95 @@
     host.parentNode.insertBefore(p, host.nextSibling);
   }
 
-  ready(function () { try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} });
+  /* ---------- product listing: specs on every card; big categories become a filterable, sortable list ---------- */
+  var SPECS_URL = 'https://globalhostiawebiste.vercel.app/api/store/specs';
+  function parseCards(row) {
+    return Array.prototype.slice.call(row.querySelectorAll('.emyui-ews-plans-group')).map(function (el) {
+      var a = el.querySelector('a.btn-order-now, a.emyui-ews-plans-add-cart');
+      var href = a ? a.getAttribute('href') : '#';
+      var slug = (href.match(/\/store\/[^/]+\/([^/?#]+)/) || [])[1] || '';
+      var priceEl = el.querySelector('.emyui-ews-plans-group-price-tag');
+      var price = priceEl ? parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')) : NaN;
+      var cycle = ((el.querySelector('.emyui-ews-plans-price-algo small') || {}).textContent || '').trim();
+      var cur = ((el.querySelector('.emyui-ews-plans-price-algo span') || {}).textContent || '$').trim();
+      var save = ((el.querySelector('.save-tag') || {}).textContent || '').trim();
+      var name = ((el.querySelector('h5') || {}).textContent || '').trim();
+      var region = /\b(usa|us)\b/i.test(name) ? 'USA' : /europe|france|germany|uk|netherlands/i.test(name) ? 'Europe' : '';
+      var tier = /^(swift|velocity|turbo|boost|mega)\b/i.test(name) ? 'High performance' : /^(basic|standard|pro|advanced|elite)\b/i.test(name) ? 'Classic' : /ryzen|xeon|e5-|dedicated/i.test(name) ? 'Dedicated' : '';
+      return { el: el, href: href, slug: slug, price: price, cycle: cycle, cur: cur, save: save, name: name, region: region, tier: tier, soldOut: !a || /out of stock/i.test(el.textContent) };
+    });
+  }
+  function chips(list) { return list.map(function (f) { return '<li>' + f.replace(/</g, '&lt;') + '</li>'; }).join(''); }
+  function enhanceListing() {
+    var row = document.querySelector('#products.emyui-ews-plans-row, #order-standard_cart #products');
+    if (!row) return;
+    var items = parseCards(row);
+    if (!items.length) return;
+    fetch(SPECS_URL, { mode: 'cors' }).then(function (r) { return r.json(); }).catch(function () { return {}; }).then(function (specs) {
+      items.forEach(function (it) { var s = specs[it.slug]; it.features = s && s.features && s.features.length ? s.features : []; if (s) { it.region = it.region || s.location || ''; it.tier = it.tier || s.tier || ''; } });
+      if (items.length <= 6) {
+        items.forEach(function (it) {
+          if (!it.features.length) return;
+          var ul = it.el.querySelector('.emyui-ews-plans-features');
+          if (ul && !ul.children.length) ul.innerHTML = chips(it.features);
+        });
+        row.classList.add('gh-cards');
+        return;
+      }
+      buildList(row, items);
+    });
+  }
+  function buildList(row, items) {
+    var regions = uniq(items.map(function (i) { return i.region; }));
+    var tiers = uniq(items.map(function (i) { return i.tier; }));
+    var wrap = document.createElement('section');
+    wrap.className = 'gh-plist';
+    wrap.innerHTML =
+      '<div class="gh-plist__bar">' +
+        '<label class="gh-plist__search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="gh-sr">Search plans</span><input type="search" placeholder="Search ' + items.length + ' plans" data-q></label>' +
+        (tiers.length > 1 ? seg('tier', 'Type', tiers) : '') +
+        (regions.length > 1 ? seg('region', 'Location', regions) : '') +
+        '<label class="gh-plist__sort"><span>Sort</span><select data-sort><option value="price">Price: low to high</option><option value="-price">Price: high to low</option><option value="name">Name</option></select></label>' +
+      '</div>' +
+      '<p class="gh-plist__count" aria-live="polite"></p>' +
+      '<div class="gh-plist__head" aria-hidden="true"><span>Plan</span><span>Specifications</span><span>Price</span><span></span></div>' +
+      '<ol class="gh-plist__rows"></ol>';
+    row.parentNode.insertBefore(wrap, row);
+    row.classList.add('gh-hidden');
+    var ol = wrap.querySelector('.gh-plist__rows'), state = { q: '', tier: '', region: '', sort: 'price' };
+    function render() {
+      var list = items.filter(function (i) {
+        return (!state.tier || i.tier === state.tier) && (!state.region || i.region === state.region) &&
+          (!state.q || (i.name + ' ' + i.features.join(' ')).toLowerCase().indexOf(state.q) > -1);
+      }).sort(function (a, b) {
+        if (state.sort === 'name') return a.name.localeCompare(b.name);
+        var d = (isNaN(a.price) ? 1e9 : a.price) - (isNaN(b.price) ? 1e9 : b.price);
+        return state.sort === '-price' ? -d : d;
+      });
+      wrap.querySelector('.gh-plist__count').textContent = list.length + ' of ' + items.length + ' plans';
+      ol.innerHTML = list.length ? list.map(function (i) {
+        return '<li class="gh-prow">' +
+          '<div class="gh-prow__name"><b>' + esc(i.name) + '</b><span>' + [i.tier, i.region].filter(Boolean).map(esc).join(' · ') + '</span></div>' +
+          '<ul class="gh-prow__specs">' + (i.features.length ? chips(i.features.slice(0, 4)) : '<li>See details</li>') + '</ul>' +
+          '<div class="gh-prow__price">' + (isNaN(i.price) ? '' : '<b>' + esc(i.cur) + i.price.toFixed(2) + '</b><span>' + esc(i.cycle) + '</span>') + (i.save ? '<em>' + esc(i.save.replace(/^with an?\s*/i, '')) + '</em>' : '') + '</div>' +
+          '<div class="gh-prow__cta">' + (i.soldOut ? '<span class="gh-prow__oos">Out of stock</span>' : '<a class="gh-prow__btn" href="' + i.href + '">Configure</a>') + '</div></li>';
+      }).join('') : '<li class="gh-plist__empty">No plans match. <button type="button" data-reset>Clear filters</button></li>';
+    }
+    wrap.addEventListener('input', function (e) { if (e.target.matches('[data-q]')) { state.q = e.target.value.trim().toLowerCase(); render(); } });
+    wrap.addEventListener('change', function (e) { if (e.target.matches('[data-sort]')) { state.sort = e.target.value; render(); } });
+    wrap.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-key]');
+      if (b) { var k = b.getAttribute('data-key'); state[k] = b.getAttribute('data-val'); b.parentNode.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); render(); }
+      if (e.target.matches('[data-reset]')) { state.q = state.tier = state.region = ''; wrap.querySelector('[data-q]').value = ''; wrap.querySelectorAll('[data-key]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-val') === '')); }); render(); }
+    });
+    render();
+  }
+  function seg(key, label, vals) {
+    return '<div class="gh-plist__seg" role="group" aria-label="' + label + '"><button type="button" data-key="' + key + '" data-val="" aria-pressed="true">All</button>' +
+      vals.map(function (v) { return '<button type="button" data-key="' + key + '" data-val="' + esc(v) + '" aria-pressed="false">' + esc(v) + '</button>'; }).join('') + '</div>';
+  }
+  function uniq(a) { return a.filter(function (x, i) { return x && a.indexOf(x) === i; }); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  ready(function () { try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
