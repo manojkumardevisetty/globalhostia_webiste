@@ -587,10 +587,9 @@
   }
 
   function cartOffers() {
-    if (!/cart\.php/.test(location.pathname) || !/a=view/.test(location.search) && !document.querySelector('.view-cart-items, #orderSummary .btn-checkout, #checkout')) return;
+    if (!/cart\.php/.test(location.pathname) || !/a=view/.test(location.search)) return;
     var items = [].slice.call(document.querySelectorAll('.secondary-cart-body .item, .view-cart-items .item, .emyui-cart-aws .row'));
     var text = (document.querySelector('.secondary-cart-body') || document.body).innerText.toLowerCase();
-    if (!/checkout/.test(text) && !document.getElementById('checkout')) return;
     var hdr = document.querySelector('.site-header, header'); var hm = hdr && hdr.textContent.match(/\b(USD|AED|INR|GBP|EUR|SAR|CAD|AUD|SGD|MYR)\b/); var cur = hm ? hm[1] : 'USD';
     var SYM = { USD: '$', EUR: '€', GBP: '£', INR: '₹' }; var fmt = function (n) { return SYM[cur] ? SYM[cur] + n.toFixed(2) : cur + ' ' + n.toFixed(2); };
     var hasHosting = /hostia|hosting|wordpress|vps|server|rdp/.test(text), hasDomain = /domain registration|domain transfer/.test(text), hasSsl = /ssl/.test(text);

@@ -628,3 +628,5 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .invoice-container .panel, .invoice-container .card { box-shadow: none !important; }
 .payment-btn-container .btn, .invoice-container .btn-success, .invoice-container input[type=submit] { background: var(--gh-brand) !important; border-color: var(--gh-brand) !important; border-radius: 12px !important; min-height: 46px; padding: 0 24px !important; }
 .paymethod-info, .pay-method, [class*="paymethod"] .card { border-radius: 14px !important; }
+[class*="domain-bundle"] button, [class*="domain-bundle"] a[class*="btn"], [id*="omainBundle"] button, [class*="bundle-cta"], [class*="bundle"] [class*="add"] { background: var(--gh-brand) !important; border-color: var(--gh-brand) !important; color: #fff !important; }
+[class*="domain-bundle"] [class*="badge"], [class*="bundle-badge"] { color: var(--gh-brand-d) !important; }
