@@ -734,3 +734,8 @@ main{display:block}
 .hp-util .hp-cur__menu a[aria-current] b,.hp-cur__menu a:hover b{color:var(--brand-d)!important}
 @media (max-width:340px){.hp-u-right{gap:0}.hp-util .hp-cur>summary{padding:0 2px}.hp-util .hp-cur>summary svg{display:none}.hp-u-right a svg{display:none}}
 @media (max-width:767px){.hp-cur>summary b{margin-left:-2px}.hp-cur__menu{right:auto;left:50%;transform:translateX(-50%)}}
+.hp-cur__menu a{align-items:center}
+.hp-cur__menu .hp-cur__sym{font-style:normal;width:34px;height:30px;display:inline-grid;place-items:center;border-radius:8px;background:var(--tint);color:var(--ink);font-weight:700;font-size:13px;flex:none}
+.hp-util .hp-cur__menu a b,.hp-cur__menu a b{color:var(--ink)!important;min-width:38px}
+.hp-cur__menu a span{color:var(--muted)}
+.hp-cur__menu a[aria-current] .hp-cur__sym{background:var(--brand);color:#fff}

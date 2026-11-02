@@ -192,7 +192,7 @@ function currencyPicker(cat: Catalog) {
   const list = availableCurrencies(cat.products);
   if (list.length < 2) return `<span class="hp-u-item">${icon('coin')}Currency <b>${esc(cat.currency)}</b></span>`;
   return `<details class="hp-cur"><summary class="hp-u-item">${icon('coin')}Currency <b>${esc(cat.currency)}</b></summary><ul class="hp-cur__menu">${list.map((c) =>
-    `<li><a href="?currency=${c}" rel="nofollow"${c === cat.currency ? ' aria-current="true"' : ''}><b>${c}</b> ${esc(CURRENCY_LABEL[c] || '')}</a></li>`).join('')}</ul></details>`;
+    `<li><a href="?currency=${c}" rel="nofollow"${c === cat.currency ? ' aria-current="true"' : ''}><i class="hp-cur__sym">${esc(symbolOf(cat, c))}</i><b>${c}</b><span>${esc(CURRENCY_LABEL[c] || '')}</span></a></li>`).join('')}</ul></details>`;
 }
 
 /** Send the visitor's currency to WHMCS so the cart and checkout use it too. */
@@ -203,4 +203,9 @@ function withCurrency(html: string, cat: Catalog) {
   return html
     .replace(new RegExp(`(href="${base}/cart\\.php\\?)`, 'g'), `$1currency=${id}&amp;`)
     .replace(new RegExp(`href="(${base}/(?:store|cart\\.php)[^"?]*)"`, 'g'), `href="$1?currency=${id}"`);
+}
+
+function symbolOf(cat: Catalog, code: string) {
+  for (const p of cat.products) { const r = p.prices.find((x) => x.currency === code && x.prefix); if (r) return r.prefix.trim(); }
+  return ({ USD: '$', EUR: '€', GBP: '£', INR: '₹', AED: 'AED' } as Record<string, string>)[code] || code;
 }
