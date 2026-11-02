@@ -327,8 +327,9 @@
   }
 
   function cartView() {
-    var f = document.getElementById('frmEstimateTaxes') || (document.querySelector('[name=state]') || {}).form;
-    if (f && !f.closest('details')) {
+    if (document.getElementById('frmCheckout')) return;
+    var f = document.getElementById('frmEstimateTaxes') || (document.querySelector('#inputState, select[name=country]') || {}).form;
+    if (f && f.id !== 'frmCheckout' && !f.closest('details')) {
       var box = f.closest('.estimate-taxes, .bg-default-2, .card, .panel') || f, d = document.createElement('details'); d.className = 'gh-taxes';
       d.innerHTML = '<summary>Estimate taxes</summary>'; box.parentNode.insertBefore(d, box); d.appendChild(box);
       var t = box.querySelector('h1,h2,h3,h4,.title'); if (t && /estimate taxes/i.test(t.textContent)) t.style.display = 'none';

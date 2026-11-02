@@ -319,10 +319,11 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .spotlight-tld .btn.checkout, .spotlight-tld .btn-primary { background: #1c9a5b !important; border-color: #1c9a5b !important; }
 .spotlight-tld [class*="ribbon"], .spotlight-tld .label { border-radius: 999px !important; font-size: 10px !important; }
 .suggested-domains, #domainSuggestions { border: 0 !important; }
-.domain-suggestion { display: flex !important; align-items: center; gap: 14px; padding: 14px 18px !important; border: 1px solid var(--gh-line) !important; border-radius: 14px !important; margin-bottom: 8px !important; background: #fff !important; transition: border-color .2s, box-shadow .2s; }
+.domain-suggestion:not(.w-hidden) { display: flex !important; }
+.domain-suggestion { align-items: center; gap: 14px; padding: 14px 18px !important; border: 1px solid var(--gh-line) !important; border-radius: 14px !important; margin-bottom: 8px !important; background: #fff !important; transition: border-color .2s, box-shadow .2s; }
 .domain-suggestion:hover { border-color: #e7b3c7 !important; box-shadow: var(--gh-shadow); }
-.domain-suggestion .domain { font: 700 17px/1.2 Manrope, Inter, sans-serif; color: var(--gh-ink); flex: 1; }
-.domain-suggestion .extension { color: var(--gh-brand); }
+.domain-suggestion .domain { font: 700 17px/1.2 Manrope, Inter, sans-serif; color: var(--gh-ink); margin-right: -14px; }
+.domain-suggestion .extension { font: 700 17px/1.2 Manrope, Inter, sans-serif; color: var(--gh-brand) !important; flex: 1; }
 .domain-suggestion .actions { margin-left: auto; display: flex; align-items: center; gap: 14px; }
 .domain-suggestion .price { font: 800 17px/1 Manrope, Inter, sans-serif; color: var(--gh-ink); }
 .btn-add-to-cart { min-height: 40px !important; padding: 0 18px !important; border-radius: 10px !important; background: var(--gh-ink) !important; border: 0 !important; color: #fff !important; font-weight: 600 !important; font-size: 14px !important; }
@@ -417,3 +418,28 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .gh-co__items li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; }
 .gh-co__items b { font-weight: 700; color: var(--gh-ink); } .gh-co__items span { grid-column: 1; font-size: 13px; color: var(--gh-muted); } .gh-co__items i { grid-row: 1; grid-column: 2; font-style: normal; font-weight: 700; }
 .gh-co__sum .row, .gh-co__sum .clearfix, .gh-co__sum [class*="summary-totals"] > div { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.checkout-security-msg, #frmCheckout ~ .alert-warning, .alert-warning.checkout-security-msg { display: flex !important; align-items: center; gap: 14px; background: #fff !important; border: 1px solid var(--gh-line) !important; border-left: 4px solid #1c9a5b !important; border-radius: 14px !important; padding: 14px 18px !important; font-size: 13px; font-weight: 500 !important; color: var(--gh-muted) !important; }
+.checkout-security-msg i, .checkout-security-msg .fa-lock { font-size: 18px !important; color: #1c9a5b !important; }
+.checkout-security-msg br { display: none; }
+.orderform-step-form-wizard-item.active:has(~ .orderform-step-form-wizard-item.active) { background: #fff; border-color: var(--gh-line); }
+.orderform-step-form-wizard-item.active:has(~ .orderform-step-form-wizard-item.active) i { background: #e7f6ee !important; color: #1c9a5b !important; }
+/* fixes: spotlight cards were clipped (fixed 112px height), primary result card */
+.spotlight-tld, .spotlight-tld-item, .spotlight-tlds-group > div { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+.spotlight-tld { display: flex !important; flex-direction: column; align-items: center; text-align: center; overflow: hidden !important; }
+.spotlight-tld .domain-lookup-result { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.spotlight-tld .price { font-size: 13px; color: var(--gh-muted); }
+.spotlight-tld-sale, .spotlight-tld-hot, .spotlight-tld-new, .spotlight-tld [class*="spotlight-tld-"]:not(.spotlight-tld-name) { position: absolute !important; top: 10px !important; right: 10px !important; transform: none !important; width: auto !important; padding: 2px 8px !important; border-radius: 999px !important; font-size: 10px !important; font-weight: 700; text-transform: uppercase; line-height: 1.5 !important; }
+.spotlight-tld { position: relative; padding-top: 30px !important; }
+.domain-lookup-primary-results:not(.w-hidden) { display: grid !important; grid-template-columns: 1fr auto; align-items: center; gap: 10px 24px; background: #fff; border: 1px solid var(--gh-line); border-left: 5px solid #1c9a5b; border-radius: 18px; padding: 20px 26px; box-shadow: var(--gh-shadow); margin: 0 0 22px !important; }
+.domain-lookup-primary-results .alert { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+.domain-lookup-primary-results .alert-heading { font: 800 24px/1.2 Manrope, Inter, sans-serif !important; color: var(--gh-ink) !important; margin: 0 0 4px !important; }
+.domain-lookup-primary-results .alert p { margin: 0 !important; color: #1c9a5b !important; font-weight: 600; }
+.domain-lookup-primary-results .alert p::before { content: "✓ "; }
+.domain-lookup-primary-results .domain-price { margin: 0 !important; text-align: right; }
+.domain-lookup-primary-results .register-price-label { display: block; font-size: 13px; color: var(--gh-muted); }
+.domain-lookup-primary-results .price { font: 800 26px/1.1 Manrope, Inter, sans-serif; color: var(--gh-ink); }
+.domain-lookup-primary-results .domain-unavailable { border: 0 !important; }
+.domain-lookup-primary-results:has(.domain-unavailable:not(.w-hidden)) { border-left-color: var(--gh-brand); }
+@media (max-width: 640px) { .domain-lookup-primary-results:not(.w-hidden) { grid-template-columns: 1fr; } .domain-lookup-primary-results .domain-price { text-align: left; } }
+.domain-lookup-loader { color: var(--gh-brand); }
+#btnDomainContinue, .domain-checker-continue .btn, button#btnDomainContinue { min-height: 52px; padding: 0 36px !important; }
