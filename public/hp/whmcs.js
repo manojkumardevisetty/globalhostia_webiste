@@ -404,25 +404,32 @@
   }
 
   function suggestPager() {
-    var TOP = ['.com', '.net', '.org', '.co', '.io', '.ai', '.ae', '.online', '.store', '.shop', '.xyz', '.info', '.biz', '.in', '.uk', '.co.uk', '.us', '.eu', '.de', '.tech', '.site', '.app', '.dev', '.cloud', '.live'];
+    var TOP = ['.com', '.ae', '.net', '.co', '.io', '.ai', '.org', '.online', '.store', '.shop', '.tech', '.app', '.dev', '.cloud', '.site', '.xyz', '.info', '.biz', '.in', '.uk', '.co.uk', '.us', '.eu', '.de', '.live'];
     var STEP = 8;
     var run = function () {
       var box = document.getElementById('domainSuggestions'); if (!box) return;
-      var rows = [].slice.call(box.querySelectorAll('.domain-suggestion')).filter(function (r) { return /block|flex/.test(r.getAttribute('style') || '') && r.querySelector('.extension') && r.querySelector('.extension').textContent.trim(); });
-      if (!rows.length || box.dataset.ghn == rows.length) return;
-      box.dataset.ghn = rows.length;
+      var rows = [].slice.call(box.querySelectorAll('.domain-suggestion.clone')).filter(function (r) { return r.querySelector('.extension') && r.querySelector('.extension').textContent.trim(); });
+      if (!rows.length) return;
+      rows.forEach(function (r) { if (!/block/.test(r.style.display)) r.style.display = 'block'; });
+      var sig = rows.length + ':' + (box.dataset.ghshow || STEP); if (box.dataset.ghsig === sig) return; box.dataset.ghsig = sig;
       var rank = function (r) { var t = r.querySelector('.extension').textContent.trim().toLowerCase(), i = TOP.indexOf(t); return i < 0 ? 100 : i; };
       var parent = rows[0].parentNode;
       rows.sort(function (a, b) { return rank(a) - rank(b); }).forEach(function (r) { parent.appendChild(r); });
       var shown = +(box.dataset.ghshow || STEP);
-      rows.forEach(function (r, i) { r.classList.toggle('gh-more-hide', i >= shown); });
-      var btn = box.querySelector('.gh-more'); var left = rows.length - shown;
-      if (left > 0) {
-        if (!btn) { btn = document.createElement('button'); btn.type = 'button'; btn.className = 'gh-more'; parent.after(btn);
-          btn.addEventListener('click', function () { box.dataset.ghshow = (+(box.dataset.ghshow || STEP)) + STEP; box.dataset.ghn = ''; run(); }); }
-        btn.textContent = 'Show more extensions (' + left + ' more)'; btn.hidden = false;
-      } else if (btn) btn.hidden = true;
-      var native = document.querySelector('#btnMoreSuggestions, .more-suggestions'); if (native) native.classList.add('gh-hidden');
+      rows.forEach(function (r, i) { r.classList.toggle('gh-more-hide', i >= shown); r.classList.toggle('gh-rec', i === 0); });
+      var first = rows[0];
+      if (first && !first.querySelector('.gh-rec-tag')) { box.querySelectorAll('.gh-rec-tag').forEach(function (x) { x.remove(); }); first.insertAdjacentHTML('afterbegin', '<span class="gh-rec-tag">Recommended</span>'); }
+      var native = document.querySelector('#btnMoreSuggestions, .more-suggestions, [id*="MoreSuggestions"]');
+      if (native) native.classList.add('gh-hidden');
+      var btn = box.parentNode.querySelector('.gh-more');
+      if (!btn) { btn = document.createElement('button'); btn.type = 'button'; btn.className = 'gh-more'; box.after(btn);
+        btn.addEventListener('click', function () {
+          box.dataset.ghshow = (+(box.dataset.ghshow || STEP)) + STEP;
+          box.dataset.ghsig = ''; setTimeout(run, 60);
+        }); }
+      var left = rows.length - shown;
+      btn.hidden = left <= 0;
+      btn.textContent = 'Show ' + Math.min(STEP, left) + ' more extensions (' + left + ' left)';
     };
     new MutationObserver(function () { clearTimeout(run.t); run.t = setTimeout(run, 120); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
   }
