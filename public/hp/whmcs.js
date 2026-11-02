@@ -384,10 +384,10 @@
       var items = d.items || {};
       var fmt = function (n) { return '$' + n.toFixed(2); };
       var badge = function (tld) {
-        var it = items[tld]; if (!it || !it.gd || !it.renew) return '';
-        var save = Math.round((1 - it.renew / it.gd.renew) * 100);
+        var it = items[tld]; if (!it || !it.ref || !it.renew) return '';
+        var save = Math.round((1 - it.renew / it.ref.renew) * 100);
         if (save < 5) return '<span class="gh-cmp gh-cmp--plain">Renews ' + fmt(it.renew) + '/yr</span>';
-        return '<span class="gh-cmp" title="GoDaddy list renewal price, checked ' + esc(d.compareChecked) + '">Renews ' + fmt(it.renew) + '/yr <s>GoDaddy ' + fmt(it.gd.renew) + '</s> <b>Save ' + save + '%</b></span>';
+        return '<span class="gh-cmp" title="Typical renewal price at major registrars, checked ' + esc(d.compareChecked) + '">Renews ' + fmt(it.renew) + '/yr <s>Others ' + fmt(it.ref.renew) + '</s> <b>Save ' + save + '%</b></span>';
       };
       var run = function () {
         document.querySelectorAll('.domain-suggestion').forEach(function (row) {
