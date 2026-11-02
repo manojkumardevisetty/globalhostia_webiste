@@ -703,3 +703,15 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .gh2-bundle .gh2-button:hover { background: var(--gh-brand-d) !important; transform: translateY(-1px); }
 .gh2-bundle .gh2-arrow { width: 36px !important; height: 36px !important; border-radius: 50% !important; display: grid !important; place-items: center; background: rgba(255,255,255,.18) !important; color: #fff !important; }
 @media (max-width: 575px) { .gh2-bundle .gh2-price { text-align: left; } .gh2-bundle .gh2-button { width: 100%; justify-content: space-between; } }
+/* same bundle look on the domain search page (#domainBundle.domain-bundle-card) */
+#domainBundle.domain-bundle-card { color: #fff !important; border: 0 !important; border-radius: 22px !important; padding: clamp(18px, 2.6vw, 28px) !important;
+  background: radial-gradient(90% 140% at 100% 0%, rgba(197,56,111,.55) 0%, rgba(197,56,111,0) 60%), linear-gradient(150deg, #16212b 0%, #23313d 100%) !important; box-shadow: 0 30px 60px -36px rgba(22,33,43,.7) !important; }
+#domainBundle.domain-bundle-card * { border-color: rgba(255,255,255,.14) !important; }
+#domainBundle.domain-bundle-card h1, #domainBundle.domain-bundle-card h2, #domainBundle.domain-bundle-card h3, #domainBundle.domain-bundle-card h4, #domainBundle.domain-bundle-card strong, #domainBundle.domain-bundle-card b { color: #fff !important; }
+#domainBundle.domain-bundle-card p, #domainBundle.domain-bundle-card small, #domainBundle.domain-bundle-card span:not([class*="badge"]):not([class*="save"]) { color: rgba(255,255,255,.72) !important; }
+#domainBundle .domain-bundle-badge { background: rgba(253,215,0,.12) !important; color: var(--gh-gold) !important; }
+#domainBundle [class*="save"] { background: var(--gh-gold) !important; color: #3a3000 !important; border-radius: 999px !important; font-weight: 800 !important; }
+#domainBundle [class*="tld"], #domainBundle [class*="domain-item"], #domainBundle [class*="pill"] { background: rgba(255,255,255,.06) !important; border-radius: 14px !important; }
+#domainBundle a, #domainBundle button { background: var(--gh-brand) !important; color: #fff !important; border-radius: 999px !important; border: 0 !important; box-shadow: 0 14px 30px -14px rgba(197,56,111,.9) !important; }
+#domainBundle a:hover, #domainBundle button:hover { background: var(--gh-brand-d) !important; }
+#domainBundle [class*="available"], #domainBundle .text-success { color: #3ddc97 !important; }
