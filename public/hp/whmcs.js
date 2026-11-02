@@ -309,14 +309,34 @@
     if (window.jQuery) jQuery(f).on('ifChecked change', 'input[type=radio]', sync);
   }
 
-  function cycles() {
+  var MONTHS = { monthly: 1, quarterly: 3, semiannually: 6, annually: 12, biennially: 24, triennially: 36 };
+  var CYCLE_NAME = { monthly: 'Monthly', quarterly: '3 months', semiannually: '6 months', annually: '1 year', biennially: '2 years', triennially: '3 years' };
+  function cycles(spec) {
     var sel = document.getElementById('inputBillingcycle'); if (!sel || sel.dataset.gh) return;
     sel.dataset.gh = 1;
     var opts = [].slice.call(sel.options); if (opts.length < 2) return;
-    var parse = function (o) { var m = o.text.match(/^(.*?)\s*-\s*(.+)$/); return { k: o.value, label: m ? m[1].replace(/\s*Price$/i, '') : o.text, price: m ? m[2] : '' }; };
-    var list = opts.map(parse), wrap = document.createElement('div'); wrap.className = 'gh-cycles'; wrap.setAttribute('role', 'group'); wrap.setAttribute('aria-label', 'Billing cycle');
-    wrap.innerHTML = list.map(function (o, i) { return '<button type="button" class="gh-cycle" data-k="' + esc(o.k) + '" aria-pressed="' + (sel.value === o.k) + '"><b>' + esc(o.label) + '</b><span>' + esc(o.price) + '</span>' + (i === list.length - 1 && list.length > 1 ? '<em>Best value</em>' : '') + '</button>'; }).join('');
-    var host = sel.closest('.form-group') || sel.parentElement; host.insertBefore(wrap, host.firstChild.nextSibling);
+    var cur = ((opts[0].text.match(/\b([A-Z]{3})\s*$/) || [])[1]) || 'USD';
+    var tbl = spec && spec.prices && spec.prices[cur];
+    var pre = ((opts[0].text.match(/-\s*([^\d\s]*)\s*[\d]/) || [])[1]) || '';
+    var fmt = function (n) { return pre + n.toFixed(2) + ' ' + cur; };
+    var parse = function (o) { var m = o.text.match(/^(.*?)\s*-\s*(.+)$/); return { k: o.value, label: CYCLE_NAME[o.value] || (m ? m[1].replace(/\s*Price$/i, '') : o.text), raw: m ? m[2] : '' }; };
+    var list = opts.map(parse), mon = tbl && tbl.monthly;
+    var host = sel.closest('.form-group') || sel.parentElement;
+    var wrap = document.createElement('div'); wrap.className = 'gh-cycles'; wrap.setAttribute('role', 'group'); wrap.setAttribute('aria-label', 'Billing cycle');
+    var bestSave = 0, cards = list.map(function (o) {
+      var total = tbl && tbl[o.k], m = MONTHS[o.k] || 0, save = (total && mon && m > 1) ? Math.round((1 - total / (mon * m)) * 100) : 0;
+      if (save > bestSave) bestSave = save;
+      return { o: o, total: total, m: m, save: save };
+    });
+    wrap.innerHTML = cards.map(function (c) {
+      var body = c.total != null && c.m
+        ? '<span>' + esc(fmt(c.total / c.m)) + '<small>/mo</small></span><i>' + (c.m > 1 ? 'Billed ' + esc(fmt(c.total)) + ' every ' + esc(c.o.label) : 'Billed monthly, cancel any time') + '</i>'
+        : '<span>' + esc(c.o.raw) + '</span>';
+      return '<button type="button" class="gh-cycle" data-k="' + esc(c.o.k) + '" aria-pressed="' + (sel.value === c.o.k) + '"><b>' + esc(c.o.label) + '</b>' + body + (c.save >= 3 ? '<em' + (c.save === bestSave ? ' class="is-best"' : '') + '>Save ' + c.save + '%</em>' : '') + '</button>';
+    }).join('');
+    var head = document.createElement('div'); head.className = 'gh-cfg-label'; head.innerHTML = '<b>Choose your billing period</b>' + (bestSave ? '<span>Save up to ' + bestSave + '% with a longer term</span>' : '');
+    var lbl = host.querySelector('label'); if (lbl) lbl.style.display = 'none';
+    host.insertBefore(wrap, host.firstChild); host.insertBefore(head, wrap);
     var nice = host.querySelector('.nice-select'); if (nice) nice.style.display = 'none';
     sel.classList.add('gh-cycle-src');
     wrap.addEventListener('click', function (e) {
@@ -324,6 +344,30 @@
       sel.value = b.dataset.k;
       wrap.querySelectorAll('.gh-cycle').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
       if (window.jQuery) jQuery(sel).trigger('change'); else sel.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+
+  function configure() {
+    var form = document.getElementById('frmConfigureProduct'); if (!form) return;
+    var t = form.querySelector('.product-title'), name = t ? t.textContent.trim() : '';
+    fetch(ORIGIN + '/api/store/specs').then(function (r) { return r.json(); }).catch(function () { return {}; }).then(function (all) {
+      var spec = null; for (var k in all) if (all[k].name && all[k].name.toLowerCase() === name.toLowerCase()) { spec = all[k]; break; }
+      try { cycles(spec); } catch (e) {}
+      var info = form.querySelector('.product-info'); if (!info || info.dataset.gh) return; info.dataset.gh = 1;
+      var meta = [spec && spec.location && ('Hosted in ' + spec.location), spec && spec.tier].filter(Boolean);
+      var top = document.createElement('div'); top.className = 'gh-cfg-top';
+      top.innerHTML = (meta.length ? '<div class="gh-cfg-meta">' + meta.map(function (m) { return '<span>' + esc(m) + '</span>'; }).join('') + '</div>' : '') +
+        (spec && spec.tagline ? '<p class="gh-cfg-tag">' + esc(spec.tagline) + '</p>' : '');
+      if (t) t.after(top);
+      var feats = spec && spec.allFeatures || [];
+      if (feats.length) {
+        var d = document.createElement('div'); d.className = 'gh-cfg-feats';
+        d.innerHTML = '<b>Everything included</b><ul>' + feats.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>';
+        info.appendChild(d);
+      }
+      var trust = document.createElement('ul'); trust.className = 'gh-cfg-trust';
+      trust.innerHTML = '<li>Set up automatically after payment</li><li>24/7 support by ticket and WhatsApp</li><li>Upgrade or add resources any time</li>';
+      info.appendChild(trust);
     });
   }
 
@@ -477,5 +521,5 @@
     }).catch(function () {});
   }
 
-  ready(function () { try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  ready(function () { try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
