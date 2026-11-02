@@ -730,3 +730,7 @@ main{display:block}
 .hp-cur__menu a b{min-width:36px}
 .hp-cur__menu a:hover,.hp-cur__menu a[aria-current]{background:#fbe8ef;color:var(--brand-d,#a6225f)!important}
 @media (max-width:1023px){.hp-util .hp-cur>summary.hp-u-item{display:inline-flex!important}}
+.hp-util .hp-cur__menu a b,.hp-cur__menu a b{color:var(--muted)!important;font-weight:700}
+.hp-util .hp-cur__menu a[aria-current] b,.hp-cur__menu a:hover b{color:var(--brand-d)!important}
+@media (max-width:340px){.hp-u-right{gap:0}.hp-util .hp-cur>summary{padding:0 2px}.hp-util .hp-cur>summary svg{display:none}.hp-u-right a svg{display:none}}
+@media (max-width:767px){.hp-cur>summary b{margin-left:-2px}.hp-cur__menu{right:auto;left:50%;transform:translateX(-50%)}}
