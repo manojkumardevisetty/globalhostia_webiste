@@ -152,5 +152,72 @@
   function uniq(a) { return a.filter(function (x, i) { return x && a.indexOf(x) === i; }); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  ready(function () { try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  /* ---------- client-area home: replace the long marketing page with a focused customer hub ---------- */
+  var IC = {
+    cart: 'M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 8H6.2M10 20h.01M17 20h.01',
+    globe: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z',
+    move: 'M7 7h11l-3-3M17 17H6l3 3',
+    user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
+    chat: 'M4 5h16v11H8l-4 4z',
+    book: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11',
+    pulse: 'M3 12h4l3-7 4 14 3-7h4',
+    server: 'M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01',
+    cpu: 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4',
+    shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z',
+    monitor: 'M3 4h18v12H3zM8 20h8M12 16v4',
+    layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',
+    invoice: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6'
+  };
+  function homepage() {
+    var path = location.pathname.replace(/\/+$/, '');
+    if (!/\/secure(\/index\.php)?$/.test(path) || /[?&](rp|m)=/.test(location.search)) return;
+    var hero = document.querySelector('.hero-area-header-banner-image');
+    var body = document.querySelector('#not-main-body, section#main-body');
+    if (!hero || !body) return;
+    var loggedIn = !!document.querySelector('a[href*="logout"]');
+    var nameEl = document.querySelector('.client-name, .dropdown-toggle .username, [class*="hello"]');
+    var tlds = Array.prototype.slice.call(document.querySelectorAll('.domain-checker-emyui-aws-homepage *')).map(function (e) { return e.children.length ? '' : e.textContent.trim(); }).join(' ');
+    var prices = []; tlds.replace(/\.\s*([a-z]{2,10})\s+(\$[0-9.]+)/gi, function (_, t, p) { if (prices.length < 6) prices.push({ t: '.' + t, p: p }); });
+    var tile = function (ic, title, text, href) { return '<a class="gh-tile" href="' + href + '"><span class="gh-hex">' + svg(IC[ic]) + '</span><b>' + title + '</b><span>' + text + '</span></a>'; };
+    var cats = [
+      ['server', 'Web Hosting', 'NVMe hosting with free SSL', '/secure/store/hostia-shared'],
+      ['layers', 'WordPress', 'Managed, fast and secure', '/secure/store/wordpress'],
+      ['server', 'Cloud VPS', 'Europe & USA, ready in minutes', '/secure/store/servers'],
+      ['cpu', 'Dedicated Servers', 'Bare metal up to 10Gbps', '/secure/store/dedicated-servers'],
+      ['monitor', 'Windows RDP', 'Always-on remote desktop', '/secure/store/windows-rdp'],
+      ['shield', 'SSL Certificates', 'DV, OV and wildcard', '/secure/store/ssl-certificates']
+    ];
+    hero.outerHTML =
+      '<section class="gh-hub">' +
+        '<div class="gh-hub__in">' +
+          '<span class="gh-hub__eyebrow">' + (loggedIn ? 'Welcome back' : 'Globalhostia client area') + '</span>' +
+          '<h1>' + (loggedIn ? 'What would you like to do today?' : 'Everything for your website, in one place.') + '</h1>' +
+          '<p>Find a domain, order hosting or servers, pay invoices and get help from our team.</p>' +
+          '<form class="gh-hub__search" action="/secure/cart.php" method="get" role="search">' +
+            '<input type="hidden" name="a" value="add"><input type="hidden" name="domain" value="register">' +
+            '<label class="gh-sr" for="gh-hub-q">Domain name</label>' +
+            '<span class="gh-hub__ic">' + svg(IC.globe) + '</span><input id="gh-hub-q" name="query" placeholder="Find your perfect domain, e.g. yourbrand.com" autocomplete="off" required>' +
+            '<button type="submit">Search</button></form>' +
+          (prices.length ? '<ul class="gh-hub__tlds">' + prices.map(function (x) { return '<li><b>' + esc(x.t) + '</b> ' + esc(x.p) + '</li>'; }).join('') + '</ul>' : '') +
+        '</div></section>';
+    var dc = document.querySelector('.domain-checker-emyui-aws-homepage'); if (dc) dc.classList.add('gh-hidden');
+    body.innerHTML =
+      '<div class="gh-hub-body">' +
+        '<div class="gh-tiles">' +
+          (loggedIn ? tile('user', 'My services', 'Manage products and servers', '/secure/clientarea.php?action=services') + tile('invoice', 'Billing', 'Invoices and payments', '/secure/clientarea.php?action=invoices')
+                    : tile('user', 'Sign in', 'Access your account', '/secure/login.php') + tile('cart', 'Create account', 'Get started in a minute', '/secure/register.php')) +
+          tile('globe', 'Register a domain', 'Search hundreds of extensions', '/secure/cart.php?a=add&domain=register') +
+          tile('move', 'Transfer a domain', 'Move it to us, keep your site', '/secure/cart.php?a=add&domain=transfer') +
+          tile('chat', 'Open a ticket', '24/7 help from engineers', '/secure/submitticket.php') +
+          tile('book', 'Knowledgebase', 'Guides and how-tos', '/secure/knowledgebase') +
+        '</div>' +
+        '<div class="gh-sec-head"><h2>Order new services</h2><a href="/secure/cart.php">Browse all</a></div>' +
+        '<div class="gh-cats">' + cats.map(function (c) { return '<a class="gh-cat" href="' + c[3] + '"><span class="gh-hex">' + svg(IC[c[0]]) + '</span><b>' + c[1] + '</b><span>' + c[2] + '</span><i aria-hidden="true">→</i></a>'; }).join('') + '</div>' +
+        '<aside class="gh-promo gh-promo--wide"><div class="gh-promo__txt"><span class="gh-promo__tag">New</span><b>Cloud VPS in Europe &amp; USA</b><span>NVMe, your choice of OS, add RAM or vCPU any time. Set up automatically after payment.</span></div><a class="gh-promo__btn" href="/secure/store/servers">See plans</a></aside>' +
+        '<div class="gh-help"><div><b>Need a hand?</b><span>Our team is available 24/7 by ticket, phone and WhatsApp.</span></div><div class="gh-help__a"><a href="/secure/submitticket.php">Open a ticket</a><a href="/secure/serverstatus.php">Network status</a><a href="/secure/contact.php">Contact us</a></div></div>' +
+      '</div>';
+    document.documentElement.classList.add('gh-is-home');
+  }
+
+  ready(function () { try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
