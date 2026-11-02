@@ -289,5 +289,68 @@
     document.documentElement.classList.add('gh-is-home');
   }
 
-  ready(function () { try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  /* ---------- order flow ---------- */
+  function domainStep() {
+    var f = document.getElementById('frmProductDomain'); if (!f) return;
+    document.documentElement.classList.add('gh-domstep');
+    var h = document.querySelector('.emyui-cart-aws h1'); if (h && /requires a domain/i.test(h.textContent)) h.textContent = 'Pick a domain for your plan';
+    var sub = h && h.parentElement.querySelector('p'); if (sub) sub.textContent = 'Register a new name, transfer one you own, or simply point a domain you already have to us.';
+    var pre = h && h.parentElement.querySelector('.pre-title, span'); if (pre && /choose a domain/i.test(pre.textContent)) pre.textContent = 'Step 1 · Domain';
+    var L = { selregister: ['Register a new domain', 'Search and buy a new name'], seltransfer: ['Transfer a domain', 'Move a domain you own to us'], selowndomain: ['I already have a domain', 'Keep it where it is, update nameservers'] };
+    Object.keys(L).forEach(function (id) {
+      var r = document.getElementById(id); if (!r) return;
+      var card = r.closest('.domain-productconfigiration-options-item'); if (!card) return;
+      var t = card.querySelector('.title'), st = card.querySelector('.sub-title');
+      if (t) t.textContent = L[id][0]; if (st) st.textContent = L[id][1];
+    });
+    var sync = function () { f.querySelectorAll('.domain-productconfigiration-options-item').forEach(function (c) { var i = c.querySelector('input[type=radio]'); c.classList.toggle('gh-on', !!(i && i.checked)); }); };
+    sync(); f.addEventListener('click', function () { setTimeout(sync, 30); });
+    if (window.jQuery) jQuery(f).on('ifChecked change', 'input[type=radio]', sync);
+  }
+
+  function cycles() {
+    var sel = document.getElementById('inputBillingcycle'); if (!sel || sel.dataset.gh) return;
+    sel.dataset.gh = 1;
+    var opts = [].slice.call(sel.options); if (opts.length < 2) return;
+    var parse = function (o) { var m = o.text.match(/^(.*?)\s*-\s*(.+)$/); return { k: o.value, label: m ? m[1].replace(/\s*Price$/i, '') : o.text, price: m ? m[2] : '' }; };
+    var list = opts.map(parse), wrap = document.createElement('div'); wrap.className = 'gh-cycles'; wrap.setAttribute('role', 'group'); wrap.setAttribute('aria-label', 'Billing cycle');
+    wrap.innerHTML = list.map(function (o, i) { return '<button type="button" class="gh-cycle" data-k="' + esc(o.k) + '" aria-pressed="' + (sel.value === o.k) + '"><b>' + esc(o.label) + '</b><span>' + esc(o.price) + '</span>' + (i === list.length - 1 && list.length > 1 ? '<em>Best value</em>' : '') + '</button>'; }).join('');
+    var host = sel.closest('.form-group') || sel.parentElement; host.insertBefore(wrap, host.firstChild.nextSibling);
+    var nice = host.querySelector('.nice-select'); if (nice) nice.style.display = 'none';
+    sel.classList.add('gh-cycle-src');
+    wrap.addEventListener('click', function (e) {
+      var b = e.target.closest('.gh-cycle'); if (!b) return;
+      sel.value = b.dataset.k;
+      wrap.querySelectorAll('.gh-cycle').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+      if (window.jQuery) jQuery(sel).trigger('change'); else sel.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+
+  function cartView() {
+    var f = document.getElementById('frmEstimateTaxes') || (document.querySelector('[name=state]') || {}).form;
+    if (f && !f.closest('details')) {
+      var box = f.closest('.estimate-taxes, .bg-default-2, .card, .panel') || f, d = document.createElement('details'); d.className = 'gh-taxes';
+      d.innerHTML = '<summary>Estimate taxes</summary>'; box.parentNode.insertBefore(d, box); d.appendChild(box);
+      var t = box.querySelector('h1,h2,h3,h4,.title'); if (t && /estimate taxes/i.test(t.textContent)) t.style.display = 'none';
+    }
+  }
+
+  function checkout() {
+    var form = document.getElementById('frmCheckout'); if (!form || form.dataset.gh) return; form.dataset.gh = 1;
+    var grid = document.createElement('div'); grid.className = 'gh-co';
+    var aside = document.createElement('aside'); aside.className = 'gh-co__aside'; aside.innerHTML = '<div class="gh-co__card"><h3>Your order</h3><div class="gh-co__sum">Loading summary…</div><ul class="gh-co__trust"><li>Secure, encrypted checkout</li><li>Set up automatically after payment</li><li>24/7 support by ticket and WhatsApp</li></ul></div>';
+    form.parentNode.insertBefore(grid, form); grid.appendChild(form); grid.appendChild(aside);
+    fetch(B + '/cart.php?a=view', { credentials: 'same-origin' }).then(function (r) { return r.text(); }).then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html'), sum = doc.getElementById('orderSummary'), items = [];
+      doc.querySelectorAll('.view-cart-items .item, .secondary-cart-body .item').forEach(function (it) {
+        var n = it.querySelector('.item-title, .item-group, strong, h3, h4'); var dmn = it.querySelector('.item-domain'); var p = it.querySelector('.item-price span, .item-price, .price');
+        if (n) items.push('<li><b>' + esc(n.textContent.trim()) + '</b>' + (dmn ? '<span>' + esc(dmn.textContent.trim()) + '</span>' : '') + (p ? '<i>' + esc(p.textContent.trim().split('\n')[0]) + '</i>' : '') + '</li>');
+      });
+      var box = aside.querySelector('.gh-co__sum');
+      if (sum) { sum.querySelectorAll('script, .btn, a.btn, #checkout, form').forEach(function (x) { x.remove(); }); var hh = sum.querySelector('h2, .summary-header'); if (hh) hh.remove(); box.innerHTML = (items.length ? '<ul class="gh-co__items">' + items.join('') + '</ul>' : '') + sum.innerHTML; }
+      else box.textContent = '';
+    }).catch(function () { aside.querySelector('.gh-co__sum').textContent = ''; });
+  }
+
+  ready(function () { try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
