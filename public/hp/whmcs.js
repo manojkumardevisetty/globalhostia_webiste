@@ -13,7 +13,7 @@
     { label: 'Hosting', icon: 'M3 5h18v6H3zM3 13h18v6H3zM7 8h.01M7 16h.01', match: /website|wordpress|shared|hosting/i, prio: 5 },
     { label: 'VPS & Cloud', icon: 'M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01', match: /vps|virtual|^servers$|cloud|\bai\b|llm|forex/i, prio: 4 },
     { label: 'Dedicated', icon: 'M5 3h14v18H5zM9 7h6M9 11h6M9 15h6', match: /dedicated/i, prio: 1 },
-    { label: 'Remote Desktop', icon: 'M3 4h18v12H3zM8 20h8M12 16v4', match: /rdp|remote/i, prio: 2 },
+    { label: 'Remote Desktop', icon: 'M3 4h18v12H3zM8 20h8M12 16v4', match: /\brdp\b|remote/i, prio: 2 },
     { label: 'Security & Apps', icon: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', match: /ssl|mcp|project|management|n8n|email|workspace/i, prio: 3 },
   ];
   var RENAME = { 'Servers': 'Cloud VPS – Europe & USA', "MCP's": 'MCPs & Automation', 'Ai/llm Hosting': 'AI / LLM Hosting' };
@@ -406,7 +406,7 @@
     var cols = [
       { label: 'Hosting', d: 'Websites, WordPress & AI', icon: GROUPS[0].icon, m: /website|wordpress|shared|hosting/i },
       { label: 'VPS & Cloud', d: 'Root access, NVMe, any OS', icon: GROUPS[1].icon, m: /vps|virtual|^servers$|cloud|forex/i },
-      { label: 'Dedicated & RDP', d: 'Bare metal and remote desktops', icon: GROUPS[2].icon, m: /dedicated|rdp|remote/i },
+      { label: 'Dedicated & RDP', d: 'Bare metal and remote desktops', icon: GROUPS[2].icon, m: /dedicated|\brdp\b|remote/i },
       { label: 'Security & Apps', d: 'SSL, MCPs and tools', icon: GROUPS[4].icon, m: /ssl|mcp|project|management|n8n|email|workspace/i },
       { label: 'Domains', d: 'Register or transfer', icon: 'M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18', m: /domain/i }
     ];
