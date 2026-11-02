@@ -563,3 +563,43 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .gh-co__sum .total-due-today, .gh-co__sum [class*="total-due"] { display: flex; flex-direction: column; align-items: center; padding: 14px; margin-top: 12px; }
 .gh-co__sum .total-due-today .amt, .gh-co__sum #totalDueToday { font: 800 26px/1.1 Manrope, Inter, sans-serif; }
 .gh-co__sum .loader, .gh-co__sum .text-center:has(a) { display: none !important; }
+
+/* ===== logged-in client area polish ===== */
+#main-body > .container { padding-left: clamp(16px, 3vw, 48px) !important; padding-right: clamp(16px, 3vw, 48px) !important; }
+.main-page-contents { background: #fff !important; border: 1px solid var(--gh-line); border-radius: 22px !important; box-shadow: var(--gh-shadow); padding: 28px clamp(16px, 2.4vw, 32px) 32px !important; margin-top: 22px; }
+.main-page-contents .page-header h6, .main-page-contents .page-header h1 { font: 800 clamp(24px, 2.4vw, 32px)/1.15 Manrope, Inter, sans-serif !important; color: var(--gh-ink); }
+.main-page-contents .breadcrumb { background: transparent !important; padding: 6px 0 0 !important; margin: 0 0 14px !important; font-size: 13px; }
+.main-page-contents .breadcrumb a { color: var(--gh-muted) !important; }
+/* sub-navigation toolbar (Actions / View / Billing / Status...) */
+.nav-scroller-subpages { background: #fff !important; border-bottom: 1px solid var(--gh-line); padding-top: 8px; padding-bottom: 8px; }
+.nav-scroller-subpages .nav-elements-box { gap: 6px; margin-right: 18px; }
+.nav-scroller-subpages .nav-title { font-weight: 700 !important; color: var(--gh-ink) !important; font-size: 13px !important; }
+.nav-scroller-subpages .list-group { display: flex !important; flex-direction: row; gap: 4px; background: var(--gh-tint); border: 0 !important; border-radius: 999px !important; padding: 4px !important; box-shadow: none !important; }
+.nav-scroller-subpages .list-group-item { border: 0 !important; background: transparent !important; border-radius: 999px !important; padding: 7px 14px !important; font-size: 13px; color: var(--gh-ink) !important; white-space: nowrap; }
+.nav-scroller-subpages .list-group-item:hover, .nav-scroller-subpages .list-group-item.active { background: #fff !important; color: var(--gh-brand-d) !important; box-shadow: 0 1px 3px rgba(22,33,43,.1); }
+.nav-scroller-subpages .badge { background: #fff6cc !important; color: #6b5800 !important; border-radius: 999px; }
+.nav-scroller-subpages .panel-footer .btn, .nav-scroller-subpages .btn-warning { border-radius: 999px !important; font-size: 12px !important; }
+/* status labels: soft pills everywhere */
+.label.status, span.label { border-radius: 999px !important; padding: 4px 10px !important; font-size: 11px !important; font-weight: 700 !important; letter-spacing: .04em; text-transform: uppercase; border: 0 !important; }
+.status-paid, .status-active, .status-completed, .status-open, .status-answered { background: #e7f6ee !important; color: #0f7a46 !important; }
+.status-unpaid, .status-pending, .status-customer-reply, .status-in-progress { background: #fff6cc !important; color: #6b5800 !important; }
+.status-refunded, .status-collections { background: #eef1ff !important; color: #3949ab !important; }
+.status-cancelled, .status-terminated, .status-suspended, .status-closed, .status-expired, .status-fraud { background: #fde8ec !important; color: #a6225f !important; }
+/* tables */
+.dataTables_wrapper table.table td, .dataTables_wrapper table.table th { padding: 14px 16px !important; vertical-align: middle !important; }
+.dataTables_wrapper table.table tbody tr:hover { background: #fbf6f8 !important; cursor: pointer; }
+.dataTables_wrapper .dataTables_filter input { border-radius: 999px !important; padding-left: 16px !important; min-width: 240px; }
+.dataTables_paginate .pagination { gap: 6px; margin: 14px 0 0 !important; }
+.dataTables_paginate .page-link { border-radius: 10px !important; min-width: 40px; text-align: center; border: 1px solid var(--gh-line) !important; color: var(--gh-ink) !important; }
+@media (max-width: 767px) { .dataTables_wrapper .table-responsive, .dataTables_wrapper { overflow-x: auto; } .dataTables_wrapper .dataTables_filter input { min-width: 0; width: 100%; } }
+/* client home */
+.coodiv-clientarea-boxes { border: 1px solid var(--gh-line) !important; border-radius: 18px !important; box-shadow: none !important; }
+.coodiv-clientarea-box-header { padding: 16px 20px !important; font-weight: 700; }
+.div-service-item { padding: 14px 20px !important; border-bottom: 1px solid var(--gh-line); }
+.btn-view-details { border-radius: 10px !important; }
+.main-page-contents .btn-black, a.btn-black.btn-sm, .client-home-update-btn { background: var(--gh-ink) !important; border-color: var(--gh-ink) !important; border-radius: 10px !important; }
+[class*="clientarea-stat"] i, .coodiv-clientarea-stats i, .client-home-cards .icon, .tiles .tile i { color: var(--gh-brand) !important; }
+.main-page-contents img[src*="icon"], .client-area-stat-icon { filter: hue-rotate(150deg) saturate(1.2); }
+/* "What's new" announcements: clamp text */
+.main-page-contents .col-md-3 p, .main-page-contents aside p { overflow-wrap: anywhere; }
+.main-page-contents .col-md-3 h5 + div, .announcements-list .announcement-text { max-height: 140px; overflow: hidden; }
