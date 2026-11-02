@@ -641,3 +641,15 @@
 
   ready(function () { try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
+
+// Support alerts: nudge the site to email the owner after a ticket is opened or replied to.
+// Self-contained (append-only); the server rate-limits and de-duplicates, the beacon carries no data.
+(function () {
+  try {
+    if (!/(submitticket|viewticket)\.php/i.test(location.pathname)) return;
+    var origin = (function () { try { return new URL(document.currentScript.src).origin; } catch (e) { return 'https://globalhostia.com'; } })();
+    var ping = function () { try { if (navigator.sendBeacon) navigator.sendBeacon(origin + '/api/support/ping'); else fetch(origin + '/api/support/ping', { method: 'POST', keepalive: true, mode: 'no-cors' }); } catch (e) {} };
+    if (/viewticket\.php/i.test(location.pathname) || /[?&]step=3\b/.test(location.search)) ping();
+    document.addEventListener('submit', function (e) { if (e.target && e.target.querySelector && e.target.querySelector('textarea')) ping(); }, true);
+  } catch (e) {}
+})();

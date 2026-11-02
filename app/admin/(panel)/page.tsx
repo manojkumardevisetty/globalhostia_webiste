@@ -6,6 +6,7 @@ import { Icon } from '@/components/icons';
 import { getStats, whmcsConfigured } from '@/lib/whmcs';
 import { getSession } from '@/lib/session';
 import { can } from '@/lib/auth';
+import { checkTicketsSoon } from '@/lib/support-notify';
 
 export const metadata = { title: 'Dashboard' };
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,7 @@ export default async function Dashboard() {
   if (whmcsConfigured() && can(s, 'commerce')) {
     try { stats = await getStats(); } catch (e: any) { statsErr = e.message; }
   }
+  if (whmcsConfigured()) checkTicketsSoon('admin-dashboard'); // ticket emails: runs after the page is sent
   // judge health on the most recent 20 calls, so old (already fixed) errors don't keep the badge yellow
   const recent = await db.select().from(schema.apiLogs).orderBy(desc(schema.apiLogs.createdAt)).limit(20);
   const rFail = recent.filter((r) => !r.ok);
@@ -58,7 +60,7 @@ export default async function Dashboard() {
           <Stat icon="dollar" tone="green" label="Income this month" value={stats.income_thismonth ?? '—'} sub={`Today: ${stats.income_today ?? '—'}`} />
           <Stat icon="cart" tone="amber" label="Pending orders" value={stats.orders_pending ?? '—'} sub={`Today: ${stats.orders_today_total ?? '—'} orders`} href="/admin/orders?status=Pending" />
           <Stat icon="server" tone="sky" label="Active services" value={stats.services_active ?? stats.activeservices ?? '—'} />
-          <Stat icon="ticket" tone="rose" label="Open tickets" value={(stats.tickets_open ?? stats.tickets_allactive) ?? '—'} sub={`Awaiting reply: ${stats.tickets_awaitingreply ?? '—'}`} />
+          <Stat icon="ticket" tone="rose" label="Open tickets" value={(stats.tickets_open ?? stats.tickets_allactive) ?? '—'} sub={`Awaiting reply: ${stats.tickets_awaitingreply ?? '—'}`} href="/admin/support" />
         </div>
       )}
       {statsErr && <p className="mb-6 flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200"><Icon name="alert" />WHMCS stats unavailable: {statsErr}</p>}

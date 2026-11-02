@@ -132,6 +132,15 @@ export const tldPrices = pgTable('tld_prices', {
   syncedAt: timestamp('synced_at', { withTimezone: true }),
 }, (t) => [uniqueIndex('tld_prices_tld_cur').on(t.tld, t.currency)]);
 
+// Support notifier: the last ticket activity the owner was already emailed about (lib/support-notify.ts).
+export const ticketNotify = pgTable('ticket_notify', {
+  ticketId: integer('ticket_id').primaryKey(),
+  tid: text('tid').notNull().default(''),
+  lastReply: text('last_reply').notNull(),
+  status: text('status').notNull().default(''),
+  notifiedAt: now('notified_at'),
+});
+
 
 export const blocks = pgTable('blocks', {
   key: text('key').primaryKey(),

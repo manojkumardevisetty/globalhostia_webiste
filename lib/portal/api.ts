@@ -5,6 +5,7 @@
 // DomainUpdateNameservers) are sent exactly once.
 import 'server-only';
 import { whmcs, WhmcsError } from '../whmcs';
+import { checkTicketsSoon } from '../support-notify';
 
 const arr = <T = any>(v: any): T[] => (Array.isArray(v) ? v : v ? [v] : []);
 const same = (a: unknown, b: number) => Number(a) === b;
@@ -122,10 +123,12 @@ export async function getSupportDepartments() {
 }
 export async function openTicket(clientId: number, t: { deptid: number; subject: string; message: string; priority: string; serviceid?: number }) {
   const r = await whmcs('OpenTicket', { clientid: clientId, deptid: t.deptid, subject: t.subject, message: t.message, priority: t.priority, serviceid: t.serviceid, markdown: false });
+  checkTicketsSoon('portal-open'); // email the owner after the response is sent
   return { id: Number(r.id), tid: String(r.tid || '') };
 }
 export async function addTicketReply(clientId: number, ticketId: number, message: string) {
   await whmcs('AddTicketReply', { ticketid: ticketId, clientid: clientId, message, markdown: false });
+  checkTicketsSoon('portal-reply');
 }
 
 /* ---------------- secure hand-off (single sign-on into the client area) ---------------- */

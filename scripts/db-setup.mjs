@@ -316,6 +316,18 @@ try {
       }
       await tx`update pages set in_sitemap = false where slug in ('incident-post', 'incident-history')`;
     },
+    // 17. support notifier: which ticket activity the owner was already emailed about (lib/support-notify.ts)
+    '017-ticket-notify': async (tx) => {
+      await tx`create table if not exists ticket_notify (
+        ticket_id integer primary key,
+        tid text not null default '',
+        last_reply text not null,
+        status text not null default '',
+        notified_at timestamptz not null default now()
+      )`;
+      await tx`insert into settings (key,value) values ('support_notify_clientid', '1'::jsonb) on conflict (key) do nothing`;
+      await tx`insert into settings (key,value) values ('support_admin_username', '""'::jsonb) on conflict (key) do nothing`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;
