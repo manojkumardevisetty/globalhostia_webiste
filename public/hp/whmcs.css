@@ -555,3 +555,11 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 @media (min-width: 1200px) { .gh-mega__cols { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
 @media (max-width: 1199px) { .navbar-nav .gh-mega.dropdown-menu, .coodiv-menu-dropdown.gh-mega { width: 100% !important; min-width: 0 !important; } }
 .domain-productconfigiration-options-item.gh-on, .domain-productconfigiration-options-item:has(.checked) { background-color: #fff7fa !important; } .domain-productconfigiration-options-item.gh-on *, .domain-productconfigiration-options-item:has(.checked) * { background-color: transparent; } .domain-productconfigiration-options-item.gh-on .icon, .domain-productconfigiration-options-item:has(.checked) .icon { background-color: var(--gh-brand) !important; }
+/* checkout summary rows */
+.gh-co__sum .clearfix { display: flex !important; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 6px 0; font-size: 14px; border-bottom: 1px dashed var(--gh-line); }
+.gh-co__sum .clearfix::before, .gh-co__sum .clearfix::after { display: none !important; }
+.gh-co__sum .float-left, .gh-co__sum .float-right { float: none !important; }
+.gh-co__sum .float-right { text-align: right; font-weight: 600; color: var(--gh-ink); }
+.gh-co__sum .total-due-today, .gh-co__sum [class*="total-due"] { display: flex; flex-direction: column; align-items: center; padding: 14px; margin-top: 12px; }
+.gh-co__sum .total-due-today .amt, .gh-co__sum #totalDueToday { font: 800 26px/1.1 Manrope, Inter, sans-serif; }
+.gh-co__sum .loader, .gh-co__sum .text-center:has(a) { display: none !important; }
