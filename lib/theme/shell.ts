@@ -6,6 +6,7 @@ import { getCatalog, whmcsLinks, availableCurrencies, type Catalog } from './dat
 import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
+import { activeFor, barHtml, promoDataScript, hasPromo } from '../promo';
 import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta } from '../seo';
 
 export type PageOpts = {
@@ -128,6 +129,7 @@ export async function page(o: PageOpts): Promise<string> {
   const css = (o.css || []).map(safeKey).filter(Boolean);
   const js = (o.js || []).map(safeKey).filter(Boolean);
   // drop empty FAQPage blocks (pages with no FAQ items) so structured data stays valid
+  const promo = activeFor(s.promotions, 'website');
   const lds = ([] as string[]).concat(o.jsonLd || []).filter((x) => x && !x.includes('"mainEntity":[]'));
   const isHome = !o.path || o.path === '/';
   const og = o.ogImage ? new URL(o.ogImage, site + '/').toString()
@@ -154,6 +156,7 @@ ${ICON_LINKS}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
 ${(o.preload || []).map((p) => `<link rel="preload" as="image" href="${esc(p)}">`).join('')}
 <link rel="stylesheet" href="${asset('/hp/theme.css')}">
+${hasPromo(promo) ? `<link rel="stylesheet" href="${asset('/hp/promo.css')}">` : ''}
 ${css.map((k) => `<link rel="stylesheet" href="${asset(`/hp/pages/${k}.css`)}">`).join('\n')}
 <script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("hp-mo")</script>
 ${siteJsonLd(s, cat.base)}
@@ -164,6 +167,7 @@ ${s.custom_css ? `<style id="gh-custom">${String(s.custom_css).replace(/<\/style
 ${iconSprite()}
 <div class="hp-progress" aria-hidden="true"></div>
 <a class="hp-skip" href="#main">Skip to content</a>
+${barHtml(promo.bar)}
 ${utilBar(cat, L, phone, email)}
 ${header(menus, L)}
 ${drawer(menus, L, phone, email)}
@@ -173,6 +177,7 @@ ${o.body}
 ${footer(menus, cat, phone, email)}
 ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=original')}"><i aria-hidden="true"></i>Theme preview · switch back to the current site</a>` : ''}
 <script src="${asset('/hp/theme.js')}" defer></script>
+${hasPromo(promo) ? `${promoDataScript(promo)}<script src="${asset('/hp/promo.js')}" defer></script>` : ''}
 ${js.map((k) => `<script src="${asset(`/hp/pages/${k}.js`)}" defer></script>`).join('\n')}
 </body>
 </html>`, cat);
