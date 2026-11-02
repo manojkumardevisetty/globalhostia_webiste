@@ -221,3 +221,20 @@ body.loading, body.preloader-active { overflow: auto !important; }
 @media (max-width: 1100px) { .gh-tiles { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 760px) { .gh-tiles { grid-template-columns: repeat(2, 1fr); } .gh-cats { grid-template-columns: 1fr; } .gh-hub { padding: 120px 16px 80px; } .gh-hub__search { flex-wrap: wrap; } .gh-hub__search button { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .gh-tile, .gh-cat, .gh-cat i { transition: none; } }
+
+/* numeric filters */
+.gh-plist__sel { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: var(--gh-muted); font-size: 14px; }
+.gh-plist__sel select { min-height: 42px !important; border-radius: 10px !important; border: 1.5px solid var(--gh-line) !important; padding: 0 10px; background: #fff; color: var(--gh-ink); font-weight: 600; }
+.gh-plist__price { display: inline-flex; flex-direction: column; gap: 4px; margin: 0; min-width: 170px; font-size: 13px; color: var(--gh-muted); font-weight: 600; }
+.gh-plist__price input[type=range] { accent-color: var(--gh-brand); width: 100%; min-height: 0 !important; border: 0 !important; padding: 0 !important; }
+/* category banner (each store category gets its own header) */
+.gh-catbanner { display: flex; align-items: center; gap: 18px; text-align: left; max-width: 1180px; margin: 0 auto 26px; padding: 26px 28px; border-radius: 22px; color: #fff; position: relative; overflow: hidden;
+  background: radial-gradient(70% 120% at 0% 0%, rgba(225,76,127,.35), transparent 60%), linear-gradient(135deg, #16212b, #23313d); box-shadow: var(--gh-shadow); }
+.gh-catbanner::after { content: ""; position: absolute; inset: 0; opacity: .08; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='64' viewBox='0 0 56 64'%3E%3Cpath d='M28 2 54 17v30L28 62 2 47V17z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E"); }
+.gh-catbanner h1 { color: #fff !important; font: 800 clamp(24px, 3vw, 34px)/1.15 Manrope, Inter, sans-serif !important; margin: 0 0 6px; }
+.gh-catbanner p { margin: 0; color: rgba(255,255,255,.78); font-size: 16px; max-width: 640px; }
+.gh-catbanner .gh-hex { flex: none; width: 56px; height: 62px; margin: 0; background: rgba(255,255,255,.1); color: var(--gh-gold); }
+.gh-catbanner--dedicated-servers, .gh-catbanner--premiumdedicated-servers { background: radial-gradient(70% 120% at 100% 0%, rgba(253,215,0,.18), transparent 60%), linear-gradient(135deg, #111a22, #23313d); }
+.gh-catbanner--windows-rdp, .gh-catbanner--windows-vps { background: radial-gradient(70% 120% at 0% 100%, rgba(56,189,248,.22), transparent 60%), linear-gradient(135deg, #16212b, #23313d); }
+.gh-catbanner--ssl-certificates { background: radial-gradient(70% 120% at 100% 100%, rgba(16,185,129,.22), transparent 60%), linear-gradient(135deg, #16212b, #23313d); }
+@media (max-width: 640px) { .gh-catbanner { padding: 20px; } .gh-catbanner .gh-hex { display: none; } }

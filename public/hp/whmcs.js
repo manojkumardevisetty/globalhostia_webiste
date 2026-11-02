@@ -80,7 +80,46 @@
       return { el: el, href: href, slug: slug, price: price, cycle: cycle, cur: cur, save: save, name: name, region: region, tier: tier, soldOut: !a || /out of stock/i.test(el.textContent) };
     });
   }
+  /* numbers for filtering: RAM (GB), CPU cores/vCPU, storage type, monthly price */
+  function numeric(it) {
+    var txt = (it.name + ' | ' + it.features.join(' | ')).replace(/,/g, '');
+    var ram = 0, m, re = /(\d+(?:\.\d+)?)\s*(GB|TB)\s*(?:RAM|DDR\d|ECC|memory)/gi;
+    while ((m = re.exec(txt))) ram = Math.max(ram, parseFloat(m[1]) * (/tb/i.test(m[2]) ? 1024 : 1));
+    if (!ram) { m = txt.match(/(\d+)\s*GB\b(?!\s*(?:SSD|NVMe|HDD|SATA|SAS|disk|storage|bandwidth))/i); if (m) ram = +m[1]; }
+    var cores = 0; m = txt.match(/(\d+)\s*(?:v?CPU|vCore|Core)s?\b/i) || txt.match(/(\d+)C\/\d+T/i); if (m) cores = +m[1];
+    var mult = txt.match(/(\d+)x\s*(?:intel|amd|xeon|e5)/i) || txt.match(/\b(dual)\b/i); if (mult && cores && /c\/\d+t/i.test(txt) === false) cores *= (/dual/i.test(mult[1]) ? 2 : +mult[1]);
+    var disk = /nvme/i.test(txt) ? 'NVMe' : /ssd/i.test(txt) ? 'SSD' : /hdd|sata|sas/i.test(txt) ? 'HDD' : '';
+    it.ram = ram; it.cores = cores; it.disk = disk;
+  }
   function chips(list) { return list.map(function (f) { return '<li>' + f.replace(/</g, '&lt;') + '</li>'; }).join(''); }
+  var CAT_INFO = {
+    'dedicated-servers': ['Dedicated servers', 'A whole physical machine for you: no neighbours, full hardware, unmetered ports.', 'cpu'],
+    'premiumdedicated-servers': ['Premium dedicated servers', 'Dual-Xeon and Ryzen flagships with up to 10Gbps ports for heavy workloads.', 'cpu'],
+    'servers': ['Cloud VPS – Europe & USA', 'Classic and high-performance KVM servers with NVMe. Choose your OS, add RAM or vCPU any time.', 'server'],
+    'hostiavps': ['Virtual private servers', 'Dedicated vCPU and RAM with full root access, ready in minutes.', 'server'],
+    'windows-vps': ['Windows VPS', 'Windows Server with administrator access for apps, RDP and .NET.', 'monitor'],
+    'forex-vps': ['Forex VPS', 'Always-on servers close to broker hubs for MetaTrader and EAs.', 'pulse'],
+    'windows-rdp': ['Windows RDP', 'A Windows desktop in the cloud you connect to from anywhere.', 'monitor'],
+    'ai-llm': ['AI / LLM servers', 'Run open models privately on servers sized for inference.', 'cpu'],
+    'hostia-shared': ['Web hosting', 'Fast NVMe hosting with free SSL, email and daily backups.', 'layers'],
+    'wordpress': ['WordPress hosting', 'Managed WordPress tuned for speed, with backups and updates.', 'layers'],
+    'ssl-certificates': ['SSL certificates', 'DV, OV and wildcard certificates from trusted authorities.', 'shield'],
+    'mcps': ['MCPs & automation', 'n8n and MCP engines on your own server.', 'layers'],
+    'project-management': ['Project management', 'One workspace for every project, without per-seat fees.', 'invoice']
+  };
+  function catBanner() {
+    var m = location.pathname.match(/\/store\/([^/]+)\/?$/); if (!m || document.querySelector('.gh-catbanner')) return;
+    var info = CAT_INFO[m[1]]; if (!info) return;
+    var title = document.querySelector('#order-standard_cart h1, .emyui-cart-aws h1, h1.coodiv-text-4');
+    if (!title) return;
+    var b = document.createElement('div');
+    b.className = 'gh-catbanner gh-catbanner--' + m[1];
+    b.innerHTML = '<span class="gh-hex">' + svg(IC[info[2]] || IC.server) + '</span><div><h1>' + info[0] + '</h1><p>' + info[1] + '</p></div>';
+    var wrapTitle = title.closest('.text-center, .col-12, div') || title;
+    title.classList.add('gh-hidden');
+    var eyebrow = wrapTitle.querySelector('.pre-title'); if (eyebrow) eyebrow.classList.add('gh-hidden');
+    wrapTitle.insertBefore(b, wrapTitle.firstChild);
+  }
   function enhanceListing() {
     // the store template prints one row (id="products") per 4 plans, so collect every row
     var rows = Array.prototype.slice.call(document.querySelectorAll('.emyui-ews-plans-row'));
@@ -89,7 +128,7 @@
     var items = [].concat.apply([], rows.map(parseCards));
     if (!items.length) return;
     fetch(SPECS_URL, { mode: 'cors' }).then(function (r) { return r.json(); }).catch(function () { return {}; }).then(function (specs) {
-      items.forEach(function (it) { var s = specs[it.slug]; it.features = s && s.features && s.features.length ? s.features : []; if (s) { it.region = it.region || s.location || ''; it.tier = it.tier || s.tier || ''; } });
+      items.forEach(function (it) { var s = specs[it.slug]; it.features = s && s.features && s.features.length ? s.features : []; if (s) { it.region = it.region || s.location || ''; it.tier = it.tier || s.tier || ''; } numeric(it); });
       if (items.length <= 6) {
         items.forEach(function (it) {
           if (!it.features.length) return;
@@ -113,6 +152,10 @@
         '<label class="gh-plist__search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="gh-sr">Search plans</span><input type="search" placeholder="Search ' + items.length + ' plans" data-q></label>' +
         (tiers.length > 1 ? seg('tier', 'Type', tiers) : '') +
         (regions.length > 1 ? seg('region', 'Location', regions) : '') +
+        selectFilter('ram', 'RAM', items.map(function (i) { return i.ram; }), function (v) { return v >= 1024 ? (v / 1024) + ' TB+' : v + ' GB+'; }) +
+        selectFilter('cores', 'CPU', items.map(function (i) { return i.cores; }), function (v) { return v + '+ cores'; }) +
+        (uniq(items.map(function (i) { return i.disk; })).length > 1 ? seg('disk', 'Storage', uniq(items.map(function (i) { return i.disk; }))) : '') +
+        priceFilter(items) +
         '<label class="gh-plist__sort"><span>Sort</span><select data-sort><option value="price">Price: low to high</option><option value="-price">Price: high to low</option><option value="name">Name</option></select></label>' +
       '</div>' +
       '<p class="gh-plist__count" aria-live="polite"></p>' +
@@ -120,10 +163,11 @@
       '<ol class="gh-plist__rows"></ol>';
     row.parentNode.insertBefore(wrap, row);
     row.classList.add('gh-hidden');
-    var ol = wrap.querySelector('.gh-plist__rows'), state = { q: '', tier: '', region: '', sort: 'price' };
+    var ol = wrap.querySelector('.gh-plist__rows'), state = { q: '', tier: '', region: '', disk: '', ram: 0, cores: 0, max: Infinity, sort: 'price' };
     function render() {
       var list = items.filter(function (i) {
-        return (!state.tier || i.tier === state.tier) && (!state.region || i.region === state.region) &&
+        return (!state.tier || i.tier === state.tier) && (!state.region || i.region === state.region) && (!state.disk || i.disk === state.disk) &&
+          (!state.ram || i.ram >= state.ram) && (!state.cores || i.cores >= state.cores) && (isNaN(i.price) || i.price <= state.max) &&
           (!state.q || (i.name + ' ' + i.features.join(' ')).toLowerCase().indexOf(state.q) > -1);
       }).sort(function (a, b) {
         if (state.sort === 'name') return a.name.localeCompare(b.name);
@@ -139,18 +183,39 @@
           '<div class="gh-prow__cta">' + (i.soldOut ? '<span class="gh-prow__oos">Out of stock</span>' : '<a class="gh-prow__btn" href="' + i.href + '">Configure</a>') + '</div></li>';
       }).join('') : '<li class="gh-plist__empty">No plans match. <button type="button" data-reset>Clear filters</button></li>';
     }
-    wrap.addEventListener('input', function (e) { if (e.target.matches('[data-q]')) { state.q = e.target.value.trim().toLowerCase(); render(); } });
-    wrap.addEventListener('change', function (e) { if (e.target.matches('[data-sort]')) { state.sort = e.target.value; render(); } });
+    wrap.addEventListener('input', function (e) {
+      if (e.target.matches('[data-q]')) { state.q = e.target.value.trim().toLowerCase(); render(); }
+      if (e.target.matches('[data-max]')) { var v = +e.target.value; state.max = v >= +e.target.max ? Infinity : v; wrap.querySelector('[data-maxlbl]').textContent = state.max === Infinity ? 'Any price' : 'Up to ' + (items[0].cur || '$') + v; render(); }
+    });
+    wrap.addEventListener('change', function (e) {
+      if (e.target.matches('[data-sort]')) { state.sort = e.target.value; render(); }
+      if (e.target.matches('[data-num]')) { state[e.target.getAttribute('data-num')] = +e.target.value; render(); }
+    });
     wrap.addEventListener('click', function (e) {
       var b = e.target.closest('[data-key]');
       if (b) { var k = b.getAttribute('data-key'); state[k] = b.getAttribute('data-val'); b.parentNode.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); render(); }
-      if (e.target.matches('[data-reset]')) { state.q = state.tier = state.region = ''; wrap.querySelector('[data-q]').value = ''; wrap.querySelectorAll('[data-key]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-val') === '')); }); render(); }
+      if (e.target.matches('[data-reset]')) { state.q = state.tier = state.region = state.disk = ''; state.ram = state.cores = 0; state.max = Infinity; wrap.querySelectorAll('[data-num]').forEach(function (x) { x.value = '0'; }); var mx = wrap.querySelector('[data-max]'); if (mx) { mx.value = mx.max; wrap.querySelector('[data-maxlbl]').textContent = 'Any price'; } wrap.querySelector('[data-q]').value = ''; wrap.querySelectorAll('[data-key]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-val') === '')); }); render(); }
     });
     render();
   }
   function seg(key, label, vals) {
     return '<div class="gh-plist__seg" role="group" aria-label="' + label + '"><button type="button" data-key="' + key + '" data-val="" aria-pressed="true">All</button>' +
       vals.map(function (v) { return '<button type="button" data-key="' + key + '" data-val="' + esc(v) + '" aria-pressed="false">' + esc(v) + '</button>'; }).join('') + '</div>';
+  }
+  function selectFilter(key, label, vals, fmt) {
+    var steps = [2, 4, 8, 16, 24, 32, 48, 64, 128, 256, 512];
+    var max = Math.max.apply(null, vals.filter(Boolean).concat([0]));
+    var opts = steps.filter(function (x) { return x <= max && vals.some(function (v) { return v >= x; }) && vals.some(function (v) { return v && v < x; }); });
+    if (!opts.length) return '';
+    return '<label class="gh-plist__sel"><span>' + label + '</span><select data-num="' + key + '"><option value="0">Any</option>' + opts.map(function (x) { return '<option value="' + x + '">' + fmt(x) + '</option>'; }).join('') + '</select></label>';
+  }
+  function priceFilter(items) {
+    var ps = items.map(function (i) { return i.price; }).filter(function (x) { return !isNaN(x); });
+    if (ps.length < 5) return '';
+    var lo = Math.floor(Math.min.apply(null, ps)), hi = Math.ceil(Math.max.apply(null, ps));
+    if (hi - lo < 10) return '';
+    var step = hi > 500 ? 10 : hi > 100 ? 5 : 1;
+    return '<label class="gh-plist__price"><span data-maxlbl>Any price</span><input type="range" data-max min="' + lo + '" max="' + hi + '" step="' + step + '" value="' + hi + '" aria-label="Maximum monthly price"></label>';
   }
   function uniq(a) { return a.filter(function (x, i) { return x && a.indexOf(x) === i; }); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -222,5 +287,5 @@
     document.documentElement.classList.add('gh-is-home');
   }
 
-  ready(function () { try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  ready(function () { try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
