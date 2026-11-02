@@ -125,7 +125,7 @@ body.loading, body.preloader-active { overflow: auto !important; }
 @media (max-width: 640px) { .gh-catnav { display: grid; grid-template-columns: 1fr 1fr; } .gh-catnav__btn { width: 100%; justify-content: center; } .gh-catnav__menu { left: 0; transform: translateY(-6px); min-width: 100%; } .gh-catnav__grp.is-open .gh-catnav__menu { transform: none; } }
 
 /* promo banner */
-.gh-promo { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 0 auto 28px; padding: 18px 22px; border-radius: 18px; color: #fff;
+.gh-promo { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 0 auto 28px; max-width: 1180px; width: calc(100% - 32px); box-sizing: border-box; padding: 18px 22px; border-radius: 18px; color: #fff;
   background: radial-gradient(120% 140% at 0% 0%, #2c3c4a 0%, var(--gh-deep) 60%), var(--gh-deep); box-shadow: var(--gh-shadow); position: relative; overflow: hidden; }
 .gh-promo::after { content: ""; position: absolute; right: -40px; top: -40px; width: 220px; height: 220px; background: radial-gradient(closest-side, rgba(225,76,127,.45), transparent); pointer-events: none; }
 .gh-promo__txt { display: grid; gap: 4px; position: relative; z-index: 1; }
