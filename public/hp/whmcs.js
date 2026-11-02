@@ -403,5 +403,29 @@
     }).catch(function () {});
   }
 
-  ready(function () { try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  function suggestPager() {
+    var TOP = ['.com', '.net', '.org', '.co', '.io', '.ai', '.ae', '.online', '.store', '.shop', '.xyz', '.info', '.biz', '.in', '.uk', '.co.uk', '.us', '.eu', '.de', '.tech', '.site', '.app', '.dev', '.cloud', '.live'];
+    var STEP = 8;
+    var run = function () {
+      var box = document.getElementById('domainSuggestions'); if (!box) return;
+      var rows = [].slice.call(box.querySelectorAll('.domain-suggestion')).filter(function (r) { return /block|flex/.test(r.getAttribute('style') || '') && r.querySelector('.extension') && r.querySelector('.extension').textContent.trim(); });
+      if (!rows.length || box.dataset.ghn == rows.length) return;
+      box.dataset.ghn = rows.length;
+      var rank = function (r) { var t = r.querySelector('.extension').textContent.trim().toLowerCase(), i = TOP.indexOf(t); return i < 0 ? 100 : i; };
+      var parent = rows[0].parentNode;
+      rows.sort(function (a, b) { return rank(a) - rank(b); }).forEach(function (r) { parent.appendChild(r); });
+      var shown = +(box.dataset.ghshow || STEP);
+      rows.forEach(function (r, i) { r.classList.toggle('gh-more-hide', i >= shown); });
+      var btn = box.querySelector('.gh-more'); var left = rows.length - shown;
+      if (left > 0) {
+        if (!btn) { btn = document.createElement('button'); btn.type = 'button'; btn.className = 'gh-more'; parent.after(btn);
+          btn.addEventListener('click', function () { box.dataset.ghshow = (+(box.dataset.ghshow || STEP)) + STEP; box.dataset.ghn = ''; run(); }); }
+        btn.textContent = 'Show more extensions (' + left + ' more)'; btn.hidden = false;
+      } else if (btn) btn.hidden = true;
+      var native = document.querySelector('#btnMoreSuggestions, .more-suggestions'); if (native) native.classList.add('gh-hidden');
+    };
+    new MutationObserver(function () { clearTimeout(run.t); run.t = setTimeout(run, 120); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+  }
+
+  ready(function () { try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { cycles(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();

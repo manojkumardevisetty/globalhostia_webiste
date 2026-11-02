@@ -485,3 +485,6 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .domain-suggestion .extension { flex: 0 0 auto !important; }
 .domain-suggestion .actions { margin-left: auto !important; }
 @media (max-width: 760px) { .gh-cmp-wrap { flex-basis: 100%; order: 3; padding: 6px 0 0; } }
+.domain-suggestion.gh-more-hide { display: none !important; }
+.gh-more { display: block; margin: 14px auto 6px; min-height: 48px; padding: 0 26px; border-radius: 999px; border: 1.5px solid var(--gh-brand); background: #fff; color: var(--gh-brand); font: 700 15px/1 Inter, system-ui, sans-serif; cursor: pointer; transition: background .2s, color .2s; }
+.gh-more:hover { background: var(--gh-brand); color: #fff; }
