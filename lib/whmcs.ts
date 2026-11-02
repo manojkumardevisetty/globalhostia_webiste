@@ -95,3 +95,17 @@ export const cartUrl = (pid: number, cycle?: string) =>
   `${whmcsBase()}/cart.php?a=add&pid=${pid}${cycle && cycle !== 'auto' ? `&billingcycle=${cycle}` : ''}`;
 export const domainCartUrl = (domain: string, type: 'register' | 'transfer' = 'register') =>
   `${whmcsBase()}/cart.php?a=add&domain=${type}&query=${encodeURIComponent(domain)}`;
+
+// ---- provisioning / VPS automation (read) ----
+export const getServers = () => whmcs<{ servers?: any[] }>('GetServers', { fetchStatus: true });
+export const getModuleQueue = () => whmcs<{ queue?: any[] }>('GetModuleQueue');
+export const getModuleConfig = (moduleName: string, moduleType = 'server') =>
+  whmcs<{ parameters?: { name: string; displayName?: string; fieldType?: string }[] }>('GetModuleConfigurationParameters', { moduleType, moduleName });
+export const getServicesByProduct = (pid: number, limitnum = 100) =>
+  whmcs<{ totalresults?: number; products?: { product?: any[] } }>('GetClientsProducts', { pid, limitnum });
+
+// ---- provisioning actions (write — never retried, always audited by the caller) ----
+export const MODULE_ACTIONS = { create: 'ModuleCreate', suspend: 'ModuleSuspend', unsuspend: 'ModuleUnsuspend' } as const;
+export const moduleAction = (action: keyof typeof MODULE_ACTIONS, serviceid: number, extra: Record<string, string> = {}) =>
+  whmcs(MODULE_ACTIONS[action], { serviceid, ...extra });
+export const moduleCustom = (serviceid: number, func_name: string) => whmcs('ModuleCustom', { serviceid, func_name });
