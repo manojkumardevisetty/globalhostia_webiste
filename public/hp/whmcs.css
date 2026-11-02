@@ -97,3 +97,11 @@ input[type=radio]:checked, input[type=checkbox]:checked { accent-color: var(--gh
 .btn-dark:hover { background: var(--gh-brand-d) !important; }
 .client-home-cards .card, .tiles .tile, [class*="emyui"][class*="box"] { border-radius: var(--gh-r) !important; transition: transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s; }
 .client-home-cards .card:hover, .tiles .tile:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -24px rgba(22,33,43,.4) !important; }
+
+/* remove the full-screen "Loading…" splash on every page (pages render instantly) */
+.preloader, #preloader, .loader-wrapper { display: none !important; }
+body.loading, body.preloader-active { overflow: auto !important; }
+/* order summary + promo */
+#order-standard_cart .order-summary, .order-summary { border-radius: var(--gh-r) !important; }
+#order-standard_cart .btn-checkout.disabled, #checkout.disabled { opacity: .45 !important; box-shadow: none !important; }
+.order-summary .total-due-today, #totalDueToday { background: var(--gh-tint) !important; border-radius: 12px !important; }
