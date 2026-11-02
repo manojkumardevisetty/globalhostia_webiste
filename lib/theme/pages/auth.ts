@@ -1,9 +1,10 @@
-// Sign in / create account / reset password. The real client area is WHMCS, so every action here
-// hands off to it honestly: no password field, no fake submission.
+// Sign in / create account / reset password. Sign-in posts to our own account portal (/account/login), which
+// validates against the billing system server-side. Sign-up still hands off to the secure registration page.
 import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
 import { getCatalog, whmcsLinks, minFrom, productsFor, fmt } from '../data';
 import { page } from '../shell';
+import { signInForm } from '../../portal/views/guest';
 import { breadcrumbs, breadcrumbJsonLd, button, icon, hexIcon, faq, faqJsonLd, sectionHead, type IconName } from '../ui';
 
 type Mode = 'sign-in' | 'sign-up' | 'forget-password';
@@ -28,7 +29,6 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const L = whmcsLinks(cat.base);
   const s = cat.settings;
   const mode = (['sign-in', 'sign-up', 'forget-password'].includes(ctx.slug) ? ctx.slug : 'sign-in') as Mode;
-  const reset = `${cat.base}/index.php?rp=/password/reset`;
   const host = cat.base.replace(/^https?:\/\//, '');
   const company = String(s.company || 'Desert Tech Cloud Services LLC');
   const phone = String(s.phone || ''), email = String(s.email || '');
@@ -56,7 +56,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     },
     'forget-password': {
       title: 'Locked out? You will be back in shortly.',
-      lead: 'Password resets are handled in our secure client area and confirmed by email.',
+      lead: 'We email you a one-time link so only you can choose a new password.',
       items: [
         ['mail', 'Reset link by email', 'We send a one-time link to the email address on your account.'],
         ['key', 'Choose a new password', 'Pick a strong password you do not use anywhere else.'],
@@ -70,13 +70,9 @@ export default async function render(ctx: PageCtx): Promise<string> {
   let card = '';
   if (mode === 'sign-in') {
     card = `<h1 class="au-h1">Sign in</h1>
-    <p class="au-sub">Enter the email address on your Globalhostia account. You will enter your password on the next screen.</p>
-    <form class="au-form" action="${esc(L.login)}" method="get">
-      <label class="au-label" for="au-email">Email address</label>
-      <div class="au-field">${icon('mail')}<input class="hp-input" id="au-email" name="email" type="email" autocomplete="username" inputmode="email" placeholder="you@company.com" spellcheck="false"></div>
-      <button class="hp-btn hp-btn--brand hp-btn--block hp-btn--lg" type="submit">${icon('lock')}Continue to secure client area</button>
-    </form>
-    <div class="au-links"><a href="${esc(reset)}">Forgot your password?</a><a href="/sign-up">Create an account</a></div>`;
+    <p class="au-sub">Use the email address and password on your Globalhostia account.</p>
+    ${signInForm()}
+    <div class="au-links"><a href="/account/forgot">Forgot your password?</a><a href="/sign-up">Create an account</a></div>`;
   } else if (mode === 'sign-up') {
     const host_ = minFrom(productsFor(cat, ['hosting-usa', 'hostia-shared', 'hosting-singapore']), cat.currency);
     const routes: [string, string, IconName, string][] = [
@@ -94,13 +90,13 @@ export default async function render(ctx: PageCtx): Promise<string> {
     <p class="au-sub au-sub--sm">You create your account during checkout. Already a customer? <a href="/sign-in">Sign in</a></p>`;
   } else {
     card = `<h1 class="au-h1">Reset your password</h1>
-    <p class="au-sub">Here is how it works. The reset itself happens on our secure client area.</p>
+    <p class="au-sub">Here is how it works. It takes a couple of minutes.</p>
     <ol class="au-steps">${[
       ['Enter your email', 'Use the address you signed up with.'],
       ['Open the link we send', 'It arrives within a few minutes. Check your spam folder too.'],
       ['Choose a new password', 'Then sign in as usual.'],
     ].map(([a, b], i) => `<li><span class="au-steps__n num">${i + 1}</span><span><b>${esc(a)}</b><small>${esc(b)}</small></span></li>`).join('')}</ol>
-    ${button({ label: 'Go to password reset', href: reset, icon: 'key' }).replace('hp-btn--brand', 'hp-btn--brand hp-btn--block hp-btn--lg')}
+    ${button({ label: 'Reset my password', href: '/account/forgot', icon: 'key' }).replace('hp-btn--brand', 'hp-btn--brand hp-btn--block hp-btn--lg')}
     <div class="au-links"><a href="/sign-in">Back to sign in</a><a href="${esc(L.ticket)}">Contact support</a></div>
     ${phone || email ? `<p class="au-sub au-sub--sm">No longer have access to your email? ${phone ? `Call <a class="num" href="tel:${esc(phone.replace(/[^\d+]/g, ''))}">${esc(phone)}</a>` : ''}${phone && email ? ' or write to ' : email ? 'Write to ' : ''}${email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : ''}.</p>` : ''}`;
   }
@@ -119,13 +115,13 @@ export default async function render(ctx: PageCtx): Promise<string> {
     <div class="au-main">
       ${breadcrumbs(crumbs, { light: true })}
       <div class="au-card">${card.replace('class="au-h1"', 'class="au-h1" id="au-h1"')}
-        <p class="au-secure">${icon('lock')}<span>Sign-in, sign-up and password resets are handled on our secure client area at <b>${esc(host)}</b>. This page never asks for your password.</span></p>
+        <p class="au-secure">${icon('lock')}<span>${mode === 'sign-in' ? 'Your password is sent over an encrypted connection and checked by our billing system. It is never stored on this website.' : `New accounts are created on our secure client area at <b>${esc(host)}</b>, where fraud checks protect your order.`}</span></p>
       </div>
     </div>
   </section>`;
 
   const qs = [
-    { q: 'Why am I taken to a different page to sign in?', a: `Your account, services and invoices live in our secure client area at ${host}. Signing in there keeps your password and payment details in one protected place.` },
+    { q: 'Where do I manage my services after signing in?', a: 'In My account on this website: your products and servers, domains, invoices and support tickets. Payments open on our secure payment page.' },
     { q: 'Do I need an account before I order?', a: 'No. If you are new, choose a plan and create your account during checkout. Your login details are then sent by email.' },
     { q: 'I did not receive the password reset email.', a: 'Check your spam or junk folder and make sure you used the email address on your account. If it still does not arrive, contact support and we will help you confirm your identity.' },
     { q: 'Is my card stored on this website?', a: 'No. Payments are made in our secure client area through the payment method you choose there. This website never handles card details.' },

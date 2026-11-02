@@ -31,7 +31,7 @@ function header(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>) {
     <a class="hp-brand" href="/" aria-label="Globalhostia home"><img src="/image/logo-main-black.png" alt="Globalhostia" width="178" height="34"></a>
     <nav class="hp-nav" aria-label="Main">${menus.map((m) => `<button type="button" class="hp-nav__btn" aria-expanded="false" aria-controls="m-${esc(m.id)}" data-menu="m-${esc(m.id)}">${esc(m.label)}${icon('chev')}</button>`).join('')}</nav>
     <div class="hp-header__actions">
-      <a class="hp-btn hp-btn--ghost" href="${esc(L.login)}">Client login</a>
+      <a class="hp-btn hp-btn--ghost" href="/account">Client login</a>
       <a class="hp-btn hp-btn--brand" href="${esc(L.register)}">Sign up</a>
       <button type="button" class="hp-burger" aria-expanded="false" aria-controls="hp-drawer" aria-label="Open menu">${icon('menu')}</button>
     </div>
@@ -48,7 +48,7 @@ function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: str
     <nav class="hp-drawer__body" aria-label="Mobile">${menus.map((m, i) => `<button type="button" class="hp-dacc__btn" aria-expanded="false" aria-controls="hp-dp${i}">${esc(m.label)}${icon('chev')}</button><div class="hp-dacc__panel" id="hp-dp${i}"><ul>${m.groups.flatMap((g) => g.items).map((it) =>
       `<li><a href="${esc(it.href)}">${icon(it.icon)}${esc(it.label)}</a></li>`).join('')}</ul></div>`).join('')}</nav>
     <div class="hp-drawer__foot">
-      <a class="hp-btn hp-btn--ghost" href="${esc(L.login)}">Client login</a>
+      <a class="hp-btn hp-btn--ghost" href="/account">Client login</a>
       <a class="hp-btn hp-btn--brand" href="${esc(L.register)}">Sign up</a>
       <div class="hp-drawer__contact">${phone ? `<a href="${esc(telHref(phone))}">${icon('phone')}<span class="num">${esc(phone)}</span></a>` : ''}${email ? `<a href="mailto:${esc(email)}">${icon('mail')}${esc(email)}</a>` : ''}</div>
     </div>
@@ -64,7 +64,7 @@ function utilBar(cat: Catalog, L: ReturnType<typeof whmcsLinks>, phone: string, 
     <span class="hp-u-item">${icon('globe')}Language <b>English</b></span>
     <span class="hp-sep" aria-hidden="true"></span>
     <a href="${esc(L.ticket)}" class="hp-hide-md">${icon('ticket')}Submit a ticket</a>
-    <a href="${esc(L.login)}">${icon('user')}Client login</a>
+    <a href="/account">${icon('user')}Client login</a>
   </div>
 </div></div>`;
 }
