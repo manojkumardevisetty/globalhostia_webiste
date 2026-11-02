@@ -238,3 +238,19 @@ body.loading, body.preloader-active { overflow: auto !important; }
 .gh-catbanner--windows-rdp, .gh-catbanner--windows-vps { background: radial-gradient(70% 120% at 0% 100%, rgba(56,189,248,.22), transparent 60%), linear-gradient(135deg, #16212b, #23313d); }
 .gh-catbanner--ssl-certificates { background: radial-gradient(70% 120% at 100% 100%, rgba(16,185,129,.22), transparent 60%), linear-gradient(135deg, #16212b, #23313d); }
 @media (max-width: 640px) { .gh-catbanner { padding: 20px; } .gh-catbanner .gh-hex { display: none; } }
+
+/* ---------- one consistent page width: header, top bar and content share the same 1440px grid ---------- */
+:root { --gh-page: 1440px; }
+.whmcs-top-header-area > .container-fluid, .whmcs-top-header-area .top-header-area-menu,
+header.site-header > .container-fluid > .d-flex,
+.header-overline-container > .container-fluid > *, .header-overline-container .container { max-width: var(--gh-page); margin-left: auto !important; margin-right: auto !important; }
+header.site-header > .container-fluid, .whmcs-top-header-area > .container-fluid { padding-left: 24px !important; padding-right: 24px !important; }
+#main-body > .container, #not-main-body > .container, section .container, .footer-emyui-aws .container, .footer-emyui-aws .container-fluid > * { max-width: var(--gh-page) !important; width: 100%; }
+.gh-hub-body, .gh-plist, .gh-catbanner, .gh-promo { max-width: var(--gh-page) !important; }
+.gh-hub-body { padding-left: 24px; padding-right: 24px; }
+/* client area: the white panel spans the grid, sidebar keeps a fixed comfortable width */
+#main-body .main-page-contents { border-radius: 20px; box-shadow: var(--gh-shadow); }
+@media (min-width: 1200px) {
+  #main-body .main-page-contents > .row > .col-md-9 { flex: 1 1 auto; max-width: calc(100% - 340px); }
+  #main-body .main-page-contents > .row > .col-md-3 { flex: 0 0 340px; max-width: 340px; }
+}
