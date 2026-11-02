@@ -338,7 +338,7 @@
   }
 
   function checkout() {
-    var form = document.getElementById('frmCheckout'); if (!form || form.dataset.gh) return; form.dataset.gh = 1;
+    var form = document.getElementById('frmCheckout'); if (!form || form.dataset.gh || !/cart\.php/.test(location.pathname) || !/a=checkout/.test(location.search)) return; form.dataset.gh = 1;
     var grid = document.createElement('div'); grid.className = 'gh-co';
     var aside = document.createElement('aside'); aside.className = 'gh-co__aside'; aside.innerHTML = '<div class="gh-co__card"><h3>Your order</h3><div class="gh-co__sum">Loading summary…</div><ul class="gh-co__trust"><li>Secure, encrypted checkout</li><li>Set up automatically after payment</li><li>24/7 support by ticket and WhatsApp</li></ul></div>';
     form.parentNode.insertBefore(grid, form); grid.appendChild(form); grid.appendChild(aside);

@@ -497,3 +497,18 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .gh-avail small { display: block; font: 600 14px/1.4 Inter, sans-serif; color: #1c9a5b; margin-top: 4px; }
 .domain-registiration-hero > div:first-child, .domain-registiration-hero .breadcrumb, .domain-registiration-hero [class*="breadcrumb"] { color: rgba(255,255,255,.7) !important; }
 .domain-registiration-hero [class*="breadcrumb"] * { color: rgba(255,255,255,.7) !important; }
+
+/* ---------- audit fixes: mobile header, contact, KB, login ---------- */
+@media (max-width: 575px) {
+  .header-btn .btn-black, .header-btn a.btn { padding-left: 12px !important; padding-right: 12px !important; }
+  .site-header .currency-selector, .site-header [class*="currency"], .header-btn > a[href*="register.php"], .site-header a[href*="register.php"].contact-header-btn { display: none !important; }
+  .site-header .container, .site-header .container-fluid { padding-left: 12px !important; padding-right: 12px !important; }
+  .top-header-area-menu .container-fluid { overflow-x: auto; }
+}
+.nav-elements-box, .nav-elements-box .list-group { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.nav-elements-box::-webkit-scrollbar { display: none; }
+#main-body form label, .contact-form label, form .control-label { text-align: left !important; display: block; font-weight: 600; color: var(--gh-ink); }
+.login-form a, .logincontainer a, .register-form a, a[href*="register.php"]:not(.btn) { color: var(--gh-brand) !important; }
+#main-body h1, #main-body h2 { text-transform: none; }
+.kb-category, .kbcategories .card, [class*="knowledgebase"] .card { border-radius: 16px !important; }
+.alert { border-radius: 14px !important; }
