@@ -97,7 +97,19 @@ export const ROUTES: Record<string, RouteDef> = {
   contact: { kind: 'contact', title: 'Contact us', description: 'Talk to Globalhostia sales or support by phone, email or ticket.',
     seoTitle: 'Contact Us: 24/7 Sales & Support',
     meta: 'Talk to GlobalHostia sales or technical support by phone, email, WhatsApp or ticket, every hour of every day. Our team is based in Dubai, United Arab Emirates.' },
+  // growth pages (lib/theme/growth.ts helpers)
+  'plan-finder': { kind: 'planfinder', title: 'Plan finder: which hosting do I need?', description: 'Answer four quick questions and get a hosting, VPS or server recommendation from our live catalog, with real prices and two alternatives.' },
+  'free-migration': { kind: 'migration', title: 'Free website migration', description: 'Moving from another host? Our engineers copy your website, databases and email to Globalhostia for free, with no downtime. Request a migration in two minutes.' },
+  'ae-domains': { kind: 'aedomains', title: '.ae Domains: register your UAE domain', description: 'Register a .ae domain for your UAE business. Live .ae price, eligibility requirements and help with the paperwork from a Dubai-based team.' },
+  'data-centers': { kind: 'datacenters', title: 'Data centers and network locations', description: 'Where our hosting, VPS and dedicated servers run, and a live test of the round-trip time from your browser to our network.' },
+  'web-hosting-dubai': { kind: 'uae', title: 'Web Hosting in Dubai', description: 'Web hosting from a Dubai-based company: NVMe plans with free SSL, prices in AED, a price-locked renewal and support by WhatsApp and ticket around the clock.', categories: H },
+  'vps-uae': { kind: 'uae', title: 'VPS Hosting UAE', description: 'Linux and Windows VPS for UAE businesses: dedicated vCPU and RAM, NVMe storage, root access and engineers on WhatsApp 24/7. Live prices in AED or USD.', categories: ['hostiavps', 'high-performance-vps'] },
+  'windows-rdp-uae': { kind: 'uae', title: 'Windows RDP in the UAE', description: 'An always-on Windows desktop in the cloud for UAE teams and traders: administrator access, NVMe storage and setup after payment. Connect from any device.', categories: ['windows-rdp', 'linux-rdp'] },
+  'best-hosting-uae': { kind: 'uae', title: 'Best Web Hosting in the UAE: how to choose', description: 'What to compare before you buy hosting in the UAE: renewal prices, support hours, data location, VAT invoices and migration. An honest checklist and our live plans.', categories: H },
 };
+
+/** Pages that only exist in the Hostpen theme: always rendered by it, whatever the site theme (like /blog). */
+export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae']);
 
 /** product detail pages /p/<slug> use kind 'product' */
 export const PRODUCT_ROUTE: RouteDef = { kind: 'product', title: '', description: '' };

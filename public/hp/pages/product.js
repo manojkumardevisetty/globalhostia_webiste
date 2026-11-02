@@ -8,12 +8,15 @@
   var box = HP.$("[data-buy]");
   if (!box) return;
   var price = HP.$("[data-buy-price]", box), unit = HP.$("[data-buy-unit]", box), due = HP.$("[data-buy-due]", box), order = HP.$("[data-buy-order]", box);
+  var renew = HP.$("[data-buy-renew]", box);
+  function syncRenew() { if (renew && price) renew.textContent = (price.textContent + " " + (unit ? unit.textContent : "")).trim(); }
   function apply(input, animate) {
     if (!input) return;
     var d = input.dataset;
     if (price) price.textContent = d.price;
     if (unit) unit.textContent = d.unit;
     if (due) due.textContent = d.due;
+    syncRenew();
     if (order && d.href) order.setAttribute("href", d.href);
     // keep the hero CTA band order link in step with the chosen cycle
     HP.$$(".hp-cta .hp-btn--light").forEach(function (a) { if (/cart\.php/.test(a.getAttribute("href") || "")) a.setAttribute("href", d.href); });
@@ -46,6 +49,7 @@
     });
     if (price) price.textContent = fmt(d.prefix, total);
     if (due) due.textContent = fmt(d.prefix, total + setup);
+    syncRenew();
     var href = d.href + q;
     if (order) order.setAttribute("href", href);
     HP.$$(".hp-cta .hp-btn--light").forEach(function (a) { if (/cart\.php/.test(a.getAttribute("href") || "")) a.setAttribute("href", href); });

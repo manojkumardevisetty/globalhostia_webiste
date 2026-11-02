@@ -739,3 +739,65 @@ main{display:block}
 .hp-util .hp-cur__menu a b,.hp-cur__menu a b{color:var(--ink)!important;min-width:38px}
 .hp-cur__menu a span{color:var(--muted)}
 .hp-cur__menu a[aria-current] .hp-cur__sym{background:var(--brand);color:#fff}
+
+/* ---------------- trust & conversion (lib/theme/growth.ts) ---------------- */
+.hp-plan__renew{font-size:12px;line-height:1.45;color:var(--muted);margin-top:4px}
+.hp-plan.is-hl .hp-plan__renew,.hp-pfeature .hp-plan__renew{color:rgba(255,255,255,.86)}
+.hp-prow__price .hp-plan__renew{font-size:11.5px;margin-top:2px}
+.hp-pf-links{display:flex;flex-wrap:wrap;gap:0 22px}
+.hp-trustbar{border-block:1px solid var(--line);background:var(--tint)}
+.hp-trustbar--light{background:#fff}
+.hp-domain+.hp-trustbar,.pd-tiles-wrap+.hp-trustbar{margin-top:40px}
+.hp-trustbar--dark{background:var(--deep);border-color:rgba(255,255,255,.08)}
+.hp-trustbar ul{display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr))}
+.hp-trustbar li{min-width:0}
+.hp-trustbar li+li{border-left:1px solid var(--line)}
+.hp-trustbar a,.hp-trustbar li>div{display:flex;align-items:center;gap:12px;height:100%;min-height:76px;padding:14px 18px;font-size:14px;line-height:1.35;color:var(--ink)}
+.hp-trustbar a{transition:background-color .2s}
+.hp-trustbar a:hover{background:rgba(197,56,111,.06)}
+.hp-trustbar a:hover b{color:var(--brand-d)}
+.hp-trustbar .hp-ico{width:22px;height:22px;color:var(--brand);stroke-width:1.8}
+.hp-trustbar__t{display:flex;flex-direction:column;min-width:0}
+.hp-trustbar__t b{font:700 14.5px/1.3 var(--head);color:var(--ink)}
+.hp-trustbar__t span{color:var(--muted);font-size:13px}
+.hp-trustbar--dark a,.hp-trustbar--dark li>div,.hp-trustbar--dark .hp-trustbar__t b{color:#fff}
+.hp-trustbar--dark .hp-trustbar__t span{color:var(--on-dark-mute)}
+.hp-trustbar--dark .hp-ico{color:var(--gold)}
+.hp-trustbar--dark li,.hp-trustbar--dark li+li{border-color:rgba(255,255,255,.1)!important}
+.hp-trustbar--dark :focus-visible{outline-color:var(--gold)}
+@media (max-width:1180px){
+  .hp-trustbar ul{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .hp-trustbar li+li{border-left:0}
+  .hp-trustbar li{border-top:1px solid var(--line)}
+  .hp-trustbar li:nth-child(-n+3){border-top:0}
+  .hp-trustbar li:not(:nth-child(3n+1)){border-left:1px solid var(--line)}
+}
+@media (max-width:720px){
+  .hp-trustbar ul{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hp-trustbar li:nth-child(-n+3){border-top:1px solid var(--line)}
+  .hp-trustbar li:nth-child(-n+2){border-top:0}
+  .hp-trustbar li:not(:nth-child(3n+1)){border-left:0}
+  .hp-trustbar li:nth-child(2n){border-left:1px solid var(--line)}
+  .hp-trustbar a,.hp-trustbar li>div{padding:12px;gap:10px;min-height:68px}
+  .hp-trustbar__t b{font-size:13.5px}
+  .hp-trustbar__t span{font-size:12.5px}
+}
+@media (max-width:359px){
+  .hp-trustbar ul{grid-template-columns:minmax(0,1fr)}
+  .hp-trustbar li:nth-child(2n){border-left:0}
+  .hp-trustbar li:nth-child(2){border-top:1px solid var(--line)}
+}
+.hp-wa{position:fixed;left:16px;bottom:16px;z-index:65;display:inline-flex;align-items:center;gap:10px;min-height:52px;min-width:52px;padding:0 18px 0 14px;border-radius:999px;background:#0f7a41;color:#fff;font:600 14px/1 var(--body);box-shadow:0 14px 30px -12px rgba(18,90,52,.65),0 2px 6px rgba(22,33,43,.18);transition:transform .25s var(--ease),background-color .2s}
+.hp-wa svg{width:26px;height:26px;flex:none}
+.hp-wa:hover{background:#0b6835;transform:translateY(-2px)}
+.hp-wa:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.hp-mo .hp-wa{animation:hp-wa-in .5s var(--ease-o) 1.2s both}
+@keyframes hp-wa-in{from{opacity:0;transform:translateY(16px) scale(.9)}to{opacity:1;transform:none}}
+body:has(.hp-preview-pill) .hp-wa{bottom:68px}
+@media (max-width:720px){
+  .hp-wa{left:12px;bottom:12px;padding:0;width:52px;justify-content:center}
+  .hp-wa__lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  body:has(.hp-preview-pill) .hp-wa{bottom:60px}
+}
+@media (prefers-reduced-motion:reduce){.hp-wa{transition:none}.hp-wa:hover{transform:none}}
+@media print{.hp-wa{display:none}}

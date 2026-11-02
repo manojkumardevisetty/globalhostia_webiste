@@ -10,8 +10,9 @@ import { getCatalog, productBySlug, categoryBySlug, cycles, orderUrl, deriveSpec
 import { page } from '../shell';
 import { ogImageUrl, fitDescription } from '../../seo';
 import { productTitle, nounOf, inLoc } from '../../seo-product';
+import { trustStrip } from '../growth';
 import {
-  pageHero, sectionHead, planCards, faq, faqJsonLd, ctaBand, breadcrumbJsonLd, ld, icon, hexIcon, available, type IconName,
+  pageHero, sectionHead, planCards, faq, faqJsonLd, ctaBand, breadcrumbJsonLd, ld, icon, hexIcon, available, type IconName, VAT_NOTE,
 } from '../ui';
 
 type Kind = 'server' | 'ssl' | 'hosting' | 'email' | 'other';
@@ -219,11 +220,12 @@ function buyBox(p: TProduct, name: string, cs: Cyc[], def: Cyc | null, base: str
   return `<aside class="pd-buy" aria-labelledby="pd-buy-h" data-buy>
   <h2 id="pd-buy-h">Order ${esc(name)}</h2>
   <div class="pd-buy__price num" aria-live="polite"><span data-buy-price>${esc(money(def.price, def.prefix))}</span><small data-buy-unit>${esc(UNIT[def.cycle] || '')}</small></div>
+  ${def.cycle === 'onetime' ? '' : `<p class="pd-buy__renew num">Renews at <span data-buy-renew>${esc(`${money(def.price, def.prefix)} ${UNIT[def.cycle] || ''}`.trim())}</span> · ${esc(VAT_NOTE)}</p>`}
   ${cs.length > 1 ? `<fieldset class="pd-opts"><legend>Billing period</legend>${opts}</fieldset>` : `<div class="pd-opts pd-opts--one">${opts}</div>`}
   ${configurator(p, currency)}
   <dl class="pd-due"><div><dt>First invoice${def.setup > 0 || cs.some((c) => c.setup > 0) ? ', including setup' : ''}</dt><dd class="num" data-buy-due>${esc(money(def.price + def.setup, def.prefix))}</dd></div></dl>
   <a class="hp-btn hp-btn--brand hp-btn--block hp-btn--lg" href="${esc(orderUrl(p, base, def.cycle))}" data-buy-order>${icon('cart')}Order now</a>
-  <p class="pd-buy__note">Prices in ${esc(currency)}, before any tax. You review the total in our secure order form before paying.</p>
+  <p class="pd-buy__note">Prices in ${esc(currency)}, before any tax (${esc(VAT_NOTE)}). You review the total in our secure order form before paying.</p>
   <ul class="pd-buy__trust">${trust[kind].map((t) => `<li>${icon('check')}${esc(t)}</li>`).join('')}</ul>
 </aside>`;
 }
@@ -446,6 +448,6 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
     description: productDescription(p, name, kind, catRow?.name || route?.title || '', specs, currency),
     css: ['product'], js: ['product'], ogKicker: catLabel, noindex: !productBySlug(cat, ctx.slug),
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(qs), ld(product)],
-    body: [hero, tilesHtml, main, relatedHtml, faqHtml, cta].join('\n'),
+    body: [hero, tilesHtml, trustStrip(cat.settings), main, relatedHtml, faqHtml, cta].join('\n'),
   });
 }

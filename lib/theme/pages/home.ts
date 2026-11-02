@@ -4,7 +4,8 @@ import { esc } from '../../render/util';
 import { money } from '../../pricing';
 import { getCatalog, productsFor, minFrom, pricedTlds, currencyPrefix, deriveSpecs, type TProduct, type FromPrice } from '../data';
 import { page } from '../shell';
-import { getLatestPosts } from '../../blog';
+import { trustStrip } from '../growth';
+import { getLatestPosts, postPath, fmtPostDate } from '../../blog';
 import { postCard } from './blog';
 import {
   heroSlider, domainSearch, sectionHead, bigTabs, planCards, plansNote, link, statRow, barChart, dcMap, splitHead, featureGrid,
@@ -117,7 +118,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const plans = `<section class="hp-section" id="plans" aria-labelledby="plans-h"><div class="hp-container">
     ${sectionHead({ id: 'plans-h', title: 'Choose the right home for your website', lead: 'Shared hosting for sites and stores, managed cloud VPS for applications, and dedicated servers for heavy workloads.' })}
     ${tabs}
-    ${plansNote(currency, link('Domain and add-on pricing', '/domains-registration#pricing'))}
+    ${plansNote(currency, `<span class="hp-pf-links">${link('Not sure which plan? Try the plan finder', '/plan-finder')}${link('Domain and add-on pricing', '/domains-registration#pricing')}</span>`)}
   </div></section>`;
 
   /* ---------------- infrastructure ---------------- */
@@ -201,6 +202,6 @@ export default async function render(ctx: PageCtx): Promise<string> {
   return page({
     ctx, catalog: cat, path: '/', title: ctx.route.title, description: ctx.route.description,
     preload: ['/hp/img/hero-hosting.jpg'], css: posts.length ? ['blog'] : undefined,
-    body: [hero, domain, plans, infra, features, cta, trio, blog, logosStrip()].join('\n'),
+    body: [hero, domain, trustStrip(cat.settings), plans, infra, features, cta, trio, blog, logosStrip()].join('\n'),
   });
 }

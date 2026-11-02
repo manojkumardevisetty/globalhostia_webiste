@@ -125,6 +125,8 @@
 .pd-buy__price{margin-top:14px;display:flex;align-items:baseline;gap:8px}
 .pd-buy__price span{font:800 40px/1 var(--head);color:var(--ink);letter-spacing:-.03em}
 .pd-buy__price small{font-size:15px;color:var(--muted)}
+.pd-buy__renew{margin-top:6px;font-size:13px;color:var(--muted)}
+.pd-buy__renew span{color:var(--ink);font-weight:600}
 .pd-opts{margin:20px 0 0;padding:0;border:0;display:grid;gap:10px;min-width:0}
 .pd-opts legend{padding:0;margin-bottom:10px;font:600 13px/1.2 var(--body);color:var(--muted)}
 .pd-opt{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:12px 14px;border:1.5px solid var(--line-2);border-radius:var(--r);cursor:pointer;transition:border-color .18s,background-color .18s}

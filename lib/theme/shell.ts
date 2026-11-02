@@ -8,6 +8,7 @@ import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
 import { activeFor, barHtml, promoDataScript, hasPromo } from '../promo';
+import { waFloat } from './growth';
 import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta, blogListingDescription } from '../seo';
 
 export type PageOpts = {
@@ -187,6 +188,7 @@ ${drawer(menus, L, phone, email)}
 ${o.body}
 </main>
 ${footer(menus, cat, phone, email)}
+${waFloat(s, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.path)}
 ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=original')}"><i aria-hidden="true"></i>Theme preview · switch back to the current site</a>` : ''}
 <script src="${asset('/hp/theme.js')}" defer></script>
 ${hasPromo(promo) ? `${promoDataScript(promo)}<script src="${asset('/hp/promo.js')}" defer></script>` : ''}

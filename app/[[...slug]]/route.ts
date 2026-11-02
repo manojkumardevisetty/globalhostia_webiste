@@ -5,6 +5,7 @@ import { db, schema } from '@/lib/db';
 import { renderPage } from '@/lib/render/page';
 import { renderProductPage } from '@/lib/render/product-page';
 import { renderTheme, renderBlogRoute } from '@/lib/theme';
+import { THEME_ONLY } from '@/lib/theme/routes';
 import { getSettings } from '@/lib/settings';
 import { verifySession, COOKIE } from '@/lib/auth';
 
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: stri
 
   // Site theme: Admin > Design "Site theme". ?theme=hostpen previews it, ?theme=original previews the old one.
   const tq = req.nextUrl.searchParams.get('theme');
-  const themed = tq ? tq === 'hostpen' : s.site_theme === 'hostpen';
+  const themed = (tq ? tq === 'hostpen' : s.site_theme === 'hostpen') || (segs.length === 1 && THEME_ONLY.has(segs[0].toLowerCase()));
   if (themed) {
     const out = await renderTheme(segs, { path, preview, query: req.nextUrl.searchParams });
     if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'));

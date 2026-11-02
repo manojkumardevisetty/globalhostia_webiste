@@ -30,6 +30,10 @@ export function defaultMenu(cat: Catalog): ThemeMenu[] {
         { label: 'Shared Hosting', href: '/shared-hosting', icon: 'layers', desc: 'Lite, Ultra and Infinity plans with free SSL.', cats: H },
         { label: 'Reseller (cPanel)', href: '/cpanel-reseller', icon: 'users', desc: 'Host your own clients under your brand.', cats: ['cpanel-reseller'] },
       ] },
+      { title: 'Get started', items: [
+        { label: 'Plan finder', href: '/plan-finder', icon: 'filter', desc: 'Four questions, one recommendation from our live plans.' },
+        { label: 'Free migration', href: '/free-migration', icon: 'move', desc: 'We move your site, databases and email for you.' },
+      ] },
     ] },
     { id: 'servers', label: 'Servers', groups: [
       { title: 'Virtual servers', items: [
@@ -49,6 +53,7 @@ export function defaultMenu(cat: Catalog): ThemeMenu[] {
         { label: 'Register a domain', href: '/domains-registration', icon: 'at', desc: 'Search extensions and register in minutes.' },
         { label: 'Transfer a domain', href: L.transfer, icon: 'transfer', desc: 'Move your domain to us at no cost.' },
         { label: 'Domain pricing', href: '/domains-registration#pricing', icon: 'tag', desc: 'Registration, renewal and transfer prices.' },
+        { label: '.ae domains', href: '/ae-domains', icon: 'globe', desc: 'The UAE country domain for local businesses.' },
       ] },
     ] },
     { id: 'security', label: 'Security', groups: [
@@ -79,6 +84,7 @@ export function defaultMenu(cat: Catalog): ThemeMenu[] {
       ] },
       { title: 'Service health', items: [
         { label: 'Status page', href: '/status-page', icon: 'activity', desc: 'Live status of every datacenter and service.' },
+        { label: 'Data centers', href: '/data-centers', icon: 'pin', desc: 'Our locations and a live speed test from your browser.' },
         { label: 'Incident history', href: '/incident-history', icon: 'clock', desc: 'Past incidents and how they were resolved.' },
         { label: 'Contact', href: '/contact', icon: 'mail', desc: 'Sales, billing and technical support.' },
       ] },
@@ -143,6 +149,11 @@ export function footerColumns(menus: ThemeMenu[]) {
   const cols = menus.map((m) => ({ title: m.label, links: dedupe(m.groups.flatMap((g) => g.items)).map((i) => ({ label: i.label, href: i.href })) }));
   const sec = cols.findIndex((c) => /security/i.test(c.title)), dom = cols.findIndex((c) => /domain/i.test(c.title));
   if (sec >= 0 && dom >= 0) { cols[dom].links.push(cols[sec].links[0]); cols.splice(sec, 1); }
+  cols.push({ title: 'In the UAE', links: [
+    { label: 'Web hosting in Dubai', href: '/web-hosting-dubai' }, { label: 'VPS hosting UAE', href: '/vps-uae' },
+    { label: 'Windows RDP UAE', href: '/windows-rdp-uae' },
+    { label: 'Choosing hosting in the UAE', href: '/best-hosting-uae' },
+  ] });
   return cols;
 }
 function dedupe(items: MenuItem[]) { const seen = new Set<string>(); return items.filter((i) => (seen.has(i.label) ? false : (seen.add(i.label), true))); }

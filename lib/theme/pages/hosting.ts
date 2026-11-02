@@ -6,6 +6,7 @@ import { esc } from '../../render/util';
 import { money } from '../../pricing';
 import { getCatalog, productsFor, minFrom, fromPrice, orderUrl, deriveSpecs, currencyPrefix, type TProduct } from '../data';
 import { page } from '../shell';
+import { trustStrip } from '../growth';
 import {
   pageHero, sectionHead, splitHead, planCards, plansNote, specTable, featureGrid, faq, faqJsonLd, ctaBand, breadcrumbJsonLd,
   icon, ld, link, fromText, available,
@@ -172,7 +173,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     ${sectionHead({ id: 'plans-h', title: shared ? 'Shared hosting plans' : 'Web hosting plans', lead: 'The same three plan sizes in every location. Choose the datacenter, then the size. Every plan includes free SSL and daily and weekly backups.' })}
     ${planCards(all, { currency, base, locationTabs: true, groupLabel: 'Hosting location', id: 'ho-plans',
       emptyTitle: 'Hosting plans are being updated', emptyText: 'Our hosting plans are being refreshed right now. Tell us what you need and we will set it up for you.' })}
-    ${plansNote(currency, link('Domain prices', '/domains-registration'))}
+    ${plansNote(currency, `<span class="hp-pf-links">${link('Help me choose: plan finder', '/plan-finder')}${link('Domain prices', '/domains-registration')}</span>`)}
   </div></section>`;
 
   const cmpSet = locs[0]?.items || [];
@@ -242,6 +243,6 @@ export default async function render(ctx: PageCtx): Promise<string> {
     ctx, catalog: cat, path: `/${ctx.slug}`, title: ctx.route.title, description: ctx.route.description,
     css: ['hosting'], js: ['hosting'],
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(faqs), ...offers.map((o) => ld(o))],
-    body: [hero, finder, plans, compare, included, migrate, faqSec, cta].join('\n'),
+    body: [hero, trustStrip(cat.settings), finder, plans, compare, included, migrate, faqSec, cta].join('\n'),
   });
 }

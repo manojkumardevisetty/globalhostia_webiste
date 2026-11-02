@@ -174,6 +174,8 @@ const UNIT: Record<string, string> = { monthly: '/ month', quarterly: '/ quarter
 const BILLED: Record<string, string> = { monthly: 'Billed monthly', quarterly: 'Billed every 3 months', semiannually: 'Billed every 6 months', annually: 'Billed yearly', biennially: 'Billed every 2 years', triennially: 'Billed every 3 years', onetime: 'One-time payment', free: '' };
 const CYCLE_NAME: Record<string, string> = { monthly: 'Monthly', quarterly: 'Quarterly', semiannually: '6 months', annually: 'Yearly', biennially: '2 years', triennially: '3 years' };
 const splitPrefix = (prefix: string) => esc(prefix || '$');
+/** Small print under every price (UAE VAT). */
+export const VAT_NOTE = '+VAT 5% where applicable';
 
 type PriceCtx = { currency: string; base: string };
 type Cyc = ReturnType<typeof cycles>[number];
@@ -199,7 +201,9 @@ function priceHtml(p: RProduct, c: Cyc | null, ctx: PriceCtx, monthlyRef?: Cyc) 
   if (months > 1) meta.push(`about ${money(c.perMonth, c.prefix)} a month`);
   if (monthlyRef && months > 1) { const save = Math.round((1 - c.perMonth / monthlyRef.price) * 100); if (save >= 3) meta.push(`save ${save}%`); }
   if (c.setup > 0) meta.push(`plus ${money(c.setup, c.prefix)} setup`);
-  return `<div class="hp-price num"><span class="hp-price__cur">${splitPrefix(c.prefix)}</span><span class="hp-price__amt">${c.price.toFixed(2)}</span><span class="hp-price__per">${esc(UNIT[c.cycle] ?? '')}</span></div><p class="hp-plan__meta">${esc(meta.join(', '))}</p>`;
+  // renewal = the same synced price for this cycle (WHMCS recurring amount); never a made-up number
+  const renew = c.cycle === 'onetime' ? '' : `Renews at ${money(c.price, c.prefix)} ${UNIT[c.cycle] ?? ''}`.trim();
+  return `<div class="hp-price num"><span class="hp-price__cur">${splitPrefix(c.prefix)}</span><span class="hp-price__amt">${c.price.toFixed(2)}</span><span class="hp-price__per">${esc(UNIT[c.cycle] ?? '')}</span></div><p class="hp-plan__meta">${esc(meta.join(', '))}</p><p class="hp-plan__renew num">${esc(renew ? `${renew} · ${VAT_NOTE}` : VAT_NOTE)}</p>`;
 }
 
 /** Compact "from $X/mo" text for a product (escaped), or '' when unpriced. */
@@ -321,7 +325,7 @@ function listView(items: RProduct[], ctx: PriceCtx, views: Views, def: string | 
   const page = o.pageSize ?? 15;
   const rows = items.map((p, i) => {
     const pv = priceViews(p, ctx, views, def), s = specOf[i];
-    const priceCell = pv.html.replace(/<p class="hp-plan__meta">/g, '<span class="hp-plan__meta">').replace(/<\/p>/g, '</span>');
+    const priceCell = pv.html.replace(/<p class="(hp-plan__(?:meta|renew)[^"]*)">/g, '<span class="$1">').replace(/<\/p>/g, '</span>');
     const unpriced = !cycles(p, ctx.currency).length;
     return `<div class="hp-prow" role="row" data-idx="${i}" data-name="${esc(p.name.toLowerCase())}" data-price="${pv.sort < 1e9 ? pv.sort.toFixed(4) : ''}" data-search="${esc([p.name, p.tagline, ...p.features].join(' ').toLowerCase())}"${filterKeys.map((k) => ` data-f-${k}="${esc(s[k] || '')}"`).join('')}>
     <div class="hp-prow__name" role="cell"><a href="/p/${esc(p.slug)}">${esc(p.name)}</a>${p.badge ? `<span class="hp-badge hp-badge--inline${isSoftBadge(p.badge) ? ' hp-badge--soft' : ''}">${esc(p.badge)}</span>` : ''}${p.tagline ? `<small>${esc(p.tagline)}</small>` : ''}</div>

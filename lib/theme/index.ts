@@ -25,6 +25,11 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   content: () => import('./pages/content'),
   servers: () => import('./pages/servers'),
   blog: () => import('./pages/blog'),
+  planfinder: () => import('./pages/planfinder'),
+  migration: () => import('./pages/migration'),
+  aedomains: () => import('./pages/aedomains'),
+  datacenters: () => import('./pages/datacenters'),
+  uae: () => import('./pages/uae'),
 };
 
 /** Returns themed HTML, or null when this URL isn't part of the theme (caller falls back to the original theme). */

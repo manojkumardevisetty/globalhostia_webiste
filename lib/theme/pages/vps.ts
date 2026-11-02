@@ -4,6 +4,7 @@ import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
 import { getCatalog, productsFor, minFrom, deriveSpecs, orderUrl, cycles, type Catalog, type TProduct } from '../data';
 import { page } from '../shell';
+import { trustStrip } from '../growth';
 import {
   pageHero, sectionHead, splitHead, planCards, plansNote, featureGrid, faq, faqJsonLd, ctaBand, breadcrumbJsonLd,
   ld, link, icon, fromText, type FeatureItem,
@@ -203,6 +204,6 @@ export default async function render(ctx: PageCtx): Promise<string> {
   return page({
     ctx, catalog: cat, path: ctx.path, title: ctx.route.title, description: ctx.route.description, css: ['vps'], js: ['vps'],
     jsonLd: [breadcrumbJsonLd(crumbs, siteOf(cat)), faqJsonLd(faqs), productsLd(vps, cat, 'VPS plans')].filter(Boolean),
-    body: [hero, sizer(vps, cat), plans, features, faqSec, cta].join('\n'),
+    body: [hero, trustStrip(cat.settings), sizer(vps, cat), plans, features, faqSec, cta].join('\n'),
   });
 }

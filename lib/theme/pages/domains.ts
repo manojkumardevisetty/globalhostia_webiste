@@ -5,6 +5,7 @@ import { esc } from '../../render/util';
 import { money } from '../../pricing';
 import { getCatalog, pricedTlds, currencyPrefix, domainCartUrl, type TTld } from '../data';
 import { page } from '../shell';
+import { trustStrip } from '../growth';
 import {
   breadcrumbs, breadcrumbJsonLd, domainSearch, sectionHead, splitHead, featureGrid, faq, faqJsonLd, ctaBand, ld, icon, link, trustRow,
 } from '../ui';
@@ -174,6 +175,6 @@ export default async function render(ctx: PageCtx): Promise<string> {
     ctx, catalog: cat, path: `/${ctx.slug}`, title: ctx.route.title, description: ctx.route.description, css: ['domains'], js: ['domains'],
     preload: ['/hp/img/hero-domains.jpg'],
     jsonLd: [breadcrumbJsonLd(crumbs.map((c) => ({ ...c, href: c.href || `/${ctx.slug}` })), site), faqJsonLd(faqs), offers].filter(Boolean),
-    body: [hero, grid, transfer, included, faqSec, cta].join('\n'),
+    body: [hero, trustStrip(cat.settings), grid, transfer, included, faqSec, cta].join('\n'),
   });
 }
