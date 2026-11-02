@@ -6,13 +6,18 @@ import { getCatalog, whmcsLinks, availableCurrencies, type Catalog } from './dat
 import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
-import { activeFor, barHtml, promoDataScript, hasPromo } from '../promo';
 import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta } from '../seo';
 
 export type PageOpts = {
   title: string; description: string; path: string; body: string; ctx: PageCtx;
   css?: string[]; js?: string[]; jsonLd?: string | string[]; bodyClass?: string; ogImage?: string; preload?: string[];
   catalog?: Catalog; noindex?: boolean;
+  /** absolute canonical URL override (defaults to site_url + path) */
+  canonical?: string;
+  /** og:type (default "website") */
+  ogType?: string;
+  /** trusted extra <head> markup (e.g. article:published_time meta) */
+  headExtra?: string;
   /** small label above the title on the generated OG image (e.g. product category) */
   ogKicker?: string;
 };
@@ -114,7 +119,7 @@ export async function page(o: PageOpts): Promise<string> {
   const menus = getMenu(cat);
   const phone = String(s.phone || ''), email = String(s.email || '');
   const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
-  const canonical = site + (o.path === '/' || !o.path ? '/' : o.path);
+  const canonical = o.canonical || site + (o.path === '/' || !o.path ? '/' : o.path);
   const siteName = String(s.site_name || 'Globalhostia');
   const fullTitle = seoTitle(o.title, siteName);
   const description = seoDescription(o.description);
@@ -123,7 +128,6 @@ export async function page(o: PageOpts): Promise<string> {
   const css = (o.css || []).map(safeKey).filter(Boolean);
   const js = (o.js || []).map(safeKey).filter(Boolean);
   // drop empty FAQPage blocks (pages with no FAQ items) so structured data stays valid
-  const promo = activeFor(s.promotions, 'website');
   const lds = ([] as string[]).concat(o.jsonLd || []).filter((x) => x && !x.includes('"mainEntity":[]'));
   const isHome = !o.path || o.path === '/';
   const og = o.ogImage ? new URL(o.ogImage, site + '/').toString()
@@ -140,16 +144,16 @@ export async function page(o: PageOpts): Promise<string> {
 <meta name="robots" content="${noindex ? ROBOTS_NOINDEX : ROBOTS_INDEX}">
 <link rel="canonical" href="${esc(canonical)}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<meta property="og:type" content="website"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:locale" content="en_AE"><meta property="og:url" content="${esc(canonical)}"><meta property="og:title" content="${esc(fullTitle)}"><meta property="og:description" content="${esc(description)}">
+<meta property="og:type" content="${esc(o.ogType || 'website')}"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:locale" content="en_AE"><meta property="og:url" content="${esc(canonical)}"><meta property="og:title" content="${esc(fullTitle)}"><meta property="og:description" content="${esc(description)}">
 <meta property="og:image" content="${esc(og)}">${o.ogImage ? '' : '<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'}<meta property="og:image:alt" content="${esc(ogAlt)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(fullTitle)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(og)}"><meta name="twitter:image:alt" content="${esc(ogAlt)}">
+${o.headExtra || ''}
 ${verificationMeta(s)}
 <meta name="theme-color" content="#16212b">
 ${ICON_LINKS}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
 ${(o.preload || []).map((p) => `<link rel="preload" as="image" href="${esc(p)}">`).join('')}
 <link rel="stylesheet" href="${asset('/hp/theme.css')}">
-${hasPromo(promo) ? `<link rel="stylesheet" href="${asset('/hp/promo.css')}">` : ''}
 ${css.map((k) => `<link rel="stylesheet" href="${asset(`/hp/pages/${k}.css`)}">`).join('\n')}
 <script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("hp-mo")</script>
 ${siteJsonLd(s, cat.base)}
@@ -160,7 +164,6 @@ ${s.custom_css ? `<style id="gh-custom">${String(s.custom_css).replace(/<\/style
 ${iconSprite()}
 <div class="hp-progress" aria-hidden="true"></div>
 <a class="hp-skip" href="#main">Skip to content</a>
-${barHtml(promo.bar)}
 ${utilBar(cat, L, phone, email)}
 ${header(menus, L)}
 ${drawer(menus, L, phone, email)}
@@ -170,7 +173,6 @@ ${o.body}
 ${footer(menus, cat, phone, email)}
 ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=original')}"><i aria-hidden="true"></i>Theme preview · switch back to the current site</a>` : ''}
 <script src="${asset('/hp/theme.js')}" defer></script>
-${hasPromo(promo) ? `${promoDataScript(promo)}<script src="${asset('/hp/promo.js')}" defer></script>` : ''}
 ${js.map((k) => `<script src="${asset(`/hp/pages/${k}.js`)}" defer></script>`).join('\n')}
 </body>
 </html>`, cat);

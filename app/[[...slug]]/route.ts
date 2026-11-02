@@ -4,7 +4,7 @@ import { unstable_cache } from 'next/cache';
 import { db, schema } from '@/lib/db';
 import { renderPage } from '@/lib/render/page';
 import { renderProductPage } from '@/lib/render/product-page';
-import { renderTheme } from '@/lib/theme';
+import { renderTheme, renderBlogRoute } from '@/lib/theme';
 import { getSettings } from '@/lib/settings';
 import { verifySession, COOKIE } from '@/lib/auth';
 
@@ -32,6 +32,16 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: stri
   const s = await getSettings();
   if (s.maintenance && !session) {
     return html(`<!doctype html><meta name=viewport content="width=device-width"><title>${s.site_name}</title><body style="font:16px system-ui;display:grid;place-items:center;height:100vh;margin:0"><div style="text-align:center"><h1>We'll be right back</h1><p>${s.site_name} is undergoing scheduled maintenance.</p></div>`, 503, false);
+  }
+
+  // Blog (admin → Blog) only exists in the Hostpen theme, so it renders with it whatever the site theme is.
+  if (segs[0]?.toLowerCase() === 'blog') {
+    const b = await renderBlogRoute(segs, { path, preview, query: req.nextUrl.searchParams });
+    const cache = b.status === 200 && b.cache !== false && !preview;
+    return new NextResponse(b.body, { status: b.status, headers: {
+      'content-type': b.type || 'text/html; charset=utf-8',
+      'cache-control': cache ? 'public, s-maxage=60, stale-while-revalidate=600' : 'private, no-store',
+    } });
   }
 
   // Site theme: Admin > Design "Site theme". ?theme=hostpen previews it, ?theme=original previews the old one.

@@ -75,6 +75,7 @@ export function defaultMenu(cat: Catalog): ThemeMenu[] {
       { title: 'Self-service', items: [
         { label: 'Help Center', href: '/help-center', icon: 'life', desc: 'Guides for hosting, domains, email and billing.' },
         { label: 'Knowledgebase', href: L.knowledgebase, icon: 'book', desc: 'Browse every article by product.' },
+        { label: 'Blog', href: '/blog', icon: 'pen', desc: 'Hosting guides, how-tos and news.' },
       ] },
       { title: 'Service health', items: [
         { label: 'Status page', href: '/status-page', icon: 'activity', desc: 'Live status of every datacenter and service.' },

@@ -202,7 +202,31 @@ export const apiLogs = pgTable('api_logs', {
   createdAt: now('created_at'),
 }, (t) => [index('apilog_created_idx').on(t.createdAt)]);
 
+// Blog / SEO articles (Markdown body). Visible when PUBLISHED and publishAt is null or in the past.
+export const posts = pgTable('posts', {
+  id: id(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  excerpt: text('excerpt').notNull().default(''),
+  body: text('body').notNull().default(''),
+  coverImage: text('cover_image').notNull().default(''),
+  coverAlt: text('cover_alt').notNull().default(''),
+  category: text('category').notNull().default(''),
+  tags: jsonb('tags').$type<string[]>().notNull().default([]),
+  author: text('author').notNull().default(''),
+  status: statusEnum('status').notNull().default('DRAFT'),
+  publishAt: timestamp('publish_at', { withTimezone: true }),
+  featured: boolean('featured').notNull().default(false),
+  seoTitle: text('seo_title').notNull().default(''),
+  seoDescription: text('seo_description').notNull().default(''),
+  ogImage: text('og_image').notNull().default(''),
+  canonical: text('canonical').notNull().default(''),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [index('posts_status_publish_idx').on(t.status, t.publishAt)]);
+
 export type Product = typeof products.$inferSelect;
+export type Post = typeof posts.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Page = typeof pages.$inferSelect;
 export type Section = typeof sections.$inferSelect;

@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs';
 import fs from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { enrichment } from '../lib/enrich-core.mjs';
+import { BLOG_SEED } from './blog-seed.mjs';
 
 const url = process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL;
 if (!url) { console.log('[db-setup] no DATABASE_URL — skipping'); process.exit(0); }
@@ -244,6 +245,42 @@ try {
           on conflict (slug) do update set description = case when categories.description = '' then excluded.description else categories.description end,
             seo_title = case when categories.seo_title = '' then excluded.seo_title else categories.seo_title end,
             seo_description = case when categories.seo_description = '' then excluded.seo_description else categories.seo_description end`;
+      }
+    },
+    // 13. blog: posts table (Markdown articles), /blog no longer redirected to the help center, 3 starter drafts
+    '013-blog': async (tx) => {
+      await tx`create table if not exists posts (
+        id text primary key,
+        slug text not null unique,
+        title text not null,
+        excerpt text not null default '',
+        body text not null default '',
+        cover_image text not null default '',
+        cover_alt text not null default '',
+        category text not null default '',
+        tags jsonb not null default '[]'::jsonb,
+        author text not null default '',
+        status status not null default 'DRAFT',
+        publish_at timestamptz,
+        featured boolean not null default false,
+        seo_title text not null default '',
+        seo_description text not null default '',
+        og_image text not null default '',
+        canonical text not null default '',
+        created_at timestamptz not null default now(),
+        updated_at timestamptz not null default now()
+      )`;
+      await tx`create index if not exists posts_status_publish_idx on posts (status, publish_at)`;
+      // patch 005 parked the template's demo blog: /blog -> /help-center. The real blog lives there now.
+      await tx`delete from redirects where lower("from") = '/blog' and "to" = '/help-center'`;
+      await tx`update redirects set "to" = '/blog' where "from" in ('/blog-2', '/blog-3', '/blog-single', '/blog-single-2') and "to" = '/help-center'`;
+      const [{ n }] = await tx`select count(*)::int n from posts`;
+      if (n === 0) {
+        for (const p of BLOG_SEED) {
+          await tx`insert into posts (id, slug, title, excerpt, body, cover_image, cover_alt, category, tags, author, status, seo_title, seo_description)
+            values (${id()}, ${p.slug}, ${p.title}, ${p.excerpt}, ${p.body}, ${p.coverImage}, ${p.coverAlt}, ${p.category}, ${JSON.stringify(p.tags)}::jsonb,
+              'Globalhostia Team', 'DRAFT', ${p.seoTitle}, ${p.seoDescription}) on conflict (slug) do nothing`;
+        }
       }
     },
     '014-tld-prices': async (tx) => {

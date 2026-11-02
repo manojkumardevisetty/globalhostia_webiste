@@ -1,5 +1,5 @@
 import 'server-only';
-import { ROUTES, PRODUCT_ROUTE, type RouteDef } from './routes';
+import { ROUTES, PRODUCT_ROUTE, BLOG_ROUTE, type RouteDef } from './routes';
 
 export type PageCtx = { slug: string; path: string; preview: boolean; query: URLSearchParams; route: RouteDef };
 type PageFn = (ctx: PageCtx) => Promise<string | null>;
@@ -24,6 +24,7 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   contact: () => import('./pages/contact'),
   content: () => import('./pages/content'),
   servers: () => import('./pages/servers'),
+  blog: () => import('./pages/blog'),
 };
 
 /** Returns themed HTML, or null when this URL isn't part of the theme (caller falls back to the original theme). */
@@ -34,4 +35,10 @@ export async function renderTheme(segs: string[], c: { path: string; preview: bo
   if (!route || !MODULES[route.kind]) return null;
   const mod = await MODULES[route.kind]();
   return mod.default({ slug, path: c.path, preview: c.preview, query: c.query, route });
+}
+
+/** /blog/* — always rendered by the theme (status 404 for unknown or unpublished posts). */
+export async function renderBlogRoute(segs: string[], c: { path: string; preview: boolean; query: URLSearchParams }) {
+  const { renderBlog } = await import('./pages/blog');
+  return renderBlog(segs.slice(1), { slug: segs.join('/').toLowerCase(), path: c.path, preview: c.preview, query: c.query, route: BLOG_ROUTE });
 }

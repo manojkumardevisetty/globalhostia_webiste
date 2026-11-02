@@ -52,3 +52,6 @@ export const ROUTES: Record<string, RouteDef> = {
 
 /** product detail pages /p/<slug> use kind 'product' */
 export const PRODUCT_ROUTE: RouteDef = { kind: 'product', title: '', description: '' };
+
+/** /blog, /blog/<slug>, /blog/category/<slug>, /blog/rss.xml (lib/theme/pages/blog.ts) */
+export const BLOG_ROUTE: RouteDef = { kind: 'blog', title: 'Blog', description: 'Hosting guides and news from Globalhostia.' };
