@@ -655,3 +655,17 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .secondary-cart-body .empty-cart, #btnEmptyCart { display: inline-flex; margin: 10px 0; }
 .item-in-cart.gh-item-domain .col-sm-7::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c5386f' stroke-width='1.8'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18'/%3E%3C/svg%3E"); }
 .item-in-cart.gh-item-ssl .col-sm-7::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c5386f' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z'/%3E%3Cpath d='M9 12l2 2 4-4'/%3E%3C/svg%3E"); }
+/* product details hero card: brand gradient instead of purple */
+.product-icon-box-wrapper { background: radial-gradient(120% 140% at 85% 0%, rgba(197,56,111,.55) 0%, rgba(197,56,111,0) 55%), linear-gradient(150deg, #16212b 0%, #23313d 100%) !important; border-radius: 20px !important; }
+.product-icon-box-wrapper h1, .product-icon-box-wrapper h2, .product-icon-box-wrapper h3, .product-icon-box-wrapper h4 { color: #fff !important; }
+.product-icon-box-wrapper i, .product-icon-box-wrapper svg { color: var(--gh-gold) !important; }
+/* product details tabs */
+.nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link { color: var(--gh-brand-d) !important; border-color: transparent transparent var(--gh-brand) !important; border-bottom-width: 2px !important; }
+.nav-tabs .nav-link { color: var(--gh-muted) !important; font-weight: 600; }
+/* add funds: spacing between the payment select and button */
+form[action*="addfunds"] select, form[action*="addfunds"] .nice-select, #frmAddFunds select { margin-bottom: 16px !important; }
+form[action*="addfunds"] .nice-select { float: none !important; width: 100% !important; display: block; }
+/* affiliates: calm stat cards */
+.affiliate-stat, [class*="affiliate"] .card, .affiliates-stats > div, .row > .col-md-4 > [class*="bg-"] { border-radius: 18px !important; }
+.affiliate-stat, .affiliates-stats > div, .main-page-contents .row > div > [style*="background"] { background: #fff !important; border: 1px solid var(--gh-line) !important; }
+.btn-danger.disabled, .btn-danger:disabled, .btn[disabled].btn-danger { background: var(--gh-tint) !important; color: var(--gh-muted) !important; border-color: var(--gh-line) !important; }
