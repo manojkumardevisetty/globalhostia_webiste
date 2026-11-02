@@ -122,7 +122,9 @@ export const categoryBySlug = (cat: Catalog, slug: string) => cat.categories.fin
 export const productBySlug = (cat: Catalog, slug: string) => cat.products.find((p) => p.slug === slug);
 
 /** Visible TLDs that have a register price in the display currency. */
-export const pricedTlds = (cat: Catalog) => cat.tlds.filter((t) => t.register !== null && (t.currency || 'USD') === cat.currency);
+const TLD_POPULAR = ['.com', '.ae', '.net', '.org', '.io', '.co', '.ai', '.online', '.store', '.shop', '.tech', '.xyz', '.info', '.biz', '.in', '.uk', '.co.uk', '.eu', '.de', '.us'];
+const tldRank = (t: TTld) => { const i = TLD_POPULAR.indexOf(t.tld); return (t.featured ? 0 : 1000) + (i < 0 ? 100 + t.sortOrder : i); };
+export const pricedTlds = (cat: Catalog) => cat.tlds.filter((t) => t.register !== null && (t.currency || 'USD') === cat.currency).sort((a, b) => tldRank(a) - tldRank(b) || a.tld.localeCompare(b.tld));
 
 /** Display currency prefix (from any synced price row), default "$". */
 export function currencyPrefix(cat: Catalog) {
