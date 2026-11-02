@@ -4,6 +4,8 @@
    Pure progressive enhancement: if anything fails the original page stays as it was. */
 (function () {
   'use strict';
+  // works both at globalhostia.com/secure/... and at my.globalhostia.com/...
+  var B = /^\/secure(\/|$)/.test(location.pathname) ? '/secure' : '';
   function ready(f) { if (document.readyState !== 'loading') f(); else document.addEventListener('DOMContentLoaded', f); }
 
   var GROUPS = [
@@ -58,7 +60,7 @@
     var p = document.createElement('aside');
     p.className = 'gh-promo';
     p.innerHTML = '<div class="gh-promo__txt"><span class="gh-promo__tag">New</span><b>Cloud VPS in Europe &amp; USA</b><span>NVMe, choose your OS, add RAM or vCPU any time. Ready in minutes.</span></div>' +
-      '<a class="gh-promo__btn" href="/secure/store/servers">Explore servers</a>';
+      '<a class="gh-promo__btn" href="' + B + '/store/servers">Explore servers</a>';
     host.parentNode.insertBefore(p, host.nextSibling);
   }
 
@@ -238,7 +240,7 @@
   };
   function homepage() {
     var path = location.pathname.replace(/\/+$/, '');
-    if (!/\/secure(\/index\.php)?$/.test(path) || /[?&](rp|m)=/.test(location.search)) return;
+    if (!/^(\/secure)?(\/index\.php)?$/.test(path) || /[?&](rp|m)=/.test(location.search)) return;
     var hero = document.querySelector('.hero-area-header-banner-image');
     var body = document.querySelector('#not-main-body, section#main-body');
     if (!hero || !body) return;
@@ -248,12 +250,12 @@
     var prices = []; tlds.replace(/\.\s*([a-z]{2,10})\s+(\$[0-9.]+)/gi, function (_, t, p) { if (prices.length < 6) prices.push({ t: '.' + t, p: p }); });
     var tile = function (ic, title, text, href) { return '<a class="gh-tile" href="' + href + '"><span class="gh-hex">' + svg(IC[ic]) + '</span><b>' + title + '</b><span>' + text + '</span></a>'; };
     var cats = [
-      ['server', 'Web Hosting', 'NVMe hosting with free SSL', '/secure/store/hostia-shared'],
-      ['layers', 'WordPress', 'Managed, fast and secure', '/secure/store/wordpress'],
-      ['server', 'Cloud VPS', 'Europe & USA, ready in minutes', '/secure/store/servers'],
-      ['cpu', 'Dedicated Servers', 'Bare metal up to 10Gbps', '/secure/store/dedicated-servers'],
-      ['monitor', 'Windows RDP', 'Always-on remote desktop', '/secure/store/windows-rdp'],
-      ['shield', 'SSL Certificates', 'DV, OV and wildcard', '/secure/store/ssl-certificates']
+      ['server', 'Web Hosting', 'NVMe hosting with free SSL', B + '/store/hostia-shared'],
+      ['layers', 'WordPress', 'Managed, fast and secure', B + '/store/wordpress'],
+      ['server', 'Cloud VPS', 'Europe & USA, ready in minutes', B + '/store/servers'],
+      ['cpu', 'Dedicated Servers', 'Bare metal up to 10Gbps', B + '/store/dedicated-servers'],
+      ['monitor', 'Windows RDP', 'Always-on remote desktop', B + '/store/windows-rdp'],
+      ['shield', 'SSL Certificates', 'DV, OV and wildcard', B + '/store/ssl-certificates']
     ];
     hero.outerHTML =
       '<section class="gh-hub">' +
@@ -261,7 +263,7 @@
           '<span class="gh-hub__eyebrow">' + (loggedIn ? 'Welcome back' : 'Globalhostia client area') + '</span>' +
           '<h1>' + (loggedIn ? 'What would you like to do today?' : 'Everything for your website, in one place.') + '</h1>' +
           '<p>Find a domain, order hosting or servers, pay invoices and get help from our team.</p>' +
-          '<form class="gh-hub__search" action="/secure/cart.php" method="get" role="search">' +
+          '<form class="gh-hub__search" action="' + B + '/cart.php" method="get" role="search">' +
             '<input type="hidden" name="a" value="add"><input type="hidden" name="domain" value="register">' +
             '<label class="gh-sr" for="gh-hub-q">Domain name</label>' +
             '<span class="gh-hub__ic">' + svg(IC.globe) + '</span><input id="gh-hub-q" name="query" placeholder="Find your perfect domain, e.g. yourbrand.com" autocomplete="off" required>' +
@@ -272,17 +274,17 @@
     body.innerHTML =
       '<div class="gh-hub-body">' +
         '<div class="gh-tiles">' +
-          (loggedIn ? tile('user', 'My services', 'Manage products and servers', '/secure/clientarea.php?action=services') + tile('invoice', 'Billing', 'Invoices and payments', '/secure/clientarea.php?action=invoices')
-                    : tile('user', 'Sign in', 'Access your account', '/secure/login.php') + tile('cart', 'Create account', 'Get started in a minute', '/secure/register.php')) +
-          tile('globe', 'Register a domain', 'Search hundreds of extensions', '/secure/cart.php?a=add&domain=register') +
-          tile('move', 'Transfer a domain', 'Move it to us, keep your site', '/secure/cart.php?a=add&domain=transfer') +
-          tile('chat', 'Open a ticket', '24/7 help from engineers', '/secure/submitticket.php') +
-          tile('book', 'Knowledgebase', 'Guides and how-tos', '/secure/knowledgebase') +
+          (loggedIn ? tile('user', 'My services', 'Manage products and servers', B + '/clientarea.php?action=services') + tile('invoice', 'Billing', 'Invoices and payments', B + '/clientarea.php?action=invoices')
+                    : tile('user', 'Sign in', 'Access your account', B + '/login.php') + tile('cart', 'Create account', 'Get started in a minute', B + '/register.php')) +
+          tile('globe', 'Register a domain', 'Search hundreds of extensions', B + '/cart.php?a=add&domain=register') +
+          tile('move', 'Transfer a domain', 'Move it to us, keep your site', B + '/cart.php?a=add&domain=transfer') +
+          tile('chat', 'Open a ticket', '24/7 help from engineers', B + '/submitticket.php') +
+          tile('book', 'Knowledgebase', 'Guides and how-tos', B + '/knowledgebase') +
         '</div>' +
-        '<div class="gh-sec-head"><h2>Order new services</h2><a href="/secure/cart.php">Browse all</a></div>' +
+        '<div class="gh-sec-head"><h2>Order new services</h2><a href="' + B + '/cart.php">Browse all</a></div>' +
         '<div class="gh-cats">' + cats.map(function (c) { return '<a class="gh-cat" href="' + c[3] + '"><span class="gh-hex">' + svg(IC[c[0]]) + '</span><b>' + c[1] + '</b><span>' + c[2] + '</span><i aria-hidden="true">→</i></a>'; }).join('') + '</div>' +
-        '<aside class="gh-promo gh-promo--wide"><div class="gh-promo__txt"><span class="gh-promo__tag">New</span><b>Cloud VPS in Europe &amp; USA</b><span>NVMe, your choice of OS, add RAM or vCPU any time. Set up automatically after payment.</span></div><a class="gh-promo__btn" href="/secure/store/servers">See plans</a></aside>' +
-        '<div class="gh-help"><div><b>Need a hand?</b><span>Our team is available 24/7 by ticket, phone and WhatsApp.</span></div><div class="gh-help__a"><a href="/secure/submitticket.php">Open a ticket</a><a href="/secure/serverstatus.php">Network status</a><a href="/secure/contact.php">Contact us</a></div></div>' +
+        '<aside class="gh-promo gh-promo--wide"><div class="gh-promo__txt"><span class="gh-promo__tag">New</span><b>Cloud VPS in Europe &amp; USA</b><span>NVMe, your choice of OS, add RAM or vCPU any time. Set up automatically after payment.</span></div><a class="gh-promo__btn" href="' + B + '/store/servers">See plans</a></aside>' +
+        '<div class="gh-help"><div><b>Need a hand?</b><span>Our team is available 24/7 by ticket, phone and WhatsApp.</span></div><div class="gh-help__a"><a href="' + B + '/submitticket.php">Open a ticket</a><a href="' + B + '/serverstatus.php">Network status</a><a href="' + B + '/contact.php">Contact us</a></div></div>' +
       '</div>';
     document.documentElement.classList.add('gh-is-home');
   }
