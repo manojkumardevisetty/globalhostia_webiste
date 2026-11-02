@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs';
 import fs from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { enrichment } from '../lib/enrich-core.mjs';
-import { BLOG_SEED } from './blog-seed.mjs';
+import { BLOG_SEED, BLOG_SEED_V1 } from './blog-seed.mjs';
 
 const url = process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL;
 if (!url) { console.log('[db-setup] no DATABASE_URL — skipping'); process.exit(0); }
@@ -281,6 +281,24 @@ try {
             values (${id()}, ${p.slug}, ${p.title}, ${p.excerpt}, ${p.body}, ${p.coverImage}, ${p.coverAlt}, ${p.category}, ${JSON.stringify(p.tags)}::jsonb,
               'Globalhostia Team', 'DRAFT', ${p.seoTitle}, ${p.seoDescription}) on conflict (slug) do nothing`;
         }
+      }
+    },
+    // 15. blog: cover style, key takeaways, recommended products per post
+    '015-blog-extras': async (tx) => {
+      await tx`alter table posts add column if not exists cover_style text not null default 'branded'`;
+      await tx`alter table posts add column if not exists takeaways text not null default ''`;
+      await tx`alter table posts add column if not exists related_products jsonb not null default '[]'::jsonb`;
+      await tx`alter table posts add column if not exists focus_keyword text not null default ''`;
+      await tx`alter table posts add column if not exists secondary_keywords text not null default ''`;
+    },
+    // 16. expanded starter articles (v2) — only for posts whose text nobody has edited since the v1 seed
+    '016-blog-content-v2': async (tx) => {
+      for (const p of BLOG_SEED) {
+        const v1 = BLOG_SEED_V1.find((x) => x.slug === p.slug);
+        await tx`update posts set title = ${p.title}, excerpt = ${p.excerpt}, body = ${p.body}, cover_image = ${p.coverImage}, cover_alt = ${p.coverAlt},
+            category = ${p.category}, tags = ${JSON.stringify(p.tags)}::jsonb, seo_title = ${p.seoTitle}, seo_description = ${p.seoDescription},
+            focus_keyword = ${p.focusKeyword}, secondary_keywords = ${p.secondaryKeywords}, takeaways = ${p.takeaways}, cover_style = ${p.coverStyle}, updated_at = now()
+          where slug = ${p.slug} and (body = ${v1 ? v1.body : p.body} or body = ${p.body})`;
       }
     },
     '014-tld-prices': async (tx) => {

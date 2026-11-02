@@ -221,6 +221,11 @@ export const posts = pgTable('posts', {
   seoDescription: text('seo_description').notNull().default(''),
   ogImage: text('og_image').notNull().default(''),
   canonical: text('canonical').notNull().default(''),
+  coverStyle: text('cover_style').notNull().default('branded'), // branded | plain | hex
+  takeaways: text('takeaways').notNull().default(''), // one per line
+  focusKeyword: text('focus_keyword').notNull().default(''),
+  secondaryKeywords: text('secondary_keywords').notNull().default(''), // comma separated
+  relatedProducts: jsonb('related_products').$type<string[]>().notNull().default([]), // "cat:<slug>" | "p:<slug>"
   createdAt: now('created_at'),
   updatedAt: now('updated_at'),
 }, (t) => [index('posts_status_publish_idx').on(t.status, t.publishAt)]);

@@ -4,7 +4,8 @@ import { esc } from '../../render/util';
 import { money } from '../../pricing';
 import { getCatalog, productsFor, minFrom, pricedTlds, currencyPrefix, deriveSpecs, type TProduct, type FromPrice } from '../data';
 import { page } from '../shell';
-import { getLatestPosts, postPath, fmtPostDate } from '../../blog';
+import { getLatestPosts } from '../../blog';
+import { postCard } from './blog';
 import {
   heroSlider, domainSearch, sectionHead, bigTabs, planCards, plansNote, link, statRow, barChart, dcMap, splitHead, featureGrid,
   ctaBand, colHead, testimonials, faq, articleList, logosStrip, available,
@@ -193,13 +194,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   /* ---------------- latest from the blog (hidden when nothing is published) ---------------- */
   const blog = posts.length ? `<section class="hp-section hp-section--tint bl-home" aria-labelledby="blog-h"><div class="hp-container">
     <div class="bl-related__head"><h2 id="blog-h" class="hp-hline">Latest from the blog</h2>${link('All articles', '/blog')}</div>
-    <div class="bl-grid">${posts.map((p) => `<article class="bl-card" data-reveal>
-      <a class="bl-card__img" href="${esc(postPath(p.slug))}" tabindex="-1" aria-hidden="true">${p.coverImage ? `<img src="${esc(p.coverImage)}" alt="${esc(p.coverAlt)}" width="640" height="360" loading="lazy" decoding="async">` : `<span class="bl-ph" aria-hidden="true"><span>${esc((p.category || p.title).slice(0, 1).toUpperCase())}</span></span>`}</a>
-      <div class="bl-card__body">${p.category ? `<span class="bl-chip">${esc(p.category)}</span>` : ''}
-        <h3 class="bl-card__title"><a href="${esc(postPath(p.slug))}">${esc(p.title)}</a></h3>
-        <p class="bl-card__ex">${esc(p.excerpt)}</p>
-        <p class="bl-meta"><time datetime="${esc(new Date(p.date).toISOString())}">${esc(fmtPostDate(p.date))}</time><span aria-hidden="true">·</span><span>${p.readingMinutes} min read</span></p>
-      </div></article>`).join('')}</div>
+    <div class="bl-grid">${posts.map((p) => postCard(p)).join('')}</div>
   </div></section>` : '';
 
   // Organization + WebSite JSON-LD is emitted site-wide by the shell (lib/seo.ts).

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { db, schema } from '@/lib/db';
 import { requireSession, audit, saveRevision } from '@/lib/session';
 import { done, fail, bust, str } from '@/lib/admin';
+import { setSetting } from '@/lib/settings';
 import { renderMarkdown } from '@/lib/markdown';
 
 export type SaveState = { error?: string; field?: string };
@@ -31,6 +32,11 @@ const PostInput = z.object({
   seoDescription: z.string().trim().max(320, 'Meta description is too long (320 characters max)'),
   ogImage: urlish('Social image'),
   canonical: z.string().trim().max(2000).refine((v) => !v || /^https:\/\/[^\s]+$/i.test(v), 'Canonical URL must be a full https:// address'),
+  coverStyle: z.enum(['branded', 'plain', 'hex']),
+  focusKeyword: z.string().trim().max(80, 'The focus keyword is too long (80 characters max)'),
+  secondaryKeywords: z.string().trim().max(300, 'Secondary keywords are too long (300 characters max)'),
+  takeaways: z.array(z.string().trim().min(1).max(200, 'A key takeaway is too long (200 characters max)')).max(8, 'Use 8 key takeaways or fewer'),
+  relatedProducts: z.array(z.string().regex(/^(cat|p):[a-z0-9-]+$/, 'Unknown product selection')).max(12, 'Choose 12 products or categories at most'),
 });
 
 /** Create or update a post (used with useActionState: returns an error, or redirects on success). */
@@ -42,6 +48,9 @@ export async function savePost(_prev: SaveState, fd: FormData): Promise<SaveStat
     tags: [...new Set(str(fd, 'tags').split(',').map((t) => t.trim().replace(/^#/, '').replace(/\s+/g, ' ')).filter(Boolean))],
     author: str(fd, 'author'), status: str(fd, 'status') || 'DRAFT', publishAt: str(fd, 'publishAt'), featured: fd.get('featured') === 'on' || fd.get('featured') === 'true',
     seoTitle: str(fd, 'seoTitle'), seoDescription: str(fd, 'seoDescription'), ogImage: str(fd, 'ogImage'), canonical: str(fd, 'canonical'),
+    coverStyle: str(fd, 'coverStyle') || 'branded', focusKeyword: str(fd, 'focusKeyword'), secondaryKeywords: str(fd, 'secondaryKeywords'),
+    takeaways: str(fd, 'takeaways').split(/\r?\n/).map((t) => t.replace(/^\s*[-*•]\s*/, '').trim()).filter(Boolean),
+    relatedProducts: [...new Set(str(fd, 'relatedProducts').split(',').map((x) => x.trim()).filter(Boolean))],
   });
   if (!parsed.success) {
     const i = parsed.error.issues[0];
@@ -63,6 +72,7 @@ export async function savePost(_prev: SaveState, fd: FormData): Promise<SaveStat
   const row = {
     slug: v.slug, title: v.title, excerpt: v.excerpt, body: v.body, coverImage: v.coverImage, coverAlt: v.coverAlt, category: v.category, tags: v.tags,
     author: v.author, status: v.status, publishAt, featured: v.featured, seoTitle: v.seoTitle, seoDescription: v.seoDescription, ogImage: v.ogImage, canonical: v.canonical,
+    coverStyle: v.coverStyle, focusKeyword: v.focusKeyword, secondaryKeywords: v.secondaryKeywords, takeaways: v.takeaways.join('\n'), relatedProducts: v.relatedProducts,
   };
   let id = v.id;
   if (old) {
@@ -147,7 +157,8 @@ export async function restorePost(fd: FormData) {
   const d = r.data as Record<string, any>;
   const [cur] = await db.select().from(schema.posts).where(eq(schema.posts.id, r.entityId));
   const fields = { title: d.title, excerpt: d.excerpt ?? '', body: d.body ?? '', coverImage: d.coverImage ?? '', coverAlt: d.coverAlt ?? '', category: d.category ?? '', tags: d.tags ?? [], author: d.author ?? '',
-    featured: !!d.featured, seoTitle: d.seoTitle ?? '', seoDescription: d.seoDescription ?? '', ogImage: d.ogImage ?? '', canonical: d.canonical ?? '' };
+    featured: !!d.featured, seoTitle: d.seoTitle ?? '', seoDescription: d.seoDescription ?? '', ogImage: d.ogImage ?? '', canonical: d.canonical ?? '',
+    coverStyle: d.coverStyle ?? 'branded', focusKeyword: d.focusKeyword ?? '', secondaryKeywords: d.secondaryKeywords ?? '', takeaways: d.takeaways ?? '', relatedProducts: d.relatedProducts ?? [] };
   if (cur) {
     await saveRevision(s, 'post', cur.id, cur);
     await db.update(schema.posts).set({ ...fields, updatedAt: new Date() }).where(eq(schema.posts.id, cur.id));
@@ -159,4 +170,25 @@ export async function restorePost(fd: FormData) {
   const [p] = await db.insert(schema.posts).values({ ...fields, id: r.entityId, slug: taken ? `${d.slug}-restored` : d.slug, status: 'DRAFT', publishAt: d.publishAt ? new Date(d.publishAt) : null }).returning({ id: schema.posts.id });
   await audit(s, 'restore_deleted', 'post', p.id, { rev: r.id });
   done(`/admin/blog/${p.id}`, 'Deleted post restored as a draft');
+}
+
+const RoadmapInput = z.array(z.object({
+  title: z.string().trim().min(1, 'Every roadmap item needs a title').max(80, 'A roadmap title is too long (80 characters max)'),
+  description: z.string().trim().max(240, 'A roadmap description is too long (240 characters max)'),
+  eta: z.string().trim().max(40, 'The timing text is too long (40 characters max)'),
+  status: z.enum(['planned', 'in_progress', 'launched']),
+})).max(12, 'Use 12 roadmap items or fewer');
+
+/** "What's coming next" items (settings.roadmap), shown on the blog and article pages. */
+export async function saveRoadmap(_prev: { error?: string; ok?: string }, fd: FormData): Promise<{ error?: string; ok?: string }> {
+  const s = await requireSession('content');
+  let raw: unknown;
+  try { raw = JSON.parse(String(fd.get('items') || '[]')); } catch { return { error: 'Could not read the roadmap items' }; }
+  const items = Array.isArray(raw) ? raw.filter((x) => x && (String(x.title || '').trim() || String(x.description || '').trim())) : [];
+  const r = RoadmapInput.safeParse(items);
+  if (!r.success) return { error: r.error.issues[0]?.message || 'Please check the roadmap items' };
+  await setSetting('roadmap', r.data);
+  await audit(s, 'update', 'roadmap', null, { items: r.data.length });
+  bust();
+  return { ok: r.data.length ? `Saved ${r.data.length} item${r.data.length === 1 ? '' : 's'}. They show on the blog now.` : 'Roadmap cleared. The section is hidden.' };
 }

@@ -15,6 +15,46 @@
     });
   });
 
+  // reading progress across the article
+  var bar = document.querySelector('.bl-readbar span'), art = document.querySelector('.bl-article');
+  if (bar && art) {
+    var ticking = false;
+    var upd = function () {
+      ticking = false;
+      var r = art.getBoundingClientRect(), total = r.height - window.innerHeight;
+      var p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 1;
+      bar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+    };
+    var req = function () { if (!ticking) { ticking = true; requestAnimationFrame(upd); } };
+    window.addEventListener('scroll', req, { passive: true });
+    window.addEventListener('resize', req);
+    upd();
+  }
+
+  // image lightbox (in-article figures)
+  var lb = null;
+  document.querySelectorAll('[data-zoom]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var src = btn.getAttribute('data-zoom'), img = btn.querySelector('img');
+      var cap = btn.parentNode.querySelector('figcaption');
+      if (!src) return;
+      if (!lb || typeof lb.showModal !== 'function') {
+        lb = document.createElement('dialog');
+        lb.className = 'bl-lb';
+        lb.setAttribute('aria-label', 'Image viewer');
+        lb.innerHTML = '<button type="button" class="bl-lb__close" aria-label="Close image"><svg class="hp-ico" aria-hidden="true"><use href="#i-close"/></svg></button><img alt=""><p></p>';
+        document.body.appendChild(lb);
+        if (typeof lb.showModal !== 'function') { window.open(src, '_blank', 'noopener'); return; }
+        lb.querySelector('.bl-lb__close').addEventListener('click', function () { lb.close(); });
+        lb.addEventListener('click', function (e) { if (e.target === lb) lb.close(); });
+      }
+      var big = lb.querySelector('img'); big.src = src; big.alt = img ? img.alt : '';
+      var p = lb.querySelector('p'); p.textContent = cap ? cap.textContent : ''; p.hidden = !cap;
+      lb.showModal();
+      lb.querySelector('.bl-lb__close').focus();
+    });
+  });
+
   // TOC: mark the section currently being read
   var links = Array.prototype.slice.call(document.querySelectorAll('.bl-toc:not(.bl-toc--m) a[href^="#"]'));
   if (!links.length || !('IntersectionObserver' in window)) return;

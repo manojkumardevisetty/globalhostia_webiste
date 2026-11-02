@@ -6,6 +6,10 @@ import { Icon } from '@/components/icons';
 import { readingMinutes } from '@/lib/markdown-text';
 import { setPostStatus, deletePost } from './actions';
 import ConfirmSubmit from './confirm';
+import RoadmapEditor from './roadmap';
+import { Card } from '@/components/ui';
+import { getSettings } from '@/lib/settings';
+import { roadmapFrom } from '@/lib/blog';
 
 export const metadata = { title: 'Blog' };
 
@@ -124,6 +128,9 @@ export default async function BlogAdmin({ searchParams }: { searchParams: Promis
           </table>
         </div>
       )}
+      <Card title="What's coming next (roadmap)" className="mt-8">
+        <RoadmapEditor initial={roadmapFrom((await getSettings()).roadmap)} />
+      </Card>
       <p className="mt-4 text-xs text-slate-400">Tip: a post marked <b>Featured</b> is shown large at the top of the blog. Scheduled posts go live automatically at their publish time.</p>
     </>
   );

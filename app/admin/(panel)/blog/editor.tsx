@@ -8,7 +8,9 @@ export type EditorPost = {
   id: string; title: string; slug: string; excerpt: string; body: string; coverImage: string; coverAlt: string; category: string; tags: string;
   author: string; status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'; publishAt: string; featured: boolean; seoTitle: string; seoDescription: string;
   ogImage: string; canonical: string; updatedAt: string;
+  coverStyle: 'branded' | 'plain' | 'hex'; takeaways: string; relatedProducts: string[]; focusKeyword: string; secondaryKeywords: string;
 };
+export type EditorCatalog = { categories: { slug: string; name: string; count: number }[]; products: { slug: string; name: string; category: string }[] };
 
 const slugify = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 90).replace(/-+$/, '');
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -40,9 +42,44 @@ function Count({ n, ideal, max }: { n: number; ideal: [number, number]; max: num
   return <span className={`text-[11.5px] font-medium tabular-nums ${tone}`} aria-live="polite">{n} / {ideal[1]}</span>;
 }
 
+/* ---------- SEO checklist (runs in the browser on every keystroke) ---------- */
+const norm = (t: string) => ' ' + t.toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ').trim() + ' ';
+const STOP = new Set(['a', 'an', 'the', 'to', 'of', 'and', 'or', 'for', 'in', 'on', 'vs', 'your', 'my', 'is', 'how', 'what']);
+type Check = { ok: boolean; label: string; hint: string; kw?: boolean };
+function seoChecks(f: EditorPost, autoEx: string, words: number): Check[] {
+  const kw = f.focusKeyword.trim();
+  const has = (t: string) => !!kw && norm(t).includes(norm(kw));
+  const body = f.body;
+  const first = body.split(/\n\s*\n/).map((b) => b.trim()).find((b) => b && !/^(#|!\[|\||>|```|[-*]\s|\d+\.\s)/.test(b)) || '';
+  const h2s = body.split('\n').filter((l) => /^##\s+/.test(l));
+  const imgs = [...body.matchAll(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g)];
+  const links = [...body.matchAll(/(?<!!)\[[^\]]*\]\(([^)\s]+)[^)]*\)/g)].map((m) => m[1]);
+  const internal = links.filter((u) => u.startsWith('/') || /^https?:\/\/(www\.)?globalhostia\.com/i.test(u)).length;
+  const external = links.filter((u) => /^https?:\/\//i.test(u) && !/^https?:\/\/(www\.)?globalhostia\.com/i.test(u)).length;
+  const alts = [...imgs.map((m) => m[1].trim()), ...(f.coverImage ? [f.coverAlt.trim()] : [])];
+  const kwWords = norm(kw).trim().split(' ').filter((w) => w && !STOP.has(w));
+  const slugWords = new Set(f.slug.split('-'));
+  const title = (f.seoTitle || f.title).trim();
+  const desc = (f.seoDescription || f.excerpt || autoEx).trim();
+  return [
+    { kw: true, ok: has(f.seoTitle || f.title) || has(f.title), label: 'Focus keyword in the title', hint: 'Use the exact phrase in the title or SEO title.' },
+    { kw: true, ok: !!kw && kwWords.length > 0 && kwWords.every((w) => slugWords.has(w)), label: 'Focus keyword in the URL', hint: 'Every main word of the keyword should be in the URL.' },
+    { kw: true, ok: has(first), label: 'Focus keyword in the first paragraph', hint: 'Mention it naturally in the opening paragraph.' },
+    { kw: true, ok: h2s.some((h) => has(h)), label: 'Focus keyword in a section heading', hint: 'Use it in at least one ## heading.' },
+    { kw: true, ok: has(desc), label: 'Focus keyword in the meta description', hint: 'Include it in the meta description (or summary).' },
+    { kw: true, ok: alts.some((a) => has(a)), label: 'Focus keyword in an image description', hint: 'Describe one image using the keyword, where it fits.' },
+    { ok: words >= 900, label: `At least 900 words (${words.toLocaleString()})`, hint: 'In-depth guides tend to rank better.' },
+    { ok: internal >= 3, label: `3+ links to our own pages (${internal})`, hint: 'Link to related plans, guides and posts, e.g. [web hosting](/web-hosting).' },
+    { ok: external >= 2, label: `2+ links to trusted sources (${external})`, hint: 'Cite official documentation, e.g. Google, Microsoft, Cloudflare, ICANN.' },
+    { ok: alts.length > 0 && alts.every(Boolean), label: alts.length ? `Every image has a description (${alts.filter(Boolean).length}/${alts.length})` : 'Add at least one image', hint: 'Write alt text for the cover and every image: ![description](url).' },
+    { ok: title.length >= 50 && title.length <= 60, label: `SEO title 50–60 characters (${title.length})`, hint: 'Shorter titles waste space, longer ones get cut off.' },
+    { ok: desc.length >= 140 && desc.length <= 160, label: `Meta description 140–160 characters (${desc.length})`, hint: 'Long enough to persuade, short enough not to be cut off.' },
+  ];
+}
+
 type Tool = { key: string; label: string; icon: ReactNode; run: () => void; kbd?: string };
 
-export default function PostEditor({ post, categories, authors, siteUrl, siteName }: { post: EditorPost; categories: string[]; authors: string[]; siteUrl: string; siteName: string }) {
+export default function PostEditor({ post, catalog, categories, authors, siteUrl, siteName }: { post: EditorPost; catalog: EditorCatalog; categories: string[]; authors: string[]; siteUrl: string; siteName: string }) {
   const [state, formAction, pending] = useActionState<SaveState, FormData>(savePost, {});
   const [f, setF] = useState(post);
   const [slugTouched, setSlugTouched] = useState(!!post.id);
@@ -55,6 +92,10 @@ export default function PostEditor({ post, categories, authors, siteUrl, siteNam
   const [slugMsg, setSlugMsg] = useState<{ ok: boolean; message: string } | null>(null);
   const [coverErr, setCoverErr] = useState(false);
   const ta = useRef<HTMLTextAreaElement>(null);
+  const [pq, setPq] = useState('');
+  const toggleRel = (ref: string) => set('relatedProducts', f.relatedProducts.includes(ref) ? f.relatedProducts.filter((x) => x !== ref) : [...f.relatedProducts, ref]);
+  const relLabel = (ref: string) => { const [k, sl] = ref.split(':'); return k === 'cat' ? `${catalog.categories.find((c) => c.slug === sl)?.name || sl} (all plans)` : catalog.products.find((x) => x.slug === sl)?.name || sl; };
+  const prodMatches = pq.trim() ? catalog.products.filter((x) => `${x.name} ${x.category}`.toLowerCase().includes(pq.trim().toLowerCase())).slice(0, 40) : [];
 
   // browser-only values (time zone) after mount, to avoid hydration mismatches
   useEffect(() => {
@@ -100,6 +141,9 @@ export default function PostEditor({ post, categories, authors, siteUrl, siteNam
   const words = useMemo(() => wordCount(f.body), [f.body]);
   const minutes = useMemo(() => readingMinutes(f.body), [f.body]);
   const autoEx = useMemo(() => autoExcerpt(f.body), [f.body]);
+  const checks = useMemo(() => seoChecks(f, autoEx, words), [f, autoEx, words]);
+  const score = Math.round((checks.filter((c) => c.ok).length / checks.length) * 100);
+  const scoreTone = score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-red-600';
 
   const publishIso = fromLocal(publishLocal);
   const future = !!publishIso && Date.parse(publishIso) > Date.now();
@@ -171,6 +215,7 @@ export default function PostEditor({ post, categories, authors, siteUrl, siteNam
       <input type="hidden" name="id" value={f.id} />
       <input type="hidden" name="publishAt" value={publishIso} />
       <input type="hidden" name="body" value={f.body} />
+      <input type="hidden" name="relatedProducts" value={f.relatedProducts.join(',')} />
 
       {state.error && (
         <div className="xl:col-span-2 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200" role="alert">
@@ -243,9 +288,52 @@ export default function PostEditor({ post, categories, authors, siteUrl, siteNam
             <textarea id="pe-excerpt" name="excerpt" rows={3} value={f.excerpt} onChange={(e) => set('excerpt', e.target.value)} maxLength={500}
               placeholder={autoEx ? `Leave empty to use: “${autoEx}”` : 'One or two sentences that tell readers what they will learn.'} className={inputCls('excerpt')} />
           </div>
+          <div>
+            <Label htmlFor="pe-take" hint="(optional, one per line, shown in the box next to the title)" counter={<span className="text-[11.5px] text-slate-400 tabular-nums">{f.takeaways.split('\n').filter((x) => x.trim()).length} / 8</span>}>Key takeaways</Label>
+            <textarea id="pe-take" name="takeaways" rows={4} value={f.takeaways} onChange={(e) => set('takeaways', e.target.value)}
+              placeholder={'Shared hosting suits most business websites\nMove to a VPS when you hit resource limits\nPick a datacenter close to your visitors'} className={inputCls('takeaways')} />
+          </div>
+        </Section>
+
+        <Section title="Products to recommend" aside={<span className="text-xs text-slate-400">{f.relatedProducts.length ? `${f.relatedProducts.length} selected` : 'Automatic'}</span>}>
+          <p className="text-xs leading-relaxed text-slate-500">Shown as <b>Recommended for this topic</b> after the second section heading and as <b>Plans that fit</b> at the end, with live prices in each visitor&apos;s currency. Leave empty to pick plans automatically from the category, tags and title.</p>
+          {f.relatedProducts.length > 0 && (
+            <ul className="flex flex-wrap gap-1.5" aria-label="Selected">
+              {f.relatedProducts.map((r) => (
+                <li key={r}><button type="button" onClick={() => toggleRel(r)} className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1 text-xs text-white hover:bg-slate-700" aria-label={`Remove ${relLabel(r)}`}>{relLabel(r)} <span aria-hidden>×</span></button></li>
+              ))}
+            </ul>
+          )}
+          <fieldset>
+            <legend className="field-label">Whole categories</legend>
+            <div className="flex flex-wrap gap-1.5">
+              {catalog.categories.map((c) => { const ref = `cat:${c.slug}`, on = f.relatedProducts.includes(ref); return (
+                <button key={c.slug} type="button" aria-pressed={on} onClick={() => toggleRel(ref)} className={`rounded-full px-3 py-1.5 text-xs ring-1 ring-inset transition ${on ? 'bg-brand-500 text-white ring-brand-500' : 'bg-white text-slate-600 ring-slate-200 hover:ring-slate-400'}`}>
+                  {c.name} <span className={on ? 'text-white/70' : 'text-slate-400'}>{c.count}</span></button>); })}
+              {!catalog.categories.length && <p className="text-xs text-slate-400">No published products yet.</p>}
+            </div>
+          </fieldset>
+          <div>
+            <Label htmlFor="pe-pq">Or specific plans</Label>
+            <input id="pe-pq" value={pq} onChange={(e) => setPq(e.target.value)} placeholder="Search plans, e.g. Ultra, VPS, RDP" className="input" />
+            {pq.trim() && (
+              <ul className="mt-2 max-h-64 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200">
+                {prodMatches.map((x) => { const ref = `p:${x.slug}`, on = f.relatedProducts.includes(ref); return (
+                  <li key={x.slug}><label className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm hover:bg-slate-50">
+                    <input type="checkbox" checked={on} onChange={() => toggleRel(ref)} /> <span className="font-medium text-slate-800">{x.name}</span> <span className="ml-auto text-xs text-slate-400">{x.category}</span></label></li>); })}
+                {!prodMatches.length && <li className="px-3 py-2 text-xs text-slate-400">No plans match.</li>}
+              </ul>
+            )}
+          </div>
         </Section>
 
         <Section title="Search engines and sharing" aside={<span className="text-xs text-slate-400">Optional: sensible defaults are used</span>}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div><Label htmlFor="pe-kw" hint="(the search phrase this article should rank for)">Focus keyword</Label>
+              <input id="pe-kw" name="focusKeyword" value={f.focusKeyword} onChange={(e) => set('focusKeyword', e.target.value)} maxLength={80} placeholder="e.g. shared hosting vs VPS" className={inputCls('focusKeyword')} /></div>
+            <div><Label htmlFor="pe-kw2" hint="(optional, comma separated)">Secondary keywords</Label>
+              <input id="pe-kw2" name="secondaryKeywords" value={f.secondaryKeywords} onChange={(e) => set('secondaryKeywords', e.target.value)} maxLength={300} placeholder="vps hosting, when to upgrade" className={inputCls('secondaryKeywords')} /></div>
+          </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4" aria-label="Google search result preview">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-400">Google preview</p>
             <div className="flex items-center gap-2 text-[12.5px] text-slate-600"><span className="grid h-6 w-6 place-items-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">{siteName.slice(0, 1)}</span>
@@ -272,7 +360,7 @@ export default function PostEditor({ post, categories, authors, siteUrl, siteNam
       </div>
 
       <div className="space-y-6">
-        <div className="xl:sticky xl:top-20 space-y-6">
+        <div className="space-y-6">
           <Section title="Publishing">
             <fieldset>
               <legend className="field-label">Status</legend>
@@ -304,6 +392,19 @@ export default function PostEditor({ post, categories, authors, siteUrl, siteNam
             {dirty && post.id && <p className="text-center text-xs text-amber-600" role="status">Unsaved changes: save to see them on the website.</p>}
           </Section>
 
+          <Section title="SEO checklist" aside={<span className={`text-sm font-bold tabular-nums ${scoreTone}`} aria-label={`SEO score ${score} out of 100`}>{score}/100</span>}>
+            <div className="h-2 overflow-hidden rounded-full bg-slate-100" aria-hidden><div className={`h-full rounded-full transition-[width] ${score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${score}%` }} /></div>
+            {!f.focusKeyword.trim() && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">Add a focus keyword (in Search engines below) to check keyword placement.</p>}
+            <ul className="space-y-2">
+              {checks.map((c) => (
+                <li key={c.label} className="flex items-start gap-2 text-[13px] leading-snug">
+                  <span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white ${c.ok ? 'bg-emerald-500' : c.kw && !f.focusKeyword.trim() ? 'bg-slate-300' : 'bg-red-400'}`} aria-hidden>{c.ok ? '✓' : '!'}</span>
+                  <span><span className={c.ok ? 'text-slate-700' : 'text-slate-900'}><span className="sr-only">{c.ok ? 'Done: ' : 'To do: '}</span>{c.label}</span>{!c.ok && <span className="block text-xs text-slate-400">{c.hint}</span>}</span>
+                </li>
+              ))}
+            </ul>
+          </Section>
+
           <Section title="Cover image">
             {f.coverImage && isImg(f.coverImage) && !coverErr ? (
               /* eslint-disable-next-line @next/next/no-img-element */
@@ -315,6 +416,22 @@ export default function PostEditor({ post, categories, authors, siteUrl, siteNam
             )}
             <div><Label htmlFor="pe-cover">Image URL</Label><input id="pe-cover" name="coverImage" value={f.coverImage} onChange={(e) => set('coverImage', e.target.value.trim())} placeholder="https://… or /hp/img/…" className={inputCls('coverImage')} />
               <p className="mt-1.5 text-xs text-slate-400">Landscape, about 1600×900. Paste a link to an image hosted online.</p></div>
+            <fieldset>
+              <legend className="field-label">Cover style</legend>
+              <div className="grid grid-cols-3 gap-2">
+                {([['branded', 'Branded', 'Brand colours and hexagon accent'], ['plain', 'Plain', 'Photo as it is, rounded frame'], ['hex', 'Hexagon', 'Branded, cut to a hexagon shape']] as const).map(([v, l, d]) => (
+                  <label key={v} title={d} className={`cursor-pointer rounded-lg p-1.5 text-center text-xs font-medium ring-1 ring-inset transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-300 ${f.coverStyle === v ? 'bg-brand-50 text-brand-700 ring-brand-400' : 'text-slate-600 ring-slate-200 hover:ring-slate-400'}`}>
+                    <input type="radio" name="coverStyle" value={v} checked={f.coverStyle === v} onChange={() => set('coverStyle', v)} className="sr-only" />
+                    <span className={`relative mb-1.5 block aspect-video overflow-hidden bg-slate-700 ${v === 'hex' ? '[clip-path:polygon(8%_0,92%_0,100%_50%,92%_100%,8%_100%,0_50%)]' : 'rounded-md'}`} aria-hidden>
+                      {f.coverImage && isImg(f.coverImage) && !coverErr && <img src={f.coverImage} alt="" className="h-full w-full object-cover" />}
+                      {v !== 'plain' && <span className="absolute inset-0 bg-gradient-to-br from-[#16212b]/60 via-transparent to-[#c5386f]/50 mix-blend-multiply" />}
+                      <span className="absolute left-1 top-1 h-1.5 w-5 rounded-full bg-[#fdd700]" />
+                    </span>{l}
+                  </label>
+                ))}
+              </div>
+              <p className="mt-1.5 text-xs text-slate-400">Every style adds a rounded frame and a gold category label.</p>
+            </fieldset>
             <div><Label htmlFor="pe-alt" hint="(describe the image for screen readers and Google)">Image description</Label><input id="pe-alt" name="coverAlt" value={f.coverAlt} onChange={(e) => set('coverAlt', e.target.value)} maxLength={200} className={inputCls('coverAlt')} /></div>
           </Section>
 

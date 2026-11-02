@@ -52,7 +52,16 @@ export function renderMarkdown(md: string): Rendered {
     },
   });
   // wide tables scroll inside their own box instead of widening the page
-  return { html: html.replace(/<table>/g, '<div class="bl-table" tabindex="0" role="region" aria-label="Table"><table>').replace(/<\/table>/g, '</table></div>'), toc };
+  const out = html
+    .replace(/<table>/g, '<div class="bl-table" tabindex="0" role="region" aria-label="Table"><table>').replace(/<\/table>/g, '</table></div>')
+    // an image alone in its paragraph becomes a branded figure with caption (title, else alt) and zoom
+    .replace(/<p>\s*(<img [^>]*>)\s*<\/p>/g, (_m, img: string) => {
+      const attr = (k: string) => (img.match(new RegExp(`\\s${k}="([^"]*)"`)) || [])[1] || '';
+      const cap = attr('title') || attr('alt');
+      if (!attr('src')) return _m;
+      return `<figure class="bl-fig"><button type="button" class="bl-fig__zoom" data-zoom="${attr('src')}" aria-label="Enlarge image${cap ? `: ${cap}` : ''}">${img}</button>${cap ? `<figcaption>${cap}</figcaption>` : ''}</figure>`;
+    });
+  return { html: out, toc };
 }
 
 export { markdownText, wordCount, readingMinutes, autoExcerpt } from './markdown-text';
