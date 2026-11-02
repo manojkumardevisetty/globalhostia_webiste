@@ -669,3 +669,6 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .affiliate-stat, [class*="affiliate"] .card, .affiliates-stats > div, .row > .col-md-4 > [class*="bg-"] { border-radius: 18px !important; }
 .affiliate-stat, .affiliates-stats > div, .main-page-contents .row > div > [style*="background"] { background: #fff !important; border: 1px solid var(--gh-line) !important; }
 .btn-danger.disabled, .btn-danger:disabled, .btn[disabled].btn-danger { background: var(--gh-tint) !important; color: var(--gh-muted) !important; border-color: var(--gh-line) !important; }
+.affiliate-stat, .affiliate-stat.alert-warning, .affiliate-stat.alert-info, .affiliate-stat.alert-success { background: #fff !important; border: 1px solid var(--gh-line) !important; border-radius: 18px !important; color: var(--gh-ink) !important; box-shadow: var(--gh-shadow); }
+.affiliate-stat i, .affiliate-stat .fas, .affiliate-stat svg { color: var(--gh-brand) !important; opacity: .9; }
+.affiliate-stat span, .affiliate-stat .h1, .affiliate-stat strong { color: var(--gh-ink) !important; font-family: Manrope, Inter, sans-serif; }
