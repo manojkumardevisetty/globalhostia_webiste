@@ -672,3 +672,4 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .affiliate-stat, .affiliate-stat.alert-warning, .affiliate-stat.alert-info, .affiliate-stat.alert-success { background: #fff !important; border: 1px solid var(--gh-line) !important; border-radius: 18px !important; color: var(--gh-ink) !important; box-shadow: var(--gh-shadow); }
 .affiliate-stat i, .affiliate-stat .fas, .affiliate-stat svg { color: var(--gh-brand) !important; opacity: .9; }
 .affiliate-stat span, .affiliate-stat .h1, .affiliate-stat strong { color: var(--gh-ink) !important; font-family: Manrope, Inter, sans-serif; }
+.gh-offers, .gh-offers * { text-align: left !important; } .gh-offers h3 { margin-top: 8px; }
