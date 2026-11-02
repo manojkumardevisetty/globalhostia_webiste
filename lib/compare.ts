@@ -1,4 +1,4 @@
-// GoDaddy public list prices (USD) used for "compare" badges. Source: tldbee.com GoDaddy price page, checked 2026-09-10.
+// Reference renewal prices of a major registrar (USD), shown publicly only as "Others". Checked 2026-09-10.
 // Update these when GoDaddy changes prices. Renewal is the fair comparison (first-year promos expire).
 export const GODADDY_CHECKED = '2026-09-10';
 export const GODADDY: Record<string, { reg: number; renew: number }> = {
