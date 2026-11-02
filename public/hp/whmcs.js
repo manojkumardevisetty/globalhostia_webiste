@@ -350,7 +350,7 @@
   function configure() {
     var form = document.getElementById('frmConfigureProduct'); if (!form) return;
     var t = form.querySelector('.product-title'), name = t ? t.textContent.trim() : '';
-    fetch(ORIGIN + '/api/store/specs').then(function (r) { return r.json(); }).catch(function () { return {}; }).then(function (all) {
+    fetch(ORIGIN + '/api/store/specs?h=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.json(); }).catch(function () { return {}; }).then(function (all) {
       var spec = null; for (var k in all) if (all[k].name && all[k].name.toLowerCase() === name.toLowerCase()) { spec = all[k]; break; }
       try { cycles(spec); } catch (e) {}
       var info = form.querySelector('.product-info'); if (!info || info.dataset.gh) return; info.dataset.gh = 1;
@@ -359,7 +359,7 @@
       top.innerHTML = (meta.length ? '<div class="gh-cfg-meta">' + meta.map(function (m) { return '<span>' + esc(m) + '</span>'; }).join('') + '</div>' : '') +
         (spec && spec.tagline ? '<p class="gh-cfg-tag">' + esc(spec.tagline) + '</p>' : '');
       if (t) t.after(top);
-      var feats = spec && spec.allFeatures || [];
+      var have = (info.textContent || '').toLowerCase(); var feats = (spec && spec.allFeatures || []).filter(function (f) { return f.length > 3 && have.indexOf(f.toLowerCase()) < 0; });
       if (feats.length) {
         var d = document.createElement('div'); d.className = 'gh-cfg-feats';
         d.innerHTML = '<b>Everything included</b><ul>' + feats.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>';
