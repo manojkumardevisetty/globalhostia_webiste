@@ -554,3 +554,4 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .gh-mega .gh-mega__in { display: block !important; width: 100% !important; padding: 0 !important; }
 @media (min-width: 1200px) { .gh-mega__cols { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
 @media (max-width: 1199px) { .navbar-nav .gh-mega.dropdown-menu, .coodiv-menu-dropdown.gh-mega { width: 100% !important; min-width: 0 !important; } }
+.domain-productconfigiration-options-item.gh-on, .domain-productconfigiration-options-item:has(.checked) { background-color: #fff7fa !important; } .domain-productconfigiration-options-item.gh-on *, .domain-productconfigiration-options-item:has(.checked) * { background-color: transparent; } .domain-productconfigiration-options-item.gh-on .icon, .domain-productconfigiration-options-item:has(.checked) .icon { background-color: var(--gh-brand) !important; }

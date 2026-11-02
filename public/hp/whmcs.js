@@ -424,9 +424,11 @@
 
   function compare() {
     if (!document.querySelector('#DomainSearchResults, #spotlightTlds, .domain-suggestion')) return;
-    fetch(ORIGIN + '/api/store/tlds').then(function (r) { return r.json(); }).then(function (d) {
+    var pageCur = ((document.body.innerText.match(/\b(USD|AED|INR|GBP|EUR|SAR|CAD|AUD|SGD|MYR)\b/) || [])[1]) || 'USD';
+    var curSel = document.querySelector('.currency-selector, [class*="currency"]'); if (curSel) { var mm = curSel.textContent.match(/\b([A-Z]{3})\b/); if (mm) pageCur = mm[1]; }
+    fetch(ORIGIN + '/api/store/tlds?currency=' + pageCur).then(function (r) { return r.json(); }).then(function (d) {
       var items = d.items || {};
-      var fmt = function (n) { return '$' + n.toFixed(2); };
+      var cc = d.currency || 'USD', sym = { USD: '$', EUR: '€', GBP: '£', INR: '₹' }[cc]; var fmt = function (n) { return sym ? sym + n.toFixed(2) : cc + ' ' + n.toFixed(2); };
       var badge = function (tld) {
         var it = items[tld]; if (!it || !it.ref || !it.renew) return '';
         var save = Math.round((1 - it.renew / it.ref.renew) * 100);
