@@ -1,0 +1,92 @@
+/* Globalhostia "Hostpen Modern" skin for the WHMCS client area (template emyui-aws-pro + order form emyui_cart_aws).
+   Loaded from WHMCS templates/emyui-aws-pro/css/custom.css with:
+     @import url("https://globalhostiawebiste.vercel.app/hp/whmcs.css");
+   Only overrides colours, type, shape and spacing — no markup changes, safe to remove at any time. */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  --gh-ink: #23313d; --gh-deep: #16212b; --gh-muted: #5a6774; --gh-line: #e6e9ee; --gh-tint: #f6f7f9;
+  --gh-brand: #c5386f; --gh-brand-d: #a6225f; --gh-brand-l: #e14c7f; --gh-gold: #fdd700;
+  --gh-r: 16px; --gh-shadow: 0 1px 2px rgba(22,33,43,.05), 0 18px 40px -28px rgba(22,33,43,.28);
+}
+
+/* ---------- type ---------- */
+body, .coodiv-clouds-theme, input, select, textarea, button, .btn { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important; }
+h1, h2, h3, h4, h5, h6, .coodiv-text-1, .coodiv-text-2, .coodiv-text-3, .coodiv-text-4, .coodiv-text-5, .coodiv-text-6, .playfair-display-font, .emyui-ews-plans-group-price-tag {
+  font-family: Manrope, Inter, system-ui, sans-serif !important; letter-spacing: -.02em; }
+body { color: var(--gh-ink); -webkit-font-smoothing: antialiased; }
+.color-blackish-blue, .color-blackish-blue h1, h1.color-blackish-blue { color: var(--gh-ink) !important; }
+a { color: var(--gh-brand); } a:hover { color: var(--gh-brand-d); }
+.pre-title, .text-green.pre-title { color: var(--gh-brand) !important; letter-spacing: .08em; font-weight: 700; }
+#main-body, .bg-default { background: var(--gh-tint) !important; }
+
+/* ---------- header ---------- */
+.site-header { background: #fff !important; box-shadow: 0 1px 0 var(--gh-line); }
+.site-header > .container-fluid:first-child, .site-header .top-header, .header-top-bar { background: var(--gh-deep) !important; }
+.site-header a.online, .site-header .top-header a { background: rgba(255,255,255,.08) !important; color: #fff !important; border-radius: 999px !important; border: 1px solid rgba(255,255,255,.14) !important; }
+.client-login-header-btn, .btn-black { background: var(--gh-brand) !important; border-color: var(--gh-brand) !important; color: #fff !important; border-radius: 12px !important; }
+.client-login-header-btn:hover, .btn-black:hover { background: var(--gh-brand-d) !important; border-color: var(--gh-brand-d) !important; }
+.contact-header-btn, .minnimalist-btn { color: var(--gh-ink) !important; font-weight: 600; }
+.site-navbar .nav-link, .coodiv-menu-dropdown a { color: var(--gh-ink) !important; font-weight: 500; }
+.site-navbar .nav-link:hover, .coodiv-menu-dropdown a:hover, .site-navbar .active > .nav-link { color: var(--gh-brand) !important; }
+.coodiv-menu-dropdown, .dropdown-menu { border: 1px solid var(--gh-line) !important; border-radius: 14px !important; box-shadow: var(--gh-shadow) !important; }
+
+/* ---------- buttons ---------- */
+.btn-primary, .btn-success, .btn-order-now, .emyui-ews-plans-add-cart, #btnCompleteProductConfig, #btnCompleteOrder, #checkout, .btn-checkout, button[type=submit].btn-primary {
+  background: var(--gh-brand) !important; border: 1px solid var(--gh-brand) !important; color: #fff !important; border-radius: 12px !important;
+  font-weight: 600 !important; box-shadow: 0 10px 24px -14px rgba(197,56,111,.75) !important; transition: transform .2s cubic-bezier(.2,.7,.2,1), background .2s, box-shadow .2s !important; }
+.btn-primary:hover, .btn-success:hover, .btn-order-now:hover, .emyui-ews-plans-add-cart:hover, #btnCompleteProductConfig:hover, #btnCompleteOrder:hover, #checkout:hover {
+  background: var(--gh-brand-d) !important; border-color: var(--gh-brand-d) !important; transform: translateY(-1px); color: #fff !important; }
+.btn-default, .btn-secondary, .btn-outline-primary, .btn-light { border-radius: 12px !important; border: 1.5px solid var(--gh-line) !important; color: var(--gh-ink) !important; background: #fff !important; font-weight: 600; }
+.btn-default:hover, .btn-secondary:hover, .btn-outline-primary:hover { border-color: var(--gh-brand) !important; color: var(--gh-brand) !important; }
+.btn:focus, .form-control:focus, select:focus, .nice-select:focus { box-shadow: 0 0 0 3px rgba(197,56,111,.22) !important; border-color: var(--gh-brand) !important; outline: 0 !important; }
+
+/* ---------- product list (store) ---------- */
+.emyui-ews-plans-group, .emyui-ews-plans, [class*="emyui-ews-plans-item"], .product, .products .product {
+  border-radius: var(--gh-r) !important; border: 1px solid var(--gh-line) !important; box-shadow: var(--gh-shadow) !important; background: #fff !important; }
+.emyui-ews-plans-group-price-tag { color: var(--gh-ink) !important; font-weight: 800 !important; }
+.save-tag { background: #fff6cc !important; color: #6b5800 !important; border-radius: 999px !important; padding: 2px 10px !important; font-weight: 600; }
+.btn-order-now { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; }
+
+/* ---------- order form (cart, configure, checkout) ---------- */
+#order-standard_cart .panel, #order-standard_cart .card, #order-standard_cart .product-info, #order-standard_cart .summary-container, #order-standard_cart .sub-heading,
+#order-standard_cart .view-cart-items, #order-standard_cart .order-summary, #order-standard_cart .field-container, #order-standard_cart .domain-checker-container {
+  border-radius: var(--gh-r) !important; border-color: var(--gh-line) !important; }
+#order-standard_cart .order-summary, #order-standard_cart .summary-container { background: #fff !important; box-shadow: var(--gh-shadow) !important; border: 1px solid var(--gh-line) !important; }
+#order-standard_cart .order-summary h2, #order-standard_cart .summary-container h2, #order-standard_cart .order-summary .summary-header { background: var(--gh-deep) !important; color: #fff !important; border-radius: var(--gh-r) var(--gh-r) 0 0 !important; }
+#order-standard_cart .total-due-today .amt, #order-standard_cart #producttotal .amt, #order-standard_cart .total-due-today { color: var(--gh-ink) !important; font-family: Manrope, Inter, sans-serif; font-weight: 800; }
+#order-standard_cart .sub-heading span, #order-standard_cart .sub-heading .primary-bg-color { background: var(--gh-tint) !important; color: var(--gh-ink) !important; font-weight: 700; }
+#order-standard_cart .view-cart-items-header, #order-standard_cart .header-lined { background: var(--gh-deep) !important; color: #fff !important; }
+.form-control, select.form-control, .nice-select, input[type=text], input[type=email], input[type=password], input[type=number], input[type=tel], textarea {
+  border-radius: 12px !important; border: 1.5px solid var(--gh-line) !important; min-height: 46px; }
+.nice-select .list { border-radius: 12px; box-shadow: var(--gh-shadow); }
+.nice-select .option.selected, .nice-select .option:hover { background: #fbe8ef !important; color: var(--gh-brand-d) !important; }
+input[type=radio]:checked, input[type=checkbox]:checked { accent-color: var(--gh-brand); }
+.label-success, .badge-success, .status-active { background: #e7f6ee !important; color: #0f7a46 !important; }
+.label-warning, .badge-warning { background: #fff6cc !important; color: #6b5800 !important; }
+.label-danger, .badge-danger, .status-cancelled, .status-terminated { background: #fde8ec !important; color: #a6225f !important; }
+
+/* ---------- client area ---------- */
+.card, .panel, .list-group, .tiles .tile, .client-home-panels .panel, .sidebar .card, .sidebar .panel {
+  border-radius: var(--gh-r) !important; border: 1px solid var(--gh-line) !important; box-shadow: var(--gh-shadow) !important; overflow: hidden; }
+.card-header, .panel-heading { background: #fff !important; border-bottom: 1px solid var(--gh-line) !important; font-family: Manrope, Inter, sans-serif; font-weight: 700; color: var(--gh-ink) !important; }
+.list-group-item.active, .list-group-item.active:hover { background: #fbe8ef !important; color: var(--gh-brand-d) !important; border-color: transparent !important; }
+.tiles .tile .stat, .tile .stat { color: var(--gh-ink) !important; font-family: Manrope, Inter, sans-serif; font-weight: 800; }
+.tiles .tile .highlight, .tile .highlight { background: var(--gh-brand) !important; }
+.table thead th, .table-list thead th { background: var(--gh-tint) !important; color: var(--gh-muted) !important; text-transform: uppercase; font-size: 12px; letter-spacing: .06em; border-bottom: 1px solid var(--gh-line) !important; }
+.table td { border-color: var(--gh-line) !important; }
+.pagination .page-item.active .page-link, .pagination > .active > a { background: var(--gh-brand) !important; border-color: var(--gh-brand) !important; }
+.alert-info { background: #f0f4ff !important; border-color: #dfe6ff !important; color: #23313d !important; border-radius: 12px; }
+
+/* ---------- login / register ---------- */
+.login-form, .logincontainer, .using-password-strength, .register-form { border-radius: 20px !important; box-shadow: var(--gh-shadow) !important; }
+
+/* ---------- footer ---------- */
+.footer-emyui-aws, .footer-emyui-aws .footer-section { background: var(--gh-deep) !important; color: rgba(255,255,255,.78) !important; }
+.footer-emyui-aws h1, .footer-emyui-aws h2, .footer-emyui-aws h3, .footer-emyui-aws h4, .footer-emyui-aws h5 { color: #fff !important; font-family: Manrope, Inter, sans-serif !important; }
+.footer-emyui-aws a { color: rgba(255,255,255,.78) !important; } .footer-emyui-aws a:hover { color: var(--gh-gold) !important; }
+.footer-emyui-aws .white-text, .footer-emyui-aws .fa-headphones-alt { color: var(--gh-gold) !important; }
+.footer-emyui-aws .border-bottom { border-color: rgba(255,255,255,.1) !important; }
+
+/* ---------- motion ---------- */
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
