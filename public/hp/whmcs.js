@@ -82,9 +82,11 @@
   }
   function chips(list) { return list.map(function (f) { return '<li>' + f.replace(/</g, '&lt;') + '</li>'; }).join(''); }
   function enhanceListing() {
-    var row = document.querySelector('#products.emyui-ews-plans-row, #order-standard_cart #products');
-    if (!row) return;
-    var items = parseCards(row);
+    // the store template prints one row (id="products") per 4 plans, so collect every row
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.emyui-ews-plans-row'));
+    if (!rows.length) return;
+    var row = rows[0];
+    var items = [].concat.apply([], rows.map(parseCards));
     if (!items.length) return;
     fetch(SPECS_URL, { mode: 'cors' }).then(function (r) { return r.json(); }).catch(function () { return {}; }).then(function (specs) {
       items.forEach(function (it) { var s = specs[it.slug]; it.features = s && s.features && s.features.length ? s.features : []; if (s) { it.region = it.region || s.location || ''; it.tier = it.tier || s.tier || ''; } });
@@ -94,10 +96,11 @@
           var ul = it.el.querySelector('.emyui-ews-plans-features');
           if (ul && !ul.children.length) ul.innerHTML = chips(it.features);
         });
-        row.classList.add('gh-cards');
+        rows.forEach(function (r) { r.classList.add('gh-cards'); });
         return;
       }
       buildList(row, items);
+      rows.forEach(function (r) { r.classList.add('gh-hidden'); });
     });
   }
   function buildList(row, items) {
