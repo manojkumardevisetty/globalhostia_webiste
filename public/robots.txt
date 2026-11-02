@@ -1,32 +1,14 @@
-# GlobalHostia robots.txt
+# robots.txt for https://globalhostia.com
+# All crawlers (search engines and AI assistants such as GPTBot, ClaudeBot, PerplexityBot) are welcome
+# on the public site. Admin, client account and private API routes are excluded.
+
 User-agent: *
 Allow: /
-
-# Allow AI crawlers
-User-agent: GPTBot
-Allow: /
-
-User-agent: CCBot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-# Block sensitive areas only
-Disallow: /mailer/
+Allow: /api/store/
+Disallow: /admin
+Disallow: /account
+Disallow: /api/
 Disallow: /cgi-bin/
-Disallow: /secure/clientarea.php
-Disallow: /secure/login.php
-Disallow: /secure/register.php
-Disallow: /secure/cart.php
-Disallow: /secure/invoice.php
-
-# Allow public secure pages
-Allow: /secure/store/
-Allow: /secure/knowledgebase
-Allow: /secure/submitticket.php
+Disallow: /mailer/
 
 Sitemap: https://globalhostia.com/sitemap.xml

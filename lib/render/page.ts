@@ -8,6 +8,7 @@ import { renderProducts, type RProduct, type RCategory } from './products';
 import { domainSearchForm, domainResults, tldTable, faq } from './domains';
 import { esc, tokens } from './util';
 import { compileDesign } from '../design';
+import { ICON_LINKS, ROBOTS_NOINDEX, NOINDEX_SLUGS, siteJsonLd, verificationMeta, ogImageUrl, siteUrl } from '../seo';
 
 async function loadPage(slug: string, preview: boolean) {
   const [page] = await db.select().from(schema.pages).where(eq(schema.pages.slug, slug)).limit(1);
@@ -81,12 +82,13 @@ export async function renderPage(slug: string, opts: { preview: boolean; query: 
 
   const url = `${(s.site_url || '').replace(/\/$/, '')}${slug === 'index' ? '/' : '/' + slug}`;
   const title = page.seoTitle || page.title;
+  const ogImg = page.ogImage || (slug === 'index' ? `${siteUrl(s)}/og/default.png` : ogImageUrl(siteUrl(s), page.title || title));
   const seo = `<title>${esc(title)}</title>
 <meta name="description" content="${esc(page.seoDescription)}" />${page.seoKeywords ? `\n<meta name="keywords" content="${esc(page.seoKeywords)}" />` : ''}
 <link rel="canonical" href="${esc(url)}" />
-<meta property="og:url" content="${esc(url)}" /><meta property="og:title" content="${esc(title)}" /><meta property="og:description" content="${esc(page.seoDescription)}" />${page.ogImage ? `<meta property="og:image" content="${esc(page.ogImage)}" />` : ''}
-<meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="${esc(title)}" /><meta name="twitter:description" content="${esc(page.seoDescription)}" />
-${slug === 'index' ? `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: s.site_name, url: s.site_url, telephone: s.phone, email: s.email, legalName: s.company }).replace(/</g, '\\u003c')}</script>` : ''}`;
+${NOINDEX_SLUGS.has(slug) ? `<meta name="robots" content="${ROBOTS_NOINDEX}" />\n` : ''}<meta property="og:type" content="website" /><meta property="og:locale" content="en_AE" /><meta property="og:url" content="${esc(url)}" /><meta property="og:title" content="${esc(title)}" /><meta property="og:description" content="${esc(page.seoDescription)}" /><meta property="og:image" content="${esc(ogImg)}" />
+<meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="${esc(title)}" /><meta name="twitter:description" content="${esc(page.seoDescription)}" /><meta name="twitter:image" content="${esc(ogImg)}" />
+`;
   const previewBar = opts.preview ? `<div class="gh-preview-bar"><span>Preview — ${esc(page.status)}${page.status !== 'PUBLISHED' ? ' (not public)' : ''}. Hidden sections are outlined.</span><a href="/admin/pages/${page.id}">Back to editor →</a></div>` : '';
   return shell({ page, blocks, s, vars, seo, body: parts.join('\n'), extra: previewBar, look: opts.query.get('look') || undefined });
 }
@@ -124,6 +126,8 @@ export function shell(o: { page: { headBlock: string; bodyStartBlock: string; he
 <head>
 ${T(blocks[page.headBlock])}
 ${o.seo}
+${verificationMeta(s)}${ICON_LINKS}
+${siteJsonLd(s, siteVars(s).base)}
 ${T(page.headExtra)}
 <link rel="stylesheet" href="/gh/site.css" />
 ${s.design?.polish === false ? '' : '<link rel="stylesheet" href="/gh/polish.css" />'}${look !== 'off' ? '<link rel="stylesheet" href="/gh/look.css" />' : ''}

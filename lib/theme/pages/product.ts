@@ -387,7 +387,7 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
     ctx, catalog: cat, path: `/p/${p.slug}`,
     title: `${name}${catRow ? ` | ${catRow.name}` : ''}`,
     description: (lead || `${name}: specifications, what is included and live pricing.`).slice(0, 300),
-    css: ['product'], js: ['product'], noindex: !productBySlug(cat, ctx.slug),
+    css: ['product'], js: ['product'], ogKicker: catLabel, noindex: !productBySlug(cat, ctx.slug),
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(qs), ld(product)],
     body: [hero, tilesHtml, main, relatedHtml, faqHtml, cta].join('\n'),
   });

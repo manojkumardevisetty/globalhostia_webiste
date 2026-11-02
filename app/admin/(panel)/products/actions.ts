@@ -5,6 +5,9 @@ import { requireSession, audit, saveRevision } from '@/lib/session';
 import { done, fail, str, bool, int, slugify, isSlug, lines, kv } from '@/lib/admin';
 import { whmcs, getCurrencies } from '@/lib/whmcs';
 import { CYCLES } from '@/lib/pricing';
+import { after } from 'next/server';
+import { getSettings } from '@/lib/settings';
+import { pingIndexNow, siteUrl } from '@/lib/seo';
 
 export async function saveProduct(fd: FormData) {
   const s = await requireSession('content');
@@ -55,6 +58,7 @@ export async function saveProduct(fd: FormData) {
     if (rows.length) await db.insert(schema.productPrices).values(rows.map((r) => ({ productId: pid, currency: cur, prefix: cur === 'USD' ? '$' : '', cycle: r.c, price: r.v, setupFee: r.f || '0' })));
   }
   await audit(s, id ? 'update' : 'create', 'product', pid, { name, status: values.status });
+  if (values.status === 'PUBLISHED') { const site = siteUrl(await getSettings()); after(() => pingIndexNow(site, [`${site}/p/${slug}`])); }
   done(`/admin/products/${pid}`, 'Product saved — live on the website');
 }
 

@@ -7,6 +7,7 @@ import { shell, siteVars } from './page';
 import { renderProducts, cycles, orderUrl, type RProduct } from './products';
 import { deriveSpecs, SPEC_LABEL } from './specs';
 import { esc } from './util';
+import { ogImageUrl, siteUrl } from '../seo';
 import { money, CYCLE_LABEL } from '../pricing';
 
 const CHECK = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10.5 3.2 3L15 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -82,9 +83,11 @@ export async function renderProductPage(slug: string, preview: boolean) {
   const desc = (p.tagline || feats.filter((f) => !f.startsWith('-')).slice(0, 4).join(', ')).slice(0, 160);
   const ld = { '@context': 'https://schema.org', '@type': 'Product', name: p.name, description: desc, brand: { '@type': 'Brand', name: s.site_name }, url,
     ...(def ? { offers: { '@type': 'Offer', price: def.price.toFixed(2), priceCurrency: cur, availability: 'https://schema.org/InStock', url: orderUrl(rp, base, def.cycle) } } : {}) };
+  const ogImg = ogImageUrl(siteUrl(s), p.name, cat?.name);
   const seo = `<title>${esc(`${p.name}${cat ? ` – ${cat.name}` : ''} | ${s.site_name}`)}</title>
 <meta name="description" content="${esc(desc)}" /><link rel="canonical" href="${esc(url)}" />
-<meta property="og:title" content="${esc(p.name)}" /><meta property="og:description" content="${esc(desc)}" /><meta property="og:url" content="${esc(url)}" />
+<meta property="og:type" content="website" /><meta property="og:locale" content="en_AE" /><meta property="og:title" content="${esc(p.name)}" /><meta property="og:description" content="${esc(desc)}" /><meta property="og:url" content="${esc(url)}" /><meta property="og:image" content="${esc(ogImg)}" />
+<meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="${esc(p.name)}" /><meta name="twitter:description" content="${esc(desc)}" /><meta name="twitter:image" content="${esc(ogImg)}" />
 <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
   return shell({ page: tpl, blocks, s, vars, seo, body: body + related, ambKey: cat?.slug || p.slug });
 }

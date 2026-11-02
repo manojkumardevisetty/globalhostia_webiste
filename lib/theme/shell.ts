@@ -6,11 +6,14 @@ import { getCatalog, whmcsLinks, availableCurrencies, type Catalog } from './dat
 import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
+import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta } from '../seo';
 
 export type PageOpts = {
   title: string; description: string; path: string; body: string; ctx: PageCtx;
   css?: string[]; js?: string[]; jsonLd?: string | string[]; bodyClass?: string; ogImage?: string; preload?: string[];
   catalog?: Catalog; noindex?: boolean;
+  /** small label above the title on the generated OG image (e.g. product category) */
+  ogKicker?: string;
 };
 
 const ASSET_V = (process.env.VERCEL_GIT_COMMIT_SHA || 'dev').slice(0, 8);
@@ -112,13 +115,18 @@ export async function page(o: PageOpts): Promise<string> {
   const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
   const canonical = site + (o.path === '/' || !o.path ? '/' : o.path);
   const siteName = String(s.site_name || 'Globalhostia');
-  const fullTitle = o.title.includes(siteName) ? o.title : `${o.title} | ${siteName}`;
+  const fullTitle = seoTitle(o.title, siteName);
+  const description = seoDescription(o.description);
   const preview = o.ctx.query.get('theme') === 'hostpen';
-  const noindex = preview || o.noindex;
+  const noindex = preview || o.noindex || NOINDEX_SLUGS.has(o.ctx.slug);
   const css = (o.css || []).map(safeKey).filter(Boolean);
   const js = (o.js || []).map(safeKey).filter(Boolean);
-  const lds = ([] as string[]).concat(o.jsonLd || []);
-  const og = o.ogImage ? new URL(o.ogImage, site + '/').toString() : `${site}/image/logo-main-black.png`;
+  // drop empty FAQPage blocks (pages with no FAQ items) so structured data stays valid
+  const lds = ([] as string[]).concat(o.jsonLd || []).filter((x) => x && !x.includes('"mainEntity":[]'));
+  const isHome = !o.path || o.path === '/';
+  const og = o.ogImage ? new URL(o.ogImage, site + '/').toString()
+    : isHome ? `${site}/og/default.png` : ogImageUrl(site, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.ogKicker, ASSET_V);
+  const ogAlt = isHome && !o.ogImage ? 'GlobalHostia: web hosting, VPS and dedicated servers' : o.title;
 
   return withCurrency(`<!DOCTYPE html>
 <html lang="en">
@@ -126,19 +134,23 @@ export async function page(o: PageOpts): Promise<string> {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(fullTitle)}</title>
-<meta name="description" content="${esc(o.description)}">
-${noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="canonical" href="${esc(canonical)}">
-<meta property="og:type" content="website"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:url" content="${esc(canonical)}"><meta property="og:title" content="${esc(fullTitle)}"><meta property="og:description" content="${esc(o.description)}"><meta property="og:image" content="${esc(og)}">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(fullTitle)}"><meta name="twitter:description" content="${esc(o.description)}">
-<meta name="theme-color" content="#16212b">
-<link rel="icon" href="/image/favicon/favicon.png">
+<meta name="description" content="${esc(description)}">
+<meta name="robots" content="${noindex ? ROBOTS_NOINDEX : ROBOTS_INDEX}">
+<link rel="canonical" href="${esc(canonical)}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta property="og:type" content="website"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:locale" content="en_AE"><meta property="og:url" content="${esc(canonical)}"><meta property="og:title" content="${esc(fullTitle)}"><meta property="og:description" content="${esc(description)}">
+<meta property="og:image" content="${esc(og)}">${o.ogImage ? '' : '<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'}<meta property="og:image:alt" content="${esc(ogAlt)}">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(fullTitle)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(og)}"><meta name="twitter:image:alt" content="${esc(ogAlt)}">
+${verificationMeta(s)}
+<meta name="theme-color" content="#16212b">
+${ICON_LINKS}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
 ${(o.preload || []).map((p) => `<link rel="preload" as="image" href="${esc(p)}">`).join('')}
 <link rel="stylesheet" href="${asset('/hp/theme.css')}">
 ${css.map((k) => `<link rel="stylesheet" href="${asset(`/hp/pages/${k}.css`)}">`).join('\n')}
 <script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("hp-mo")</script>
-${ldOrg(s, site)}${lds.join('\n')}
+${siteJsonLd(s, cat.base)}
+${lds.join('\n')}
 ${s.custom_css ? `<style id="gh-custom">${String(s.custom_css).replace(/<\/style/gi, '<\\/style')}</style>` : ''}
 </head>
 <body${o.bodyClass ? ` class="${esc(o.bodyClass)}"` : ''}>
@@ -159,11 +171,6 @@ ${js.map((k) => `<script src="${asset(`/hp/pages/${k}.js`)}" defer></script>`).j
 </html>`, cat);
 }
 
-function ldOrg(s: Catalog['settings'], site: string) {
-  const o = { '@context': 'https://schema.org', '@type': 'Organization', name: s.site_name || 'Globalhostia', url: site, logo: `${site}/image/logo-main-black.png`, telephone: s.phone || undefined, email: s.email || undefined, legalName: s.company || undefined,
-    address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' } };
-  return `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>\n`;
-}
 
 /** Shared helper for page modules: "$X / month" text. */
 export const priceText = (v: number, prefix = '$') => money(v, prefix);

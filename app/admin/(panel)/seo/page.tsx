@@ -3,13 +3,16 @@ import { asc, desc } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { PageHeader, Card, Field, Flash, Badge } from '@/components/ui';
 import { whmcs, whmcsConfigured } from '@/lib/whmcs';
-import { saveRedirect, deleteRedirect, bulkSeo } from './actions';
+import { getSettings } from '@/lib/settings';
+import { VERIFICATION_KEYS, INDEXNOW_KEY, verificationToken, siteUrl } from '@/lib/seo';
+import { saveRedirect, deleteRedirect, bulkSeo, saveSearchEngines, notifySearchEngines } from './actions';
 
 export const metadata = { title: 'Marketing & SEO' };
 
 export default async function Seo({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const sp = await searchParams;
-  const [pages, redirects] = await Promise.all([
+  const [settings, pages, redirects] = await Promise.all([
+    getSettings(),
     db.select().from(schema.pages).orderBy(asc(schema.pages.slug)),
     db.select().from(schema.redirects).orderBy(desc(schema.redirects.createdAt)),
   ]);
@@ -22,6 +25,30 @@ export default async function Seo({ searchParams }: { searchParams: Promise<Reco
       <PageHeader title="Marketing & SEO" desc="Search metadata for every page, URL redirects, and WHMCS promotions/coupons." />
       <Flash sp={sp} />
       <div className="space-y-6">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <form action={saveSearchEngines}>
+            <Card title="Search engine verification & profiles" actions={<button className="btn btn-primary">Save</button>}>
+              <div className="grid gap-4">
+                {VERIFICATION_KEYS.map((v) => (
+                  <Field key={v.key} label={v.label} hint={<>Paste the token or the whole <code>&lt;meta name=&quot;{v.meta}&quot;…&gt;</code> tag. Leave empty to omit.</>}>
+                    <input name={v.key} defaultValue={verificationToken(settings[v.key])} className="input code" placeholder="verification token" />
+                  </Field>
+                ))}
+                <Field label="Official profile links" hint="One https:// URL per line (LinkedIn, X, Facebook, YouTube…). Used as sameAs in the Organization structured data.">
+                  <textarea name="social_links" rows={3} className="input code" defaultValue={(Array.isArray(settings.social_links) ? settings.social_links : []).join('\n')} />
+                </Field>
+              </div>
+            </Card>
+          </form>
+          <Card title="Notify search engines (IndexNow)" actions={<form action={notifySearchEngines}><button className="btn btn-primary">Notify search engines</button></form>}>
+            <div className="space-y-2 text-sm text-slate-600">
+              <p>Sends every URL in the <a className="text-brand-600" href="/sitemap.xml" target="_blank">sitemap</a> to IndexNow, which shares it with Bing, Yandex, Seznam, Naver and other participating engines. Published product and page saves are also sent automatically.</p>
+              <p className="text-xs">Key file: <a className="font-mono text-brand-600" href={`/${INDEXNOW_KEY}.txt`} target="_blank">{siteUrl(settings)}/{INDEXNOW_KEY}.txt</a></p>
+              {settings.indexnow_last?.at ? <p className="text-xs">Last run {new Date(settings.indexnow_last.at).toLocaleString('en-GB', { timeZone: 'Asia/Dubai' })} (Dubai): {settings.indexnow_last.submitted} URLs, {settings.indexnow_last.message}{settings.indexnow_last.ok ? '' : ' (failed)'}</p> : <p className="text-xs">Not run yet.</p>}
+              <p className="text-xs text-slate-400">Google does not use IndexNow: it reads the sitemap from robots.txt. Submit the sitemap once in Google Search Console.</p>
+            </div>
+          </Card>
+        </div>
         <form action={bulkSeo}>
           <Card title="Page metadata" actions={<button className="btn btn-primary">Save all</button>}>
             <div className="overflow-x-auto"><table className="table"><thead><tr><th>Page</th><th>SEO title</th><th>Meta description</th><th>Checks</th></tr></thead>

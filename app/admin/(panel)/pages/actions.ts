@@ -3,6 +3,9 @@ import { and, eq, ne, asc, inArray, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { requireSession, audit, saveRevision } from '@/lib/session';
 import { done, fail, bust, str, bool, int, slugify, isSlug } from '@/lib/admin';
+import { after } from 'next/server';
+import { getSettings } from '@/lib/settings';
+import { pingIndexNow, siteUrl } from '@/lib/seo';
 
 const STATUS = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
 
@@ -50,6 +53,7 @@ export async function savePage(fd: FormData) {
     await db.insert(schema.redirects).values({ from: `/${old.slug}`, to: `/${slug}`, code: 301 }).onConflictDoUpdate({ target: schema.redirects.from, set: { to: `/${slug}` } });
   }
   await audit(s, 'update', 'page', id, { slug, status });
+  if (status === 'PUBLISHED') { const site = siteUrl(await getSettings()); after(() => pingIndexNow(site, [`${site}${slug === 'index' ? '/' : `/${slug}`}`])); }
   done(back, old.slug !== slug ? `Saved. Redirect /${old.slug} → /${slug} added.` : 'Page saved');
 }
 

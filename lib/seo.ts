@@ -1,0 +1,163 @@
+// Site-wide technical SEO helpers: robots/verification meta, Organization + WebSite JSON-LD, IndexNow.
+import type { Settings } from './settings';
+import { esc } from './render/util';
+
+/** IndexNow key. The matching key file is served from public/<key>.txt. */
+export const INDEXNOW_KEY = '6a67d36c3c478068d0f08ecff6923e8a';
+export const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
+
+export const ROBOTS_INDEX = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+export const ROBOTS_NOINDEX = 'noindex,follow';
+
+/** Utility pages that must never be indexed (sign-in flows, error pages). */
+export const NOINDEX_SLUGS = new Set(['sign-in', 'sign-up', 'forget-password', '404']);
+
+export const DEFAULT_DESCRIPTION = 'NVMe web hosting, cloud VPS and dedicated servers in Dubai, Europe, the USA and Asia, with free SSL, daily backups and 24/7 support.';
+export const DEFAULT_PHONE = '+971 50 734 1578';
+export const DEFAULT_EMAIL = 'support@globalhostia.com';
+
+export const VERIFICATION_KEYS = [
+  { key: 'google_site_verification', meta: 'google-site-verification', label: 'Google Search Console' },
+  { key: 'bing_site_verification', meta: 'msvalidate.01', label: 'Bing Webmaster Tools' },
+  { key: 'yandex_verification', meta: 'yandex-verification', label: 'Yandex Webmaster' },
+] as const;
+
+export const siteUrl = (s: Partial<Settings>) => String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
+
+/** Accepts either the bare token or the full <meta ... content="..."> tag pasted from the search console. */
+export function verificationToken(v: unknown) {
+  const raw = String(v ?? '').trim();
+  const m = raw.match(/content\s*=\s*["']([^"']+)["']/i);
+  return (m ? m[1] : raw).replace(/[^A-Za-z0-9_\-:.=+/]/g, '').slice(0, 200);
+}
+
+export function verificationMeta(s: Partial<Settings>) {
+  return VERIFICATION_KEYS.map(({ key, meta }) => {
+    const t = verificationToken(s[key]);
+    return t ? `<meta name="${meta}" content="${esc(t)}">` : '';
+  }).join('');
+}
+
+/** Profile URLs (one per line) used as Organization.sameAs. */
+export function sameAs(s: Partial<Settings>): string[] {
+  const v = s.social_links;
+  const list = Array.isArray(v) ? v : String(v ?? '').split(/[\r\n,]+/);
+  return list.map((x) => String(x).trim()).filter((x) => /^https:\/\/[^\s"<>]+$/.test(x)).slice(0, 20);
+}
+
+/** Title for <title>: "Page | Brand", dropping the suffix when that would exceed ~60 characters. */
+export function seoTitle(title: string, brand: string) {
+  const t = title.replace(/\s+/g, ' ').trim();
+  if (!t) return brand;
+  if (t.toLowerCase().includes(brand.toLowerCase())) return t;
+  const full = `${t} | ${brand}`;
+  return full.length <= 60 ? full : t;
+}
+
+/** Meta description: fallback when empty, trimmed at a word boundary to ~160 characters. */
+export function seoDescription(d: string | undefined, fallback = DEFAULT_DESCRIPTION) {
+  const t = String(d || '').replace(/\s+/g, ' ').trim() || fallback;
+  if (t.length <= 160) return t;
+  const cut = t.slice(0, 157);
+  return cut.slice(0, Math.max(cut.lastIndexOf(' '), 120)).replace(/[\s,;:.-]+$/, '') + '…';
+}
+
+/** Dynamic Open Graph image URL for a page. */
+export function ogImageUrl(site: string, title: string, kicker?: string, v?: string) {
+  const q = new URLSearchParams({ title: title.slice(0, 90) });
+  if (kicker) q.set('kicker', kicker.slice(0, 40));
+  if (v) q.set('v', v);
+  return `${site}/og?${q.toString()}`;
+}
+
+const json = (o: unknown) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`;
+
+/** Organization + WebSite graph, emitted on every public page. */
+export function siteJsonLd(s: Partial<Settings>, whmcsBase: string) {
+  const site = siteUrl(s);
+  const name = 'GlobalHostia';
+  const alt = String(s.site_name || '').trim();
+  const phone = String(s.phone || DEFAULT_PHONE).trim();
+  const email = String(s.email || DEFAULT_EMAIL).trim();
+  const links = sameAs(s);
+  const base = String(whmcsBase || '').replace(/\/$/, '');
+  const org = {
+    '@type': 'Organization', '@id': `${site}/#organization`, name, ...(alt && alt !== name ? { alternateName: alt } : {}),
+    url: `${site}/`, ...(s.company ? { legalName: String(s.company) } : {}),
+    logo: { '@type': 'ImageObject', url: `${site}/icon-512.png`, width: 512, height: 512 },
+    image: `${site}/og/default.png`,
+    email, telephone: phone,
+    contactPoint: [{ '@type': 'ContactPoint', contactType: 'customer support', telephone: phone, email, areaServed: 'Worldwide', availableLanguage: ['English'] },
+      { '@type': 'ContactPoint', contactType: 'sales', telephone: phone, email, areaServed: 'Worldwide', availableLanguage: ['English'] }],
+    // the site footer states the company is in Dubai, UAE
+    address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' },
+    ...(links.length ? { sameAs: links } : {}),
+  };
+  const website: Record<string, unknown> = {
+    '@type': 'WebSite', '@id': `${site}/#website`, name, ...(alt && alt !== name ? { alternateName: alt } : {}), url: `${site}/`, inLanguage: 'en',
+    publisher: { '@id': `${site}/#organization` },
+  };
+  if (/^https:\/\//.test(base)) {
+    website.potentialAction = { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${base}/cart.php?a=add&domain=register&query={search_term_string}` }, 'query-input': 'required name=search_term_string' };
+  }
+  return json({ '@context': 'https://schema.org', '@graph': [org, website] });
+}
+
+/** Favicon / manifest links shared by every renderer. */
+export const ICON_LINKS = [
+  '<link rel="icon" href="/favicon.ico" sizes="48x48">',
+  '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">',
+  '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">',
+  '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+  '<link rel="manifest" href="/site.webmanifest">',
+].join('');
+
+/* ---------------- IndexNow ---------------- */
+
+const locs = (xml: string) => [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
+
+/** Every URL in the sitemap (follows a sitemap index one level deep). */
+export async function sitemapUrls(site: string): Promise<string[]> {
+  let xml = '';
+  try {
+    // render the sitemap in-process so this works without a public round trip
+    const mod: any = await import('@/app/sitemap.xml/route');
+    const res: Response = await mod.GET(new Request(`${site}/sitemap.xml`));
+    xml = await res.text();
+  } catch {
+    const r = await fetch(`${site}/sitemap.xml`, { cache: 'no-store' });
+    xml = r.ok ? await r.text() : '';
+  }
+  let urls = locs(xml);
+  if (/<sitemapindex/i.test(xml)) {
+    const nested = await Promise.all(urls.map((u) => fetch(u, { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).catch(() => '')));
+    urls = nested.flatMap(locs);
+  }
+  return [...new Set(urls)];
+}
+
+export type IndexNowResult = { ok: boolean; status: number; submitted: number; message: string };
+
+/** Submit URLs (same host as site_url) to IndexNow (Bing, Yandex, Seznam, Naver and others share submissions). */
+export async function submitIndexNow(site: string, urls: string[]): Promise<IndexNowResult> {
+  const host = new URL(site).host;
+  const list = [...new Set(urls)].filter((u) => { try { return new URL(u).host === host; } catch { return false; } }).slice(0, 10000);
+  if (!list.length) return { ok: false, status: 0, submitted: 0, message: 'No URLs to submit' };
+  try {
+    const r = await fetch(INDEXNOW_ENDPOINT, {
+      method: 'POST', headers: { 'content-type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ host, key: INDEXNOW_KEY, keyLocation: `${site}/${INDEXNOW_KEY}.txt`, urlList: list }),
+      signal: AbortSignal.timeout(15000),
+    });
+    const msg = r.status === 200 || r.status === 202 ? 'Accepted' : r.status === 403 ? 'Key not valid (is the key file live?)' : r.status === 422 ? 'URLs rejected (host mismatch)' : r.status === 429 ? 'Too many requests, try later' : `HTTP ${r.status}`;
+    return { ok: r.status === 200 || r.status === 202, status: r.status, submitted: list.length, message: msg };
+  } catch (e: any) {
+    return { ok: false, status: 0, submitted: 0, message: `${e?.message || 'Request failed'} (${list.length} URLs prepared)` };
+  }
+}
+
+/** Fire-and-forget ping for changed URLs; only on the production deployment. */
+export async function pingIndexNow(site: string, urls: string[]) {
+  if (process.env.VERCEL_ENV !== 'production') return;
+  await submitIndexNow(site, urls).catch(() => undefined);
+}

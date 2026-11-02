@@ -6,7 +6,7 @@ import { getCatalog, productsFor, minFrom, pricedTlds, currencyPrefix, deriveSpe
 import { page } from '../shell';
 import {
   heroSlider, domainSearch, sectionHead, bigTabs, planCards, plansNote, link, statRow, barChart, dcMap, splitHead, featureGrid,
-  ctaBand, colHead, testimonials, faq, articleList, logosStrip, available, ld,
+  ctaBand, colHead, testimonials, faq, articleList, logosStrip, available,
 } from '../ui';
 
 const H = ['hosting-usa', 'hostia-shared', 'hosting-singapore'];
@@ -189,12 +189,10 @@ export default async function render(ctx: PageCtx): Promise<string> {
     ])}<div style="margin-top:10px">${link('Visit the help center', '/help-center')}</div></div>
   </div></section>`;
 
-  const site = String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
-  const webSite = ld({ '@context': 'https://schema.org', '@type': 'WebSite', name: cat.settings.site_name || 'Globalhostia', url: site + '/' });
-
+  // Organization + WebSite JSON-LD is emitted site-wide by the shell (lib/seo.ts).
   return page({
     ctx, catalog: cat, path: '/', title: ctx.route.title, description: ctx.route.description,
-    preload: ['/hp/img/hero-hosting.jpg'], jsonLd: webSite,
+    preload: ['/hp/img/hero-hosting.jpg'],
     body: [hero, domain, plans, infra, features, cta, trio, logosStrip()].join('\n'),
   });
 }

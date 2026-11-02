@@ -2,7 +2,9 @@
 import { eq } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { requireSession, audit } from '@/lib/session';
-import { done, fail, str } from '@/lib/admin';
+import { done, fail, str, bust } from '@/lib/admin';
+import { getSettings, setSetting } from '@/lib/settings';
+import { VERIFICATION_KEYS, verificationToken, siteUrl, sitemapUrls, submitIndexNow } from '@/lib/seo';
 
 export async function saveRedirect(fd: FormData) {
   const s = await requireSession('content');
@@ -29,4 +31,26 @@ export async function bulkSeo(fd: FormData) {
   for (const id of ids) await db.update(schema.pages).set({ seoTitle: str(fd, `t_${id}`), seoDescription: str(fd, `d_${id}`) }).where(eq(schema.pages.id, id));
   await audit(s, 'bulk_update', 'seo', null, { pages: ids.length });
   done('/admin/seo', 'SEO metadata saved');
+}
+
+export async function saveSearchEngines(fd: FormData) {
+  const s = await requireSession('content');
+  for (const { key } of VERIFICATION_KEYS) await setSetting(key, verificationToken(str(fd, key)));
+  const links = str(fd, 'social_links').split(/[\r\n,]+/).map((x) => x.trim()).filter(Boolean);
+  const bad = links.find((l) => !/^https:\/\/[^\s"<>]+$/.test(l));
+  if (bad) fail('/admin/seo', `Profile links must start with https:// (${bad})`);
+  await setSetting('social_links', links);
+  await audit(s, 'update', 'settings', null, { seo: 'search_engines' });
+  done('/admin/seo', 'Search engine settings saved');
+}
+
+export async function notifySearchEngines() {
+  const s = await requireSession('content');
+  const site = siteUrl(await getSettings());
+  const urls = await sitemapUrls(site);
+  const r = await submitIndexNow(site, urls);
+  await setSetting('indexnow_last', { at: new Date().toISOString(), ...r });
+  await audit(s, 'indexnow', 'seo', null, r);
+  if (!r.ok) { bust(); fail('/admin/seo', `IndexNow: ${r.message}`); }
+  done('/admin/seo', `Sent ${r.submitted} URLs to IndexNow (Bing, Yandex, Seznam, Naver…): ${r.message}`);
 }
