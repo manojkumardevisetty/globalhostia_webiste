@@ -373,7 +373,7 @@
   }
 
   function cartView() {
-    if (document.getElementById('frmCheckout')) return;
+    if (!/cart\.php/.test(location.pathname) || !/a=view/.test(location.search) || document.getElementById('frmCheckout')) return;
     var f = document.getElementById('frmEstimateTaxes') || (document.querySelector('#inputState, select[name=country]') || {}).form;
     if (f && f.id !== 'frmCheckout' && !f.closest('details')) {
       var box = f.closest('.estimate-taxes, .bg-default-2, .card, .panel') || f, d = document.createElement('details'); d.className = 'gh-taxes';
