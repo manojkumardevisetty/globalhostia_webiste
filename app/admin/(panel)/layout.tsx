@@ -9,6 +9,7 @@ const NAV: { group: string; items: [string, string, string, string][] }[] = [
   { group: 'Overview', items: [['/admin', 'Dashboard', 'content', 'dashboard']] },
   { group: 'Catalog', items: [['/admin/products', 'Products', 'content', 'box'], ['/admin/categories', 'Categories', 'content', 'folder'], ['/admin/domains', 'Domains & TLDs', 'content', 'globe']] },
   { group: 'Website', items: [['/admin/pages', 'Pages & Sections', 'content', 'file'], ['/admin/blocks', 'Header & Footer', 'content', 'layout'], ['/admin/design', 'Design', 'settings', 'palette'], ['/admin/concepts', 'Homepage Concepts', 'content', 'palette'], ['/admin/seo', 'Marketing & SEO', 'content', 'megaphone']] },
+  { group: 'Marketing', items: [['/admin/promotions', 'Promotions', 'content', 'ticket']] },
   { group: 'Business', items: [['/admin/whmcs', 'WHMCS', 'integration', 'plug'], ['/admin/orders', 'Orders', 'commerce', 'cart'], ['/admin/customers', 'Customers', 'commerce', 'users']] },
   { group: 'System', items: [['/admin/users', 'Users & Roles', 'users', 'shield'], ['/admin/settings', 'Settings', 'settings', 'settings'], ['/admin/audit', 'Activity Log', 'settings', 'activity']] },
 ];
