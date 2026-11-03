@@ -719,3 +719,14 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .gh-broker b { display: block; color: #fff; font: 700 15px/1.3 Manrope, Inter, sans-serif; }
 .gh-broker span { display: block; font-size: 13px; color: rgba(255,255,255,.72); margin-top: 2px; }
 .gh-broker a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 18px; border-radius: 999px; background: var(--gh-gold); color: #3a3000 !important; font-weight: 800; text-decoration: none !important; white-space: nowrap; }
+
+/* 2026-11-03: spotlight TLD cards — equal-height grid, no gaps, badges never wrap mid-word */
+.spotlight-tlds-group { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px !important; align-items: stretch; }
+.spotlight-tlds-group > .spotlight-tld-item, .spotlight-tld-item { display: flex !important; width: auto !important; max-width: none !important; float: none !important; margin: 0 !important; flex: none !important; }
+.spotlight-tld-item > .spotlight-tld { flex: 1; width: 100%; }
+.spotlight-tld .domain-lookup-result { margin-top: auto; }
+.gh-cmp s, .gh-cmp b { white-space: nowrap; }
+.gh-cmp--card { flex-direction: column; gap: 4px; }
+.gh-taken { display: inline-block; margin-top: 10px; padding: 3px 10px; border-radius: 999px; background: #f3f4f6; color: #6b7280; font-size: 12px; font-weight: 600; }
+.gh-taken-link { display: block; margin-top: 6px; font-size: 12.5px; font-weight: 700; color: var(--gh-brand) !important; text-decoration: none !important; }
+@media (max-width: 380px) { .spotlight-tlds-group { grid-template-columns: 1fr 1fr; gap: 10px !important; } .spotlight-tld { padding-left: 8px !important; padding-right: 8px !important; } }

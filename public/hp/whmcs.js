@@ -639,7 +639,36 @@
     run(); new MutationObserver(function () { clearTimeout(run.t); run.t = setTimeout(run, 200); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
   }
 
-  ready(function () { try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  // spotlight cards with no result after lookup (taken) get a clear label + broker link; header "001" currency id → code
+  function spotTaken() {
+    var q = ((document.querySelector('#inputDomain, input[name=domain], input[name=query]') || {}).value || new URLSearchParams(location.search).get('query') || '').trim().toLowerCase();
+    var sld = q.replace(/^https?:\/\//, '').replace(/^www\./, '').split('.')[0];
+    var run = function () {
+      document.querySelectorAll('.spotlight-tld').forEach(function (c) {
+        if (c.dataset.ght) return;
+        var ld = c.querySelector('.loader, [class*="loader"]'); if (ld && ld.offsetParent !== null) return;
+        var vis = [].some.call(c.querySelectorAll('.btn, .price'), function (e) { return e.offsetParent !== null && e.textContent.trim(); });
+        if (vis) return;
+        var nm = c.querySelector('.spotlight-tld-name'); var tld = ((nm && nm.textContent) || c.textContent).match(/\.[a-z.]{2,}/i); if (!tld || !sld) return;
+        c.dataset.ght = 1; var dom = sld + tld[0].toLowerCase();
+        c.insertAdjacentHTML('beforeend', '<span class="gh-taken">Taken</span><a class="gh-taken-link" href="' + ORIGIN + '/domain-broker?domain=' + encodeURIComponent(dom) + '">Try our broker →</a>');
+      });
+    };
+    setTimeout(run, 4000); setTimeout(run, 9000); setTimeout(run, 15000);
+  }
+  function curLabel() {
+    var code = ''; var m = document.body.innerHTML.match(/\d[\d,.]*\s(USD|AED|EUR|GBP|INR|SAR|CAD|AUD|SGD|MYR)\b/); if (m) code = m[1];
+    var map = { USD: '$ USD', AED: 'AED', EUR: '€ EUR', GBP: '£ GBP', INR: '₹ INR', SAR: 'SAR', CAD: 'C$ CAD', AUD: 'A$ AUD', SGD: 'S$ SGD', MYR: 'RM MYR' };
+    document.querySelectorAll('header a, header button, header span, .header a, .header button, nav a, nav button').forEach(function (el) {
+      if (el.children.length > 2) return;
+      var t = el.textContent.trim(); if (!/^0\d{2}$/.test(t)) return;
+      var tn = [].find.call(el.childNodes, function (n) { return n.nodeType === 3 && /0\d{2}/.test(n.nodeValue); }) || el;
+      var lbl = map[code] || code || 'Currency';
+      if (tn.nodeType === 3) tn.nodeValue = tn.nodeValue.replace(/0\d{2}/, lbl); else el.textContent = lbl;
+    });
+  }
+
+  ready(function () { try { curLabel(); setTimeout(curLabel, 1500); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
 
 // Support alerts: nudge the site to email the owner after a ticket is opened or replied to.
