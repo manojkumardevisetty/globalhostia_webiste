@@ -1,7 +1,7 @@
 // HTTP helpers for the OAuth endpoints and discovery documents: the canonical base URL (issuer), CORS (browser-based
 // clients such as MCP Inspector call /oauth/token and /oauth/register), no-store JSON and RFC 6749 error bodies.
 import 'server-only';
-import { PROFILE_PATH, SCOPE_NAMES, EXTRA_SCOPES, resourceFor, type Profile } from './core';
+import { ASSERTION_ALGS, PROFILE_PATH, SCOPE_NAMES, EXTRA_SCOPES, TOKEN_AUTH_METHODS, resourceFor, type Profile } from './core';
 
 /**
  * Issuer / resource base. Production is pinned to https://globalhostia.com (never the Host header), so tokens and
@@ -80,8 +80,12 @@ export const authServerMetadata = (base: string) => ({
   response_types_supported: ['code'],
   response_modes_supported: ['query'],
   grant_types_supported: ['authorization_code', 'refresh_token'],
-  token_endpoint_auth_methods_supported: ['none', 'client_secret_post', 'client_secret_basic'],
-  revocation_endpoint_auth_methods_supported: ['none', 'client_secret_post', 'client_secret_basic'],
+  // none: public clients (Claude, Claude Code, MCP Inspector); private_key_jwt: ChatGPT's client metadata document;
+  // client_secret_*: confidential DCR clients
+  token_endpoint_auth_methods_supported: TOKEN_AUTH_METHODS,
+  token_endpoint_auth_signing_alg_values_supported: ASSERTION_ALGS,
+  revocation_endpoint_auth_methods_supported: TOKEN_AUTH_METHODS,
+  revocation_endpoint_auth_signing_alg_values_supported: ASSERTION_ALGS,
   code_challenge_methods_supported: ['S256'],
   client_id_metadata_document_supported: true,
   authorization_response_iss_parameter_supported: true,

@@ -1,5 +1,5 @@
 // OAuth 2.0 Dynamic Client Registration (RFC 7591) for MCP clients (Claude, ChatGPT, MCP Inspector, others).
-// Public clients by default; redirect URIs outside Claude / ChatGPT / loopback are accepted but flagged (or refused
+// Public clients by default (confidential: client_secret_post / _basic, or private_key_jwt with jwks_uri / jwks); redirect URIs outside Claude / ChatGPT / loopback are accepted but flagged (or refused
 // when Admin → AI connectors → "Only Claude, ChatGPT and local apps" is on).
 import { classifyRedirect, validateDcr } from '@/lib/oauth/core';
 import { registerClient } from '@/lib/oauth/store';
@@ -29,6 +29,7 @@ export async function POST(req: Request) {
     client_id: client.id, client_id_issued_at: issuedAt, client_name: client.name, redirect_uris: client.redirectUris,
     grant_types: v.grantTypes, response_types: ['code'], token_endpoint_auth_method: client.authMethod,
     ...(secret ? { client_secret: secret, client_secret_expires_at: 0 } : {}),
+    ...(v.meta.jwksUri ? { jwks_uri: v.meta.jwksUri } : {}), ...(v.meta.jwks ? { jwks: v.meta.jwks } : {}),
     ...(v.meta.clientUri ? { client_uri: v.meta.clientUri } : {}), ...(v.meta.logoUri ? { logo_uri: v.meta.logoUri } : {}),
   }, 201);
 }

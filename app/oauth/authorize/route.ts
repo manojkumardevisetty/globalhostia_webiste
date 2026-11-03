@@ -53,7 +53,10 @@ async function check(req: NextRequest, q: URLSearchParams, base: string): Promis
   const cfg = await connectorConfig();
   let client: Client | null;
   try { client = await findClient(q.get('client_id')); }
-  catch (e) { return { ok: false, res: errorPage(req, e instanceof OAuthError ? `${t('The app could not be identified')}: ${e.message}` : t('The app could not be identified.')) }; }
+  catch (e) {
+    console.warn('[oauth] authorize: client lookup failed', String(q.get('client_id')).slice(0, 200), e instanceof OAuthError ? e.message : e);
+    return { ok: false, res: errorPage(req, e instanceof OAuthError ? `${t('The app could not be identified')}: ${e.message}` : t('The app could not be identified.')) };
+  }
   if (!client || client.disabled) return { ok: false, res: errorPage(req, t('The app asking for access is not registered or has been blocked.')) };
   const redirectUri = q.get('redirect_uri') || '';
   if (!redirectUri || !redirectMatches(client.redirectUris, redirectUri)) return { ok: false, res: errorPage(req, t('The return address of this request does not match the app’s registration.')) };

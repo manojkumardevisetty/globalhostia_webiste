@@ -48,8 +48,8 @@ export function connectorsBody(cfg: ConnectorConfig, site: string) {
         <li>In ChatGPT, open <b>Apps</b> and search for <b>GlobalHostia</b>, then choose <b>Connect</b>.</li>
         <li>If it is not listed yet: <b>Settings &gt; Apps &amp; Connectors &gt; Advanced</b>, turn on developer mode, then <b>Create</b> with the URL below and OAuth authentication.</li>
         <li>Sign in on globalhostia.com and choose <b>Allow access</b>.</li></ol>${code(`${site}/mcp/chatgpt`)}</div>
-      <div class="cn-card"><h3>Claude Code and other MCP apps</h3><p class="hp-prose">Add the server, then sign in when your app asks:</p>${code(`claude mcp add --transport http globalhostia ${site}/mcp`)}
-        <p class="hp-prose">Any client that supports remote MCP servers (Streamable HTTP) with OAuth works. Details: <a href="/docs/mcp">developer documentation</a>.</p></div>
+      <div class="cn-card"><h3>Claude Code and other MCP apps</h3><p class="hp-prose">Add the server, then in Claude Code run <code>/mcp</code>, pick <b>globalhostia</b> and choose <b>Authenticate</b>. Your browser opens the GlobalHostia sign-in.</p>${code(`claude mcp add --transport http globalhostia ${site}/mcp`)}
+        <p class="hp-prose">Other apps that only sign in when the server asks at connect time: use <code>${esc(site)}/mcp/auth</code> (same tools, sign-in required up front). Details: <a href="/docs/mcp">developer documentation</a>.</p></div>
     </div></div>`, { labelledby: 'connect', tint: true });
   const scopeRows = Object.entries(SCOPES).map(([k, s]) => `<tr><td><b>${esc(s.label)}</b><br><small>${esc(s.detail)}</small></td><td>${s.write ? pill('Change', 'w') : pill('See')}</td></tr>`).join('');
   const perms = section(`<div class="hp-container">${sectionHead({ id: 'permissions', title: 'You decide what it can do', lead: 'The consent page lists every permission in plain words. Untick any you do not want; you can reconnect later to add more.' })}
@@ -91,6 +91,7 @@ export function docsBody(site: string) {
   });
   const ep = [
     ['MCP server (Claude, Claude Code, other clients)', `${site}/mcp`],
+    ['MCP server, sign-in required up front (CLI / IDE clients)', `${site}/mcp/auth`],
     ['MCP server for ChatGPT (no commerce tools)', `${site}/mcp/chatgpt`],
     ['Public read-only shopping server (no sign-in)', `${site}/api/mcp`],
     ['Protected resource metadata (RFC 9728)', `${site}/.well-known/oauth-protected-resource/mcp`],
@@ -102,16 +103,17 @@ export function docsBody(site: string) {
     <div class="cn-wrap"><table class="cn-tbl"><thead><tr><th>What</th><th>URL</th></tr></thead><tbody>${ep.map(([a, b]) => `<tr><td>${esc(a)}</td><td><code>${esc(b)}</code></td></tr>`).join('')}</tbody></table></div>
     <div class="cn-grid" style="margin-top:22px">
       ${card('Claude', `<p class="hp-prose">Add a custom connector with <code>${esc(site)}/mcp</code>. Claude registers itself (Client ID Metadata Document or Dynamic Client Registration) and signs in on first use of an account tool.</p>`)}
-      ${card('Claude Code', code(`claude mcp add --transport http globalhostia ${site}/mcp`) + '<p class="hp-prose">Then run <code>/mcp</code> and choose Authenticate.</p>')}
+      ${card('Claude Code', code(`claude mcp add --transport http globalhostia ${site}/mcp`) + '<p class="hp-prose">Then run <code>/mcp</code>, select globalhostia and choose <b>Authenticate</b>. Claude Code is asked to sign in when it connects (HTTP 401 on <code>initialize</code>); it registers with its Client ID Metadata Document and a <code>http://localhost:&lt;port&gt;/callback</code> redirect.</p>')}
+      ${card('Other CLI and IDE clients', code(`${site}/mcp/auth`) + '<p class="hp-prose">Same tools and tokens as <code>/mcp</code>, but every request without a token gets <code>401</code> + <code>WWW-Authenticate</code>, for clients that only start OAuth at connect time.</p>')}
       ${card('ChatGPT', `<p class="hp-prose">Use <code>${esc(site)}/mcp/chatgpt</code> with OAuth. Tools declare <code>securitySchemes</code>; a signed-out call to an account tool returns <code>_meta["mcp/www_authenticate"]</code> so ChatGPT shows the connect button.</p>`)}
       ${card('MCP Inspector', code(`npx @modelcontextprotocol/inspector --cli ${site}/mcp --transport http --method tools/list`) + '<p class="hp-prose">For account tools, use the Inspector UI: it completes the OAuth flow with a localhost redirect.</p>')}
     </div></div>`, { labelledby: 'endpoints' });
   const auth = section(`<div class="hp-container">${sectionHead({ id: 'auth', title: 'Authentication' })}
     <ul class="hp-prose">
-      <li><b>OAuth 2.1, authorization code with PKCE (S256 only)</b>. Public clients (<code>token_endpoint_auth_method: none</code>); confidential DCR clients may use <code>client_secret_post</code> or <code>client_secret_basic</code>.</li>
-      <li><b>Client registration</b>: Dynamic Client Registration, or an https <code>client_id</code> pointing to a Client ID Metadata Document (<code>client_id_metadata_document_supported: true</code>).</li>
+      <li><b>OAuth 2.1, authorization code with PKCE (S256 only)</b>. Public clients (<code>token_endpoint_auth_method: none</code>); <code>private_key_jwt</code> (RFC 7523 client assertions, RS256 / PS256 / ES256 and stronger, keys from <code>jwks_uri</code> or <code>jwks</code>, <code>aud</code> = the token endpoint or the issuer, one use per <code>jti</code>); confidential DCR clients may also use <code>client_secret_post</code> or <code>client_secret_basic</code>.</li>
+      <li><b>Client registration</b>: Dynamic Client Registration, or an https <code>client_id</code> pointing to a Client ID Metadata Document (<code>client_id_metadata_document_supported: true</code>) that uses <code>none</code> or <code>private_key_jwt</code> (a metadata document cannot hold a shared secret).</li>
       <li><b>Redirect URIs</b>: ${CLAUDE_CALLBACKS.map((u) => `<code>${esc(u)}</code>`).join(', ')}, <code>${esc(CHATGPT_CALLBACK)}</code>, <code>https://chatgpt.com/connector/oauth/{id}</code>, and loopback <code>http://localhost</code> / <code>127.0.0.1</code> on any port. Other https redirect URIs are accepted with a warning on the consent page (or refused when the store owner restricts them).</li>
-      <li><b>Resource indicators (RFC 8707)</b>: send <code>resource=${esc(site)}/mcp</code> (or <code>/mcp/chatgpt</code>). Tokens are bound to that resource and refused by the other endpoint.</li>
+      <li><b>Resource indicators (RFC 8707)</b>: send <code>resource=${esc(site)}/mcp</code> (or <code>/mcp/chatgpt</code>; <code>/mcp/auth</code> is the same resource as <code>/mcp</code>). Tokens are bound to that resource and refused by the other endpoint.</li>
       <li><b>Tokens</b>: opaque bearer tokens in the <code>Authorization</code> header only. Access tokens last ${ACCESS_TTL_S / 60} minutes; refresh tokens ${days(REFRESH_TTL_S)} days and rotate on every use (a reused refresh token revokes the connection). A connection lasts at most ${days(GRANT_TTL_S)} days.</li>
       <li><b>Challenges</b>: a missing token on an account tool gives <code>401</code> with <code>WWW-Authenticate: Bearer resource_metadata="…", scope="…"</code>; a token lacking the tool's scope gives <code>403</code> with <code>error="insufficient_scope"</code>. The authorization response includes <code>iss</code> (RFC 9207).</li>
       <li><b>Scopes</b>: ${Object.keys(SCOPES).map((s) => `<code>${esc(s)}</code>`).join(', ')}. <code>offline_access</code> is accepted.</li>

@@ -469,8 +469,10 @@ export const oauthClients = pgTable('oauth_clients', {
   redirectUris: jsonb('redirect_uris').$type<string[]>().notNull().default([]),
   platform: text('platform').notNull().default('other'), // claude | chatgpt | inspector | other
   flagged: boolean('flagged').notNull().default(false), // redirect URI outside the known assistants and loopback
-  authMethod: text('auth_method').notNull().default('none'),
+  authMethod: text('auth_method').notNull().default('none'), // space-separated, preferred first (e.g. "private_key_jwt none")
   secretHash: text('secret_hash'),
+  jwks: jsonb('jwks').$type<{ keys: Record<string, unknown>[] }>(), // private_key_jwt: inline JWK Set (patch 034)
+  jwksUri: text('jwks_uri'), // private_key_jwt: JWK Set URL (patch 034)
   clientUri: text('client_uri'),
   logoUri: text('logo_uri'),
   disabled: boolean('disabled').notNull().default(false),
@@ -494,6 +496,13 @@ export const oauthGrants = pgTable('oauth_grants', {
   revokedBy: text('revoked_by').notNull().default(''),
 }, (t) => [index('oauth_grants_client_idx').on(t.whmcsClientId), index('oauth_grants_app_idx').on(t.clientId)]);
 export type OauthGrant = typeof oauthGrants.$inferSelect;
+
+/** private_key_jwt replay protection: one row per accepted client assertion (jti) until it expires. Patch '034-oauth-private-key-jwt'. */
+export const oauthAssertions = pgTable('oauth_assertions', {
+  key: text('key').primaryKey(),
+  clientId: text('client_id').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+});
 
 export const oauthCodes = pgTable('oauth_codes', {
   hash: text('hash').primaryKey(),

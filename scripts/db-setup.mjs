@@ -555,6 +555,13 @@ try {
       await add('terms-conditions', 'AI assistant connectors', `<section id="ai-connectors"><h2>AI assistant connectors</h2>
 <p>If you connect your account to an AI assistant, actions the assistant takes with the permissions you approved are treated as actions you requested on your account. Review what the assistant proposes before you confirm changes, especially deleting DNS records or mailboxes and changing nameservers. Orders, renewals and payments are never completed by an assistant: they finish on globalhostia.com. You can revoke a connection at any time in your account under Connected apps. We may suspend connector access to protect your account or our services.</p></section>`);
     },
+    // 34. OAuth private_key_jwt (RFC 7523) for ChatGPT's client metadata document: client keys and assertion replay guard.
+    '034-oauth-private-key-jwt': async (tx) => {
+      await tx`alter table oauth_clients add column if not exists jwks jsonb`;
+      await tx`alter table oauth_clients add column if not exists jwks_uri text`;
+      await tx`create table if not exists oauth_assertions (key text primary key, client_id text not null, expires_at timestamptz not null)`;
+      await tx`create index if not exists oauth_assertions_exp_idx on oauth_assertions (expires_at)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

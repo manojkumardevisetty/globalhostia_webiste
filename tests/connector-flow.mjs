@@ -1,12 +1,13 @@
 // End-to-end check of the AI connector against a running app with the local mocks: discovery, lazy-auth 401, DCR,
 // /oauth/authorize → portal sign-in → consent → code (+ iss), PKCE, code replay, token, MCP initialize / tools/list /
 // tools/call (ownership, scopes, confirm, DNS write through the DirectAdmin mock), audience binding, refresh rotation and
-// replay, RFC 7009 revocation, Account → Connected apps disconnect, ChatGPT profile.
+// replay, RFC 7009 revocation, Account → Connected apps disconnect, ChatGPT profile, private_key_jwt (RFC 7523) clients,
+// /mcp/auth (sign-in up front), Claude Code's 401-at-initialize, loopback port-agnostic redirects, protocol versions.
 // Needs: the app on BASE with tests/mock-whmcs.mjs as WHMCS (client 1 = demo@example.com / demo-pass) and a database
 // with db-setup patch 032-oauth. For the DNS write steps also tests/mock-da.mjs with DA_URL / DA_USER / DA_LOGIN_KEY /
 // DA_WHMCS_SERVER_IDS=5 (otherwise they are reported as SKIP).
 // Run: BASE=http://localhost:3612 node tests/connector-flow.mjs
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, generateKeyPairSync, sign as jwsSign } from 'node:crypto';
 
 const BASE = process.env.BASE || 'http://localhost:3000';
 const REDIRECT = 'http://localhost:6274/oauth/callback';
@@ -32,9 +33,9 @@ async function mcp(token, method, params, path = '/mcp') {
 }
 const call = (token, name, args = {}, path) => mcp(token, 'tools/call', { name, arguments: args }, path);
 
-async function authorize(clientId, scopeSkip = []) {
+async function authorize(clientId, scopeSkip = [], o = {}) {
   const p = pkce(), state = randomBytes(8).toString('hex');
-  const q = new URLSearchParams({ response_type: 'code', client_id: clientId, redirect_uri: REDIRECT, code_challenge: p.c, code_challenge_method: 'S256', state, resource: `${BASE}/mcp` });
+  const q = new URLSearchParams({ response_type: 'code', client_id: clientId, redirect_uri: o.redirect || REDIRECT, code_challenge: p.c, code_challenge_method: 'S256', state, ...(o.resource === null ? {} : { resource: o.resource || `${BASE}/mcp` }) });
   let r = await req(`/oauth/authorize?${q}`);
   if (r.status === 303 && loc(r).pathname === '/account/login') return { needLogin: true, p, state, r };
   if (r.status === 303 && loc(r).pathname === '/oauth/authorize') r = await req(loc(r).pathname + loc(r).search);
@@ -58,6 +59,8 @@ const token = (o) => req('/oauth/token', { method: 'POST', headers: { 'content-t
   ok((await (await req('/.well-known/oauth-protected-resource/mcp/chatgpt')).json()).resource === `${BASE}/mcp/chatgpt`, 'path-suffixed metadata for /mcp/chatgpt');
   ok((await (await req('/.well-known/oauth-protected-resource')).json()).resource === `${BASE}/mcp`, 'bare /.well-known/oauth-protected-resource');
   const as = await (await req('/.well-known/oauth-authorization-server')).json();
+  ok(['none', 'private_key_jwt'].every((m) => as.token_endpoint_auth_methods_supported?.includes(m)) && ['RS256', 'ES256'].every((a) => as.token_endpoint_auth_signing_alg_values_supported?.includes(a)), 'AS metadata: private_key_jwt with RS256 / ES256 advertised');
+  ok((await (await req('/.well-known/oauth-protected-resource/mcp/auth')).json()).resource === `${BASE}/mcp`, '/mcp/auth shares the /mcp protected resource metadata');
   ok(as.issuer === BASE && as.code_challenge_methods_supported?.join() === 'S256' && as.client_id_metadata_document_supported === true && as.token_endpoint_auth_methods_supported?.includes('none')
     && as.registration_endpoint === `${BASE}/oauth/register` && as.authorization_response_iss_parameter_supported === true && as.scopes_supported?.includes('offline_access'), 'authorization server metadata (RFC 8414): S256, CIMD, DCR, none, iss');
 
@@ -77,6 +80,25 @@ const token = (o) => req('/oauth/token', { method: 'POST', headers: { 'content-t
   ok(!gptTools.some((t) => ['create_cart_link', 'recommend_plan', 'search_plans', 'renew_items_link'].includes(t.name)) && gptTools.every((t) => Array.isArray(t._meta?.securitySchemes)), 'ChatGPT profile: no commerce tools, securitySchemes on every tool');
   const bad = await mcp('gha_not-a-real-token-at-all-xxxxxxxx', 'tools/list', {});
   ok(bad.status === 401 && /invalid_token/.test(bad.headers.get('www-authenticate') || ''), 'invalid bearer token → 401 even for tools/list');
+
+  /* 2b. transport details and sign-in up front */
+  for (const v of ['2025-03-26', '2025-06-18', '2025-11-25']) {
+    const r = await req('/mcp', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: v, capabilities: {}, clientInfo: { name: 'flow-test', version: '1' } } }) });
+    const j = await r.json().catch(() => null);
+    ok(r.status === 200 && j?.result?.protocolVersion === v && r.headers.get('mcp-protocol-version') === v, `initialize negotiates ${v}`);
+  }
+  const sse = await req('/mcp', { headers: { accept: 'text/event-stream' } });
+  ok(sse.status === 405, 'GET /mcp with Accept: text/event-stream → 405 (no server stream)');
+  const note = await req('/mcp', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' }, body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) });
+  ok(note.status === 202, 'notification → 202 Accepted');
+  const cors = await req('/mcp', { method: 'OPTIONS', headers: { origin: 'http://localhost:6274', 'access-control-request-method': 'POST', 'access-control-request-headers': 'authorization, content-type, mcp-protocol-version, mcp-session-id' } });
+  ok(cors.status === 204 && cors.headers.get('access-control-allow-origin') === '*' && /mcp-session-id/.test(cors.headers.get('access-control-allow-headers') || '') && /www-authenticate/.test(cors.headers.get('access-control-expose-headers') || ''), 'CORS preflight for browser MCP clients');
+  const cc = await req('/mcp', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'claude-code', version: '2.1.0' } } }) });
+  ok(cc.status === 401 && /resource_metadata="[^"]+\/\.well-known\/oauth-protected-resource\/mcp"/.test(cc.headers.get('www-authenticate') || ''), 'Claude Code initialize on /mcp without a token → 401 (its sign-in trigger)');
+  const strict = await mcp(null, 'initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'any-cli', version: '1' } }, '/mcp/auth');
+  ok(strict.status === 401 && /resource_metadata="[^"]+\/oauth-protected-resource\/mcp"/.test(strict.headers.get('www-authenticate') || ''), '/mcp/auth: initialize without a token → 401 + WWW-Authenticate');
+  const strictGet = await (await req('/mcp/auth')).json();
+  ok(strictGet.authentication?.lazy === false && strictGet.endpoint === `${BASE}/mcp/auth`, 'GET /mcp/auth describes the sign-in-first endpoint');
 
   /* 3. dynamic client registration */
   const reg = await req('/oauth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client_name: 'Flow test (MCP Inspector)', redirect_uris: [REDIRECT], grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'], token_endpoint_auth_method: 'none' }) });
@@ -190,6 +212,48 @@ const token = (o) => req('/oauth/token', { method: 'POST', headers: { 'content-t
   ok((await call(t4.body.access_token, 'list_domains')).status === 401, 'Disconnect in Connected apps revokes the token immediately');
   const deny = await authorize(client.client_id); const d = await consent(deny, 'deny');
   ok(d.to.searchParams.get('error') === 'access_denied' && d.to.searchParams.get('state') === deny.state, 'Cancel on the consent page → access_denied with state');
+
+  /* 9b. loopback redirect with another port (Claude Code / RFC 8252) and no resource parameter */
+  const LOOP = 'http://127.0.0.1:33418/callback';
+  const regLoop = await (await req('/oauth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client_name: 'Flow test (Claude Code)', redirect_uris: ['http://127.0.0.1/callback', 'http://localhost/callback'], grant_types: ['authorization_code', 'refresh_token', 'urn:ietf:params:oauth:grant-type:jwt-bearer'], token_endpoint_auth_method: 'none' }) })).json();
+  ok(/^ghc_/.test(regLoop.client_id) && regLoop.grant_types?.join() === 'authorization_code,refresh_token', 'DCR: unsupported extra grant types are dropped, not fatal');
+  const aL = await authorize(regLoop.client_id, [], { redirect: LOOP, resource: null });
+  const cL = await consent(aL);
+  ok(cL.to.origin + cL.to.pathname === LOOP && /^ghac_/.test(cL.to.searchParams.get('code') || ''), 'loopback redirect on any port matches the port-less registration');
+  const tL = await token({ grant_type: 'authorization_code', code: cL.to.searchParams.get('code'), redirect_uri: LOOP, client_id: regLoop.client_id, code_verifier: aL.p.v });
+  ok(tL.status === 200 && (await call(tL.body?.access_token, 'list_domains')).status === 200, 'no resource parameter → token for /mcp');
+  ok((await mcp(tL.body?.access_token, 'initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'claude-code', version: '2' } }, '/mcp/auth')).status === 200, 'the /mcp token works on /mcp/auth');
+  const aA = await authorize(regLoop.client_id, [], { redirect: LOOP, resource: `${BASE}/mcp/auth` });
+  const cA = await consent(aA);
+  const tA = await token({ grant_type: 'authorization_code', code: cA.to.searchParams.get('code'), redirect_uri: LOOP, client_id: regLoop.client_id, code_verifier: aA.p.v, resource: `${BASE}/mcp/auth` });
+  ok(tA.status === 200 && (await call(tA.body?.access_token, 'list_domains')).status === 200, 'resource=/mcp/auth is accepted as /mcp');
+
+  /* 9c. private_key_jwt client (RFC 7523): what ChatGPT's client metadata document uses */
+  const kp = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  const pub = { ...kp.publicKey.export({ format: 'jwk' }), kid: 'flow-1', use: 'sig', alg: 'ES256' };
+  const regJ = await req('/oauth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client_name: 'Flow test (private_key_jwt)', redirect_uris: [REDIRECT], token_endpoint_auth_method: 'private_key_jwt', jwks: { keys: [pub] } }) });
+  const cj = await regJ.json();
+  ok(regJ.status === 201 && cj.token_endpoint_auth_method === 'private_key_jwt' && !cj.client_secret && cj.jwks?.keys?.length === 1, 'DCR: private_key_jwt client with jwks');
+  const b64j = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+  const assertion = (o = {}) => { const now = Math.floor(Date.now() / 1000); const input = `${b64j({ alg: 'ES256', kid: 'flow-1', typ: 'JWT' })}.${b64j({ iss: cj.client_id, sub: cj.client_id, aud: `${BASE}/oauth/token`, iat: now, exp: now + 120, jti: randomBytes(12).toString('hex'), ...o })}`; return `${input}.${jwsSign('sha256', Buffer.from(input), { key: kp.privateKey, dsaEncoding: 'ieee-p1363' }).toString('base64url')}`; };
+  const AT_TYPE = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer';
+  const aJ = await authorize(cj.client_id); const cJ = await consent(aJ);
+  const codeJ = cJ.to.searchParams.get('code');
+  const noAssert = await token({ grant_type: 'authorization_code', code: codeJ, redirect_uri: REDIRECT, client_id: cj.client_id, code_verifier: aJ.p.v });
+  ok(noAssert.status === 401 && noAssert.body?.error === 'invalid_client' && /private_key_jwt/.test(noAssert.body?.error_description || ''), 'private_key_jwt client without an assertion → 401 invalid_client');
+  const badAud = await token({ grant_type: 'authorization_code', code: codeJ, redirect_uri: REDIRECT, client_id: cj.client_id, code_verifier: aJ.p.v, client_assertion_type: AT_TYPE, client_assertion: assertion({ aud: 'https://evil.example/token' }) });
+  ok(badAud.status === 401 && /aud/.test(badAud.body?.error_description || ''), 'assertion for another audience → 401');
+  const expired = await token({ grant_type: 'authorization_code', code: codeJ, redirect_uri: REDIRECT, client_id: cj.client_id, code_verifier: aJ.p.v, client_assertion_type: AT_TYPE, client_assertion: assertion({ exp: Math.floor(Date.now() / 1000) - 600 }) });
+  ok(expired.status === 401 && /expired/.test(expired.body?.error_description || ''), 'expired assertion → 401');
+  const one = assertion();
+  const tJ = await token({ grant_type: 'authorization_code', code: codeJ, redirect_uri: REDIRECT, code_verifier: aJ.p.v, client_assertion_type: AT_TYPE, client_assertion: one });
+  ok(tJ.status === 200 && /^gha_/.test(tJ.body?.access_token || ''), 'code + valid ES256 client assertion (client_id taken from the assertion) → tokens');
+  const replayJ = await token({ grant_type: 'refresh_token', refresh_token: tJ.body?.refresh_token, client_id: cj.client_id, client_assertion_type: AT_TYPE, client_assertion: one });
+  ok(replayJ.status === 401 && /replay/.test(replayJ.body?.error_description || ''), 'the same assertion twice → 401 (jti replay)');
+  const rJ = await token({ grant_type: 'refresh_token', refresh_token: tJ.body?.refresh_token, client_id: cj.client_id, client_assertion_type: AT_TYPE, client_assertion: assertion() });
+  ok(rJ.status === 200 && rJ.body?.refresh_token !== tJ.body?.refresh_token, 'refresh with a fresh assertion rotates tokens');
+  const rvJ = await req('/oauth/revoke', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: form({ token: rJ.body?.refresh_token, client_assertion_type: AT_TYPE, client_assertion: assertion({ aud: BASE }) }) });
+  ok(rvJ.status === 200 && (await call(rJ.body?.access_token, 'list_domains')).status === 401, 'revocation authenticated with an assertion (aud = issuer)');
 
   /* 10. pages */
   for (const p of ['/connectors', '/docs/mcp']) { const r = await req(p); const h = await r.text(); ok(r.status === 200 && h.includes('/mcp') && !/noindex/.test(r.headers.get('x-robots-tag') || ''), `${p} renders and is indexable`); }

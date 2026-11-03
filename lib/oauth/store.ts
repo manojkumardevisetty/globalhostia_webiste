@@ -7,17 +7,25 @@ import { timingSafeEqual } from 'node:crypto';
 import { db, schema } from '../db';
 import { createId } from '../id';
 import {
-  ACCESS_TTL_S, CODE_TTL_S, GRANT_TTL_S, REFRESH_TTL_S, classifyRedirect, hashToken, isCimdClientId, platformOf, randomToken,
-  scopeString, validateCimd, verifyPkce, type ClientMeta,
+  ACCESS_TTL_S, ASSERTION_TYPE, CODE_TTL_S, GRANT_TTL_S, REFRESH_TTL_S, classifyRedirect, cleanJwks, hashToken, isCimdClientId, platformOf, randomToken,
+  scopeString, validateCimd, verifyClientAssertion, verifyPkce, type ClientMeta, type Jwks,
 } from './core';
-import { CimdError, fetchCimd } from './cimd';
+import { CimdError, fetchCimd, fetchJwks } from './cimd';
 
-export type Client = { id: string; kind: 'dcr' | 'cimd'; name: string; redirectUris: string[]; platform: string; flagged: boolean; authMethod: string; secretHash: string | null; disabled: boolean; clientUri: string | null };
+export type Client = {
+  id: string; kind: 'dcr' | 'cimd'; name: string; redirectUris: string[]; platform: string; flagged: boolean;
+  /** preferred token endpoint method; authMethods lists every accepted one (CIMDs may declare several) */
+  authMethod: string; authMethods: string[]; secretHash: string | null; disabled: boolean; clientUri: string | null; jwks: Jwks | null; jwksUri: string | null;
+};
 export class OAuthError extends Error { constructor(public code: string, message: string, public status = 400) { super(message); } }
 
-const T = schema.oauthTokens, G = schema.oauthGrants, C = schema.oauthCodes, CL = schema.oauthClients;
+const T = schema.oauthTokens, G = schema.oauthGrants, C = schema.oauthCodes, CL = schema.oauthClients, A = schema.oauthAssertions;
 const flaggedOf = (uris: string[]) => uris.some((u) => { const c = classifyRedirect(u); return !c.ok || c.flagged; });
-const toClient = (r: typeof CL.$inferSelect): Client => ({ id: r.id, kind: r.kind as Client['kind'], name: r.name, redirectUris: r.redirectUris, platform: r.platform, flagged: r.flagged, authMethod: r.authMethod, secretHash: r.secretHash, disabled: r.disabled, clientUri: r.clientUri });
+const toClient = (r: typeof CL.$inferSelect): Client => {
+  const methods = (r.authMethod || 'none').split(/\s+/).filter(Boolean);
+  return { id: r.id, kind: r.kind as Client['kind'], name: r.name, redirectUris: r.redirectUris, platform: r.platform, flagged: r.flagged, authMethod: methods[0] || 'none', authMethods: methods.length ? methods : ['none'],
+    secretHash: r.secretHash, disabled: r.disabled, clientUri: r.clientUri, jwks: cleanJwks(r.jwks), jwksUri: r.jwksUri ?? null };
+};
 const inS = (s: number) => new Date(Date.now() + s * 1000);
 
 /* ------------------------------------------------------------------ clients */
@@ -41,28 +49,75 @@ export async function findClient(clientId: unknown): Promise<Client | null> {
     throw new OAuthError('invalid_client', e instanceof CimdError ? e.message : 'client metadata document could not be fetched');
   }
   const values = { id: clientId, kind: 'cimd', name: meta.name, redirectUris: meta.redirectUris, platform: platformOf(clientId, meta.redirectUris), flagged: flaggedOf(meta.redirectUris),
-    authMethod: 'none', clientUri: meta.clientUri ?? null, logoUri: meta.logoUri ?? null, fetchedAt: new Date() };
-  const [saved] = await db.insert(CL).values(values).onConflictDoUpdate({ target: CL.id, set: { name: values.name, redirectUris: values.redirectUris, platform: values.platform, flagged: values.flagged, clientUri: values.clientUri, logoUri: values.logoUri, fetchedAt: values.fetchedAt } }).returning();
+    authMethod: meta.authMethods.join(' '), jwks: meta.jwks ?? null, jwksUri: meta.jwksUri ?? null, clientUri: meta.clientUri ?? null, logoUri: meta.logoUri ?? null, fetchedAt: new Date() };
+  const [saved] = await db.insert(CL).values(values).onConflictDoUpdate({ target: CL.id, set: { name: values.name, redirectUris: values.redirectUris, platform: values.platform, flagged: values.flagged,
+    authMethod: values.authMethod, jwks: values.jwks, jwksUri: values.jwksUri, clientUri: values.clientUri, logoUri: values.logoUri, fetchedAt: values.fetchedAt } }).returning();
+  if (meta.authMethod !== 'none') console.info('[oauth] cimd client', clientId, 'auth', values.authMethod, meta.jwksUri ? `jwks_uri ${meta.jwksUri}` : 'inline jwks');
   return toClient(saved);
 }
 
 export async function registerClient(meta: ClientMeta): Promise<{ client: Client; secret?: string; issuedAt: number }> {
   const id = `ghc_${randomToken('', 18)}`;
-  const secret = meta.authMethod === 'none' ? undefined : randomToken('ghs_', 32);
+  const secret = meta.authMethod === 'client_secret_post' || meta.authMethod === 'client_secret_basic' ? randomToken('ghs_', 32) : undefined;
   const [row] = await db.insert(CL).values({
     id, kind: 'dcr', name: meta.name, redirectUris: meta.redirectUris, platform: platformOf(id, meta.redirectUris), flagged: flaggedOf(meta.redirectUris),
-    authMethod: meta.authMethod, secretHash: secret ? hashToken(secret) : null, clientUri: meta.clientUri ?? null, logoUri: meta.logoUri ?? null,
+    authMethod: meta.authMethod, secretHash: secret ? hashToken(secret) : null, jwks: meta.jwks ?? null, jwksUri: meta.jwksUri ?? null, clientUri: meta.clientUri ?? null, logoUri: meta.logoUri ?? null,
   }).returning();
   if (Math.random() < 0.02) cleanup().catch(() => {});
   return { client: toClient(row), secret, issuedAt: Math.floor(row.createdAt.getTime() / 1000) };
 }
 
-/** Confidential DCR clients prove the secret (client_secret_post / client_secret_basic); public clients send none. */
-export function clientAuthenticated(c: Client, secret: string | null): boolean {
-  if (c.authMethod === 'none') return true;
-  if (!secret || !c.secretHash) return false;
-  const a = Buffer.from(hashToken(secret)), b = Buffer.from(c.secretHash);
-  return a.length === b.length && timingSafeEqual(a, b);
+/* ------------------------------------------------------------------ client authentication at the token / revocation endpoints */
+export type ClientCredentials = { secret: string | null; assertion?: string | null; assertionType?: string | null };
+
+const JWKS_FRESH_MS = 10 * 60_000, JWKS_REFETCH_MIN_MS = 30_000;
+const jwksCache = new Map<string, { jwks: Jwks; at: number }>();
+/** A jwks_uri's keys, cached for 10 minutes; `force` refetches (key rotation: unknown kid), at most every 30 s. */
+async function jwksFor(url: string, force = false): Promise<Jwks> {
+  const hit = jwksCache.get(url);
+  if (hit && Date.now() - hit.at < (force ? JWKS_REFETCH_MIN_MS : JWKS_FRESH_MS)) return hit.jwks;
+  let jwks: Jwks | null;
+  try { jwks = cleanJwks(await fetchJwks(url)); }
+  catch (e) { if (hit) return hit.jwks; throw new OAuthError('invalid_client', e instanceof CimdError ? e.message : 'JWK Set could not be fetched'); }
+  if (!jwks) { if (hit) return hit.jwks; throw new OAuthError('invalid_client', 'jwks_uri did not return a JWK Set with RSA or EC public keys'); }
+  if (jwksCache.size > 200) jwksCache.clear();
+  jwksCache.set(url, { jwks, at: Date.now() });
+  return jwks;
+}
+
+/** private_key_jwt (RFC 7523): verify the assertion with the client's keys and record its jti once (replay = refused). */
+async function verifyAssertion(c: Client, assertion: string, audiences: string[]) {
+  const run = (jwks: Jwks) => verifyClientAssertion({ assertion, clientId: c.id, audiences, jwks });
+  let r = c.jwksUri ? run(await jwksFor(c.jwksUri)) : c.jwks ? run(c.jwks) : null;
+  if (!r) throw new OAuthError('invalid_client', 'The client has no keys registered for private_key_jwt');
+  if (!r.ok && r.unknownKid && c.jwksUri) r = run(await jwksFor(c.jwksUri, true));
+  if (!r.ok) { console.warn('[oauth] client assertion refused', c.id, r.reason); throw new OAuthError('invalid_client', r.reason); }
+  const [fresh] = await db.insert(A).values({ key: r.replayKey, clientId: c.id, expiresAt: new Date((r.exp + 120) * 1000) }).onConflictDoNothing().returning({ key: A.key });
+  if (!fresh) { console.warn('[oauth] client assertion replay', c.id); throw new OAuthError('invalid_client', 'client_assertion was already used (jti replay)'); }
+  if (Math.random() < 0.05) db.delete(A).where(lt(A.expiresAt, new Date())).catch(() => {});
+}
+
+/**
+ * Authenticate the client the way it registered: "none" (public: nothing to prove), client_secret_post / _basic (DCR
+ * secret) or private_key_jwt (client_assertion signed with a key from its jwks / jwks_uri, aud = one of `audiences`).
+ * Throws OAuthError('invalid_client') with the reason on failure.
+ */
+export async function authenticateClient(c: Client, cred: ClientCredentials, audiences: string[]): Promise<void> {
+  const m = c.authMethods;
+  if (cred.assertion || cred.assertionType) {
+    if (cred.assertionType !== ASSERTION_TYPE) throw new OAuthError('invalid_client', `client_assertion_type must be ${ASSERTION_TYPE}`);
+    if (!cred.assertion) throw new OAuthError('invalid_client', 'client_assertion is required with client_assertion_type');
+    if (!m.includes('private_key_jwt')) throw new OAuthError('invalid_client', `This client is registered for ${m.join(' / ')}, not private_key_jwt`);
+    return verifyAssertion(c, cred.assertion, audiences);
+  }
+  if (m.includes('client_secret_post') || m.includes('client_secret_basic')) {
+    if (!cred.secret || !c.secretHash) throw new OAuthError('invalid_client', 'Client authentication failed');
+    const a = Buffer.from(hashToken(cred.secret)), b = Buffer.from(c.secretHash);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) throw new OAuthError('invalid_client', 'Client authentication failed');
+    return;
+  }
+  if (m.includes('none')) return;
+  throw new OAuthError('invalid_client', 'This client must authenticate with private_key_jwt (client_assertion and client_assertion_type)');
 }
 
 /* ------------------------------------------------------------------ grants and codes */
@@ -210,6 +265,7 @@ export async function cleanup() {
   const week = new Date(Date.now() - 7 * 86400_000), month = new Date(Date.now() - 30 * 86400_000);
   await db.delete(C).where(lt(C.expiresAt, new Date()));
   await db.delete(T).where(lt(T.expiresAt, week));
+  await db.delete(A).where(lt(A.expiresAt, new Date()));
   const unused = db.select({ id: G.clientId }).from(G);
   await db.delete(CL).where(and(eq(CL.kind, 'dcr'), lt(CL.createdAt, month), or(isNull(CL.lastUsedAt), lt(CL.lastUsedAt, month)), sql`${CL.id} not in ${unused}`));
 }

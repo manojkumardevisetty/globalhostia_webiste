@@ -70,6 +70,8 @@ export default {
         { source: '/.well-known/oauth-protected-resource', destination: '/api/well-known/oauth-protected-resource' },
         { source: '/.well-known/oauth-protected-resource/mcp', destination: '/api/well-known/oauth-protected-resource' },
         { source: '/.well-known/oauth-protected-resource/mcp/chatgpt', destination: '/api/well-known/oauth-protected-resource/chatgpt' },
+        // /mcp/auth (sign-in up front) shares /mcp's resource and metadata
+        { source: '/.well-known/oauth-protected-resource/mcp/auth', destination: '/api/well-known/oauth-protected-resource' },
         { source: '/.well-known/oauth-authorization-server', destination: '/api/well-known/oauth-authorization-server' },
         { source: '/.well-known/openai-apps-challenge', destination: '/api/well-known/openai-apps-challenge' },
       ],

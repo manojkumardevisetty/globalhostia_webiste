@@ -6,8 +6,12 @@
 //   /mcp/chatgpt  a tool error carrying _meta["mcp/www_authenticate"]              (ChatGPT's linking trigger)
 // A token that is present but invalid, expired, revoked or minted for another resource is always HTTP 401.
 // A token without the tool's scope gets 403 insufficient_scope (step-up) on /mcp, the _meta challenge on /mcp/chatgpt.
+// Sign-in up front (HTTP 401 on the first request without a token, the standard MCP client trigger) for
+//   /mcp/auth     always (same tools and token audience as /mcp, for CLI / IDE clients that only offer sign-in on a 401)
+//   /mcp          when Claude Code initializes (clientInfo.name "claude-code"): Claude Code only offers
+//                 "Authenticate" in /mcp for servers that answered 401, so lazy auth would leave it signed out for good.
 import 'server-only';
-import { SCOPE_NAMES, bearerToken, resourceFor, wwwAuthenticate, type Profile } from '../oauth/core';
+import { SCOPE_NAMES, bearerToken, isClaudeCodeInit, resourceFor, wwwAuthenticate, type Profile } from '../oauth/core';
 import { baseUrl, prmUrl } from '../oauth/http';
 import { verifyAccess } from '../oauth/store';
 import { MCP_VERSIONS, MCP_LATEST } from '../agents/mcp';
@@ -50,7 +54,9 @@ function toolResult(summary: string, data: Record<string, unknown>) {
   return { content: [{ type: 'text', text: `${summary}\n\n${json}` }], structuredContent: data };
 }
 
-export async function handleMcpPost(req: Request, profile: Profile): Promise<Response> {
+export type McpOptions = { requireAuth?: boolean };
+
+export async function handleMcpPost(req: Request, profile: Profile, opts: McpOptions = {}): Promise<Response> {
   const ip = clientIp(req);
   const wait = ipLimit(ip);
   if (wait) return reply({ jsonrpc: '2.0', id: null, error: { code: -32000, message: `Rate limit exceeded; retry in ${wait}s` } }, 429, { 'retry-after': String(wait) });
@@ -85,6 +91,12 @@ export async function handleMcpPost(req: Request, profile: Profile): Promise<Res
         { 'www-authenticate': challenge({ resourceMetadata: prm, error: 'invalid_token', description: 'The access token is invalid, expired, revoked or for another resource', scope: SCOPE_NAMES }) });
     }
     access = { cid: info.cid, scopes: info.scopes, clientId: info.clientId, grantId: info.grantId, platform: info.platform, email: info.email };
+  }
+
+  // 2a. sign-in up front: /mcp/auth always, /mcp for Claude Code's initialize
+  if (!access && profile === 'claude' && (opts.requireAuth || isClaudeCodeInit(list, req.headers.get('user-agent')))) {
+    return reply({ error: 'invalid_token', error_description: 'Sign in to GlobalHostia to use this server' }, 401,
+      { 'www-authenticate': challenge({ resourceMetadata: prm, error: 'invalid_token', description: 'Sign in to GlobalHostia to use this server', scope: SCOPE_NAMES }) });
   }
 
   const cfg = await connectorConfig();
@@ -160,12 +172,13 @@ export async function handleMcpPost(req: Request, profile: Profile): Promise<Res
   return reply(batch ? replies : replies[0], 200, { 'mcp-protocol-version': init || pv || MCP_LATEST });
 }
 
-export function mcpGet(req: Request, profile: Profile) {
+export function mcpGet(req: Request, profile: Profile, opts: McpOptions = {}) {
+  // no server-initiated SSE stream (stateless JSON server): 405 is the Streamable HTTP answer
   if ((req.headers.get('accept') || '').includes('text/event-stream')) return new Response(null, { status: 405, headers: { ...CORS, allow: 'POST, OPTIONS' } });
   const base = baseUrl(req);
   return reply({
-    ...SERVER(profile), transport: 'streamable-http', endpoint: resourceFor(base, profile), protocolVersions: MCP_VERSIONS,
-    authentication: { type: 'oauth2', protectedResourceMetadata: prmUrl(base, profile), authorizationServer: base, lazy: true },
+    ...SERVER(profile), transport: 'streamable-http', endpoint: opts.requireAuth ? `${base}/mcp/auth` : resourceFor(base, profile), protocolVersions: MCP_VERSIONS,
+    authentication: { type: 'oauth2', protectedResourceMetadata: prmUrl(base, profile), authorizationServer: base, lazy: !opts.requireAuth, ...(opts.requireAuth ? { resource: resourceFor(base, profile) } : {}) },
     documentation: `${base}/docs/mcp`,
   }, 200, { allow: 'GET, POST, OPTIONS' });
 }
