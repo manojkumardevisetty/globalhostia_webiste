@@ -22,7 +22,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const REQ_TTL_S = 15 * 60;
-const HEADERS = { 'cache-control': 'no-store', 'content-security-policy': "frame-ancestors 'none'", 'x-robots-tag': 'noindex, nofollow', 'referrer-policy': 'no-referrer' };
+const HEADERS = { 'cache-control': 'no-store', 'content-security-policy': "frame-ancestors 'none'", 'x-robots-tag': 'noindex, nofollow', 'referrer-policy': 'same-origin' };
 const secret = () => process.env.AUTH_SECRET || '';
 const localeOf = (req: NextRequest) => ({ lang: parseLang(req.cookies.get(LANG_COOKIE)?.value), digits: parseDigits(req.cookies.get(DIGITS_COOKIE)?.value) });
 

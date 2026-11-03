@@ -51,7 +51,11 @@ export function csrfOk(jti: string, token: unknown) {
 /** POSTs must come from our own origin (Origin header, or Referer when Origin is absent). */
 export function sameOrigin(req: NextRequest) {
   const host = (req.headers.get('x-forwarded-host') || req.headers.get('host') || '').split(',')[0].trim().toLowerCase();
-  const src = req.headers.get('origin') || req.headers.get('referer');
+  // Browsers send Origin: null on form POSTs from pages with a strict referrer policy; trust the browser's own
+  // Sec-Fetch-Site in that case (it cannot be set by page script).
+  if (req.headers.get('sec-fetch-site') === 'same-origin') return true;
+  const o = req.headers.get('origin');
+  const src = (o && o !== 'null' ? o : '') || req.headers.get('referer');
   if (!host || !src || src === 'null') return false;
   try { return new URL(src).host.toLowerCase() === host; } catch { return false; }
 }
