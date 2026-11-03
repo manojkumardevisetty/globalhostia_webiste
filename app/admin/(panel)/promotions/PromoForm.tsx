@@ -41,6 +41,18 @@ function PopupPreview({ p, sheet }: { p: PromoPopup; sheet: boolean }) {
           <h2 className="ghp-pop__title">{p.title || 'Title'}</h2>
           {paras.length > 0 && <div className="ghp-pop__text">{paras.map((x, i) => <p key={i} dangerouslySetInnerHTML={{ __html: richText(x.trim()) }} />)}</div>}
           {p.coupon && <div className="ghp-code"><div><span className="ghp-code__lbl">Coupon code</span><span className="ghp-code__val">{p.coupon}</span></div><button type="button" className="ghp-code__btn" tabIndex={-1}>{COPY}<span>Copy</span></button></div>}
+          {p.emailCapture && (
+            <div className="gh-lead gh-lead--light ghp-lead" aria-hidden>
+              <div className="gh-lead__f">
+                <div className="gh-lead__row">
+                  <div className="gh-lead__fld"><label>Email</label><input tabIndex={-1} readOnly placeholder="you@company.com" /></div>
+                  <div className="gh-lead__fld"><label>WhatsApp number <span className="gh-lead__opt">(optional)</span></label><input tabIndex={-1} readOnly placeholder="+971 50 000 0000" /></div>
+                </div>
+                <div className="gh-lead__chk"><input type="checkbox" tabIndex={-1} readOnly /><label>Send me offers and hosting guides by email or WhatsApp. I can unsubscribe at any time.</label></div>
+                <span className="ghp-cta gh-lead__btn">Get the offers</span>
+              </div>
+            </div>
+          )}
           <div className="ghp-pop__actions">
             {p.ctaLabel && p.ctaUrl && <a className="ghp-cta" href={p.ctaUrl} tabIndex={-1} onClick={(e) => e.preventDefault()}>{p.ctaLabel}{ARROW}</a>}
             <button type="button" className="ghp-later" tabIndex={-1}>No thanks</button>
@@ -90,6 +102,9 @@ export default function PromoForm({ initial, coupons, whmcs }: { initial: State;
         <F label="Coupon code (optional)" hint={unknownCoupon(p.coupon) ? <span className="text-amber-700">This code was not found in WHMCS promotions, it will not work at checkout.</span> : 'Shown with a copy button. Create the coupon in WHMCS first.'}>
           <input className="input font-mono uppercase" list="ghp-coupons" value={p.coupon} maxLength={40} onChange={(e) => setPop(k, { coupon: e.target.value.toUpperCase().replace(/\s+/g, '') })} />
         </F>
+        <F label="Collect email addresses" hint={<>Adds an email field (plus an optional WhatsApp number and a consent tick box) to the pop-up. Sign-ups appear in <a className="text-brand-600 underline" href="/admin/leads">Marketing → Leads</a>; nothing is emailed automatically.</>}>
+          <Toggle on={!!p.emailCapture} onChange={(v) => setPop(k, { emailCapture: v })} label={p.emailCapture ? 'Email form on' : 'Off'} />
+        </F>
         <F label="Show on"><Where value={p.where} onChange={(v) => setPop(k, { where: v })} /></F>
         <F label="When to show">
           <select className="input" value={p.trigger} onChange={(e) => setPop(k, { trigger: e.target.value as any })}>
@@ -117,6 +132,7 @@ export default function PromoForm({ initial, coupons, whmcs }: { initial: State;
   return (
     <form action={savePromotions} onSubmit={(e) => { setTouched(true); if (errors.length) e.preventDefault(); }} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       <link rel="stylesheet" href="/hp/promo.css" precedence="default" />
+      <link rel="stylesheet" href="/hp/lead.css" precedence="default" />
       <input type="hidden" name="data" value={JSON.stringify({ ...st, popup: { ...st.popup, exclude: st.popup.exclude.filter((x) => x.trim()) }, welcome: { ...st.welcome, exclude: st.welcome.exclude.filter((x) => x.trim()) } })} />
       <datalist id="ghp-coupons">{coupons.map((c) => <option key={c} value={c} />)}</datalist>
 

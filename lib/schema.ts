@@ -256,3 +256,52 @@ export type Category = typeof categories.$inferSelect;
 export type Page = typeof pages.$inferSelect;
 export type Section = typeof sections.$inferSelect;
 export type Tld = typeof tlds.$inferSelect;
+
+// Leads (Admin → Marketing → Leads): email / WhatsApp sign-ups from the footer, pop-ups, plan finder and ad landing pages.
+// Stored only; nothing is emailed automatically. ip_hash is a salted SHA-256 prefix (never the raw IP).
+export const leads = pgTable('leads', {
+  id: id(),
+  email: text('email').notNull(),
+  name: text('name').notNull().default(''),
+  phone: text('phone').notNull().default(''), // WhatsApp / phone, "+<digits>"
+  source: text('source').notNull().default(''), // popup | footer | plan-finder | landing:<slug>
+  page: text('page').notNull().default(''),
+  utmSource: text('utm_source').notNull().default(''),
+  utmMedium: text('utm_medium').notNull().default(''),
+  utmCampaign: text('utm_campaign').notNull().default(''),
+  utmTerm: text('utm_term').notNull().default(''),
+  utmContent: text('utm_content').notNull().default(''),
+  country: text('country').notNull().default(''),
+  interest: text('interest').notNull().default(''),
+  consent: boolean('consent').notNull().default(false),
+  ipHash: text('ip_hash').notNull().default(''),
+  status: text('status').notNull().default('new'), // new | contacted | won | lost
+  notes: text('notes').notNull().default(''),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [index('leads_email_created_idx').on(t.email, t.createdAt), index('leads_created_idx').on(t.createdAt), index('leads_ip_created_idx').on(t.ipHash, t.createdAt)]);
+
+// Ad landing pages at /lp/<slug> (Admin → Marketing → Landing pages). target: "cat:<slug>" | "p:<slug>" | "tld:.ae".
+export const landingPages = pgTable('landing_pages', {
+  id: id(),
+  slug: text('slug').notNull().unique(),
+  name: text('name').notNull().default(''),
+  headline: text('headline').notNull().default(''),
+  subheadline: text('subheadline').notNull().default(''),
+  target: text('target').notNull().default(''),
+  productSlug: text('product_slug').notNull().default(''), // optional: pin one plan of a category target
+  benefits: jsonb('benefits').$type<string[]>().notNull().default([]),
+  faq: jsonb('faq').$type<{ q: string; a: string }[]>().notNull().default([]),
+  ctaLabel: text('cta_label').notNull().default(''),
+  showLeadForm: boolean('show_lead_form').notNull().default(true),
+  showTrust: boolean('show_trust').notNull().default(true),
+  noindex: boolean('noindex').notNull().default(true),
+  status: statusEnum('status').notNull().default('DRAFT'),
+  seoTitle: text('seo_title').notNull().default(''),
+  seoDescription: text('seo_description').notNull().default(''),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+});
+
+export type Lead = typeof leads.$inferSelect;
+export type LandingPage = typeof landingPages.$inferSelect;

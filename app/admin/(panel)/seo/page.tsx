@@ -5,7 +5,8 @@ import { PageHeader, Card, Field, Flash, Badge } from '@/components/ui';
 import { whmcs, whmcsConfigured } from '@/lib/whmcs';
 import { getSettings } from '@/lib/settings';
 import { VERIFICATION_KEYS, INDEXNOW_KEY, verificationToken, siteUrl } from '@/lib/seo';
-import { saveRedirect, deleteRedirect, bulkSeo, saveSearchEngines, notifySearchEngines } from './actions';
+import { saveRedirect, deleteRedirect, bulkSeo, saveSearchEngines, notifySearchEngines, saveTracking } from './actions';
+import { TRACKING_FIELDS, normTracking, anyTracker } from '@/lib/tracking';
 
 export const metadata = { title: 'Marketing & SEO' };
 
@@ -18,7 +19,8 @@ export default async function Seo({ searchParams }: { searchParams: Promise<Reco
   ]);
   let promos: any[] = [], promoErr = '';
   if (whmcsConfigured()) { try { promos = (await whmcs('GetPromotions')).promotions?.promotion ?? []; } catch (e: any) { promoErr = e.message; } }
-  const issues = (p: (typeof pages)[0]) => [!p.seoTitle && 'no title', p.seoTitle.length > 65 && 'title long', !p.seoDescription && 'no description', p.seoDescription.length > 170 && 'description long'].filter(Boolean) as string[];
+  const tracking = normTracking(settings.tracking);
+  const issues = (p:(typeof pages)[0]) => [!p.seoTitle && 'no title', p.seoTitle.length > 65 && 'title long', !p.seoDescription && 'no description', p.seoDescription.length > 170 && 'description long'].filter(Boolean) as string[];
 
   return (
     <>
@@ -49,6 +51,30 @@ export default async function Seo({ searchParams }: { searchParams: Promise<Reco
             </div>
           </Card>
         </div>
+        <form action={saveTracking} id="tracking">
+          <Card title={<span className="flex items-center gap-2">Analytics &amp; conversion tracking {anyTracker(tracking) ? <Badge tone="green">active</Badge> : <Badge tone="gray">none configured</Badge>}</span>} actions={<button className="btn btn-primary">Save tracking</button>}>
+            <p className="mb-4 max-w-3xl text-sm text-slate-600">
+              Paste only the IDs; the website adds the official tags itself. Only filled-in trackers load. Visitors see a cookie banner (accept / reject) as soon as one ID is set:
+              Google tags start with Consent Mode v2 set to <i>denied</i> and switch on when the visitor accepts; Meta, TikTok and Clarity load only after they accept.
+              Events sent: <code>view_item</code>, <code>begin_checkout</code>, <code>add_to_cart</code>, <code>generate_lead</code>, <code>plan_finder_complete</code>, <code>whatsapp_click</code>, <code>currency_change</code>.
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              {TRACKING_FIELDS.map((f) => (
+                <Field key={f.key} label={f.label} hint={f.hint}>
+                  <input name={f.key} defaultValue={tracking[f.key]} className="input code" placeholder={f.placeholder} autoComplete="off" spellCheck={false} />
+                </Field>
+              ))}
+              <Field label="Count a Google Ads conversion on" hint="Leads (sign-up forms) is the safest: orders are completed in WHMCS, so a click on Order is only an intention.">
+                <select name="adsEvent" defaultValue={tracking.adsEvent} className="input">
+                  <option value="generate_lead">Lead form submitted (generate_lead)</option>
+                  <option value="begin_checkout">Order button clicked (begin_checkout)</option>
+                  <option value="add_to_cart">Domain added to cart (add_to_cart)</option>
+                </select>
+              </Field>
+            </div>
+            <p className="mt-3 text-xs text-slate-500">Check it works: open the website with <code>?gh_debug=1</code> and watch the browser console, or use GA4 DebugView / Tag Assistant.</p>
+          </Card>
+        </form>
         <form action={bulkSeo}>
           <Card title="Page metadata" actions={<button className="btn btn-primary">Save all</button>}>
             <div className="overflow-x-auto"><table className="table"><thead><tr><th>Page</th><th>SEO title</th><th>Meta description</th><th>Checks</th></tr></thead>

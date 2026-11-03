@@ -1,0 +1,64 @@
+/* Lead-capture form (lib/theme/lead.ts) + cookie consent banner (/hp/track.js). Uses the theme tokens from theme.css. */
+.gh-lead{--gl-ink:var(--ink,#23313d);--gl-mute:var(--muted,#5a6774);--gl-line:var(--line-2,#d5dae1);--gl-bg:#fff}
+.gh-lead--dark{--gl-ink:#fff;--gl-mute:var(--on-dark-mute,#a9b4bf);--gl-line:rgba(255,255,255,.22);--gl-bg:rgba(255,255,255,.06)}
+.gh-lead__t{font:800 18px/1.3 var(--head);color:var(--gl-ink);letter-spacing:-.01em}
+.gh-lead--dark .gh-lead__t{color:#fff}
+.gh-lead__p{margin-top:4px;font-size:14px;line-height:1.5;color:var(--gl-mute)}
+.gh-lead__f{margin-top:14px;display:grid;gap:10px}
+.gh-lead__row{display:grid;gap:10px}
+.gh-lead__fld{display:grid;gap:4px;min-width:0}
+.gh-lead__fld label{font:600 13px/1.3 var(--body);color:var(--gl-ink)}
+.gh-lead__opt{font-weight:400;color:var(--gl-mute)}
+.gh-lead__fld input{width:100%;min-height:46px;padding:0 14px;border-radius:var(--r-sm,8px);border:1px solid var(--gl-line);background:var(--gl-bg);color:var(--gl-ink);font:400 15px/1.2 var(--body);transition:border-color .15s,box-shadow .15s}
+.gh-lead__fld input::placeholder{color:var(--gl-mute);opacity:.8}
+.gh-lead__fld input:focus{outline:none;border-color:var(--brand,#c5386f);box-shadow:0 0 0 3px rgba(197,56,111,.22)}
+.gh-lead--dark .gh-lead__fld input:focus{border-color:var(--gold,#fdd700);box-shadow:0 0 0 3px rgba(253,215,0,.25)}
+.gh-lead__fld input[aria-invalid=true]{border-color:#dc2626}
+.gh-lead--dark .gh-lead__fld input[aria-invalid=true]{border-color:#fca5a5}
+.gh-lead__err{font-size:12.5px;line-height:1.35;color:#b91c1c}
+.gh-lead__err:empty{display:none}
+.gh-lead--dark .gh-lead__err{color:#fecaca}
+.gh-lead__chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--gl-mute)}
+.gh-lead__chk input{flex:none;width:20px;height:20px;margin:1px 0 0;accent-color:var(--brand,#c5386f)}
+.gh-lead__chk label{cursor:pointer}
+.gh-lead__chk a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.gh-lead__btn{justify-self:start}
+.gh-lead__btn[disabled]{opacity:.65;cursor:progress}
+.gh-lead__msg{font-size:13.5px;color:var(--gl-mute)}
+.gh-lead__msg:empty{display:none}
+.gh-lead__hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}
+.gh-lead__done{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:14px;border-radius:var(--r,12px);background:rgba(22,163,74,.1);color:var(--gl-ink);font-size:14px;line-height:1.5}
+.gh-lead__done svg,.gh-lead__done .hp-ico{flex:none;width:20px;height:20px;color:#16a34a}
+.gh-lead--dark .gh-lead__done svg,.gh-lead--dark .gh-lead__done .hp-ico{color:#4ade80}
+.gh-lead__done:focus{outline:none}
+.gh-lead__done b{font-weight:600}
+@media (min-width:560px){.gh-lead--wide .gh-lead__row{grid-template-columns:1fr 1fr}}
+
+/* footer: inside the dark contact card */
+.hp-contact-card .gh-lead{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.hp-contact-card .gh-lead__t{font-size:16px}
+.hp-contact-card .gh-lead__btn{width:100%}
+
+/* plan finder: "email me this recommendation" */
+.pf-lead{margin-top:28px;padding:22px;border-radius:var(--r-lg,18px);background:var(--tint,#f6f7f9);border:1px solid var(--line,#e6e9ee)}
+
+/* inside the promo pop-up (/hp/promo.js) */
+.ghp-lead{margin-top:14px}
+.ghp-lead .gh-lead__f{margin-top:0}
+.ghp-lead .gh-lead__btn{justify-self:stretch;border:0;cursor:pointer;font-family:inherit}
+
+/* footer "Cookie settings" */
+.gh-consent-open{color:var(--on-dark-mute,#a9b4bf);text-decoration:underline;text-underline-offset:3px;font:inherit;min-height:24px}
+
+/* cookie consent banner */
+.gh-consent{position:fixed;z-index:80;left:16px;right:16px;bottom:16px;max-width:640px;margin:0 auto;background:#fff;color:var(--ink,#23313d);border-radius:var(--r-lg,18px);box-shadow:0 24px 60px -24px rgba(22,33,43,.55),0 0 0 1px var(--line,#e6e9ee);padding:18px 20px}
+.gh-consent[hidden]{display:none}
+.gh-consent__in{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.gh-consent__txt{flex:1 1 300px;min-width:0}
+.gh-consent h2{font:800 16px/1.3 var(--head);letter-spacing:-.01em}
+.gh-consent p{margin-top:4px;font-size:14px;line-height:1.5;color:var(--muted,#5a6774)}
+.gh-consent a{color:var(--brand-d,#a6225f);text-decoration:underline;text-underline-offset:2px}
+.gh-consent__btns{display:flex;gap:10px;flex:0 0 auto}
+.gh-consent__btns .hp-btn{min-width:108px}
+@media (max-width:520px){.gh-consent{left:10px;right:10px;bottom:10px;padding:16px}.gh-consent__btns{flex:1 1 100%}.gh-consent__btns .hp-btn{flex:1}}
+@media (prefers-reduced-motion:no-preference){.gh-consent{animation:gh-up .35s cubic-bezier(.16,1,.3,1) both}@keyframes gh-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}}

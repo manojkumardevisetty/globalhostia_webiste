@@ -9,6 +9,8 @@ import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
 import { activeFor, barHtml, promoDataScript, hasPromo } from '../promo';
 import { waFloat } from './growth';
+import { leadForm } from './lead';
+import { trackingHead, consentLink } from '../tracking';
 import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta, blogListingDescription } from '../seo';
 
 export type PageOpts = {
@@ -82,7 +84,7 @@ function utilBar(cat: Catalog, L: ReturnType<typeof whmcsLinks>, phone: string, 
 </div></div>`;
 }
 
-function footer(menus: ThemeMenu[], cat: Catalog, phone: string, email: string) {
+function footer(menus: ThemeMenu[], cat: Catalog, phone: string, email: string, lead = '') {
   const s = cat.settings;
   const wa = String(s.whatsapp || phone || '').replace(/[^\d]/g, '');
   const company = String(s.company || 'Desert Tech Cloud Services LLC');
@@ -97,6 +99,7 @@ function footer(menus: ThemeMenu[], cat: Catalog, phone: string, email: string) 
         ${phone ? `<div class="hp-cc-row">${hexIcon('phone')}<div><small>Call us</small><a class="num" href="${esc(telHref(phone))}">${esc(phone)}</a></div></div>` : ''}
         ${email ? `<div class="hp-cc-row">${hexIcon('mail')}<div><small>Email us</small><a href="mailto:${esc(email)}">${esc(email)}</a></div></div>` : ''}
         ${wa ? `<div class="hp-cc-row">${hexIcon('chat')}<div><small>Chat on WhatsApp</small><a href="https://wa.me/${esc(wa)}">Message us on WhatsApp</a></div></div>` : ''}
+        ${lead}
       </div>
       <nav class="hp-fcols" aria-label="Footer">${cols.map((c) => `<div><h3>${esc(c.title)}</h3>${c.links.map((l) => `<a href="${esc(l.href)}">${esc(l.label)}</a>`).join('')}</div>`).join('')}</nav>
       <div class="hp-pay" role="img" aria-label="Accepted payment methods: Visa, Mastercard, American Express, Discover, JCB, Maestro and Bitcoin">
@@ -107,7 +110,7 @@ function footer(menus: ThemeMenu[], cat: Catalog, phone: string, email: string) 
   <div class="hp-foot-bottom">
     <div class="hp-container">
       <img src="/image/logo-main-white.png" alt="Globalhostia" width="157" height="30" loading="lazy">
-      <p class="hp-legal">© ${new Date().getFullYear()} ${esc(s.site_name || 'Globalhostia')} · ${esc(company)}, Dubai, UAE. <a href="/terms-conditions">Terms</a> · <a href="/privacy-policy">Privacy</a><br><span class="hp-live"><i aria-hidden="true"></i><b>Prices shown live from our billing system.</b></span></p>
+      <p class="hp-legal">© ${new Date().getFullYear()} ${esc(s.site_name || 'Globalhostia')} · ${esc(company)}, Dubai, UAE. <a href="/terms-conditions">Terms</a> · <a href="/privacy-policy">Privacy</a>${consentLink(s.tracking)}<br><span class="hp-live"><i aria-hidden="true"></i><b>Prices shown live from our billing system.</b></span></p>
       <a class="hp-totop" href="#main" aria-label="Back to top">${icon('up')}</a>
     </div>
   </div>
@@ -164,12 +167,14 @@ export async function page(o: PageOpts): Promise<string> {
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(fullTitle)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(og)}"><meta name="twitter:image:alt" content="${esc(ogAlt)}">
 ${o.headExtra || ''}
 ${verificationMeta(s)}
+${trackingHead(s.tracking)}
 <meta name="theme-color" content="#16212b">
 ${ICON_LINKS}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
 ${(o.preload || []).map((p) => `<link rel="preload" as="image" href="${esc(p)}">`).join('')}
 <link rel="stylesheet" href="${asset('/hp/theme.css')}">
 ${hasPromo(promo) ? `<link rel="stylesheet" href="${asset('/hp/promo.css')}">` : ''}
+<link rel="stylesheet" href="${asset('/hp/lead.css')}">
 ${css.map((k) => `<link rel="stylesheet" href="${asset(`/hp/pages/${k}.css`)}">`).join('\n')}
 <script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("hp-mo")</script>
 ${siteJsonLd(s, cat.base)}
@@ -187,10 +192,11 @@ ${drawer(menus, L, phone, email)}
 <main id="main" tabindex="-1">
 ${o.body}
 </main>
-${footer(menus, cat, phone, email)}
+${footer(menus, cat, phone, email, s.lead_footer === false || s.lead_footer === 'false' ? '' : leadForm({ source: 'footer', page: o.path || '/', tone: 'dark', title: 'Get hosting deals & guides', text: 'Occasional offers and practical hosting tips. No spam.', cta: 'Sign me up', level: 3, done: o.ctx.query.get('lead') === 'ok' }))}
 ${waFloat(s, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.path)}
 ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=original')}"><i aria-hidden="true"></i>Theme preview · switch back to the current site</a>` : ''}
 <script src="${asset('/hp/theme.js')}" defer></script>
+<script src="${asset('/hp/track.js')}" defer></script>
 ${hasPromo(promo) ? `${promoDataScript(promo)}<script src="${asset('/hp/promo.js')}" defer></script>` : ''}
 ${js.map((k) => `<script src="${asset(`/hp/pages/${k}.js`)}" defer></script>`).join('\n')}
 </body>
@@ -210,7 +216,7 @@ function currencyPicker(cat: Catalog) {
 }
 
 /** Send the visitor's currency to WHMCS so the cart and checkout use it too. */
-function withCurrency(html: string, cat: Catalog) {
+export function withCurrency(html: string, cat: Catalog) {
   const id = cat.currencyIds?.[cat.currency];
   if (!id || cat.currency === (cat.settings.currency || 'USD')) return html;
   const base = cat.base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

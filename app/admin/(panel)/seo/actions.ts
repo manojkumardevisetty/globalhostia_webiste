@@ -5,6 +5,7 @@ import { requireSession, audit } from '@/lib/session';
 import { done, fail, str, bust } from '@/lib/admin';
 import { getSettings, setSetting } from '@/lib/settings';
 import { VERIFICATION_KEYS, verificationToken, siteUrl, sitemapUrls, submitIndexNow } from '@/lib/seo';
+import { TRACKING_FIELDS, trackingErrors, normTracking } from '@/lib/tracking';
 
 export async function saveRedirect(fd: FormData) {
   const s = await requireSession('content');
@@ -42,6 +43,22 @@ export async function saveSearchEngines(fd: FormData) {
   await setSetting('social_links', links);
   await audit(s, 'update', 'settings', null, { seo: 'search_engines' });
   done('/admin/seo', 'Search engine settings saved');
+}
+
+/** Analytics & conversion tracking IDs (settings.tracking). Only valid IDs are stored; trackers load after consent. */
+export async function saveTracking(fd: FormData) {
+  const s = await requireSession('content');
+  const raw: Record<string, string> = {};
+  for (const f of TRACKING_FIELDS) raw[f.key] = str(fd, f.key);
+  raw.adsEvent = str(fd, 'adsEvent');
+  const errors = trackingErrors(raw);
+  if (errors.length) fail('/admin/seo',errors.join(' · '));
+  const prev = normTracking((await getSettings()).tracking);
+  const next = normTracking(raw);
+  await setSetting('tracking', next);
+  const changed = (Object.keys(next) as (keyof typeof next)[]).filter((k) => prev[k] !== next[k]);
+  await audit(s, 'update', 'settings', 'tracking', { changed, before: prev, after: next });
+  done('/admin/seo', changed.length ? `Tracking saved (${changed.join(', ')}) — live on the website within a minute` : 'No changes');
 }
 
 export async function notifySearchEngines() {

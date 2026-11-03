@@ -340,6 +340,44 @@ try {
       )`;
       await tx`create index if not exists email_backup_created_idx on email_design_backups (created_at)`;
     },
+    // 17. lead capture (Admin → Marketing → Leads). Stored only; never emailed automatically.
+    '017-leads': async (tx) => {
+      await tx`create table if not exists leads (
+        id text primary key, email text not null, name text not null default '', phone text not null default '',
+        source text not null default '', page text not null default '',
+        utm_source text not null default '', utm_medium text not null default '', utm_campaign text not null default '',
+        utm_term text not null default '', utm_content text not null default '',
+        country text not null default '', interest text not null default '', consent boolean not null default false,
+        ip_hash text not null default '', status text not null default 'new', notes text not null default '',
+        created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      await tx`create index if not exists leads_email_created_idx on leads (email, created_at)`;
+      await tx`create index if not exists leads_created_idx on leads (created_at)`;
+      await tx`create index if not exists leads_ip_created_idx on leads (ip_hash, created_at)`;
+    },
+    // 18. ad landing pages /lp/<slug> + five starter DRAFTS pointing at real catalog entries (owner publishes them)
+    '018-landing-pages': async (tx) => {
+      await tx`create table if not exists landing_pages (
+        id text primary key, slug text not null unique, name text not null default '', headline text not null default '',
+        subheadline text not null default '', target text not null default '', product_slug text not null default '',
+        benefits jsonb not null default '[]'::jsonb, faq jsonb not null default '[]'::jsonb, cta_label text not null default '',
+        show_lead_form boolean not null default true, show_trust boolean not null default true, noindex boolean not null default true,
+        status status not null default 'DRAFT', seo_title text not null default '', seo_description text not null default '',
+        created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      const { LANDING_SEED } = await import('./landing-seed.mjs');
+      for (const lp of LANDING_SEED) {
+        let target = lp.targets[0];
+        for (const t of lp.targets) {
+          const [kind, ref] = [t.slice(0, t.indexOf(':')), t.slice(t.indexOf(':') + 1)];
+          const [{ n }] = kind === 'cat'
+            ? await tx`select count(*)::int n from products p join categories c on c.id = p.category_id where c.slug = ${ref} and p.status = 'PUBLISHED' and p.whmcs_retired = false`
+            : kind === 'tld' ? await tx`select count(*)::int n from tlds where tld = ${ref}` : [{ n: 1 }];
+          if (n > 0) { target = t; break; }
+        }
+        await tx`insert into landing_pages (id, slug, name, headline, subheadline, target, benefits, faq, cta_label, status)
+          values (${id()}, ${lp.slug}, ${lp.name}, ${lp.headline}, ${lp.subheadline}, ${target}, ${JSON.stringify(lp.benefits)}::jsonb,
+            ${JSON.stringify(lp.faq)}::jsonb, ${lp.ctaLabel}, 'DRAFT') on conflict (slug) do nothing`;
+      }
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

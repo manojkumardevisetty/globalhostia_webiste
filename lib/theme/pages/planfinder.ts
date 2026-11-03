@@ -7,6 +7,7 @@ import { getCatalog, fromPrice, orderUrl, deriveSpecs, type TProduct } from '../
 import { page } from '../shell';
 import { pageHero, sectionHead, faq, faqJsonLd, breadcrumbJsonLd, icon, fromText, available, ld, type IconName } from '../ui';
 import { trustStrip, waLink } from '../growth';
+import { leadForm } from '../lead';
 import { siteOf, crumbsFor } from './vps';
 
 /** Category slug → product family used by the scorer. */
@@ -105,6 +106,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
           <div class="pf-res__loc" data-pf-locwrap hidden><span id="pf-loc-l">Datacenter</span><div class="pf-chips" role="radiogroup" aria-labelledby="pf-loc-l" data-pf-locs></div></div>
           <div class="pf-cards" data-pf-cards></div>
           <p class="pf-res__note">Prices are live from our billing system in ${esc(currency)}; the renewal price is the same for each billing period. +VAT 5% where applicable. You can change the billing period and add-ons in the order form.</p>
+          ${leadForm({ source: 'plan-finder', page: '/plan-finder', cls: 'pf-lead gh-lead--wide', title: 'Email me this recommendation', text: 'Get these plans and a short note from our team in your inbox, to compare later or share.', cta: 'Email me the plans', level: 3, interestFrom: 'plan-finder', consent: 'Email me this recommendation and occasional hosting tips. I can unsubscribe at any time.' })}
         </div>
       </div>
       <aside class="pf__side" aria-label="Your answers">

@@ -15,6 +15,8 @@ export type PromoPopup = {
   enabled: boolean; title: string; body: string; imageUrl: string; imageAlt: string; ctaLabel: string; ctaUrl: string; coupon: string;
   trigger: Trigger; delay: number; scroll: number; audience: Audience; frequencyDays: number;
   start: string; end: string; where: Where; exclude: string[];
+  /** show an email (+ optional WhatsApp) sign-up form in the pop-up; leads go to Admin → Marketing → Leads */
+  emailCapture?: boolean;
 };
 export type Promotions = { bar: PromoBar; popup: PromoPopup; welcome: PromoPopup; updatedAt?: string };
 
@@ -65,6 +67,7 @@ export function normPopup(x: any, d: PromoPopup = DEFAULT_POPUP): PromoPopup {
     scroll: clampInt(x.scroll, 5, 100, d.scroll), audience: oneOf(x.audience, ['all', 'new'] as const, d.audience),
     frequencyDays: clampInt(x.frequencyDays, 0, 365, d.frequencyDays), start: iso(x.start), end: iso(x.end), where: oneOf(x.where, WHERE, d.where),
     exclude: ex.map((p: unknown) => s(p, 200)).filter(Boolean).slice(0, 50),
+    ...(x.emailCapture === true ? { emailCapture: true } : {}),
   };
 }
 export function normalize(x: any): Promotions {
@@ -88,7 +91,7 @@ export function validate(p: Promotions): string[] {
   for (const [k, label] of [['popup', 'Pop-up'], ['welcome', 'Welcome offer']] as const) {
     const x = p[k];
     if (x.enabled && !x.title) e.push(`${label}: title is required`);
-    if (x.enabled && !x.body && !x.imageUrl) e.push(`${label}: add body text or an image`);
+    if (x.enabled && !x.body && !x.imageUrl && !x.emailCapture) e.push(`${label}: add body text or an image`);
     if (!okUrl(x.ctaUrl)) e.push(`${label}: button link must start with / or https://`);
     if (!okUrl(x.imageUrl)) e.push(`${label}: image URL must start with / or https://`);
     if (x.imageUrl && !x.imageAlt) e.push(`${label}: describe the image (alt text) for screen readers`);

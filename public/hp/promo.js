@@ -89,6 +89,42 @@
     return !(t > 0 && (p.frequencyDays <= 0 || Date.now() - t < p.frequencyDays * DAY));
   }
 
+  /* optional email capture (Admin → Promotions → "Collect email addresses"): posts to /api/lead on this script's origin.
+     On the website /hp/track.js handles the submit (validation, generate_lead event); elsewhere a minimal fallback does. */
+  var leadN = 0;
+  function leadForm(p, onDone) {
+    if (!document.querySelector('link[href*="/hp/lead.css"]')) document.head.appendChild(el('link', '', { rel: 'stylesheet', href: origin + '/hp/lead.css' + (ver ? '?v=' + encodeURIComponent(ver) : '') }));
+    var id = 'ghpl' + (++leadN), wrap = el('div', 'gh-lead gh-lead--light ghp-lead');
+    var f = el('form', 'gh-lead__f', { action: origin + '/api/lead', method: 'post', novalidate: '', 'data-gh-lead': '', 'aria-label': 'Sign up for offers' });
+    f.innerHTML = '<input type="hidden" name="source" value="popup"><input type="hidden" name="t" value=""><input type="hidden" name="page" value="">' +
+      '<input type="hidden" name="interest" value="">' +
+      '<div class="gh-lead__hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>' +
+      '<div class="gh-lead__row"><div class="gh-lead__fld"><label for="' + id + '-e">Email</label><input id="' + id + '-e" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="160" placeholder="you@company.com" aria-describedby="' + id + '-ee"><span class="gh-lead__err" id="' + id + '-ee" data-err="email"></span></div>' +
+      '<div class="gh-lead__fld"><label for="' + id + '-w">WhatsApp number <span class="gh-lead__opt">(optional)</span></label><input id="' + id + '-w" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" placeholder="+971 50 000 0000" aria-describedby="' + id + '-we"><span class="gh-lead__err" id="' + id + '-we" data-err="phone"></span></div></div>' +
+      '<div class="gh-lead__chk"><input id="' + id + '-c" name="consent" type="checkbox" value="on" required aria-describedby="' + id + '-ce"><label for="' + id + '-c">Send me offers and hosting guides by email or WhatsApp. I can unsubscribe at any time.</label></div>' +
+      '<span class="gh-lead__err" id="' + id + '-ce" data-err="consent"></span>' +
+      '<button type="submit" class="ghp-cta gh-lead__btn">Get the offers</button><p class="gh-lead__msg" role="status" aria-live="polite" data-gh-lead-msg></p>';
+    f.querySelector('[name="page"]').value = location.pathname.slice(0, 300);
+    f.querySelector('[name="interest"]').value = String(p.title || '').slice(0, 200);
+    wrap.appendChild(f);
+    if (window.GHLead && window.GHLead.bind && origin === location.origin) { window.GHLead.bind(f, { onDone: onDone }); return wrap; }
+    var t = f.querySelector('[name="t"]');
+    f.addEventListener('focusin', function () { if (!t.value) t.value = String(Date.now()); });
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = {}; new FormData(f).forEach(function (v, k) { data[k] = v; });
+      data.consent = f.querySelector('[name="consent"]').checked;
+      var msg = f.querySelector('[data-gh-lead-msg]');
+      if (!/^\S+@\S+\.\S{2,}$/.test(String(data.email || '').trim()) || !data.consent) { msg.textContent = 'Please enter your email and tick the box.'; return; }
+      msg.textContent = 'Sending…';
+      fetch(origin + '/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), credentials: 'omit', mode: 'cors' })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (j && j.ok) { var d = el('p', 'gh-lead__done', { role: 'status' }); d.textContent = 'Thank you, you are on the list.'; f.replaceWith(d); if (onDone) onDone(); } else msg.textContent = (j && j.error) || 'Something went wrong. Please try again.'; },
+          function () { msg.textContent = 'Something went wrong. Please try again.'; });
+    });
+    return wrap;
+  }
+
   var FOCUSABLE = 'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
   function openPopup(p) {
     if (document.querySelector('.ghp-pop')) return;
@@ -113,6 +149,7 @@
       btn.innerHTML = svg('copy') + '<span>Copy</span>'; code.appendChild(btn); body.appendChild(code);
       btn.addEventListener('click', function () { copy(p.coupon, function (ok) { btn.innerHTML = svg(ok ? 'check' : 'copy') + '<span>' + (ok ? 'Copied' : 'Copy') + '</span>'; announce(live, ok ? 'Coupon code ' + p.coupon + ' copied' : 'Copy failed, the code is ' + p.coupon); setTimeout(function () { btn.innerHTML = svg('copy') + '<span>Copy</span>'; }, 2200); }); });
     }
+    if (p.emailCapture) body.appendChild(leadForm(p, function () { setTimeout(function () { if (!closed) close(); }, 2600); }));
     var actions = el('div', 'ghp-pop__actions'), href = abs(p.ctaUrl);
     if (href && p.ctaLabel) { var cta = el('a', 'ghp-cta', { href: href }); cta.textContent = p.ctaLabel; cta.insertAdjacentHTML('beforeend', svg('arrow')); actions.appendChild(cta); }
     var later = el('button', 'ghp-later', { type: 'button' }); later.textContent = 'No thanks'; actions.appendChild(later);
