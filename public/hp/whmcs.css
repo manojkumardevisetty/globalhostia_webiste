@@ -1574,3 +1574,7 @@ html.gh-renew #orderSummary { overflow: hidden; }
 html.gh-renew #orderSummary h2 { margin: 0 !important; padding: 14px 18px !important; border-radius: 0 !important; font: 800 17px/1.3 Manrope, Inter, sans-serif !important; color: #fff !important; }
 #orderSummary.gh-sum-empty .summary-container { display: none !important; }
 .gh-rn-empty__a a { text-decoration: none !important; }
+/* renewal cards: renewal period under the price; summary column level with the list (WHMCS sets an inline top offset) */
+.gh-rn__period { font: 500 12px Inter, sans-serif; color: var(--gh-muted); white-space: nowrap; }
+html.gh-renew #scrollingPanelContainer { top: 0 !important; margin-top: 10px !important; }
+@media (max-width: 640px) { .gh-rn__period { white-space: normal; } }

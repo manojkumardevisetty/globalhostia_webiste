@@ -2587,7 +2587,7 @@
   function card(it) {
     if (it.dataset.gh) return; it.dataset.gh = '1';
     var domain = it.classList.contains('domain-renewal');
-    var h3 = it.querySelector('h3, h4'), pill = it.querySelector('.label, .badge'), p = it.querySelector('p'), btn = it.querySelector('.btn-add-renewal-to-cart, button[type=button], .btn');
+    var h3 = it.querySelector('h3') || it.querySelector('h4'), h4 = h3 && h3.tagName === 'H3' ? it.querySelector('h4') : null, pill = it.querySelector('.label, .badge'), p = it.querySelector('p'), btn = it.querySelector('.btn-add-renewal-to-cart, button[type=button], .btn');
     var form = it.querySelector('form, select'); if (form && form.tagName === 'SELECT') form = form.closest('form') || form;
     if (!h3 || !btn) return;
     // "Windows RDP - <span>pokerpro</span>": product name bold, host name muted on its own line
@@ -2595,7 +2595,12 @@
     if (host) { host.className += ' gh-rn__host'; [].forEach.call(h3.childNodes, function (n) { if (n.nodeType === 3) n.nodeValue = n.nodeValue.replace(/\s*[-–]\s*$/, ''); }); }
     // the renewal price, shown on the card's right (from the "Renewal Period" line, or the selected domain term)
     var price = '';
-    if (p) { var all = p.textContent.match(MONEY); if (all) price = all[all.length - 1].trim(); }
+    // WHMCS 8.13: <div class="pull-left"><div class="div-renewal-period-label">Renewal Period</div><div>(dates) @ $8.79 USD</div></div>
+    var perLab = it.querySelector('.div-renewal-period-label'), per = perLab && perLab.nextElementSibling;
+    var perTxt = per ? per.textContent.trim() : '';
+    var src = perTxt || (p ? p.textContent : '');
+    var all = src.match(MONEY); if (all) price = all[all.length - 1].trim();
+    var period = perTxt.replace(/\s*@\s*.*$/, '').replace(/[()]/g, '').trim();
     var sel = it.querySelector('select');
     var fromSel = function () { if (!sel || !sel.options[sel.selectedIndex]) return ''; var m = sel.options[sel.selectedIndex].text.match(MONEY); return m ? m[m.length - 1].trim() : ''; };
     if (sel) price = fromSel() || price;
@@ -2605,9 +2610,12 @@
     var side = D.createElement('div'); side.className = 'gh-rn__side';
     var ic = D.createElement('span'); ic.className = 'gh-rn__ic'; ic.innerHTML = hexIc(domain ? 'globe' : 'server');
     var due = D.createElement('div'); due.className = 'gh-rn__due';
-    main.appendChild(h3); if (p) { p.className += ' gh-rn__meta'; due.appendChild(p); } if (pill) due.appendChild(pill); main.appendChild(due); if (form) main.appendChild(form);
+    main.appendChild(h3);
+    if (h4) { var hs = D.createElement('div'); hs.className = 'gh-rn__host'; hs.textContent = h4.textContent.trim(); main.appendChild(hs); }
+    if (p) { p.className += ' gh-rn__meta'; due.appendChild(p); } if (pill) due.appendChild(pill); main.appendChild(due); if (form) main.appendChild(form);
     var pr = D.createElement('b'); pr.className = 'gh-rn__price'; pr.textContent = price; if (!price) pr.hidden = true;
-    side.appendChild(pr); side.appendChild(btn);
+    side.appendChild(pr);
+    if (period) { var pe = D.createElement('small'); pe.className = 'gh-rn__period'; pe.textContent = period; side.appendChild(pe); } side.appendChild(btn);
     [].forEach.call(it.querySelectorAll('.pull-right, .float-right'), function (x) { if (!x.textContent.trim()) x.remove(); });
     it.innerHTML = ''; it.appendChild(ic); it.appendChild(main); it.appendChild(side); it.classList.add('gh-rn');
     if (sel) sel.addEventListener('change', function () { var v = fromSel(); if (v) { pr.textContent = v; pr.hidden = false; } });
