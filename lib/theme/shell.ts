@@ -118,7 +118,7 @@ function footer(menus: ThemeMenu[], cat: Catalog, phone: string, email: string, 
       </div>
       <nav class="hp-fcols" aria-label="Footer">${cols.map((c) => `<div><h3>${esc(c.title)}</h3>${c.links.map((l) => `<a href="${esc(l.href)}">${esc(l.label)}</a>`).join('')}</div>`).join('')}</nav>
       <div class="hp-pay" role="img" aria-label="Accepted payment methods: Visa, Mastercard, American Express, Discover, JCB, Maestro and Bitcoin">
-        ${pays.map((p) => `<img src="/image/payment/${p}.png" alt="" width="48" height="30" loading="lazy">`).join('')}<span class="hp-btc">Bitcoin</span>
+        ${pays.map((p) => `<img src="/image/payment/${p}.png" alt="${({ visa: 'Visa', mastercard: 'Mastercard', amex: 'American Express', discover: 'Discover', jcb: 'JCB', maestro: 'Maestro' } as Record<string, string>)[p] || p} accepted" width="48" height="30" loading="lazy">`).join('')}<span class="hp-btc">Bitcoin</span>
       </div>
     </div>
   </div>
