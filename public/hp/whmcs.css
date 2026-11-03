@@ -782,3 +782,5 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .gh-tk__altprice { font-size: 18px; font-weight: 700; color: #16212b; margin: 0 0 20px; }
 .gh-tk__add[disabled] { background: #1c9a5b; cursor: default; }
 @media (max-width: 760px) { .gh-tk { grid-template-columns: 1fr; } .gh-tk__card { padding: 20px; } .gh-tk__dom, .gh-tk__altdom { font-size: 24px; } .gh-tk__buy, .gh-tk__add { width: 100%; } }
+/* header currency chip: JS shows the code, hide the duplicate " - USD" */
+.btn-header-lang .header-lang-currency { display: none !important; }
