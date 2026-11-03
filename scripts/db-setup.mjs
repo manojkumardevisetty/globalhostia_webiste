@@ -328,6 +328,18 @@ try {
       await tx`insert into settings (key,value) values ('support_notify_clientid', '1'::jsonb) on conflict (key) do nothing`;
       await tx`insert into settings (key,value) values ('support_admin_username', '""'::jsonb) on conflict (key) do nothing`;
     },
+    // 18. /admin/emails: backups of the WHMCS email design settings before they are changed
+    '018-email-design-backups': async (tx) => {
+      await tx`create table if not exists email_design_backups (
+        id text primary key,
+        values jsonb not null,
+        note text not null default '',
+        user_email text not null,
+        created_at timestamptz not null default now(),
+        restored_at timestamptz
+      )`;
+      await tx`create index if not exists email_backup_created_idx on email_design_backups (created_at)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

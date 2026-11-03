@@ -211,6 +211,17 @@ export const apiLogs = pgTable('api_logs', {
   createdAt: now('created_at'),
 }, (t) => [index('apilog_created_idx').on(t.createdAt)]);
 
+// Backups of WHMCS email settings (EmailCSS / EmailGlobalHeader / EmailGlobalFooter / brand settings),
+// taken before /admin/emails changes them, so "Restore previous" can put them back.
+export const emailDesignBackups = pgTable('email_design_backups', {
+  id: id(),
+  values: jsonb('values').notNull().$type<Record<string, string>>(),
+  note: text('note').notNull().default(''),
+  userEmail: text('user_email').notNull(),
+  createdAt: now('created_at'),
+  restoredAt: timestamp('restored_at', { withTimezone: true }),
+}, (t) => [index('email_backup_created_idx').on(t.createdAt)]);
+
 // Blog / SEO articles (Markdown body). Visible when PUBLISHED and publishAt is null or in the past.
 export const posts = pgTable('posts', {
   id: id(),
