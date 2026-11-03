@@ -1372,7 +1372,8 @@
           var big = r.items.filter(function (x) { return x.unit === 'MB' || x.key === 'inode'; }), small = r.items.filter(function (x) { return !(x.unit === 'MB' || x.key === 'inode'); });
           var card = function (x, lg) {
             var pct = x.limit ? Math.min(100, Math.round(x.used / x.limit * 100)) : 0, fmt = x.unit === 'MB' ? mb : function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
-            return '<div class="ghh-stat' + (lg ? ' ghh-stat--lg' : '') + (pct >= 90 ? ' is-high' : '') + '"><span class="ghh-stat__l">' + esc(x.label) + '</span><b>' + esc(fmt(x.used)) + '</b><span class="ghh-stat__of">' + (x.limit ? 'of ' + esc(fmt(x.limit)) : 'Unlimited') + '</span>' +
+            var TAB = { quota: 'files', inode: 'files', vdomains: 'dns', nsubdomains: 'subdomains', domainptr: 'aliases', nemails: 'email', nemailf: 'forwarders', nemailr: 'autoresponders', mysql: 'databases', ftp: 'ftp' }, to = TAB[x.key] && root.querySelector('[data-tab=' + TAB[x.key] + ']') ? TAB[x.key] : '';
+            return '<div class="ghh-stat' + (lg ? ' ghh-stat--lg' : '') + (pct >= 90 ? ' is-high' : '') + (to ? ' ghh-stat--go" data-go-tab="' + to + '" role="button" tabindex="0" aria-label="' + esc(x.label) + ': open' : '') + '"><span class="ghh-stat__l">' + esc(x.label) + '</span><b>' + esc(fmt(x.used)) + '</b><span class="ghh-stat__of">' + (x.limit ? 'of ' + esc(fmt(x.limit)) : 'Unlimited') + '</span>' +
               '<div class="ghh-meter" role="meter" aria-label="' + esc(x.label) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + (x.limit ? Math.max(pct, 2) : 2) + '%"></i></div>' + (x.limit ? '<span class="ghh-stat__pct">' + pct + '% used</span>' : '') + '</div>';
           };
           var quick = [['email', 'Create a mailbox'], ['dns', 'Edit DNS records'], ['files', 'Open file manager'], ['backups', 'Make a backup']].filter(function (q) { return root.querySelector('[data-tab=' + q[0] + ']'); });
@@ -1381,7 +1382,7 @@
             (big.length ? '<div class="ghh-stats ghh-stats--lg">' + big.map(function (x) { return card(x, true); }).join('') + '</div>' : '') +
             (small.length ? '<div class="ghh-stats">' + small.map(function (x) { return card(x); }).join('') + '</div>' : '') +
             (quick.length ? '<h4 class="ghh-h4">Quick actions</h4><div class="ghh-quick">' + quick.map(function (q) { return '<button type="button" class="ghh-quick__it" data-go-tab="' + q[0] + '"><span class="ghh-ficon ghh-ficon--db">' + ic(q[0], 16) + '</span>' + esc(q[1]) + '<i aria-hidden="true">' + ic('redirects', 14) + '</i></button>'; }).join('') + '</div>' : '');
-          [].forEach.call(list.querySelectorAll('[data-go-tab]'), function (b) { b.onclick = function () { show(b.getAttribute('data-go-tab'), true); }; });
+          [].forEach.call(list.querySelectorAll('[data-go-tab]'), function (b) { b.onclick = function () { show(b.getAttribute('data-go-tab'), true); }; b.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); b.onclick(); } }; });
         }, function (e) { fail(e, list); retryOn(list, load); });
       };
       body.querySelector('[data-re]').onclick = load;
