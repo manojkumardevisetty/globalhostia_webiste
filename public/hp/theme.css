@@ -199,11 +199,11 @@ main{display:block}
 .hp-hero--page .hp-from{margin-top:22px;font-size:14px;color:var(--on-dark-mute)}
 .hp-hero--page .hp-from b{font:800 20px/1 var(--head);color:#fff}
 .hp-hero__visual{position:relative;min-width:0}
-.hp-crumbs{margin-bottom:26px}
+.hp-crumbs{margin:-4px 0 22px}
 .hp-crumbs ol{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:13.5px;color:var(--on-dark-mute)}
 .hp-crumbs li{display:inline-flex;align-items:center;gap:4px}
 .hp-crumbs li+li::before{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg);margin:0 6px 0 2px;opacity:.6}
-.hp-crumbs a{display:inline-flex;align-items:center;min-height:32px;color:var(--on-dark-mute)}
+.hp-crumbs a{display:inline-flex;align-items:center;min-height:40px;color:var(--on-dark-mute)}
 .hp-crumbs a:hover{color:#fff}
 .hp-crumbs [aria-current]{color:#fff}
 .hp-crumbs--light ol{color:var(--muted)}
@@ -323,7 +323,7 @@ main{display:block}
 .hp-plan__body{padding:24px 28px;flex:1}
 .hp-feat li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;font-size:15px}
 .hp-feat .hp-ico{width:18px;height:18px;color:var(--brand);margin-top:3px;stroke-width:2.4}
-.hp-feat li.is-off{color:#7a8590}
+.hp-feat li.is-off{color:#66717c}
 .hp-feat li.is-off span{text-decoration:line-through;text-decoration-color:rgba(90,103,116,.45)}
 .hp-feat li.is-off .hp-ico{color:#9aa4ae;stroke-width:2}
 .hp-feat-more summary{cursor:pointer;color:var(--brand-d);font-weight:600;font-size:14px;min-height:44px;display:flex;align-items:center;list-style:none}
@@ -565,6 +565,9 @@ main{display:block}
 .hp-cc-row small{display:block;font-size:12.5px;color:var(--on-dark-mute)}
 .hp-cc-row a{display:inline-flex;min-height:28px;align-items:center;color:#fff;font-weight:600;font-size:15px;overflow-wrap:anywhere}
 .hp-cc-row a:hover{text-decoration:underline;text-underline-offset:3px}
+/* the whole row (icon + label + link) is the tap target, not just the 28px link line */
+.hp-cc-row{position:relative}
+.hp-cc-row a::after{content:"";position:absolute;inset:0;border-radius:12px}
 .hp-fcols{display:grid;grid-template-columns:repeat(3,1fr);gap:28px 32px;padding-top:10px}
 .hp-fcols h3{font:800 15px/1.3 var(--head);margin-bottom:12px;padding-left:10px;border-left:3px solid var(--brand)}
 .hp-fcols a{display:flex;align-items:center;min-height:36px;font-size:14.5px;color:var(--muted);transition:color .15s}
@@ -739,6 +742,11 @@ main{display:block}
 .hp-util .hp-cur__menu a b,.hp-cur__menu a b{color:var(--ink)!important;min-width:38px}
 .hp-cur__menu a span{color:var(--muted)}
 .hp-cur__menu a[aria-current] .hp-cur__sym{background:var(--brand);color:#fff}
+/* Phones: the picker shows only the code (label stays in the accessible name), icons drop at narrow widths
+   and the phone number collapses to its icon, so the utility bar never scrolls sideways (280-420px). */
+@media (max-width:767px){.hp-util .hp-cur>summary{font-size:0;gap:6px}.hp-util .hp-cur>summary b{font-size:13.5px;margin-left:0}}
+@media (max-width:420px){.hp-util .hp-cur>summary svg,.hp-u-right a svg{display:none}}
+@media (max-width:340px){.hp-u-left a{min-width:44px;justify-content:center}.hp-u-left .num{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}}
 
 /* ---------------- trust & conversion (lib/theme/growth.ts) ---------------- */
 .hp-plan__renew{font-size:12px;line-height:1.45;color:var(--muted);margin-top:4px}
@@ -794,6 +802,9 @@ main{display:block}
 .hp-mo .hp-wa{animation:hp-wa-in .5s var(--ease-o) 1.2s both}
 @keyframes hp-wa-in{from{opacity:0;transform:translateY(16px) scale(.9)}to{opacity:1;transform:none}}
 body:has(.hp-preview-pill) .hp-wa{bottom:68px}
+/* theme.js adds .is-dodge while the float sits over a button, link or field, so it never hides a CTA */
+.hp-wa{transition:transform .25s var(--ease),background-color .2s,opacity .2s}
+.hp-wa.is-dodge,.hp-mo .hp-wa.is-dodge{animation:none;opacity:0;transform:translateY(10px) scale(.92);pointer-events:none}
 @media (max-width:720px){
   .hp-wa{left:12px;bottom:12px;padding:0;width:52px;justify-content:center}
   .hp-wa__lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
@@ -803,7 +814,7 @@ body:has(.hp-preview-pill) .hp-wa{bottom:68px}
 @media print{.hp-wa{display:none}}
 /* 2026-11-03 mobile utility bar: no horizontal overflow (phone icon-only, currency code only) */
 html,body{overflow-x:clip}
-.hp-util{overflow:hidden}
+/* .hp-util must not clip: the currency menu drops out of it. Width is handled by the phone rules above. */
 @media (max-width:600px){.hp-util .hp-u-left .num,.hp-util .hp-u-lbl{display:none}.hp-util a,.hp-util .hp-u-item{gap:6px;padding:0 4px}.hp-util .hp-container{gap:8px}}
 /* very tall blocks (e.g. 700-row price table) must never stay hidden waiting for a reveal */
 .hp-mo .dom-grid[data-reveal],.hp-mo .dom-table-wrap [data-reveal]{opacity:1;transform:none}

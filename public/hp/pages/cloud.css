@@ -97,3 +97,6 @@
   .cx-compare tbody th{width:30%}
   .cx-compare td .hp-ico{display:none}
 }
+/* the comparison table scrolls inside its card on the narrowest phones instead of widening the page */
+.cx-compare{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:360px){.cx-compare th,.cx-compare td{padding:10px 6px;font-size:13.5px}}

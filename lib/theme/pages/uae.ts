@@ -282,7 +282,7 @@ async function guide(cat: Catalog, ctx: PageCtx) {
       <tbody>${rows.map(([k, a, b]) => `<tr><th scope="row">${esc(k)}</th><td>${a}</td><td>${b}</td></tr>`).join('')}</tbody></table></div></section>`;
   const pickSec = picks.length ? `<section class="ua-sec" id="picks" aria-labelledby="ua-pick-h"><h2 id="ua-pick-h" class="hp-hline">Our picks by need</h2>
     <p>The lowest-priced plan in each family, with its live price. Every plan can be upgraded later.</p>
-    <div class="ua-picks">${picks.map(({ tag, p, why }) => {
+    <div class="ua-picks" style="--n:${picks.length}">${picks.map(({ tag, p, why }) => {
       const t = fromText(p!, currency);
       return `<article class="ua-pick" data-reveal><span class="ua-pick__tag">${esc(tag)}</span><h3><a href="/p/${esc(p!.slug)}">${esc(p!.name)}</a></h3><p>${esc(why)}</p>
         <p class="ua-pick__price num">${t ? `<b>${esc(t)}</b><small>Renews at the same price · ${esc(VAT_NOTE)}</small>` : '<b>See price</b>'}</p>

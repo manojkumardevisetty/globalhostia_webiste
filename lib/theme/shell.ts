@@ -222,7 +222,11 @@ export function withCurrency(html: string, cat: Catalog) {
   const base = cat.base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return html
     .replace(new RegExp(`(href="${base}/cart\\.php\\?)`, 'g'), `$1currency=${id}&amp;`)
-    .replace(new RegExp(`href="(${base}/(?:store|cart\\.php)[^"?]*)"`, 'g'), `href="$1?currency=${id}"`);
+    .replace(new RegExp(`href="(${base}/(?:store|cart\\.php)[^"?]*)"`, 'g'), `href="$1?currency=${id}"`)
+    // GET forms (domain search / transfer) submit straight to the cart: carry the currency as a field
+    .replace(new RegExp(`(<form\\b[^>]*action="${base}/cart\\.php"[^>]*>)`, 'g'), `$1<input type="hidden" name="currency" value="${id}">`)
+    // order links inside JSON data (plan finder, VPS sizer, AI picker, JSON-LD offers) that page scripts turn into links
+    .replace(new RegExp(`"(${base}/cart\\.php\\?)(?!currency=)`, 'g'), `"$1currency=${id}&`);
 }
 
 function symbolOf(cat: Catalog, code: string) {

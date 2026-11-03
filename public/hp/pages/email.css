@@ -115,7 +115,7 @@
 
 @media (max-width:1023px){
   .em-box{max-width:620px}
-  .em-mx,.em-setup,.em-dom{grid-template-columns:1fr;gap:32px}
+  .em-mx,.em-setup,.em-dom{grid-template-columns:minmax(0,1fr);gap:32px}
   .em-inc{grid-template-columns:1fr;gap:16px}
   .em-sales{grid-template-columns:1fr;text-align:left}
   .em-sales .hp-actions{flex-wrap:wrap}
@@ -133,3 +133,5 @@
   .em-table th,.em-table td{padding:12px 10px}
   .em-table tbody th{white-space:normal}
 }
+/* small phones: the two MX tabs share the width and wrap their labels instead of pushing the card wider */
+@media (max-width:420px){.em-mx__seg{display:grid;grid-template-columns:1fr 1fr}.em-mx__seg button{white-space:normal;line-height:1.2;padding:6px 10px}}

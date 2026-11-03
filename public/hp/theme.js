@@ -70,6 +70,21 @@
     W.addEventListener("scroll",onScroll,{passive:true}); onScroll();
   }
 
+  /* ---------- WhatsApp float: step aside while it sits over a button, link or field ---------- */
+  var wa=$(".hp-wa");
+  if(wa && D.elementsFromPoint){
+    var waT=false, HIT="a,button,input,select,textarea,summary,label";
+    var dodge=function(){
+      waT=false; var r=wa.getBoundingClientRect(); if(!r.width) return;
+      var pts=[[r.left+r.width/2,r.top+r.height/2],[r.left+8,r.top+8],[r.right-8,r.top+8],[r.left+8,r.bottom-8],[r.right-8,r.bottom-8]], hit=false;
+      for(var i=0;i<pts.length&&!hit;i++){ var els=D.elementsFromPoint(pts[i][0],pts[i][1]);
+        for(var j=0;j<els.length;j++){ var e=els[j]; if(e===wa||wa.contains(e)) continue; if(e.closest&&e.closest(HIT)&&!e.closest(".hp-preview-pill")){hit=true;break} } }
+      wa.classList.toggle("is-dodge",hit);
+    };
+    var reqDodge=function(){ if(!waT){waT=true; requestAnimationFrame(dodge)} };
+    W.addEventListener("scroll",reqDodge,{passive:true}); W.addEventListener("resize",reqDodge); setTimeout(dodge,300);
+  }
+
   /* ---------- mega menus (hover intent, click, keyboard) ---------- */
   (function(){
     if(!header) return;

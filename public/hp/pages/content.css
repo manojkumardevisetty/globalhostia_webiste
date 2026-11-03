@@ -126,6 +126,7 @@ ol.cn-list li::before{content:counter(cn) ".";clip-path:none;background:none;wid
   .cn-search{flex-direction:column;padding:8px}
   .cn-search>.hp-ico{top:33px}
   .cn-search .hp-btn{width:100%}
+  .cn-search .hp-input{flex:none} /* column flex: flex-basis 0 had collapsed the 50px field to 20px */
   .cn-toc ol{columns:1}
   .cn-article{font-size:16px}
   .cn-article h2{font-size:22px;margin-top:40px}
