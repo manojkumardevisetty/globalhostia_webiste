@@ -1042,6 +1042,7 @@
       S.domain = s.domains.indexOf(s.domain) >= 0 ? s.domain : s.domains[0] || '';
       $('[data-sub]').innerHTML = esc(s.domain || s.username) + ' <span aria-hidden="true">·</span> ' + esc(s.panelLabel) + (s.server ? ' <span aria-hidden="true">·</span> ' + esc(s.server) : '');
       var sel = $('[data-domsel]');
+      [].forEach.call(document.querySelectorAll('.ghh .nice-select'), function (n) { n.remove(); });
       sel.innerHTML = s.domains.map(function (d) { return '<option' + (d === S.domain ? ' selected' : '') + '>' + esc(d) + '</option>'; }).join('');
       sel.onchange = function () { S.domain = sel.value; S.cache = {}; show(S.tab); };
       var vis = function (it) { var c = s.caps[it[2]]; return !!(c && c.length && (!it[3] || c.indexOf(it[3]) >= 0)); };

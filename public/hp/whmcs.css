@@ -1144,3 +1144,7 @@ button.ghh-fname { cursor: pointer; } button.ghh-fname:hover { color: var(--gh-b
 .ghh-chips button:hover { border-color: var(--gh-brand, #c5386f); }
 .ghh-chips button.on { background: var(--gh-brand, #c5386f); border-color: var(--gh-brand, #c5386f); color: #fff; }
 @media (max-width: 640px) { .ghh-chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; } .ghh-chips button { flex: none; } }
+/* the theme's nice-select plugin hijacks selects before our options load (empty "Domain" box): use native selects in the hosting panel */
+.ghh .nice-select { display: none !important; }
+.ghh select { display: block !important; opacity: 1 !important; visibility: visible !important; position: static !important; width: auto; min-width: 200px; max-width: 100%; height: 42px; border: 1px solid var(--gh-line, #e3e7ec); border-radius: 12px; background: #fff; padding: 0 34px 0 12px; font: 600 14px Inter, sans-serif; color: var(--gh-ink, #16212b); }
+.ghh .ghh-fld select { width: 100%; min-width: 0; }
