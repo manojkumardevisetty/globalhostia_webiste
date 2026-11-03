@@ -29,7 +29,7 @@
   // fire fn once when el first enters the viewport
   function once(el, fn, margin){
     if(reduce||!hasIO){fn(el,true);return}
-    var o=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){o.unobserve(e.target);fn(e.target,false)}})},{rootMargin:margin||"0px 0px -10% 0px",threshold:.1});
+    var o=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){o.unobserve(e.target);fn(e.target,false)}})},{rootMargin:margin||"0px 0px -10% 0px",threshold:0});
     o.observe(el);
   }
   // toggle .is-paused when off-screen or tab hidden (CSS animations)
@@ -173,7 +173,7 @@
     }
     $$("[data-count]",el).concat(el.hasAttribute("data-count")?[el]:[]).forEach(function(c){countUp(c,150,1500)});
   }
-  var rio = (!reduce && hasIO) ? new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");rio.unobserve(e.target);onReveal(e.target)}})},{rootMargin:"0px 0px -8% 0px",threshold:.08}) : null;
+  var rio = (!reduce && hasIO) ? new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");rio.unobserve(e.target);onReveal(e.target)}})},{rootMargin:"0px 0px -8% 0px",threshold:0}) : null;
   function observeReveal(scope){
     $$("[data-reveal]:not(.in),[data-inview]:not(.in)",scope).forEach(function(n){
       if(n.closest("[hidden]")) return; // revealed when its pane is shown

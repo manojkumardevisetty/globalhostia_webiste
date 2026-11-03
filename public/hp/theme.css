@@ -805,3 +805,5 @@ body:has(.hp-preview-pill) .hp-wa{bottom:68px}
 html,body{overflow-x:clip}
 .hp-util{overflow:hidden}
 @media (max-width:600px){.hp-util .hp-u-left .num,.hp-util .hp-u-lbl{display:none}.hp-util a,.hp-util .hp-u-item{gap:6px;padding:0 4px}.hp-util .hp-container{gap:8px}}
+/* very tall blocks (e.g. 700-row price table) must never stay hidden waiting for a reveal */
+.hp-mo .dom-grid[data-reveal],.hp-mo .dom-table-wrap [data-reveal]{opacity:1;transform:none}
