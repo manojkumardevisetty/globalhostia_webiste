@@ -186,7 +186,8 @@ function pickCycle(p: RProduct, currency: string, want?: string): Cyc | null {
   if (!cs.length) return null;
   return (want && cs.find((c) => c.cycle === want))
     || (p.displayCycle && p.displayCycle !== 'auto' && cs.find((c) => c.cycle === p.displayCycle))
-    || cs.reduce((a, b) => (b.perMonth < a.perMonth ? b : a));
+    || cs.find((c) => c.cycle === 'monthly')
+    || cs.slice().sort((a, b) => (CYCLE_MONTHS[a.cycle] || 99) - (CYCLE_MONTHS[b.cycle] || 99))[0];
 }
 
 /** Price block for one cycle; a product without prices shows "See price" linking to its order URL. */
@@ -396,7 +397,7 @@ export function planCards(products: RProduct[], o: PlanOpts) {
     const pick = shared.length > 3 ? [shared[0], ...(shared.includes('annually') ? ['annually'] : []), shared[shared.length - 1]].filter((v, i, a) => a.indexOf(v) === i) : shared;
     if (pick.length >= 2) {
       views = { cycles: pick, group: `${id}-cycle` };
-      if (!def || !pick.includes(def)) { const f = priced[0] && pickCycle(priced[0], o.currency); def = f && pick.includes(f.cycle) ? f.cycle : pick[pick.length - 1]; }
+      if (!def || !pick.includes(def)) { const f = priced[0] && pickCycle(priced[0], o.currency); def = f && pick.includes(f.cycle) ? f.cycle : pick[0]; }
     }
   }
   const monthlyAll = products.map((p) => cycles(p, o.currency));

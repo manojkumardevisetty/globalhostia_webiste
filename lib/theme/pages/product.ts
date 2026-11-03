@@ -334,7 +334,7 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
   const specs = specsOf(p);
   const cs = cycles(p, currency).filter((c) => Number.isFinite(c.price) && c.cycle !== 'onetime');
   const best = cs.length ? cs.reduce((a, b) => (b.perMonth < a.perMonth ? b : a)) : null;
-  const def = (p.displayCycle && p.displayCycle !== 'auto' && cs.find((c) => c.cycle === p!.displayCycle)) || best;
+  const def = (p.displayCycle && p.displayCycle !== 'auto' && cs.find((c) => c.cycle === p!.displayCycle)) || cs.find((c) => c.cycle === 'monthly') || cs[0] || best;
   const catLabel = catRow?.name || route?.title || 'Plans';
   const crumbs = [{ label: 'Home', href: '/' }, ...(route ? [{ label: route.title, href: `/${route.slug}` }] : []), { label: name }];
   const lead = p.tagline && p.tagline !== name ? p.tagline : p.description || (route ? `${name} from our ${route.title} range.` : '');
