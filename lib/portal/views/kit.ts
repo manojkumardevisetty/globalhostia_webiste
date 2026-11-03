@@ -1,23 +1,24 @@
 // Small HTML-string building blocks for the customer portal. All data passes through `esc`.
 import { esc } from '../../render/util';
 import { icon, hexIcon } from '../../theme/ui';
+import { t, intlTag, moneyTag } from '../i18n';
 
-export { esc, icon, hexIcon };
+export { esc, icon, hexIcon, t };
 
-export type Nav = 'dashboard' | 'services' | 'domains' | 'renewals' | 'billing' | 'support' | 'profile';
+export type Nav = 'dashboard' | 'services' | 'domains' | 'renewals' | 'billing' | 'support' | 'profile' | 'team' | 'settings';
 
 export const validDate = (s: unknown) => !!s && !/^0000/.test(String(s)) && !Number.isNaN(Date.parse(String(s).slice(0, 10)));
 export function fmtDate(s: unknown) {
   if (!validDate(s)) return '—';
   const d = new Date(String(s).slice(0, 10) + 'T00:00:00Z');
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  return d.toLocaleDateString(intlTag(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 export function fmtDateTime(s: unknown) {
   const v = String(s || '');
   if (!validDate(v)) return '—';
   const d = new Date(v.replace(' ', 'T') + (v.length > 10 && !/Z|[+-]\d\d:?\d\d$/.test(v) ? 'Z' : ''));
   if (Number.isNaN(+d)) return fmtDate(v);
-  return d.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
+  return d.toLocaleString(intlTag(), { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
 }
 export function daysUntil(s: unknown) {
   if (!validDate(s)) return null;
@@ -27,12 +28,12 @@ export function daysUntil(s: unknown) {
 export function money(v: unknown, code = 'USD') {
   const n = parseFloat(String(v ?? ''));
   if (!Number.isFinite(n)) return '—';
-  try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: code || 'USD' }).format(n); }
+  try { return new Intl.NumberFormat(moneyTag(), { style: 'currency', currency: code || 'USD' }).format(n); }
   catch { return `${n.toFixed(2)} ${code}`; }
 }
 export const cycleLabel = (c: unknown) => {
   const s = String(c || '');
-  return ({ 'Free Account': 'Free', 'One Time': 'One-time', Onetime: 'One-time' } as Record<string, string>)[s] || s || '—';
+  return t(({ 'Free Account': 'Free', 'One Time': 'One-time', Onetime: 'One-time' } as Record<string, string>)[s] || s || '—');
 };
 
 type Tone = 'ok' | 'warn' | 'bad' | 'muted' | 'info';
@@ -46,7 +47,7 @@ export function pill(status: unknown, override?: Tone) {
   const raw = String(status || 'Unknown');
   const s = ({ 'Customer-Reply': 'Awaiting reply', 'Answered': 'Answered', 'In Progress': 'In progress', 'On Hold': 'On hold' } as Record<string, string>)[raw] || raw;
   const tone = override || TONES.find(([r]) => r.test(raw))?.[1] || 'muted';
-  return `<span class="ac-pill ac-pill--${tone}"><i aria-hidden="true"></i>${esc(s)}</span>`;
+  return `<span class="ac-pill ac-pill--${tone}"><i aria-hidden="true"></i>${esc(t(s))}</span>`;
 }
 
 export function productIcon(p: any) {
@@ -91,7 +92,7 @@ export function empty(title: string, text: string, actionHtml = '', ic = 'box') 
 }
 
 export function errorBox(what: string, retryHref: string) {
-  return `<div class="ac-error" role="alert"><span class="ac-error__ic">${icon('alert')}</span><div><h3>We couldn't load ${esc(what)} right now</h3><p>Our billing system did not respond. Your services are not affected. Try again in a moment.</p></div><a class="hp-btn hp-btn--ghost ac-sm" href="${esc(retryHref)}">${icon('refresh')}Try again</a></div>`;
+  return `<div class="ac-error" role="alert"><span class="ac-error__ic">${icon('alert')}</span><div><h3>${esc(t("We couldn't load {what} right now", { what }))}</h3><p>${esc(t('Our billing system did not respond. Your services are not affected. Try again in a moment.'))}</p></div><a class="hp-btn hp-btn--ghost ac-sm" href="${esc(retryHref)}">${icon('refresh')}${esc(t('Try again'))}</a></div>`;
 }
 
 export const card = (title: string, body: string, o: { action?: string; id?: string; cls?: string; flush?: boolean; i?: number } = {}) =>
