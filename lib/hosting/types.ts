@@ -42,7 +42,17 @@ export interface SpamState extends SpamInput { available: boolean }
 export interface FtpAccount { user: string; login: string; path: string }
 export interface CronJob { id: string; minute: string; hour: string; dayofmonth: string; month: string; dayofweek: string; command: string }
 export interface Protected { path: string; realm: string; users: string[] }
-export interface WpSite { url: string; path: string; version?: string }
+export interface WpSite {
+  url: string; path: string; version?: string;
+  /** Softaculous installs (managed: true) carry an id and can be managed; others are only listed. */
+  id?: string; managed?: boolean; adminUrl?: string; domain?: string; directory?: string; siteName?: string; created?: string;
+  staging?: boolean; parentId?: string; newVersion?: string;
+}
+/** admin password is generated server-side (lib/hosting/wordpress.ts wpPassword) and never logged */
+export interface WpInstallInput { domain: string; directory: string; title: string; adminUser: string; adminEmail: string; language: string; password: string; https: boolean; emailTo?: string; autoUpdate: { core: boolean; plugins: boolean; themes: boolean } }
+/** `task`: background job key to poll (staging, push to live, some backups); `pending`: still running when we stopped waiting */
+export interface WpJob { message: string; task?: string; url?: string; pending?: boolean; continueUrl?: string }
+export interface WpTask { progress: number; text: string; done: boolean; failed?: boolean; url?: string }
 
 export interface HostingProvider {
   readonly panel: PanelType;
@@ -106,11 +116,23 @@ export interface HostingProvider {
   ftp?: { list(domain: string): Promise<FtpAccount[]>; create(domain: string, user: string, pass: string, dir: string): Promise<void>; password(domain: string, user: string, pass: string): Promise<void>; remove(domain: string, user: string): Promise<void> };
   cron?: { list(): Promise<CronJob[]>; add(j: Omit<CronJob, 'id'>): Promise<void>; remove(id: string): Promise<void> };
   protect?: { list(): Promise<Protected[]>; add(path: string, realm: string, user: string, pass: string): Promise<void>; remove(path: string): Promise<void> };
-  wordpress?: { list(): Promise<WpSite[]> };
+  /** caps.wordpress: list, install, login, staging, push, delete, backup, upgrade (the write ones need Softaculous) */
+  wordpress?: {
+    list(): Promise<WpSite[]>;
+    install?(i: WpInstallInput): Promise<WpJob>;
+    signOn?(id: string): Promise<string>;
+    staging?(id: string, domain: string, directory: string, https: boolean): Promise<WpJob>;
+    pushLive?(id: string): Promise<WpJob>;
+    remove?(id: string): Promise<WpJob>;
+    backup?(id: string): Promise<WpJob>;
+    upgrade?(id: string): Promise<WpJob>;
+    task?(key: string): Promise<WpTask>;
+  };
   backups?: { list(): Promise<Backup[]>; create(): Promise<string>; restore?(name: string): Promise<string> };
   // Reserved for a future VPS adapter (e.g. the SBVPS reseller module): power(), reboot(), reinstall(), console().
 }
 
 export class PanelError extends Error {
-  constructor(message: string, public status = 502) { super(message); }
+  status: number; // plain field (not a parameter property) so node --experimental-strip-types can load this file in tests
+  constructor(message: string, status = 502) { super(message); this.status = status; }
 }

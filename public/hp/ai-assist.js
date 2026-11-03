@@ -58,10 +58,10 @@
     }
   };
   var CARD = {
-    en: { "dns.add": ["Add {type} record", "Add record"], "email.create": ["Create mailbox", "Create mailbox"], "ssl.issue": ["Issue free SSL", "Issue certificate"], "ticket.open": ["Open a ticket", "Open ticket"] },
-    ar: { "dns.add": ["إضافة سجل {type}", "إضافة السجل"], "email.create": ["إنشاء صندوق بريد", "إنشاء الصندوق"], "ssl.issue": ["إصدار شهادة SSL مجانية", "إصدار الشهادة"], "ticket.open": ["فتح تذكرة دعم", "فتح التذكرة"] }
+    en: { "dns.add": ["Add {type} record", "Add record"], "email.create": ["Create mailbox", "Create mailbox"], "ssl.issue": ["Issue free SSL", "Issue certificate"], "ticket.open": ["Open a ticket", "Open ticket"], "wp.install": ["Install WordPress", "Install WordPress"] },
+    ar: { "dns.add": ["إضافة سجل {type}", "إضافة السجل"], "email.create": ["إنشاء صندوق بريد", "إنشاء الصندوق"], "ssl.issue": ["إصدار شهادة SSL مجانية", "إصدار الشهادة"], "ticket.open": ["فتح تذكرة دعم", "فتح التذكرة"], "wp.install": ["تثبيت WordPress", "تثبيت WordPress"] }
   };
-  var ROWS_AR = { Domain: "النطاق", Type: "النوع", Name: "الاسم", Value: "القيمة", TTL: "TTL", Priority: "الأولوية", Address: "العنوان", Quota: "الحصة", "Include www": "تضمين www", Yes: "نعم", No: "لا", Department: "القسم", Subject: "الموضوع", Message: "الرسالة" };
+  var ROWS_AR = { Domain: "النطاق", Type: "النوع", Name: "الاسم", Value: "القيمة", TTL: "TTL", Priority: "الأولوية", Address: "العنوان", Quota: "الحصة", "Include www": "تضمين www", Yes: "نعم", No: "لا", Department: "القسم", Subject: "الموضوع", Message: "الرسالة", "Site title": "عنوان الموقع", "Admin user": "مستخدم المدير", "Admin email": "بريد المدير", Language: "اللغة" };
   /* starter chips per page (portal) and per tab (hosting panel). Every chip is a clear account question, so the scope
      filter (lib/ai/gate.ts) lets it through without a classifier call; tests/ai-assist.test.mts checks that. */
   var CHIPS = {
@@ -144,8 +144,8 @@
   async function tokenOf(auth) { var t = auth && auth.token; return typeof t === "function" ? await t() : t; }
 
   /* ---------------------------------------------------------------- proposals -> existing endpoints */
-  var HOSTING_PATH = /^\/api\/hosting\/(dns|email|ssl)$/, PORTAL_PATH = /^\/account\/domains\/\d{1,10}\/dns$/, ACTION_PATH = "/api/ai/assist/action";
-  var KIND_PATH = { "dns.add": [/^\/api\/hosting\/dns$/, PORTAL_PATH], "email.create": [/^\/api\/hosting\/email$/], "ssl.issue": [/^\/api\/hosting\/ssl$/], "ticket.open": [/^\/api\/ai\/assist\/action$/] };
+  var HOSTING_PATH = /^\/api\/hosting\/(dns|email|ssl|wordpress)$/, PORTAL_PATH = /^\/account\/domains\/\d{1,10}\/dns$/, ACTION_PATH = "/api/ai/assist/action";
+  var KIND_PATH = { "dns.add": [/^\/api\/hosting\/dns$/, PORTAL_PATH], "email.create": [/^\/api\/hosting\/email$/], "ssl.issue": [/^\/api\/hosting\/ssl$/], "ticket.open": [/^\/api\/ai\/assist\/action$/], "wp.install": [/^\/api\/hosting\/wordpress$/] };
   function bad(msg) { var e = new Error(msg); e.code = "blocked"; return e; }
   /** Only the values the card declared as inputs (the password the customer typed), as strings. */
   function inputsOf(p, inputs) { var o = {}; (p.inputs || []).forEach(function (f) { if (inputs && inputs[f.name] != null) o[f.name] = String(inputs[f.name]); }); return o; }

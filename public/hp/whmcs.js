@@ -2,7 +2,7 @@
    1) Replaces the endless horizontal store-category scroller with 5 grouped menus (Hostpen Modern style).
    2) Adds a promo banner above store listings.
    Pure progressive enhancement: if anything fails the original page stays as it was. */
-(function (s) { try { if (window.GH_MOBILE) return; window.GH_MOBILE = 1; var o = new URL(s.src).origin, q = '?v=20261103c', h = document.head, l = document.createElement('link'), j = document.createElement('script'); l.rel = 'stylesheet'; l.href = o + '/hp/whmcs-mobile.css' + q; h.appendChild(l); j.src = o + '/hp/whmcs-mobile.js' + q; j.async = true; h.appendChild(j); } catch (e) {} })(document.currentScript || {}); // phone layer: public/hp/whmcs-mobile.css + .js (bump q after editing them)
+(function (s) { try { if (window.GH_MOBILE) return; window.GH_MOBILE = 1; var o = new URL(s.src).origin, q = '?v=20261104a', h = document.head, l = document.createElement('link'), j = document.createElement('script'); l.rel = 'stylesheet'; l.href = o + '/hp/whmcs-mobile.css' + q; h.appendChild(l); j.src = o + '/hp/whmcs-mobile.js' + q; j.async = true; h.appendChild(j); } catch (e) {} })(document.currentScript || {}); // phone layer: public/hp/whmcs-mobile.css + .js (bump q after editing them)
 
 /* Language (English / Arabic) for everything this file adds; WHMCS's own language decides. Signals, strongest first:
    ?language=<name> on the URL (WHMCS's switch), window.GH_LANG (printed by docs/whmcs/globalhostia_hosting_hook.php),
@@ -1074,7 +1074,7 @@
     spam: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l6 0', ftp: 'M4 8h16v12H4zM8 4h8M12 11v6M9 14l3 3 3-3', protect: 'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4M12 15v2',
     cron: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2', wordpress: 'M12 3a9 9 0 100 18 9 9 0 000-18zM6 8l3.5 10L12 11l2.5 7L18 8', rename: 'M9 4h6M9 20h6M12 4v16M4 9l-2 3 2 3M20 9l2 3-2 3', ext: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6', gauge: 'M4 18a8 8 0 1116 0M12 18l4-6',
     health: 'M3 12h4l2-5 4 10 2-5h6', copy: 'M9 9h11v11H9zM5 15V4h11', search: 'M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-3.5-3.5', clock: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2',
-    bolt: 'M13 3L5 14h6l-1 7 8-11h-6z', ask: 'M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5zM8.6 12h.01M12 12h.01M15.4 12h.01'
+    bolt: 'M13 3L5 14h6l-1 7 8-11h-6z', layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', dots: 'M5 12h.01M12 12h.01M19 12h.01', ask: 'M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5zM8.6 12h.01M12 12h.01M15.4 12h.01'
   };
   // icons that point somewhere: mirrored in right-to-left layouts
   var FLIP = { fwd: 1, redirects: 1, ext: 1, forwarders: 1, autoresponders: 1 };
@@ -1407,6 +1407,7 @@
       if (can('databases', 'create') && tabOn('databases')) out.push({ id: 'act:db', g: 'act', label: _t('New database'), sub: 'MySQL', icon: 'databases', kw: 'new mysql database create', run: function () { go('databases', null, clickWhen('[data-add]')); } });
       if (can('ftp', 'create') && tabOn('ftp')) out.push({ id: 'act:ftp', g: 'act', label: _t('New FTP account'), sub: cur, icon: 'ftp', kw: 'new ftp account login', run: function () { go('ftp', cur, clickWhen('[data-add]')); } });
       if (can('cron', 'add') && tabOn('cron')) out.push({ id: 'act:cron', g: 'act', label: _t('New cron job'), sub: _t('Cron jobs'), icon: 'cron', kw: 'new cron job schedule', run: function () { go('cron', null, clickWhen('[data-add]')); } });
+      if (can('wordpress', 'install') && tabOn('wordpress')) out.push({ id: 'act:wp', g: 'act', label: _t('Install WordPress'), sub: 'WordPress', icon: 'wordpress', kw: 'install wordpress wp blog website softaculous staging', run: function () { go('wordpress', null, clickWhen('[data-add]')); } });
       if (can('backups', 'create') && tabOn('backups')) out.push({ id: 'act:backup', g: 'act', label: _t('Create backup'), sub: _t('Backups'), icon: 'backups', kw: 'create backup', run: function () { go('backups', null, function () { whenEl('[data-new]', function (b) { b.focus(); }); }); } });
       if (ds.length > 1) ds.forEach(function (d) { out.push({ id: 'dom:' + d, g: 'dom', label: d, ltr: 1, sub: d === cur ? _t('Selected domain') : _t('Switch to this domain'), icon: 'dns', kw: 'domain switch', run: function () { go(DOMAIN_VIEWS[S.tab] ? S.tab : 'dns', d); } }); });
       return out;
@@ -2317,13 +2318,239 @@
         del: function (j) { return [_t('Delete this cron job?'), { op: 'delete', id: j.id }]; } });
     }
 
-    /* ------------------------------------------------------------ WordPress */
+    /* ------------------------------------------------------------ WordPress (Softaculous: install, one-click login, staging, backups, updates) */
+    // background jobs (staging, push to live, backups): polled every 2.5 s until Softaculous reports 100%, also while the
+    // customer is on another tab; the WordPress tab draws them when it is open
+    var WP_JOBS = {}, WP_VIEW = null;
+    function wpDraw() {
+      var el = S.tab === 'wordpress' && body.querySelector('[data-jobs]'); if (!el) return;
+      el.innerHTML = Object.keys(WP_JOBS).map(function (k) { var j = WP_JOBS[k]; return '<div class="ghh-wpjob' + (j.err ? ' is-err' : j.ok ? ' is-ok' : '') + '" role="status"><div class="ghh-wpjob__t"><b>' + esc(j.label) + '</b><span>' + esc(j.err || j.text || _t('Working…')) + '</span>' + (j.ok || j.err ? '' : '<span class="ghh-wpjob__pct" dir="ltr">' + j.p + '%</span>') + '</div><div class="ghh-prog' + (j.ok || j.err ? '' : ' is-run') + '" role="progressbar" aria-label="' + esc(j.label) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + (j.ok ? 100 : j.p) + '"><i style="width:' + (j.ok ? 100 : j.p) + '%"></i></div></div>'; }).join('');
+    }
+    function wpWatch(key, label, after) {
+      if (WP_JOBS[key]) return;
+      WP_JOBS[key] = { label: label, p: 5, text: '' };
+      var n = 0, j = WP_JOBS[key];
+      var end = function () { wpDraw(); setTimeout(function () { delete WP_JOBS[key]; wpDraw(); }, j.err ? 15000 : 6000); };
+      var tick = function () {
+        if (++n > 240) { j.err = _t('This is taking longer than usual. Refresh the list in a few minutes.'); return end(); }
+        api('wordpress', { op: 'task', key: key }).then(function (t) {
+          j.p = Math.max(j.p, t.progress || 0); j.text = L10N.srv(t.text || '');
+          if (t.failed) { j.err = L10N.srv(t.text) || _t('That did not work'); toast(j.err, 'err'); return end(); }
+          if (t.done) { j.ok = 1; j.text = _t('Done'); toast(_t('{what} finished', { what: j.label })); if (WP_VIEW && S.tab === 'wordpress') WP_VIEW.load(true); if (after) after(t); return end(); }
+          wpDraw(); setTimeout(tick, 2500);
+        }, function (e) { if (e && e.code === 'expired') { j.err = _t('Your session timed out'); return end(); } setTimeout(tick, 5000); });
+      };
+      wpDraw(); setTimeout(tick, 2000);
+    }
+    function wpWhere(s) { return (s.domain || '') + (s.directory ? '/' + s.directory : ''); }
+    /** modal confirm: o = { title, text, html, label, danger, typed, check } -> Promise<{ check }> (rejects on cancel) */
+    function wpDialog(o) {
+      return new Promise(function (resolve, reject) {
+        var prev = document.activeElement, id = 'ghh-dlg-' + Math.random().toString(36).slice(2, 7);
+        var wrap = document.createElement('div'); wrap.className = 'ghh-dlg'; if (RTL) wrap.setAttribute('dir', 'rtl');
+        wrap.innerHTML = '<div class="ghh-dlg__scrim" data-x></div><div class="ghh-dlg__box" role="alertdialog" aria-modal="true" aria-labelledby="' + id + '-t" aria-describedby="' + id + '-d">' +
+          '<div class="ghh-dlg__head">' + (o.danger ? '<span class="ghh-dlg__mk" aria-hidden="true">' + ic('alert', 18) + '</span>' : '') + '<h4 id="' + id + '-t">' + esc(o.title) + '</h4></div>' +
+          '<div class="ghh-dlg__body" id="' + id + '-d">' + (o.html || '<p>' + esc(o.text) + '</p>') +
+          (o.check ? '<label class="ghh-check ghh-dlg__chk"><input type="checkbox" data-chk' + (o.check[1] ? ' checked' : '') + '> ' + esc(o.check[0]) + '</label>' : '') +
+          (o.typed ? '<label class="ghh-dlg__lbl" for="' + id + '-i">' + _t('Type {what} to confirm', { what: ltr(o.typed) }) + '</label><input id="' + id + '-i" class="ghh-dlg__in" data-typed dir="ltr" autocomplete="off" spellcheck="false" autocapitalize="off">' : '') +
+          '</div><div class="ghh-dlg__foot"><button type="button" class="ghh-btn" data-x>' + _t('Cancel') + '</button><button type="button" class="ghh-btn ' + (o.danger ? 'ghh-btn--danger' : 'ghh-btn--pri') + '" data-ok' + (o.typed ? ' disabled' : '') + '>' + esc(o.label) + '</button></div></div>';
+        root.appendChild(wrap); document.documentElement.classList.add('ghh-pal-on');
+        var ok = wrap.querySelector('[data-ok]'), inp = wrap.querySelector('[data-typed]');
+        var close = function (yes) { wrap.remove(); document.documentElement.classList.remove('ghh-pal-on'); if (prev && prev.focus) prev.focus({ preventScroll: true }); var c = wrap.querySelector('[data-chk]'); if (yes) resolve({ check: !!(c && c.checked), typed: inp ? inp.value : '' }); else reject(); };
+        if (inp) inp.oninput = function () { ok.disabled = inp.value.trim().toLowerCase() !== String(o.typed).toLowerCase(); };
+        [].forEach.call(wrap.querySelectorAll('[data-x]'), function (b) { b.onclick = function () { close(false); }; });
+        ok.onclick = function () { if (!ok.disabled) close(true); };
+        wrap.onkeydown = function (e) {
+          if (e.key === 'Escape') { e.preventDefault(); close(false); }
+          if (e.key === 'Enter' && inp && e.target === inp && !ok.disabled) { e.preventDefault(); close(true); }
+          if (e.key === 'Tab') { var f = [].filter.call(wrap.querySelectorAll('button, input'), function (x) { return !x.disabled; }), i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } }
+        };
+        (inp || wrap.querySelector('[data-x].ghh-btn')).focus();
+      });
+    }
     function wordpress() {
-      listView({ section: 'wordpress', title: _t('WordPress sites'), sub: esc(_t('WordPress installations found on this account.')), canAdd: false,
-        emptyIcon: 'wordpress', emptyTitle: _t('No WordPress sites found'), emptyText: _t('Install WordPress from the WordPress manager in your control panel, then it appears here.'), cols: [_t('Site'), _t('Version'), _t('Folder')],
-        pick: function (r) { return r.sites; },
-        render: function (xs) { return xs.map(function (w) { return '<tr><td' + DL('Site') + '>' + (/^https?:\/\//.test(w.url) ? '<a class="ghh-strong" href="' + esc(w.url) + '" target="_blank" rel="noopener"><bdi dir="ltr">' + esc(w.url.replace(/^https?:\/\//, '')) + '</bdi> ' + ic('ext', 13) + '</a>' : esc(w.url)) + '</td><td' + DL('Version') + '>' + (w.version ? '<span class="ghh-pill ghh-pill--muted">' + esc(w.version) + '</span>' : '') + '</td><td' + DL('Folder') + '><code>' + esc(w.path) + '</code></td></tr>'; }); },
-        form: function () { return ['', '', '']; }, submit: function () { return {}; }, del: function () { return ['', {}]; } });
+      var actions = (can('wordpress', 'install') ? addBtn(_t('Install WordPress')) : '') + '<button type="button" class="ghh-btn ghh-btn--icon" data-re aria-label="' + esc(_t('Refresh')) + '" title="' + esc(_t('Refresh')) + '">' + ic('refresh') + '</button>';
+      body.innerHTML = bar('WordPress', esc(_t('Install WordPress in one click, log in without a password, test changes on a staging copy and keep sites backed up and updated.')), actions) +
+        '<div data-slot></div><div class="ghh-wpjobs" data-jobs aria-live="polite"></div><div data-list>' + skel(3) + '</div>';
+      var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), jobsEl = body.querySelector('[data-jobs]'), sites = [], caps = [], tab = S.tab;
+      var cw = function (f) { return caps.indexOf(f) >= 0; };
+      var load = function (quiet) {
+        if (!quiet) list.innerHTML = skel(3);
+        api('wordpress').then(function (r) { sites = r.sites || []; caps = r.caps || []; render(); }, function (e) { fail(e, list); retryOn(list, function () { load(); }); });
+      };
+      var row = function (s, child) {
+        var host = wpWhere(s) || s.url.replace(/^https?:\/\//, '');
+        var meta = [];
+        if (s.version) meta.push('<span class="ghh-pill ghh-pill--muted" dir="ltr">' + esc(s.version) + '</span>');
+        if (s.newVersion) meta.push('<span class="ghh-pill ghh-pill--warn">' + esc(_t('Update to {v}', { v: s.newVersion })) + '</span>');
+        if (s.staging) meta.push('<span class="ghh-pill ghh-pill--stg">' + _t('Staging') + '</span>');
+        if (!s.managed) meta.push('<span class="ghh-pill ghh-pill--muted">' + _t('Listed only') + '</span>');
+        if (s.created && !child) meta.push('<span class="ghh-muted">' + esc(_t('Installed {date}', { date: L10N.date(new Date(s.created), { day: 'numeric', month: 'short', year: 'numeric' }) })) + '</span>');
+        var acts = '';
+        if (s.managed && cw('login')) acts += '<button type="button" class="ghh-btn ghh-btn--sm" data-wp="login">' + ic('ext', 14) + ' ' + _t('Log in to WP admin') + '</button>';
+        else acts += '<a class="ghh-btn ghh-btn--sm" href="' + esc((s.url || '').replace(/\/+$/, '') + '/wp-admin/') + '" target="_blank" rel="noopener">' + ic('ext', 14) + ' ' + _t('Open WP admin') + '</a>';
+        if (s.managed && s.staging && cw('push')) acts += '<button type="button" class="ghh-btn ghh-btn--sm" data-wp="push">' + ic('up', 14) + ' ' + _t('Push to live') + '</button>';
+        var menu = [];
+        if (s.managed && !s.staging && cw('staging')) menu.push(['staging', 'layers', _t('Create staging copy')]);
+        if (s.managed && cw('backup')) menu.push(['backup', 'backups', _t('Back up now')]);
+        if (s.managed && cw('upgrade') && s.newVersion) menu.push(['upgrade', 'refresh', _t('Update WordPress to {v}', { v: s.newVersion })]);
+        if (s.managed && cw('login') && !s.staging) menu.push(['plugins', 'bolt', _t('Update plugins and themes')]);
+        if (s.managed && cw('delete')) menu.push(['delete', 'trash', s.staging ? _t('Delete staging copy') : _t('Delete site'), 1]);
+        if (menu.length) acts += '<div class="ghh-wpmenu"><button type="button" class="ghh-icon" data-wpmenu aria-haspopup="menu" aria-expanded="false" aria-label="' + esc(_t('More actions for {site}', { site: host })) + '">' + ic('dots', 16) + '</button><div class="ghh-wpmenu__list" role="menu" hidden>' +
+          menu.map(function (m) { return '<button type="button" role="menuitem" data-wp="' + m[0] + '"' + (m[3] ? ' class="is-danger"' : '') + '>' + ic(m[1], 15) + '<span>' + esc(m[2]) + '</span></button>'; }).join('') + '</div></div>';
+        return '<li class="ghh-wp' + (child ? ' ghh-wp--child' : '') + '" data-id="' + esc(s.id || '') + '" data-url="' + esc(s.url) + '">' +
+          '<span class="ghh-wp__mk" aria-hidden="true">' + ic(child ? 'subdomains' : 'wordpress', child ? 16 : 18) + '</span>' +
+          '<div class="ghh-wp__main"><div class="ghh-wp__top">' + (s.siteName && !child ? '<b class="ghh-wp__name" dir="auto">' + esc(s.siteName) + '</b>' : '') +
+          '<a class="ghh-wp__url" href="' + esc(s.url) + '" target="_blank" rel="noopener"><bdi dir="ltr">' + esc(host) + '</bdi>' + ic('ext', 12) + '</a></div>' +
+          '<div class="ghh-wp__meta">' + meta.join('') + '</div></div><div class="ghh-wp__act">' + acts + '</div></li>';
+      };
+      var render = function () {
+        var addTop = body.querySelector('[data-add]'); if (addTop) addTop.hidden = !cw('install');
+        if (!sites.length) {
+          list.innerHTML = empty('wordpress', _t('No WordPress sites yet'), cw('install') ? _t('Install WordPress on any of your domains in about a minute. We create the database and a strong admin password for you.') : _t('WordPress sites on this account appear here.'), cw('install') ? addBtn(_t('Install WordPress'), 'data-add2') : '');
+          var a2 = list.querySelector('[data-add2]'); if (a2) a2.onclick = installForm; return;
+        }
+        var lives = sites.filter(function (s) { return !s.staging || !sites.some(function (p) { return p.id && p.id === s.parentId; }); });
+        list.innerHTML = '<ul class="ghh-wplist">' + lives.map(function (s) {
+          var kids = sites.filter(function (k) { return k.staging && k.parentId && k.parentId === s.id; });
+          return row(s) + kids.map(function (k) { return row(k, true); }).join('');
+        }).join('') + '</ul>' + (sites.some(function (s) { return !s.managed; }) ? '<p class="ghh-note">' + esc(_t('"Listed only" sites were installed without Softaculous. Open their admin with your WordPress password.')) + '</p>' : '');
+        bind();
+      };
+      var byId = function (id) { return sites.filter(function (s) { return s.id === id; })[0]; };
+      var closeMenus = function (except) { [].forEach.call(list.querySelectorAll('.ghh-wpmenu__list:not([hidden])'), function (m) { if (m !== except) { m.hidden = true; m.previousSibling.setAttribute('aria-expanded', 'false'); } }); };
+      var bind = function () {
+        [].forEach.call(list.querySelectorAll('[data-wpmenu]'), function (b) {
+          b.onclick = function (e) { e.stopPropagation(); var m = b.nextSibling, open = m.hidden; closeMenus(m); m.hidden = !open; b.setAttribute('aria-expanded', String(open)); if (open) { var f = m.querySelector('button'); if (f) f.focus(); } };
+          b.nextSibling.onkeydown = function (e) {
+            var its = [].slice.call(b.nextSibling.querySelectorAll('button')), i = its.indexOf(document.activeElement);
+            if (e.key === 'Escape') { e.preventDefault(); b.nextSibling.hidden = true; b.setAttribute('aria-expanded', 'false'); b.focus(); }
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); its[(i + (e.key === 'ArrowDown' ? 1 : its.length - 1)) % its.length].focus(); }
+          };
+        });
+        [].forEach.call(list.querySelectorAll('[data-wp]'), function (b) {
+          b.onclick = function () { closeMenus(); var s = byId(b.closest('[data-id]').getAttribute('data-id')); if (s) act(b.getAttribute('data-wp'), s, b); };
+        });
+      };
+      var docClick = function (e) { if (S.tab !== tab) return document.removeEventListener('click', docClick); if (!e.target.closest || !e.target.closest('.ghh-wpmenu')) closeMenus(); };
+      document.addEventListener('click', docClick);
+
+      /* one-click login: the tab opens on the click (so pop-up blockers allow it) and gets the address when it arrives */
+      var login = function (s, b) {
+        var w = null; try { w = window.open('', '_blank'); if (w) { w.opener = null; w.document.title = _t('Opening WordPress admin'); w.document.body.innerHTML = '<p style="font:15px system-ui,sans-serif;padding:24px;color:#23313d">' + esc(_t('Opening WordPress admin')) + '…</p>'; } } catch (er) {}
+        busy(b, true);
+        api('wordpress', null, { json: { op: 'login', id: s.id } }).then(function (r) {
+          busy(b, false);
+          if (w && !w.closed) w.location.href = r.url;
+          else toast(_t('Your browser blocked the new tab.'), 'ok', '<a class="ghh-help" href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(_t('Open WordPress admin')) + '</a>');
+        }, function (e) { busy(b, false); if (w) w.close(); fail(e); });
+      };
+      var jobDone = function (r, label, after) { toast(r.message); if (r.task) wpWatch(r.task, label, after); else { load(true); if (after) after(); } if (r.continueUrl) toast(_t('One more step is needed to finish.'), 'ok', '<a class="ghh-help" href="' + esc(r.continueUrl) + '" target="_blank" rel="noopener">' + esc(_t('Finish in WordPress')) + '</a>'); };
+      var post = function (json, b) { busy(b, true); return api('wordpress', null, { json: json }).then(function (r) { busy(b, false); return r; }, function (e) { busy(b, false); throw e; }); };
+      /** optional backup first; a backup that runs in the background is waited for before `next` */
+      var backupThen = function (on, target, next) {
+        if (!on || !target) return next();
+        post({ op: 'backup', id: target.id }).then(function (r) { jobDone(r, _t('Backup of {site}', { site: wpWhere(target) }), next); }, function (e) { fail(e); });
+      };
+      var act = function (what, s, b) {
+        var where = wpWhere(s) || s.url;
+        if (what === 'login' || what === 'plugins') {
+          if (what === 'plugins') toast(_t('WordPress admin opens. Go to Dashboard > Updates to update plugins and themes.'));
+          return login(s, b);
+        }
+        if (what === 'staging') return stagingForm(s);
+        if (what === 'backup') return post({ op: 'backup', id: s.id }, b).then(function (r) { jobDone(r, _t('Backup of {site}', { site: where })); }, function (e) { fail(e); });
+        if (what === 'upgrade') return wpDialog({ title: _t('Update WordPress to {v}?', { v: s.newVersion }), text: _t('{site} is updated from {from} to {to}. Plugins and themes are not changed. Updates are safe for most sites, but a backup lets you go back if something breaks.', { site: where, from: s.version || '?', to: s.newVersion }), check: [_t('Back up the site first'), true], label: _t('Update WordPress') })
+          .then(function (o) {
+            backupThen(o.check, s, function () { post({ op: 'upgrade', id: s.id }).then(function (r) { jobDone(r, _t('Update of {site}', { site: where })); }, function (e) { fail(e); }); });
+          }, function () {});
+        if (what === 'push') {
+          var live = byId(s.parentId), lw = live ? wpWhere(live) : _t('the live site');
+          return wpDialog({ title: _t('Push staging to live?'), danger: true, html: '<p>' + _t('The files and database of {live} are replaced with this staging copy ({stg}). Orders, comments or sign-ups made on the live site since the copy was made are lost.', { live: B_(lw), stg: B_(where) }) + '</p>', check: live ? [_t('Back up the live site first'), true] : null, label: _t('Push to live') })
+            .then(function (o) {
+              backupThen(o.check, live, function () { post({ op: 'push', id: s.id, confirm: true }).then(function (r) { jobDone(r, _t('Push to {site}', { site: lw })); }, function (e) { fail(e); }); });
+            }, function () {});
+        }
+        if (what === 'delete') {
+          var kids = sites.filter(function (k) { return k.parentId === s.id; }).length;
+          return wpDialog({ title: s.staging ? _t('Delete this staging copy?') : _t('Delete this WordPress site?'), danger: true, typed: where, label: _t('Delete permanently'),
+            html: '<p>' + _t('This deletes the files, uploads and database of {site}. It cannot be undone.', { site: B_(where) }) + '</p>' + (kids ? '<p class="ghh-muted">' + esc(_t('Its staging copy stays until you delete it too.')) + '</p>' : '') })
+            .then(function (o) { var li = list.querySelector('[data-id="' + s.id + '"]'); if (li) li.classList.add('is-busy'); post({ op: 'delete', id: s.id, confirm: o.typed }).then(function (r) { jobDone(r, _t('Delete {site}', { site: where })); }, function (e) { if (li) li.classList.remove('is-busy'); fail(e); }); }, function () {});
+        }
+      };
+
+      /* install form: domain picker, folder, title, admin, language, how the login is delivered, auto-updates */
+      var installForm = function () {
+        slot.innerHTML = '<div class="ghh-form">' + skel(2) + '</div>';
+        api('wordpress', { op: 'targets' }).then(function (r) {
+          var ts = r.targets || S.session.domains, langs = (r.languages || [['en', 'English']]).map(function (l) { return [l[0], _t(l[1])]; });
+          var deflang = RTL ? 'ar' : 'en';
+          formPanel(slot, _t('Install WordPress'),
+            fld('domain', _t('Domain'), { options: ts.map(function (d) { return [d, d]; }), value: ts.indexOf(S.domain) >= 0 ? S.domain : ts[0] }) +
+            fld('directory', _t('Folder (optional)'), { prefix: (ts.indexOf(S.domain) >= 0 ? S.domain : ts[0]) + '/', placeholder: 'blog', hint: _t('Leave empty to install on the domain itself.') }) +
+            fld('title', _t('Site title'), { required: true, plain: true, placeholder: _t('My website') }) +
+            fld('language', _t('Language'), { options: langs, value: deflang }) +
+            fld('adminUser', _t('Admin user name'), { required: true, placeholder: 'maria', hint: _t('Not "admin": a unique name is harder to guess.') }) +
+            fld('adminEmail', _t('Admin email'), { type: 'email', required: true, value: r.email || '', hint: _t('Password resets and WordPress notices go here.') }) +
+            '<fieldset class="ghh-fld ghh-fld--wide ghh-radios"><legend>' + _t('Admin password') + '</legend>' +
+            '<label class="ghh-radio"><input type="radio" name="deliver" value="show" checked><span><b>' + _t('Show it to me once') + '</b><small>' + _t('We create a strong password and show it after the install. Copy it to your password manager.') + '</small></span></label>' +
+            '<label class="ghh-radio"><input type="radio" name="deliver" value="email"><span><b>' + _t('Email me the login') + '</b><small>' + _t('The installer emails the login details to the admin email. The password is not shown here.') + '</small></span></label></fieldset>' +
+            '<fieldset class="ghh-fld ghh-fld--wide ghh-radios ghh-checks"><legend>' + _t('Automatic updates') + '</legend>' +
+            '<label class="ghh-check"><input type="checkbox" name="auCore" checked> ' + _t('WordPress security and minor updates') + '</label>' +
+            '<label class="ghh-check"><input type="checkbox" name="auPlugins"> ' + _t('Plugins') + '</label>' +
+            '<label class="ghh-check"><input type="checkbox" name="auThemes"> ' + _t('Themes') + '</label></fieldset>',
+            _t('Install WordPress'),
+            function (v) {
+              var f = slot.querySelector('form'), deliver = (f.querySelector('[name=deliver]:checked') || {}).value || 'show';
+              var prog = document.createElement('div'); prog.className = 'ghh-wpjob ghh-wpjob--inl'; prog.setAttribute('role', 'status');
+              var steps = [_t('Creating the database'), _t('Copying WordPress files'), _t('Setting up your admin account'), _t('Almost done')], si = 0;
+              prog.innerHTML = '<div class="ghh-wpjob__t"><b>' + _t('Installing WordPress') + '</b><span data-st>' + esc(steps[0]) + '…</span></div><div class="ghh-prog is-run is-ind" role="progressbar" aria-label="' + esc(_t('Installing WordPress')) + '"><i></i></div>';
+              f.querySelector('.ghh-form__foot').before(prog);
+              var tm = setInterval(function () { si = Math.min(si + 1, steps.length - 1); var st = prog.querySelector('[data-st]'); if (st) st.textContent = steps[si] + '…'; }, 9000);
+              return api('wordpress', null, { json: { op: 'install', domain: v.domain, directory: v.directory, title: v.title, language: v.language, adminUser: v.adminUser, adminEmail: v.adminEmail, deliver: deliver, autoUpdate: { core: !!v.auCore, plugins: !!v.auPlugins, themes: !!v.auThemes } } })
+                .then(function (res) { clearInterval(tm); setTimeout(function () { done(res); }, 0); load(true); }, function (e) { clearInterval(tm); prog.remove(); throw e; });
+            });
+          var f = slot.querySelector('form'), dsel = f.querySelector('[name=domain]'), pre = f.querySelector('[data-f=directory] .ghh-addon');
+          if (dsel && pre) dsel.onchange = function () { pre.textContent = dsel.value + '/'; };
+        }, function (e) { slot.innerHTML = ''; fail(e); });
+      };
+      /* after the install: the password exactly once, with copy; never stored in the page beyond this card */
+      var done = function (r) {
+        var pw = r.password || '';
+        slot.innerHTML = '<section class="ghh-wpdone" role="status" aria-labelledby="ghh-wpd-t"><div class="ghh-wpdone__head"><span class="ghh-wpdone__mk" aria-hidden="true">' + ic('wordpress', 20) + '</span><div><h4 id="ghh-wpd-t">' + (r.pending ? _t('WordPress is almost ready') : _t('WordPress is ready')) + '</h4><p>' + esc(L10N.srv(r.message)) + '</p></div></div>' +
+          '<dl class="ghh-wpdone__dl"><div><dt>' + _t('Website') + '</dt><dd><a href="' + esc(r.site.url) + '" target="_blank" rel="noopener"><bdi dir="ltr">' + esc(r.site.url.replace(/^https?:\/\//, '')) + '</bdi></a></dd></div>' +
+          '<div><dt>' + _t('Admin user') + '</dt><dd><code>' + esc(r.adminUser) + '</code>' + copyBtn(r.adminUser, _t('Admin user')) + '</dd></div>' +
+          (pw ? '<div class="ghh-wpdone__pw"><dt>' + _t('Admin password') + '</dt><dd><code data-pw>' + esc(pw) + '</code>' + copyBtn(pw, _t('Admin password')) + '</dd></div>' : '<div><dt>' + _t('Login details') + '</dt><dd>' + esc(_t('Emailed to {email}', { email: r.emailedTo || '' })) + '</dd></div>') + '</dl>' +
+          (pw ? '<p class="ghh-wpdone__warn">' + ic('alert', 15) + '<span>' + esc(_t('This password is shown only now and is not saved anywhere. Copy it before you close this box. You can always log in with "Log in to WP admin" here.')) + '</span></p>' : '') +
+          '<div class="ghh-wpdone__foot"><button type="button" class="ghh-btn" data-close>' + _t('Done') + '</button>' + (cw('login') && !r.pending ? '<button type="button" class="ghh-btn ghh-btn--pri" data-in>' + ic('ext', 14) + ' ' + _t('Log in to WP admin') + '</button>' : '<a class="ghh-btn ghh-btn--pri" href="' + esc(r.site.adminUrl) + '" target="_blank" rel="noopener">' + ic('ext', 14) + ' ' + _t('Open WP admin') + '</a>') + '</div></section>';
+        pw = '';
+        var c = slot.querySelector('[data-close]'); c.onclick = function () { slot.innerHTML = ''; }; c.focus();
+        var inb = slot.querySelector('[data-in]');
+        if (inb) inb.onclick = function () { var s = sites.filter(function (x) { return x.url.replace(/\/+$/, '') === r.site.url.replace(/\/+$/, ''); })[0]; if (s) login(s, inb); else api('wordpress').then(function (x) { sites = x.sites || []; render(); var s2 = sites.filter(function (y) { return y.url.replace(/\/+$/, '') === r.site.url.replace(/\/+$/, ''); })[0]; if (s2) login(s2, inb); else window.open(r.site.adminUrl, '_blank', 'noopener'); }); };
+      };
+      /* staging form: a sub-folder (example.com/staging) or a subdomain (staging.example.com) */
+      var stagingForm = function (s) {
+        var base = s.domain || '';
+        formPanel(slot, _t('Create a staging copy of {site}', { site: wpWhere(s) }),
+          '<fieldset class="ghh-fld ghh-fld--wide ghh-radios ghh-radios--row"><legend>' + _t('Where') + '</legend>' +
+          '<label class="ghh-radio"><input type="radio" name="mode" value="dir" checked><span><b>' + _t('Sub-folder') + '</b><small dir="ltr">' + esc(base + '/staging') + '</small></span></label>' +
+          '<label class="ghh-radio"><input type="radio" name="mode" value="sub"><span><b>' + _t('Subdomain') + '</b><small dir="ltr">' + esc('staging.' + base) + '</small></span></label></fieldset>' +
+          fld('directory', _t('Folder'), { prefix: base + '/', value: (s.directory ? s.directory + '-' : '') + 'staging', required: true }) +
+          fld('label', _t('Subdomain'), { suffix: '.' + base, value: 'staging', hidden: true }) +
+          '<p class="ghh-note ghh-fld--wide">' + esc(_t('The copy gets its own files and database. Visitors keep seeing the live site. When you are happy, use "Push to live".')) + '</p>',
+          _t('Create staging copy'),
+          function (v) {
+            var mode = (slot.querySelector('[name=mode]:checked') || {}).value || 'dir';
+            return api('wordpress', null, { json: { op: 'staging', id: s.id, mode: mode, directory: v.directory, label: v.label } }).then(function (r) { jobDone(r, _t('Staging copy of {site}', { site: wpWhere(s) })); });
+          });
+        var f = slot.querySelector('form'), dir = f.querySelector('[data-f=directory]'), lab = f.querySelector('[data-f=label]');
+        [].forEach.call(f.querySelectorAll('[name=mode]'), function (r) { r.onchange = function () { var sub = f.querySelector('[name=mode]:checked').value === 'sub'; dir.hidden = sub; lab.hidden = !sub; dir.querySelector('input').required = !sub; lab.querySelector('input').required = sub; }; });
+      };
+      var add = body.querySelector('[data-add]'); if (add) add.onclick = installForm;
+      body.querySelector('[data-re]').onclick = function () { load(); };
+      WP_VIEW = { load: load };
+      wpDraw(); // jobs still running from before
+      load();
     }
 
     /* ------------------------------------------------------------ SSL */

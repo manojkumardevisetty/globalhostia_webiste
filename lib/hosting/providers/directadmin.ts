@@ -7,6 +7,8 @@ import { PanelError, type Account, type Redirect, type Backup, type Caps, type D
 import { fqdn, dnsName, type DnsInput } from '../validate';
 import { attrs, daError, isHtml, parseDa, parseDaZone, toList } from './directadmin-parse';
 import { call, fromId, idOf, readCapped } from './http';
+import { softaculous } from './softaculous';
+import { mergeSites } from '../wordpress';
 import { daUsage, parseCron, parsePhp, parsePointers, parseRedirects, parseVacations, parseWpSites, parseProtected, spamFrom, ftpTypeFor } from './directadmin-parse';
 
 /** Every DirectAdmin command this adapter can send; the Login Key's "Commands" list should allow exactly these. */
@@ -20,6 +22,8 @@ export const DA_COMMANDS = [
   'CMD_API_ADDITIONAL_DOMAINS', 'CMD_API_DOMAIN', // PHP version: read (action=view) / switch (action=php_selector only)
   'CMD_API_EMAIL_AUTORESPONDER', 'CMD_API_EMAIL_VACATION', 'CMD_API_SPAMASSASSIN',
   'CMD_API_FTP', 'CMD_API_CRON_JOBS',
+  // WordPress tab: Softaculous end-user API through the DirectAdmin plugin (/CMD_PLUGINS/softaculous/index.raw, softaculous.ts)
+  'CMD_PLUGINS',
 ] as const;
 /** New JSON API endpoints used (DirectAdmin 1.6x+), read-only, as the account user. */
 export const DA_JSON_ENDPOINTS = ['GET /api/web-protect/list', 'GET /api/wordpress/locations'] as const;
@@ -86,8 +90,13 @@ export const DA_CAPS: Caps = {
   ftp: ['list', 'create', 'delete', 'password'],
   cron: ['list', 'add', 'delete'],
   protect: ['list', 'add', 'delete'],
-  wordpress: ['list'], // kept only when detect() finds DirectAdmin's WordPress manager
+  // list: Softaculous or DirectAdmin's WordPress manager; the rest needs Softaculous (detect() trims this per account)
+  wordpress: ['list', 'install', 'login', 'staging', 'push', 'delete', 'backup', 'upgrade'],
 };
+export const WP_WRITE_CAPS = ['install', 'login', 'staging', 'push', 'delete', 'backup', 'upgrade'];
+
+// per account: does Softaculous answer / does DirectAdmin's WordPress manager answer (10 min)
+const wpProbe = new Map<string, { soft: boolean; native: boolean; until: number }>();
 
 const MB = 1048576;
 const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
@@ -292,10 +301,22 @@ export function directAdmin(acct: Account): HostingProvider {
     return daUsage(use, conf);
   };
 
+  const soft = softaculous(s.url, auth(s, u));
+  const probeKey = `${s.id}|${u}`;
+  const probeWp = async () => {
+    const hit = wpProbe.get(probeKey);
+    if (hit && hit.until > Date.now()) return hit;
+    const [sw, nat] = await Promise.all([soft.installations(10_000).then(() => true, () => false), jsonApi(s, u, '/api/wordpress/locations').then(() => true, () => false)]);
+    const v = { soft: sw, native: nat, until: Date.now() + 600_000 };
+    if (wpProbe.size > 2000) wpProbe.clear();
+    wpProbe.set(probeKey, v);
+    return v;
+  };
+
   P.detect = async () => {
     const drop: Caps = {};
-    const wp = await jsonApi(s, u, '/api/wordpress/locations').then(() => true, () => false);
-    if (!wp) drop.wordpress = [];
+    const wp = await probeWp();
+    if (!wp.soft) drop.wordpress = wp.native ? ['list'] : [];
     return drop;
   };
 
@@ -397,7 +418,25 @@ export function directAdmin(acct: Account): HostingProvider {
     remove: async (domain) => { await post('CMD_API_DOMAIN', { delete: 'yes', confirmed: 'yes', select0: domain }); },
   };
 
-  P.wordpress = { list: async () => { const j = await jsonApi(s, u, '/api/wordpress/locations'); const a = Array.isArray(j) ? j : j?.locations || j?.data || []; if (a[0]) console.log('[hosting] wp keys', JSON.stringify(Object.keys(a[0])), a[0]?.wordpress ? JSON.stringify(Object.keys(a[0].wordpress)) : ''); return parseWpSites(j); } };
+  // WordPress: Softaculous installs (manageable) + DirectAdmin's own WordPress manager list (installs made outside
+  // Softaculous, listed only). Either source may be missing on a server.
+  const nativeSites = async () => parseWpSites(await jsonApi(s, u, '/api/wordpress/locations'));
+  P.wordpress = {
+    async list() {
+      const wp = await probeWp();
+      if (!wp.soft) return nativeSites();
+      const [managed, native] = await Promise.all([soft.installations(), wp.native ? nativeSites().catch(() => []) : Promise.resolve([])]);
+      return mergeSites(managed, native);
+    },
+    install: (i) => soft.install(i),
+    signOn: (id) => soft.signOn(id),
+    staging: (id, domain, dir, https) => soft.staging(id, domain, dir, https),
+    pushLive: (id) => soft.pushLive(id),
+    remove: (id) => soft.remove(id),
+    backup: (id) => soft.backup(id),
+    upgrade: (id) => soft.upgrade(id),
+    task: (key) => soft.task(key),
+  };
 
   return P;
 }

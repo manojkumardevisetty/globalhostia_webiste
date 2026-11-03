@@ -81,7 +81,11 @@ CMD_API_EMAIL_VACATION
 CMD_API_SPAMASSASSIN
 CMD_API_FTP
 CMD_API_CRON_JOBS
+CMD_PLUGINS
 ```
+
+`CMD_PLUGINS` (added for the WordPress tab) lets the key open DirectAdmin plugins as the customer, which is how the
+panel reaches Softaculous. See "WordPress (Softaculous)" below.
 
 The last twelve were added with the second feature set (Overview, subdomains, aliases, redirects, PHP version,
 autoresponders, vacation, spam filter, FTP, cron, protected folders). If you created the key before, edit it and tick them.
@@ -113,6 +117,46 @@ Give it the ACLs to list accounts and to call the cPanel API as the account user
 
 On the server: `plesk bin secret_key --create -description "globalhostia-hosting"` (add `-ip-address <ip>` only if you have a fixed egress IP).
 Paste the printed key. Panel URL: `https://<host>:8443`, API user: `admin`.
+
+### WordPress (Softaculous)
+
+The WordPress tab (install, one-click "Log in to WP admin", staging, push to live, backup, core update, delete) talks to
+the Softaculous end-user API through the DirectAdmin plugin, as the customer, with the same Login Key and login-as:
+
+```
+GET|POST https://<panel host>:2222/CMD_PLUGINS/softaculous/index.raw?api=json&act=<action>&…
+Authorization: Basic base64("<admin or reseller>|<customer>:<login key>")
+```
+
+Actions used (softaculous.com/docs/api/api and /remote-api): `installations` (with `showupdates=true`), `software&soft=26`
+(install WordPress), `sign_on` (auto-login URL), `staging`, `pushtolive`, `eu_tasklist&ssk=<key>` (progress of staging /
+push), `backup`, `upgrade`, `remove`. Nothing else is sent.
+
+**On every DirectAdmin server (usada400 reseller `ofgizflz`, Globalhostia USA 198.251.89.82, Singapore dasg1.hostypanel.com):**
+
+1. DirectAdmin, logged in as the key's user → **Login Keys** → edit `globalhostia-hosting` → in **Commands** tick
+   **`CMD_PLUGINS`** (keep everything else as it is) → Save. Leave "Allow HTM" off.
+2. Make sure Softaculous is installed on the server and enabled in the customers' packages (Softaculous admin →
+   "Disable Softaculous for" must not list the package / user).
+3. Softaculous itself calls DirectAdmin while installing (domains, databases, subdomains, files). With login-key
+   access those internal calls use the same key, so the key also needs the commands that are already on the list:
+   `CMD_API_SHOW_DOMAINS`, `CMD_API_DATABASES`, `CMD_API_DB_USER`, `CMD_API_SUBDOMAINS`, `CMD_API_FILE_MANAGER`.
+   If installs fail with a database or domain error while the same install works inside DirectAdmin, add
+   `CMD_API_ADDITIONAL_DOMAINS`, `CMD_API_SHOW_USER_CONFIG` and `CMD_API_SHOW_USER_USAGE` (already on the list) and,
+   as a last resort, temporarily allow all commands to find which one Softaculous needs, then narrow it again.
+4. Test: open a customer's service page → Manage hosting → WordPress. Without `CMD_PLUGINS` the tab falls back to
+   DirectAdmin's own WordPress list (read-only) or is hidden; the server log shows
+   `[hosting] panel … the login key must allow CMD_PLUGINS`.
+
+The panel detects Softaculous per account (cached 10 minutes), so after ticking the command wait up to 10 minutes or
+redeploy. cPanel and Plesk servers do not offer the write actions yet (no Softaculous adapter for them).
+
+Security: the admin password for a new site is generated on globalhostia.com (20 characters), sent only to Softaculous
+and shown to the customer once in the panel ("Show it to me once") or not at all ("Email me the login": Softaculous
+emails the details to the admin email via its `emailto` field). It is never written to the audit log, server logs or
+error messages. Every action is audited as `hosting.wordpress.<op>` with the site id / address. Destructive actions need
+confirmation: push to live (`confirm: true`) and delete (the site address typed by the customer). Installs, staging,
+push, delete, backup and update are limited to 10 per client per 10 minutes, logins to 20 per minute.
 
 ## 3. Shared secret for the WHMCS hook
 

@@ -12,6 +12,7 @@ import { evaluate } from '@/lib/hosting/health';
 import { cachedHealth, connectStatus, gatherHealth, pool, scanDomains, serverIpFor, type ProbeEnv } from '@/lib/hosting/health-probe';
 import { mailSettings, mobileconfig, settingsText } from '@/lib/hosting/mailsetup';
 import { PANEL_LABEL, type Section } from '@/lib/hosting/types';
+import { wpGet, wpPost } from '@/lib/hosting/wordpress-api';
 import {
   cronCommand, cronField, CRON_FIELDS, ftpUser, httpUrl, httpUser, isoDate, messageText, realm, redirectType, spamSettings, subLabel, urlPath, domainName,
   dbFullName, dbSuffix, dnsRecord, emailAddress, isEditable, joinPath, mailUser, MAX_EDIT_BYTES, MAX_TRANSFER_BYTES,
@@ -117,7 +118,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ section:
       }
       case 'protect': { need(ctx, 'protect', 'list'); return ok(req, { folders: await p.protect!.list() }); }
       case 'cron': { need(ctx, 'cron', 'list'); return ok(req, { jobs: await p.cron!.list() }); }
-      case 'wordpress': { need(ctx, 'wordpress', 'list'); return ok(req, { sites: await p.wordpress!.list() }); }
+      case 'wordpress': { need(ctx, 'wordpress', 'list'); return ok(req, await wpGet(ctx, op, q)); }
       case 'dns': {
         need(ctx, 'dns', 'list');
         const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
@@ -222,6 +223,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ section
     const op = String(b.op || '');
     action = `${section}.${op}`;
     let message = 'Done';
+    let extra: Record<string, unknown> = {}; // section-specific answer fields (never written to the audit log)
 
     switch (section) {
       case 'dns': {
@@ -455,12 +457,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ section
         } else throw new InputError('Unknown operation');
         break;
       }
+      case 'wordpress': {
+        const r = await wpPost(ctx, op, b);
+        detail = r.detail; message = r.message; extra = r.extra;
+        break;
+      }
       default: throw new HttpError(405, 'Read-only section', 'invalid');
     }
     await auditHosting(ctx, action, detail);
-    return ok(req, { ok: true, message });
+    return ok(req, { ok: true, message, ...extra });
   } catch (e) {
-    if (ctx && action) await auditHosting(ctx, action, { ...detail, error: String((e as any)?.message || e).slice(0, 200) }, false);
+    if (ctx && action) await auditHosting(ctx, action, { ...detail, ...((e as any)?.wpDetail || {}), error: String((e as any)?.message || e).slice(0, 200) }, false);
     return errorResponse(req, e);
   }
 }

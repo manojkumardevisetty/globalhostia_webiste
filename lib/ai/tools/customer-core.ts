@@ -13,7 +13,7 @@ export interface Proposal {
   [k: string]: unknown;
   type: 'proposal';
   id: string;
-  kind: 'dns.add' | 'email.create' | 'ssl.issue' | 'ticket.open';
+  kind: 'dns.add' | 'email.create' | 'ssl.issue' | 'ticket.open' | 'wp.install';
   title: string;
   summary: string;
   rows: { k: string; v: string }[];
@@ -35,7 +35,9 @@ export interface CustomerDeps {
   health(ctx: CustomerCtx, domain: string): Promise<any>;
   mail(ctx: CustomerCtx, domain: string): Promise<any>;
   mailboxes?(ctx: CustomerCtx, domain: string): Promise<any[]>;
-  caps(ctx: CustomerCtx): Promise<{ dnsAdd: boolean; mailCreate: boolean; sslIssue: boolean }>;
+  caps(ctx: CustomerCtx): Promise<{ dnsAdd: boolean; mailCreate: boolean; sslIssue: boolean; wpInstall?: boolean }>;
+  /** hosting panel only: WordPress sites on the account (Softaculous + DirectAdmin list) */
+  wordpress?(ctx: CustomerCtx): Promise<any[]>;
   /** portal only: WHMCS domain id for the account DNS editor form */
   domainId?(ctx: CustomerCtx, domain: string): Promise<number | null>;
   departments(): Promise<{ id: number; name: string }[]>;
@@ -178,6 +180,36 @@ export const customerTools: AiTool<CustomerCtx>[] = [
         rows: [{ k: 'Domain', v: d }, { k: 'Include www', v: www ? 'Yes' : 'No' }], confirmLabel: 'Issue certificate',
         request: { method: 'POST', path: '/api/hosting/ssl', auth: 'hosting', json: { op: 'issue', domain: d, www } } };
       return { text: 'Proposal shown; nothing changes until the customer confirms.', ui: [p] };
+    },
+  },
+  {
+    name: 'list_wordpress_sites', scope: 'customer', kind: 'read', description: 'WordPress sites on this hosting account: address, version, available update, staging copies. Hosting panel only.',
+    input_schema: S({}),
+    async run(_a, ctx) {
+      if (ctx.via !== 'hosting' || !ctx.deps.wordpress) throw new ToolError('WordPress sites are listed in the hosting panel (Manage hosting > WordPress).');
+      const l = await ctx.deps.wordpress(ctx);
+      return { text: JSON.stringify(l.slice(0, 40).map((w) => pickFields(w, ['url', 'version', 'newVersion', 'staging', 'siteName', 'managed']))) || '[]' };
+    },
+  },
+  {
+    name: 'propose_wordpress_install', scope: 'customer', kind: 'propose',
+    description: 'Propose installing WordPress on one of the customer\'s domains (optional folder). The customer confirms in a card; the login details are emailed to the admin email (never shown in chat). Hosting panel only.',
+    input_schema: S({ domain: { type: 'string' }, directory: { type: 'string', description: 'folder, empty for the domain itself' }, title: { type: 'string' }, admin_user: { type: 'string' }, admin_email: { type: 'string' }, language: { type: 'string', description: 'e.g. en, ar, fr_FR' } }, ['domain', 'title', 'admin_user', 'admin_email']),
+    async run(a, ctx) {
+      if (ctx.via !== 'hosting') throw new ToolError('WordPress is installed from the hosting panel (Manage hosting > WordPress).');
+      const d = await ownedDomain(ctx, a.domain);
+      if (!(await ctx.deps.caps(ctx)).wpInstall) throw new ToolError('One-click WordPress install is not available on this hosting plan.');
+      const dir = s(a.directory, 64).replace(/^\/+|\/+$/g, '');
+      if (dir && !/^[a-z0-9_-]+(\/[a-z0-9_-]+){0,2}$/i.test(dir)) throw new ToolError('Folder: letters, digits, - or _.');
+      const title = s(a.title, 80), user = s(a.admin_user, 32), email = s(a.admin_email, 254).toLowerCase(), language = s(a.language, 10) || 'en';
+      if (!title || !/^[a-zA-Z0-9][a-zA-Z0-9._-]{2,31}$/.test(user) || /^(admin|administrator|root)$/i.test(user)) throw new ToolError('Give a site title and an admin user name (3-32 letters or digits, not "admin").');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new ToolError('Give a valid admin email.');
+      const where = d + (dir ? `/${dir}` : '');
+      const p: Proposal = { type: 'proposal', id: pid(), kind: 'wp.install', title: 'Install WordPress', summary: `Install WordPress on ${where}.`,
+        rows: [{ k: 'Address', v: where }, { k: 'Site title', v: title }, { k: 'Admin user', v: user }, { k: 'Admin email', v: email }, { k: 'Language', v: language }],
+        confirmLabel: 'Install WordPress',
+        request: { method: 'POST', path: '/api/hosting/wordpress', auth: 'hosting', json: { op: 'install', domain: d, directory: dir, title, adminUser: user, adminEmail: email, language, deliver: 'email' } } };
+      return { text: 'Proposal shown; WordPress is installed only when the customer confirms. The login details go to the admin email.', ui: [p] };
     },
   },
   {

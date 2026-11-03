@@ -99,6 +99,9 @@ export function hostingDeps(h: HostingCtx): CustomerDeps {
     },
     mail: async (_ctx, d) => mailSettings(d, new URL(h.acct.server.url).hostname),
     mailboxes: async (_ctx, d) => (has('email', 'list') ? h.p.email!.list(d) : []),
-    caps: async () => ({ dnsAdd: has('dns', 'add'), mailCreate: has('email', 'create'), sslIssue: has('ssl', 'issue') }),
+    caps: async () => ({ dnsAdd: has('dns', 'add'), mailCreate: has('email', 'create'), sslIssue: has('ssl', 'issue'),
+      // static caps say "install" for every DirectAdmin account; detect() knows whether Softaculous really answers
+      wpInstall: has('wordpress', 'install') && !!h.p.wordpress?.install && (h.p.detect ? ((await h.p.detect().catch(() => ({}) as any)).wordpress ?? h.p.caps.wordpress ?? []).includes('install') : true) }),
+    wordpress: async () => (has('wordpress', 'list') && h.p.wordpress ? h.p.wordpress.list() : []),
   };
 }
