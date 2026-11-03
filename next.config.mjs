@@ -65,6 +65,13 @@ export default {
         { source: '/.well-known/agent.json', destination: '/api/well-known/agent-card' },
         // MCP Registry HTTP domain verification (value set by the owner in Admin > AI & MCP)
         { source: '/.well-known/mcp-registry-auth', destination: '/api/well-known/mcp-registry-auth' },
+        // AI connector OAuth: RFC 9728 protected resource metadata (bare and path-suffixed), RFC 8414 server metadata,
+        // OpenAI app domain verification (lib/oauth/*, app/oauth/*, app/mcp/*)
+        { source: '/.well-known/oauth-protected-resource', destination: '/api/well-known/oauth-protected-resource' },
+        { source: '/.well-known/oauth-protected-resource/mcp', destination: '/api/well-known/oauth-protected-resource' },
+        { source: '/.well-known/oauth-protected-resource/mcp/chatgpt', destination: '/api/well-known/oauth-protected-resource/chatgpt' },
+        { source: '/.well-known/oauth-authorization-server', destination: '/api/well-known/oauth-authorization-server' },
+        { source: '/.well-known/openai-apps-challenge', destination: '/api/well-known/openai-apps-challenge' },
       ],
       fallback: [],
     };

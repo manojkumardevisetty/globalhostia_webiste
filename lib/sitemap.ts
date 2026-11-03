@@ -76,6 +76,8 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
   if (!db_) add('/', themeMod);
   for (const p of prods) add(`/p/${p.slug}`, maxDate(p.updatedAt) || catalogMod);
   add('/ai', themeMod);
+  add('/connectors', themeMod);
+  add('/docs/mcp', themeMod);
   for (const l of lps) add(`/lp/${l.slug}`, maxDate(l.updatedAt, catalogMod));
   if (posts.length) {
     const newest = maxDate(...posts.map((p) => p.updatedAt));
@@ -108,7 +110,7 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
 /** Every theme route, with no data at all: what /sitemap.xml answers when even the snapshot is missing. */
 export function staticSitemapEntries(base = 'https://globalhostia.com'): SitemapEntry[] {
   const now = iso(Date.now());
-  const paths = ['/', '/ai', ...[...THEME_ONLY].map((s) => `/${s}`), ...Object.entries(ROUTES)
+  const paths = ['/', '/ai', '/connectors', '/docs/mcp', ...[...THEME_ONLY].map((s) => `/${s}`), ...Object.entries(ROUTES)
     .filter(([slug, r]) => slug !== 'index' && r.kind !== 'auth' && !NOINDEX_SLUGS.has(slug) && !ALIAS_SLUGS.includes(slug) && !SITEMAP_EXCLUDE.has(slug))
     .map(([slug]) => `/${slug}`)];
   return [...new Set(paths)].map((p) => ({ loc: base + p, lastmod: now }));

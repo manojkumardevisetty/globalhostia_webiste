@@ -10,6 +10,7 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const SOURCES = [
   ...fs.readdirSync(path.join(ROOT, 'lib/portal/views')).map((f) => `lib/portal/views/${f}`),
   'lib/portal/push.ts', 'lib/portal/palette.ts', 'app/account/[[...slug]]/route.ts',
+  'app/account/apps/route.ts', 'app/oauth/authorize/route.ts', 'lib/connector/consent-view.ts',
 ];
 const LIT = `'((?:[^'\\\\]|\\\\.)*)'|"((?:[^"\\\\]|\\\\.)*)"`;
 const unq = (s: string) => s.replace(/\\(['"\\])/g, '$1');

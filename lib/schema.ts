@@ -458,3 +458,63 @@ export const contentIdeas = pgTable('content_ideas', {
   updatedAt: now('updated_at'),
 }, (t) => [index('content_ideas_state_idx').on(t.state, t.plannedFor), index('content_ideas_post_idx').on(t.postId)]);
 export type ContentIdea = typeof contentIdeas.$inferSelect;
+
+// AI connector (Claude / ChatGPT) OAuth 2.1 authorization server (lib/oauth/*). Tokens and codes are stored only as
+// SHA-256 hashes. A grant is one customer consent for one client; codes and tokens hang off it, so revoking the grant
+// (Account → Connected apps, Admin → AI connectors) kills every token at once. Created by db-setup patch '032-oauth'.
+export const oauthClients = pgTable('oauth_clients', {
+  id: text('id').primaryKey(), // client_id: random for DCR, the https URL for a Client ID Metadata Document
+  kind: text('kind').notNull(), // dcr | cimd
+  name: text('name').notNull().default(''),
+  redirectUris: jsonb('redirect_uris').$type<string[]>().notNull().default([]),
+  platform: text('platform').notNull().default('other'), // claude | chatgpt | inspector | other
+  flagged: boolean('flagged').notNull().default(false), // redirect URI outside the known assistants and loopback
+  authMethod: text('auth_method').notNull().default('none'),
+  secretHash: text('secret_hash'),
+  clientUri: text('client_uri'),
+  logoUri: text('logo_uri'),
+  disabled: boolean('disabled').notNull().default(false),
+  fetchedAt: timestamp('fetched_at', { withTimezone: true }), // CIMD: last successful fetch
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  createdAt: now('created_at'),
+});
+export type OauthClient = typeof oauthClients.$inferSelect;
+
+export const oauthGrants = pgTable('oauth_grants', {
+  id: id(),
+  clientId: text('client_id').notNull(),
+  whmcsClientId: integer('whmcs_client_id').notNull(),
+  userEmail: text('user_email').notNull().default(''),
+  scopes: jsonb('scopes').$type<string[]>().notNull().default([]),
+  resource: text('resource').notNull(),
+  createdAt: now('created_at'),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  revokedBy: text('revoked_by').notNull().default(''),
+}, (t) => [index('oauth_grants_client_idx').on(t.whmcsClientId), index('oauth_grants_app_idx').on(t.clientId)]);
+export type OauthGrant = typeof oauthGrants.$inferSelect;
+
+export const oauthCodes = pgTable('oauth_codes', {
+  hash: text('hash').primaryKey(),
+  grantId: text('grant_id').notNull(),
+  clientId: text('client_id').notNull(),
+  redirectUri: text('redirect_uri').notNull(),
+  codeChallenge: text('code_challenge').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  usedAt: timestamp('used_at', { withTimezone: true }),
+});
+
+export const oauthTokens = pgTable('oauth_tokens', {
+  hash: text('hash').primaryKey(),
+  kind: text('kind').notNull(), // access | refresh
+  grantId: text('grant_id').notNull(),
+  clientId: text('client_id').notNull(),
+  whmcsClientId: integer('whmcs_client_id').notNull(),
+  scopes: jsonb('scopes').$type<string[]>().notNull().default([]),
+  resource: text('resource').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  usedAt: timestamp('used_at', { withTimezone: true }), // refresh: rotated (a second use revokes the grant)
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  createdAt: now('created_at'),
+}, (t) => [index('oauth_tokens_grant_idx').on(t.grantId), index('oauth_tokens_exp_idx').on(t.expiresAt)]);

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="GlobalHostia">
+  <title>GlobalHostia</title>
+  <defs>
+    <linearGradient id="gw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD400"/><stop offset="1" stop-color="#A79400"/></linearGradient>
+    <linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4C800"/><stop offset="1" stop-color="#A59200"/></linearGradient>
+  </defs>
+  <path d="M256 30 452 143 256 256 60 143Z" fill="#E14E7D"/>
+  <path d="M60 143 256 256V482L60 368Z" fill="#A6225F"/>
+  <path d="M452 143 256 256V482L452 368Z" fill="#C4366C"/>
+  <path d="M128 182 258 106 322 143 192 218Z" fill="#FFD400"/>
+  <path d="M128 182 192 218V292L128 330Z" fill="url(#gw)"/>
+  <path d="M128 330 192 292 256 330 322 292 386 330 256 405Z" fill="#FFD400"/>
+  <path d="M192 218 256 255V330L192 292Z" fill="#A6225F"/>
+  <path d="M258 256 322 220 386 257V330L322 292Z" fill="url(#gr)"/>
+  <path d="M256 255 258 256 322 292 256 330Z" fill="#C4366C"/>
+</svg>

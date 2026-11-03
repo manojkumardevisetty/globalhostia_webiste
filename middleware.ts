@@ -52,5 +52,5 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ['/admin/:path*', '/api/admin/:path*',
     // public HTML pages only: skip API, Next internals, static assets and files with an extension
-    '/((?!api|_next|hp|image|assets|css|js|fonts|plugins|lang|previews|og|account|template-part|sitemap|robots|favicon|.*\\.[a-z0-9]+$).*)'],
+    '/((?!api|_next|hp|image|assets|css|js|fonts|plugins|lang|previews|og|account|oauth/|mcp$|mcp/|\\.well-known/|template-part|sitemap|robots|favicon|.*\\.[a-z0-9]+$).*)'],
 };

@@ -502,6 +502,59 @@ try {
           values (${id()}, ${i.track}, ${i.title}, ${i.primaryKeyword}, ${JSON.stringify(i.secondaryKeywords)}::jsonb, ${i.intent}, ${i.country}, ${i.target}, ${i.slug}, ${i.priority}, ${i.rationale}, 'seed', 'idea')`;
       }
     },
+    // 32. AI connector OAuth server (lib/oauth/*): registered clients, consents (grants), one-time codes, hashed tokens.
+    '032-oauth': async (tx) => {
+      await tx`create table if not exists oauth_clients (
+        id text primary key, kind text not null, name text not null default '', redirect_uris jsonb not null default '[]'::jsonb,
+        platform text not null default 'other', flagged boolean not null default false, auth_method text not null default 'none', secret_hash text,
+        client_uri text, logo_uri text, disabled boolean not null default false, fetched_at timestamptz, last_used_at timestamptz,
+        created_at timestamptz not null default now())`;
+      await tx`create table if not exists oauth_grants (
+        id text primary key, client_id text not null, whmcs_client_id integer not null, user_email text not null default '',
+        scopes jsonb not null default '[]'::jsonb, resource text not null, created_at timestamptz not null default now(), last_used_at timestamptz,
+        expires_at timestamptz not null, revoked_at timestamptz, revoked_by text not null default '')`;
+      await tx`create index if not exists oauth_grants_client_idx on oauth_grants (whmcs_client_id)`;
+      await tx`create index if not exists oauth_grants_app_idx on oauth_grants (client_id)`;
+      await tx`create table if not exists oauth_codes (
+        hash text primary key, grant_id text not null, client_id text not null, redirect_uri text not null, code_challenge text not null,
+        expires_at timestamptz not null, used_at timestamptz)`;
+      await tx`create table if not exists oauth_tokens (
+        hash text primary key, kind text not null, grant_id text not null, client_id text not null, whmcs_client_id integer not null,
+        scopes jsonb not null default '[]'::jsonb, resource text not null, expires_at timestamptz not null, used_at timestamptz, revoked_at timestamptz,
+        created_at timestamptz not null default now())`;
+      await tx`create index if not exists oauth_tokens_grant_idx on oauth_tokens (grant_id)`;
+      await tx`create index if not exists oauth_tokens_exp_idx on oauth_tokens (expires_at)`;
+    },
+    // 33. Connector data handling in the existing legal pages (one extra section each, editable in Admin → Pages).
+    '033-connector-legal': async (tx) => {
+      const add = async (slug, name, html) => {
+        const [p] = await tx`select id from pages where slug = ${slug}`;
+        if (!p) return;
+        const [have] = await tx`select id from sections where page_id = ${p.id} and name = ${name}`;
+        if (have) return;
+        const [{ n }] = await tx`select coalesce(max(sort_order), 0)::int + 1 n from sections where page_id = ${p.id}`;
+        await tx`insert into sections (id, page_id, type, name, sort_order, visible, html, data) values (${id()}, ${p.id}, 'html', ${name}, ${n}, true, ${html}, '{}'::jsonb)`;
+      };
+      await add('privacy-policy', 'AI assistant connectors', `<section id="ai-connectors"><h2>AI assistant connectors (Claude, ChatGPT)</h2>
+<p>You can connect your GlobalHostia account to an AI assistant such as Claude (by Anthropic) or ChatGPT (by OpenAI) so the assistant can look up and manage your services for you. This section explains what happens to your data when you do.</p>
+<h3>What the assistant can access</h3>
+<ul><li>Nothing until you sign in on globalhostia.com and approve the connection on our consent page.</li>
+<li>Only the permissions you approve: for example your services and domains, DNS records, invoices and support tickets, and, if you allow it, changing DNS records, mailboxes, SSL certificates, domain settings and tickets.</li>
+<li>Only your own account. Every request is checked against the account you signed in with.</li>
+<li>An assistant can never pay, change your password, see card details, read service passwords or delete your account. Purchases and renewals always finish on globalhostia.com, where you review and pay yourself.</li></ul>
+<h3>What we store</h3>
+<ul><li>The connection: which app you connected, the permissions you approved, when you connected and when it was last used.</li>
+<li>Access tokens, stored only in a one-way hashed form. Access tokens expire after one hour; refresh tokens expire after 60 days without use and at the latest 90 days after you approved the connection.</li>
+<li>An activity record of each action taken through a connector (the action, the time, the app and the domain or item it applied to), as part of our account security logs. We never store your conversation with the assistant.</li></ul>
+<h3>What the assistant provider receives</h3>
+<p>The assistant receives the results of the actions it asks for, such as a list of your domains, and shows them in your conversation. The provider handles that information under its own privacy policy and your settings with them.</p>
+<h3>No training, no sale</h3>
+<p>We do not use data from connectors to train AI models, and we do not sell or share it for advertising.</p>
+<h3>Removing access</h3>
+<p>Disconnect at any time in your account under App &amp; notifications, Connected apps, or from the assistant's own connector settings. Disconnecting revokes every token for that app immediately. You can also ask our support team to remove a connection.</p></section>`);
+      await add('terms-conditions', 'AI assistant connectors', `<section id="ai-connectors"><h2>AI assistant connectors</h2>
+<p>If you connect your account to an AI assistant, actions the assistant takes with the permissions you approved are treated as actions you requested on your account. Review what the assistant proposes before you confirm changes, especially deleting DNS records or mailboxes and changing nameservers. Orders, renewals and payments are never completed by an assistant: they finish on globalhostia.com. You can revoke a connection at any time in your account under Connected apps. We may suspend connector access to protect your account or our services.</p></section>`);
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

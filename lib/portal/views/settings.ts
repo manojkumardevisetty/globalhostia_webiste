@@ -54,5 +54,8 @@ export function settingsView(o: { csrf: string; publicKey: string | null; device
       <li>${icon('settings')}<span><b>${esc(t('Email stays on'))}</b>${esc(t('You still get the usual emails for invoices and tickets.'))}</span></li></ul>
     <div class="ac-card__foot ac-card__foot--stack">${ssoButton(o.csrf, 'email', undefined, t('Email preferences'), { ic: 'mail', block: true })}</div>`, { id: 'ac-st-help-h' });
 
-  return `<div class="ac-grid ac-grid--detail ac-st"><div class="ac-col">${push}${install}</div><div class="ac-col">${lang}${help}</div></div>`;
+  const apps = card(t('Connected apps'), `<p class="ac-muted">${esc(t('Manage your account from Claude or ChatGPT. See which AI assistants are connected and disconnect them at any time.'))}</p>
+    <div class="ac-card__foot ac-card__foot--stack"><a class="hp-btn hp-btn--dark ac-sm" href="/account/apps">${icon('plug')}${esc(t('Manage connected apps'))}</a><a class="hp-btn hp-btn--ghost ac-sm" href="/connectors">${esc(t('Set up a connector'))}</a></div>`, { id: 'ac-st-apps-h' });
+
+  return `<div class="ac-grid ac-grid--detail ac-st"><div class="ac-col">${push}${install}</div><div class="ac-col">${lang}${apps}${help}</div></div>`;
 }
