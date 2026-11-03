@@ -643,3 +643,6 @@ select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
   .ac-dns__card .ac-card__head .hp-col-h{padding-bottom:0}
 }
 @media (prefers-reduced-motion:reduce){ .ac-tpl>summary>.hp-ico,.ac-dns__add>summary>.hp-ico{transition:none} }
+/* long values (emails, domains) wrap inside cards instead of overflowing */
+.ac-dl dd { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+.ac-dl > div { min-width: 0; }
