@@ -656,11 +656,20 @@
     };
     setTimeout(run, 4000); setTimeout(run, 9000); setTimeout(run, 15000);
   }
+  function bundleGlass() {
+    var run = function () { document.querySelectorAll('#domainBundle, .domain-bundle-card').forEach(function (card) {
+      card.querySelectorAll('*').forEach(function (el) {
+        if (/^(A|BUTTON)$/.test(el.tagName) || el.closest('a,button')) return;
+        var m = getComputedStyle(el).backgroundColor.match(/\d+/g); if (!m || (m[3] !== undefined && +m[3] === 0)) return;
+        if (+m[0] >= 248 && +m[1] >= 248 && +m[2] >= 248) { el.style.setProperty('background', 'rgba(255,255,255,.07)', 'important'); el.style.setProperty('border', '1px solid rgba(255,255,255,.14)', 'important'); el.style.setProperty('box-shadow', 'none', 'important'); }
+      }); }); };
+    run(); setTimeout(run, 1200); setTimeout(run, 4000);
+  }
   function curLabel() {
     var code = ''; var m = document.body.innerHTML.match(/\d[\d,.]*\s(USD|AED|EUR|GBP|INR|SAR|CAD|AUD|SGD|MYR)\b/); if (m) code = m[1];
     var map = { USD: '$ USD', AED: 'AED', EUR: '€ EUR', GBP: '£ GBP', INR: '₹ INR', SAR: 'SAR', CAD: 'C$ CAD', AUD: 'A$ AUD', SGD: 'S$ SGD', MYR: 'RM MYR' };
-    document.querySelectorAll('header a, header button, header span, .header a, .header button, nav a, nav button').forEach(function (el) {
-      if (el.children.length > 2) return;
+    document.querySelectorAll('a, button, span, div, li').forEach(function (el) {
+      if (el.children.length > 3) return; var r = el.getBoundingClientRect(); if (r.top > 260 || r.width > 260) return;
       var t = el.textContent.trim(); if (!/^0\d{2}$/.test(t)) return;
       var tn = [].find.call(el.childNodes, function (n) { return n.nodeType === 3 && /0\d{2}/.test(n.nodeValue); }) || el;
       var lbl = map[code] || code || 'Currency';
@@ -668,7 +677,7 @@
     });
   }
 
-  ready(function () { try { curLabel(); setTimeout(curLabel, 1500); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  ready(function () { try { curLabel(); setTimeout(curLabel, 1500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
 
 // Support alerts: nudge the site to email the owner after a ticket is opened or replied to.

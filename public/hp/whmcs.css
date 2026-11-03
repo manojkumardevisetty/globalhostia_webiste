@@ -730,3 +730,15 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .gh-taken { display: inline-block; margin-top: 10px; padding: 3px 10px; border-radius: 999px; background: #f3f4f6; color: #6b7280; font-size: 12px; font-weight: 600; }
 .gh-taken-link { display: block; margin-top: 6px; font-size: 12.5px; font-weight: 700; color: var(--gh-brand) !important; text-decoration: none !important; }
 @media (max-width: 380px) { .spotlight-tlds-group { grid-template-columns: 1fr 1fr; gap: 10px !important; } .spotlight-tld { padding-left: 8px !important; padding-right: 8px !important; } }
+/* 2026-11-03 mobile: bundle button text pure white; tile text readable; primary result stacks */
+#domainBundle a *, #domainBundle button *, .domain-bundle-card a *, .domain-bundle-card button * { color: #fff !important; }
+#domainBundle a, #domainBundle button { font-weight: 700 !important; }
+.domain-lookup-primary-results .price { white-space: nowrap; }
+@media (max-width: 640px) {
+  .domain-lookup-primary-results[style*="block"] { grid-template-columns: 1fr !important; padding: 18px !important; gap: 12px !important; }
+  .domain-lookup-primary-results .domain-price { text-align: left !important; }
+  .domain-lookup-primary-results .price { font-size: 24px !important; }
+  .domain-lookup-primary-results .btn, .domain-lookup-primary-results button { width: 100% !important; margin: 0 !important; min-height: 48px; }
+  #primaryLookupResult .alert, #primaryIndividualResult { padding: 18px !important; }
+  #domainBundle.domain-bundle-card { padding: 18px !important; }
+}
