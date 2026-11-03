@@ -774,6 +774,26 @@
       el.dataset.ghc = 1; el.textContent = '© ' + new Date().getFullYear() + ' GlobalHostia. All rights reserved.';
     });
   }
+  // Compact footer: replace the 6-column WHMCS footer with a 2-row GlobalHostia footer
+  function footerCompact() {
+    var f = document.querySelector('.footer-emyui-aws'); if (!f || f.querySelector('.gh-foot')) return;
+    var sec = f.querySelector('.footer-section'); if (!sec) return;
+    var logo = f.querySelector('.left-side-footer-logo img'), phone = (f.querySelector('.footer-top-section span') || {}).textContent || '';
+    var legal = [].filter.call(f.querySelectorAll('.left-side-footer-logo a'), function (a) { return /legal|privacy|cookie|terms/i.test(a.textContent); });
+    var nav = [['My services', 'clientarea.php?action=services'], ['Domains', 'clientarea.php?action=domains'], ['Invoices', 'clientarea.php?action=invoices'], ['Support tickets', 'supporttickets.php'], ['Knowledgebase', 'knowledgebase.php'], ['Network status', 'serverstatus.php'], ['Contact', 'contact.php']];
+    var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var tel = phone.replace(/[^\d+]/g, ''), wa = tel.replace(/\D/g, '');
+    var d = document.createElement('div'); d.className = 'gh-foot';
+    d.innerHTML = '<div class="gh-foot__help"><span class="gh-foot__q">Need help? We’re here 24/7.</span>' +
+      (tel ? '<a href="tel:' + esc(tel) + '">' + esc(phone.trim()) + '</a>' : '') +
+      (wa ? '<a href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : '') +
+      '<a href="submitticket.php">Open a ticket</a></div>' +
+      '<div class="gh-foot__main"><a class="gh-foot__logo" href="https://globalhostia.com/">' + (logo ? '<img src="' + esc(logo.getAttribute('src')) + '" alt="GlobalHostia">' : 'GlobalHostia') + '</a>' +
+      '<nav aria-label="Footer">' + nav.map(function (n) { return '<a href="' + n[1] + '">' + n[0] + '</a>'; }).join('') + '</nav></div>' +
+      '<div class="gh-foot__base"><span>© ' + new Date().getFullYear() + ' GlobalHostia. All rights reserved.</span><span class="gh-foot__legal">' +
+      legal.map(function (a) { return '<a href="' + esc(a.getAttribute('href')) + '">' + esc(a.textContent.trim()) + '</a>'; }).join('') + '</span></div>';
+    sec.style.display = 'none'; sec.parentNode.insertBefore(d, sec);
+  }
   // Gravatar avatars: our logo as the default instead of Gravatar's blue icon; a "Change photo" link in the account menu
   function avatars() {
     var def = encodeURIComponent('https://globalhostia.com/icon-192.png');
@@ -840,7 +860,7 @@
     });
   }
 
-  ready(function () { try { footerCredit(); } catch (e) {} try { avatars(); setTimeout(avatars, 1200); } catch (e) {} try { curLabel(); setTimeout(curLabel, 1500); textFixes(); setTimeout(textFixes, 1500); setTimeout(textFixes, 4000); tldRows(); setTimeout(tldRows, 2500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { compactHero(); setTimeout(compactHero, 800); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  ready(function () { try { footerCredit(); footerCompact(); } catch (e) {} try { avatars(); setTimeout(avatars, 1200); } catch (e) {} try { curLabel(); setTimeout(curLabel, 1500); textFixes(); setTimeout(textFixes, 1500); setTimeout(textFixes, 4000); tldRows(); setTimeout(tldRows, 2500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { compactHero(); setTimeout(compactHero, 800); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
 
 // Support alerts: nudge the site to email the owner after a ticket is opened or replied to.

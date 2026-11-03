@@ -837,3 +837,21 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 img.gh-avatar { border-radius: 50% !important; object-fit: cover; background: #fff; box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(197,56,111,.35); }
 .gh-photo-link { display: block; margin-top: 4px; font-size: 12.5px; font-weight: 600; color: #a6225f !important; text-decoration: none !important; }
 .gh-photo-link:hover { text-decoration: underline !important; }
+/* 2026-11-03 v2: compact 3-strip footer (built by footerCompact) */
+.footer-emyui-aws .gh-foot { max-width: 1240px; margin: 0 auto; padding: 0 24px 72px; color: #a9b4bf; font: 400 14px/1.5 Inter, system-ui, sans-serif; }
+.gh-foot a { color: #cfd6dd !important; text-decoration: none !important; }
+.gh-foot a:hover { color: #fff !important; }
+.gh-foot__help { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 22px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+.gh-foot__q { font: 700 15px Manrope, Inter, sans-serif; color: #fff; }
+.gh-foot__help a { font-weight: 600; color: #fdd700 !important; }
+.gh-foot__main { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 28px; padding: 20px 0; }
+.gh-foot__logo img { height: 30px; width: auto; display: block; }
+.gh-foot nav { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.gh-foot__base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.08); font-size: 13px; color: #8794a1; }
+.gh-foot__legal { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.gh-foot__legal a { color: #8794a1 !important; }
+@media (max-width: 760px) {
+  .gh-foot__main { flex-direction: column; align-items: flex-start; }
+  .gh-foot nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; width: 100%; }
+  .gh-foot__base { flex-direction: column; }
+}
