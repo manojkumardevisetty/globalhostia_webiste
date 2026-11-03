@@ -731,18 +731,28 @@
   function spotTaken() {
     var q = ((document.querySelector('#inputDomain, input[name=domain], input[name=query]') || {}).value || new URLSearchParams(location.search).get('query') || '').trim().toLowerCase();
     var sld = q.replace(/^https?:\/\//, '').replace(/^www\./, '').split('.')[0];
+    var vis = function (e) { return e && e.offsetParent !== null && getComputedStyle(e).display !== 'none'; };
     var run = function () {
       document.querySelectorAll('.spotlight-tld').forEach(function (c) {
-        if (c.dataset.ght) return;
-        var ld = c.querySelector('.loader, [class*="loader"]'); if (ld && ld.offsetParent !== null) return;
-        var vis = [].some.call(c.querySelectorAll('.btn, .price'), function (e) { return e.offsetParent !== null && e.textContent.trim(); });
-        if (vis) return;
+        var nm0 = c.querySelector('.spotlight-tld-name'); var t0 = nm0 ? nm0.textContent.trim().toLowerCase() : '';
+        var qtld = (q.match(/\.[a-z.]{2,}$/) || [''])[0];
+        var primaryTaken = !!document.querySelector('.gh-tk') || [].some.call(document.querySelectorAll('.domain-unavailable, .domain-checker-unavailable'), vis);
+        if (qtld && t0 === qtld && primaryTaken) {
+          c.classList.add('gh-force-taken');
+          if (!c.dataset.ght && sld) { c.dataset.ght = 1; c.insertAdjacentHTML('beforeend', '<span class="gh-taken">Taken</span><a class="gh-taken-link" href="' + ORIGIN + '/domain-broker?domain=' + encodeURIComponent(sld + qtld) + '">Try our broker →</a>'); }
+          return;
+        }
+        var add = [].some.call(c.querySelectorAll('.btn-add-to-cart, button.btn:not(.unavailable):not(.invalid):not([disabled]), .price'), function (e) { return vis(e) && e.textContent.trim() && !/unavailable|taken/i.test(e.className + e.textContent); });
+        var old = c.querySelectorAll('.gh-taken, .gh-taken-link');
+        if (add) { [].forEach.call(old, function (e) { e.remove(); }); delete c.dataset.ght; return; }
+        var un = [].some.call(c.querySelectorAll('.unavailable, [class*="unavailable"], .btn[disabled]'), vis);
+        if (!un || c.dataset.ght) return;
         var nm = c.querySelector('.spotlight-tld-name'); var tld = ((nm && nm.textContent) || c.textContent).match(/\.[a-z.]{2,}/i); if (!tld || !sld) return;
         c.dataset.ght = 1; var dom = sld + tld[0].toLowerCase();
         c.insertAdjacentHTML('beforeend', '<span class="gh-taken">Taken</span><a class="gh-taken-link" href="' + ORIGIN + '/domain-broker?domain=' + encodeURIComponent(dom) + '">Try our broker →</a>');
       });
     };
-    setTimeout(run, 4000); setTimeout(run, 9000); setTimeout(run, 15000);
+    [1500, 4000, 7000, 10000, 15000, 22000].forEach(function (t) { setTimeout(run, t); });
   }
 
   // WHMCS untranslated keys + "001 - USD" currency label + domain pricing rows on mobile

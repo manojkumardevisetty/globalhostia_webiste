@@ -812,3 +812,5 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 #DomainSearchResults, .domain-checker-result-headline { margin-top: 18px !important; padding-top: 0 !important; }
 .gh-tk { margin-top: 0; }
 @media (max-width: 760px) { .gh-hero-compact { padding-top: 18px !important; padding-bottom: 22px !important; } .gh-hero-compact h1, .gh-hero-compact h2 { font-size: 22px !important; } }
+/* searched extension follows the main result: no Add/price on a taken name */
+.gh-force-taken .btn-add-to-cart, .gh-force-taken .price, .gh-force-taken .available { display: none !important; }
