@@ -72,6 +72,11 @@ export async function saveBrokerSettings(fd: FormData) {
   await setSetting('broker_min_commission_usd', min);
   await setSetting('broker_whmcs_pid', pid);
   await setSetting('broker_department_id', dept);
+  const photo = str(fd, 'broker_photo');
+  if (photo && !/^(https:\/\/|\/)[^\s"'<>]{1,500}$/.test(photo)) fail(BASE, 'Broker photo must be an https:// or /path image URL');
+  await setSetting('broker_name', str(fd, 'broker_name').slice(0, 60));
+  await setSetting('broker_title', str(fd, 'broker_title').slice(0, 80));
+  await setSetting('broker_photo', photo);
   await audit(s, 'update', 'settings', 'broker', { fee, pct, min, pid, dept });
   done(BASE, 'Broker settings saved');
 }

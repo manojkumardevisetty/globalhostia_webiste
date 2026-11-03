@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const rate = cur === 'USD' ? 1 : catalogRate(cat.products, cur);
   const conv = (n: number) => (rate === null ? null : Math.round(n * rate));
   return NextResponse.json(
-    { currency: rate === null ? 'USD' : cur, fee: conv(cfg.feeUsd) ?? cfg.feeUsd, pct: cfg.pct, minCommission: conv(cfg.minUsd) ?? cfg.minUsd, pid: cfg.pid || null },
+    { name: String(cat.settings.broker_name || '').trim() || null, title: String(cat.settings.broker_title || '').trim() || null, photo: (() => { const u = String(cat.settings.broker_photo || '').trim(); return u ? (u.startsWith('/') ? 'https://globalhostia.com' + u : u) : null; })(), currency: rate === null ? 'USD' : cur, fee: conv(cfg.feeUsd) ?? cfg.feeUsd, pct: cfg.pct, minCommission: conv(cfg.minUsd) ?? cfg.minUsd, pid: cfg.pid || null },
     { headers: { 'access-control-allow-origin': '*', 'cache-control': 'public, s-maxage=3600, stale-while-revalidate=86400' } },
   );
 }

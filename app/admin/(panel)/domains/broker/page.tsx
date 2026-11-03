@@ -137,6 +137,9 @@ export default async function BrokerRequests({ searchParams }: { searchParams: P
               <Field label="Minimum commission (USD)" hint="broker_min_commission_usd"><input name="broker_min_commission_usd" defaultValue={cfg.minUsd} inputMode="decimal" className="input" /></Field>
               <Field label="WHMCS product ID" hint="broker_whmcs_pid · empty = success screen says we'll send the invoice"><input name="broker_whmcs_pid" defaultValue={cfg.pid} inputMode="numeric" className="input" /></Field>
               <Field label="Ticket department ID" hint="broker_department_id · empty = a Domains/Sales/Support department" className="sm:col-span-2"><input name="broker_department_id" defaultValue={cfg.dept} inputMode="numeric" className="input" /></Field>
+              <Field label="Broker name (shown to customers)" hint="broker_name · e.g. Manoj"><input name="broker_name" defaultValue={String(s.broker_name ?? '')} className="input" /></Field>
+              <Field label="Broker title" hint="broker_title · e.g. Domain broker, GlobalHostia"><input name="broker_title" defaultValue={String(s.broker_title ?? '')} className="input" /></Field>
+              <Field label="Broker photo URL" hint="broker_photo · square headshot, https:// or /hp/img/… · empty = illustrated avatar" className="sm:col-span-2"><input name="broker_photo" defaultValue={String(s.broker_photo ?? '')} className="input" /></Field>
               <p className="text-xs text-slate-500 sm:col-span-2">Example with these values: agreed price $2,000 → commission ${ex.toLocaleString('en-US')} ; agreed price $500 → commission ${exLow.toLocaleString('en-US')}{exLow > 500 * cfg.pct / 100 ? ' (minimum applies)' : ''}.</p>
               <button className="btn btn-primary sm:col-span-2">Save broker settings</button>
             </form>

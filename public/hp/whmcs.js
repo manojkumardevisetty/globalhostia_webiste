@@ -675,27 +675,49 @@
         var bun = document.getElementById('domainBundle'); if (bun) bun.style.display = 'none';
         var wrap = document.createElement('div'); wrap.className = 'gh-tk';
         var href = ORIGIN + '/domain-broker' + (dom ? '?domain=' + encodeURIComponent(dom) : '');
-        wrap.innerHTML = '<div class="gh-tk__card gh-tk__taken"><span class="gh-tk__tag">Domain taken</span>' +
+        var AV = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="32" fill="#fbe8ef"/><circle cx="32" cy="25" r="11" fill="#c5386f"/><path d="M12 54c3-10 11-15 20-15s17 5 20 15" fill="#c5386f"/><path d="M26 41l6 7 6-7" fill="#fdd700"/></svg>';
+        wrap.innerHTML = '<div class="gh-tk__card gh-tk__taken">' +
+          '<div class="gh-tk__top"><span class="gh-tk__tag">Domain taken</span><span class="gh-tk__anon">Owner never learns who you are</span></div>' +
           '<div class="gh-tk__dom"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 18.4 18.4 5.6"/></svg>' + esc(dom || 'This domain') + '</div>' +
-          '<p>We might be able to help you get it. <a href="' + href + '#how">How it works</a></p>' +
-          '<div class="gh-tk__fee"><span class="gh-tk__ic">' + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 4v5c0 4.4-3 8.3-7 9-4-.7-7-4.6-7-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span><div><small>Broker service fee</small><b data-gh-fee>…</b><em data-gh-fee-note></em></div></div>' +
-          '<div class="gh-tk__act"><a class="gh-tk__buy" href="' + href + '">Buy it now</a><a class="gh-tk__more" href="' + href + '#faq">See how it works</a></div></div>' +
-          '<div class="gh-tk__card gh-tk__alt" hidden><span class="gh-tk__tag gh-tk__tag--alt">Great alternative</span><div class="gh-tk__altdom" data-gh-alt></div><div class="gh-tk__altprice" data-gh-altp></div><button type="button" class="gh-tk__add">Make it yours</button></div>';
+          '<p class="gh-tk__lead">We might be able to get it for you. <a href="#" data-gh-how>See how it works</a></p>' +
+          '<div class="gh-tk__fee"><span class="gh-tk__ph" data-gh-ph>' + AV + '</span><div class="gh-tk__feetx"><small data-gh-who>Your broker · GlobalHostia broker desk</small><b><span data-gh-fee>…</span> <i>broker service fee</i></b><em data-gh-fee-note></em></div></div>' +
+          '<ul class="gh-tk__ticks"><li>Anonymous approach</li><li>Payment held in escrow</li><li>No deal, no commission</li></ul>' +
+          '<ol class="gh-tk__steps" hidden><li><b>Tell us your budget</b> for the domain</li><li><b>We contact the owner</b> anonymously</li><li><b>We negotiate</b> and hold payment in escrow</li><li><b>The domain moves</b> to your account</li></ol>' +
+          '<div class="gh-tk__act"><a class="gh-tk__buy" href="' + href + '">Buy it now</a><button type="button" class="gh-tk__more" data-gh-more aria-expanded="false">See more <span aria-hidden="true">▾</span></button></div></div>' +
+          '<div class="gh-tk__card gh-tk__alt" hidden><span class="gh-tk__tag gh-tk__tag--alt">Great alternative</span><div class="gh-tk__altdom" data-gh-alt></div><div class="gh-tk__altprice"><b data-gh-altp></b> <span>first year</span></div><div class="gh-tk__altren" data-gh-altr></div><button type="button" class="gh-tk__add">Make it yours</button><div class="gh-tk__more2" data-gh-more2></div></div>';
         res.insertBefore(wrap, res.firstChild);
         res.classList.add('gh-tk-on');
+        var steps = wrap.querySelector('.gh-tk__steps'), moreBtn = wrap.querySelector('[data-gh-more]');
+        var toggle = function (e) { if (e) e.preventDefault(); var open = steps.hidden; steps.hidden = !open; moreBtn.setAttribute('aria-expanded', String(open)); moreBtn.firstChild.nodeValue = open ? 'See less ' : 'See more '; };
+        moreBtn.onclick = toggle; wrap.querySelector('[data-gh-how]').onclick = function (e) { e.preventDefault(); if (steps.hidden) toggle(); };
         loadFee(function (d) {
           var f = wrap.querySelector('[data-gh-fee]'), n = wrap.querySelector('[data-gh-fee-note]');
           if (!d) { f.textContent = 'From $79'; return; }
           f.textContent = money(d.currency, d.fee);
-          n.textContent = '+ ' + d.pct + '% only if we close the deal (min ' + money(d.currency, d.minCommission) + ')';
+          n.textContent = '+ ' + d.pct + '% only if we buy it for you (minimum ' + money(d.currency, d.minCommission) + ')';
+          if (d.name) wrap.querySelector('[data-gh-who]').textContent = 'Your broker · ' + d.name + (d.title ? ', ' + d.title : '');
+          if (d.photo && /^https:\/\//.test(d.photo)) { var im = new Image(); im.alt = d.name ? 'Photo of ' + d.name : 'Your broker'; im.src = d.photo; im.onload = function () { var ph = wrap.querySelector('[data-gh-ph]'); ph.innerHTML = ''; ph.appendChild(im); }; }
         });
+        var renewOf = function (row) { var m = row && row.textContent.match(/Renews\s+([^\s/]+)\s*\/\s*yr/i); return m ? m[1] : ''; };
         var tries = 0, fill = function () {
           var a = alt(); var card = wrap.querySelector('.gh-tk__alt');
           if (!a) { if (++tries < 20) setTimeout(fill, 600); return; }
           var parts = a.dom.split('.'); var sld = parts.shift();
           card.querySelector('[data-gh-alt]').innerHTML = esc(sld) + '<span>.' + esc(parts.join('.')) + '</span>';
-          card.querySelector('[data-gh-altp]').textContent = a.price;
+          card.querySelector('[data-gh-altp]').textContent = a.price.replace(/\s*[A-Z]{3}$/, '');
+          var row = a.btn.closest('.domain-suggestion'); var rn = renewOf(row);
+          card.querySelector('[data-gh-altr]').textContent = rn ? 'Renews at ' + rn + ' / year' : '';
           card.querySelector('.gh-tk__add').onclick = function () { a.btn.click(); this.textContent = 'Added ✓'; this.disabled = true; };
+          // two more available alternatives
+          var more = [].slice.call(document.querySelectorAll('.domain-suggestion')).filter(function (r) { var b2 = r.querySelector('.btn-add-to-cart'); return r.offsetParent !== null && b2 && b2 !== a.btn && b2.offsetParent !== null; }).slice(0, 2);
+          var box = card.querySelector('[data-gh-more2]');
+          more.forEach(function (r) {
+            var b2 = r.querySelector('.btn-add-to-cart'); var d2 = (b2.getAttribute('data-domain') || '').toLowerCase(); var p2 = r.querySelector('.price'); if (!d2) return;
+            var it = document.createElement('div'); it.className = 'gh-tk__mini';
+            it.innerHTML = '<span><b>' + esc(d2) + '</b><small>' + esc(p2 ? p2.textContent.replace(/\s+/g, ' ').trim() : '') + '</small></span><button type="button">Add</button>';
+            it.querySelector('button').onclick = function () { b2.click(); this.textContent = '✓'; this.disabled = true; };
+            box.appendChild(it);
+          });
           card.hidden = false;
         };
         fill();

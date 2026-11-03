@@ -755,32 +755,48 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
   .gh-tldrow > :first-child { grid-column: 1 / -1; font-size: 18px !important; font-weight: 800; }
   .gh-tldrow img { max-width: 28px; height: auto; vertical-align: middle; margin-right: 6px; }
 }
-/* 2026-11-03 taken domain: two cards (taken + broker fee | great alternative) */
+/* 2026-11-03 taken domain, Option A: broker spotlight (wide) + great alternative */
 .gh-tk-on > .alert, .gh-tk-on .domain-unavailable > *:not(.gh-tk), .gh-tk-on .domain-checker-unavailable > *:not(.gh-tk), .gh-tk-on .gh-broker, .gh-tk-on p.text-danger, .gh-tk-on .domain-invalid { display: none !important; }
 .gh-tk-on { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
-.gh-tk { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 0 0 24px; text-align: left; }
-.gh-tk__card { background: #fff; border: 1px solid var(--gh-line); border-radius: 18px; padding: 24px 26px; box-shadow: var(--gh-shadow); position: relative; }
-.gh-tk__taken { border: 2px solid #c5386f33; }
-.gh-tk__tag { display: inline-block; background: #16212b; color: #fff; font: 700 11px/1 Manrope, Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; padding: 6px 10px; border-radius: 6px; }
+.gh-tk { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 22px; margin: 0 0 26px; text-align: left; font-family: Inter, sans-serif; color: #16212b; }
+.gh-tk__card { background: #fff; border: 1px solid #e3e7ec; border-radius: 22px; padding: 30px 34px; box-shadow: 0 24px 50px -30px rgba(22,33,43,.35); display: flex; flex-direction: column; gap: 16px; }
+.gh-tk__taken { border: 2px solid var(--gh-brand, #c5386f); }
+.gh-tk__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.gh-tk__tag { display: inline-block; align-self: flex-start; background: #16212b; color: #fff; font: 700 11px/1 Manrope, Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; padding: 7px 11px; border-radius: 6px; }
 .gh-tk__tag--alt { background: #fdd700; color: #16212b; }
-.gh-tk__dom { display: flex; align-items: center; gap: 10px; font: 800 30px/1.15 Manrope, Inter, sans-serif; color: #5a6774; margin: 14px 0 6px; word-break: break-all; }
-.gh-tk__dom svg { width: 26px; height: 26px; flex: none; fill: none; stroke: #8794a1; stroke-width: 2; }
-.gh-tk__taken p { margin: 0 0 18px; color: #23313d; font-size: 15px; }
-.gh-tk__taken p a { color: var(--gh-brand); font-weight: 700; text-decoration: underline; }
-.gh-tk__fee { display: flex; align-items: center; gap: 14px; margin: 0 0 20px; }
-.gh-tk__ic { width: 52px; height: 52px; border-radius: 50%; background: #fbe8ef; display: grid; place-items: center; flex: none; }
-.gh-tk__ic svg { width: 26px; height: 26px; fill: none; stroke: var(--gh-brand); stroke-width: 2; stroke-linejoin: round; }
-.gh-tk__fee small { display: block; color: #5a6774; font-size: 13px; }
-.gh-tk__fee b { display: block; font: 800 26px/1.2 Manrope, Inter, sans-serif; color: #16212b; }
-.gh-tk__fee em { display: block; font-style: normal; color: #5a6774; font-size: 12.5px; }
-.gh-tk__act { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-.gh-tk__buy, .gh-tk__add { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 26px; border-radius: 10px; background: #16212b; color: #fff !important; font-weight: 700; text-decoration: none !important; border: 0; cursor: pointer; }
-.gh-tk__buy:hover, .gh-tk__add:hover { background: var(--gh-brand); }
-.gh-tk__more { color: #16212b !important; font-weight: 600; text-decoration: none !important; }
-.gh-tk__altdom { font: 800 32px/1.15 Manrope, Inter, sans-serif; color: #16212b; margin: 16px 0 8px; word-break: break-all; }
-.gh-tk__altdom span { color: var(--gh-brand); }
-.gh-tk__altprice { font-size: 18px; font-weight: 700; color: #16212b; margin: 0 0 20px; }
-.gh-tk__add[disabled] { background: #1c9a5b; cursor: default; }
-@media (max-width: 760px) { .gh-tk { grid-template-columns: 1fr; } .gh-tk__card { padding: 20px; } .gh-tk__dom, .gh-tk__altdom { font-size: 24px; } .gh-tk__buy, .gh-tk__add { width: 100%; } }
+.gh-tk__anon { font-size: 13px; color: #4b5864; }
+.gh-tk__dom { display: flex; align-items: center; gap: 12px; font: 800 42px/1.1 Manrope, Inter, sans-serif; color: #4b5864; word-break: break-all; }
+.gh-tk__dom svg { width: 30px; height: 30px; flex: none; fill: none; stroke: #7a8794; stroke-width: 2; }
+.gh-tk__lead { margin: 0; font-size: 16px; color: #23313d; }
+.gh-tk__lead a { color: #a6225f; font-weight: 700; }
+.gh-tk__fee { display: flex; align-items: center; gap: 18px; padding: 16px 20px; background: #f6f7f9; border-radius: 16px; }
+.gh-tk__ph { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; flex: none; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--gh-brand, #c5386f); background: #fbe8ef; }
+.gh-tk__ph svg, .gh-tk__ph img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.gh-tk__feetx small { display: block; color: #4b5864; font-size: 13px; }
+.gh-tk__feetx b { display: block; font: 800 34px/1.15 Manrope, Inter, sans-serif; color: #16212b; }
+.gh-tk__feetx b i { font: 500 15px Inter, sans-serif; font-style: normal; color: #4b5864; }
+.gh-tk__feetx em { display: block; font-style: normal; color: #4b5864; font-size: 13px; }
+.gh-tk__ticks { list-style: none; margin: 0; padding: 0; display: flex; gap: 20px; flex-wrap: wrap; font-size: 14px; color: #23313d; }
+.gh-tk__ticks li::before { content: "✓"; color: #1c9a5b; font-weight: 800; margin-right: 6px; }
+.gh-tk__steps { margin: 0; padding: 16px 20px 16px 40px; background: #fbf6f8; border-radius: 14px; display: grid; gap: 8px; font-size: 14.5px; }
+.gh-tk__steps[hidden] { display: none; }
+.gh-tk__act { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-top: auto; }
+.gh-tk__buy, .gh-tk__add { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 34px; border-radius: 12px; background: #16212b; color: #fff !important; font-weight: 700; text-decoration: none !important; border: 0; cursor: pointer; }
+.gh-tk__buy:hover { background: var(--gh-brand, #c5386f); }
+.gh-tk__more { background: none; border: 0; padding: 8px 0; color: #16212b; font-weight: 600; cursor: pointer; min-height: 44px; }
+.gh-tk__altdom { font: 800 38px/1.1 Manrope, Inter, sans-serif; color: #16212b; margin-top: 4px; word-break: break-all; }
+.gh-tk__altdom span { color: var(--gh-brand, #c5386f); }
+.gh-tk__altprice b { font: 800 26px Manrope, Inter, sans-serif; }
+.gh-tk__altprice span, .gh-tk__altren { font-size: 14px; color: #4b5864; }
+.gh-tk__add { background: var(--gh-brand, #c5386f); width: 100%; padding: 0 20px; }
+.gh-tk__add:hover { background: #a6225f; }
+.gh-tk__add[disabled], .gh-tk__mini button[disabled] { background: #1c9a5b; color: #fff; cursor: default; }
+.gh-tk__more2:empty { display: none; }
+.gh-tk__more2 { border-top: 1px solid #e3e7ec; padding-top: 12px; display: grid; gap: 10px; }
+.gh-tk__mini { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.gh-tk__mini b { display: block; font: 700 16px Manrope, Inter, sans-serif; }
+.gh-tk__mini small { color: #4b5864; font-size: 12.5px; }
+.gh-tk__mini button { min-height: 40px; min-width: 64px; border-radius: 10px; border: 2px solid #16212b; background: #fff; color: #16212b; font-weight: 700; cursor: pointer; }
+@media (max-width: 860px) { .gh-tk { grid-template-columns: 1fr; } .gh-tk__card { padding: 22px; } .gh-tk__dom { font-size: 30px; } .gh-tk__altdom { font-size: 30px; } .gh-tk__buy { width: 100%; } .gh-tk__feetx b { font-size: 28px; } }
 /* header currency chip: JS shows the code, hide the duplicate " - USD" */
 .btn-header-lang .header-lang-currency { display: none !important; }
