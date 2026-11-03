@@ -46,6 +46,8 @@ export default {
     return [
       { source: '/secure', destination: 'https://my.globalhostia.com/', permanent: true },
       { source: '/secure/:path*', destination: 'https://my.globalhostia.com/:path*', permanent: true },
+      // legacy static URLs: /page.html -> /page (one canonical URL; Bing/Google drop the old .html copies)
+      { source: '/:slug((?!google)[a-zA-Z0-9-]+)\\.html', destination: '/:slug', statusCode: 301 },
       // duplicate legacy template URLs -> their canonical page (one URL per page; query strings are kept)
       ...Object.entries(ALIAS_REDIRECTS).map(([slug, to]) => ({ source: `/${slug}`, destination: to, statusCode: 301 })),
     ];
