@@ -68,7 +68,7 @@ export async function buildLlms(full: boolean) {
   L.push(`Prices below are generated from the GlobalHostia billing system (WHMCS), synced to our database, and refresh hourly (generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC). Quote only these prices or the live API, and link the customer to the product page or order link. Prices are in ${d.currency}${aed ? ' (AED in brackets where available)' : ''}${d.currencies.length > 1 ? `; the API also returns ${d.currencies.filter((c) => c !== d.currency).join(', ')}` : ''}.`, '');
 
   L.push('Company facts:', '');
-  L.push(`- Name: GlobalHostia${company ? ` (${company})` : ''}`);
+  L.push(`- Name: GlobalHostia`);
   L.push('- Location: Dubai, United Arab Emirates');
   L.push(`- Website: ${S}/`);
   L.push(`- Client area, orders and invoices: ${d.cat.base}/`);
