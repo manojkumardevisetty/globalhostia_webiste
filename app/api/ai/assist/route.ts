@@ -1,10 +1,13 @@
 // Customer assistant API for the account dashboard and the hosting panel (UI: public/hp/ai-assist.js, docs/ai/INTEGRATION.md).
-// POST {messages, context?: {domain?}} -> text/event-stream (text, ui {type: 'proposal' | 'plans' | ...}, tool, meta, error, done).
+// POST {messages, context?: {page, domain?, domainId?, serviceId?, invoiceId?, tab?, lang?}} -> text/event-stream
+// (text, ui {type: 'proposal' | 'chips' | ...}, tool, meta, error, done). The context is re-resolved against the client's
+// own domains / services (lib/ai/assist-context.ts) before it reaches the prompt.
 // Auth: hosting-panel token or portal session (lib/ai/assist-auth.ts). Read tools are ownership-checked; changes come back
 // as proposals the customer confirms, which the UI sends to the existing authenticated endpoints.
 import type { NextRequest } from 'next/server';
 import { aiClient, aiKeyPresent, aiSettings, budgetOk, burst, dailyCalls, logUsage, reqIp } from '@/lib/ai/server';
-import { cleanHistory, gate, sse } from '@/lib/ai/run';
+import { cannedSse, cleanHistory, gate, sse } from '@/lib/ai/run';
+import { contextLine, parseAssistContext, resolveAssistContext } from '@/lib/ai/assist-context';
 import { runAgent, trimHistory, type AiTool } from '@/lib/ai/agent';
 import { assistSystem } from '@/lib/ai/prompts';
 import { customerTools, type CustomerCtx } from '@/lib/ai/tools/customer-core';
@@ -40,17 +43,23 @@ export async function POST(req: NextRequest) {
   const b = await budgetOk(s);
   if (!b.ok) { await logUsage({ surface: 'assist', subject, status: 'budget' }, s); return j({ error: 'offline', message: 'The assistant is offline right now. Open a ticket and our team will help.' }, 503); }
   const blocked = await gate(s, 'assist', subject, hist);
-  if (blocked) return sse(async (send) => { send('text', { t: blocked.text }); send('meta', { gate: blocked.status }); }, H);
+  // same as the website chat: the fixed line plus three chips, no model call
+  if (blocked) return cannedSse(blocked, H);
   if ((await dailyCalls(subject)) >= s.assist.clientDailyCalls) return j({ error: 'limit', message: "You've reached today's assistant limit. Open a ticket and our team will help." }, 429);
 
   const client = (await aiClient())!;
-  const ctxDomain = typeof body.context?.domain === 'string' ? body.context.domain.toLowerCase().slice(0, 253).replace(/[^a-z0-9.-]/g, '') : '';
+  const raw = parseAssistContext(body.context);
+  const [doms, svcs, owned] = await Promise.all([
+    who.deps.domains(who.cid).catch(() => []), who.deps.services(who.cid).catch(() => []),
+    who.deps.owned({ surface: 'assist', scopes: ['customer'], clientId: who.cid, via: who.via, deps: who.deps } as CustomerCtx).catch(() => [] as string[]),
+  ]);
+  const pc = resolveAssistContext(raw, { via: who.via, domains: doms, services: svcs, owned, tokenServiceId: who.hosting?.claims.sid });
   const ctx: CustomerCtx & Record<string, unknown> = {
-    surface: 'assist', scopes: ['customer', 'public'], clientId: who.cid, via: who.via, deps: who.deps,
+    surface: 'assist', scopes: ['customer', 'public'], clientId: who.cid, via: who.via, deps: who.deps, serviceId: pc.serviceId,
     ip: reqIp(req), convKey: hashKey(subject), maxNameChecks: 10, currency: undefined,
   };
   const tools = [...customerTools, ...publicTools.filter((t) => SHOP.includes(t.name))] as AiTool<any>[];
-  const dyn = `Today: ${new Date().toISOString().slice(0, 10)}. Signed in via ${who.via === 'hosting' ? 'the hosting panel (one hosting account; DNS, mailbox and SSL proposals available)' : 'the account dashboard (DNS proposals for domains managed here; mailboxes and SSL are in Manage hosting)'}.${ctxDomain ? ` The customer is looking at ${ctxDomain}.` : ''}`;
+  const dyn = `Today: ${new Date().toISOString().slice(0, 10)}. Signed in via ${who.via === 'hosting' ? 'the hosting panel (one hosting account; DNS, mailbox and SSL proposals available)' : 'the account dashboard (DNS proposals for domains managed here; mailboxes and SSL are in Manage hosting)'}. ${contextLine(pc)}`;
   return sse(async (send) => {
     const t0 = Date.now();
     let status = 'ok', err = '';

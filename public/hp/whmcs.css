@@ -1291,6 +1291,9 @@ button.ghh-fname { cursor: pointer; } button.ghh-fname:hover { color: var(--gh-b
 .ghh__head .ghh-kbtn { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 8px 0 12px; border: 1px solid var(--gh-line); border-radius: 12px; background: #fff; color: var(--gh-muted); font: 500 13.5px Inter, system-ui, sans-serif; cursor: pointer; transition: border-color .15s, color .15s, box-shadow .15s; }
 .ghh-kbtn:hover { border-color: #e7b3c7; color: var(--gh-ink); box-shadow: 0 0 0 3px rgba(197,56,111,.1); }
 .ghh-kbtn svg { color: var(--gh-brand); }
+.ghh__head .ghh-ask { padding: 0 14px 0 10px; color: var(--gh-ink); font-weight: 600; }
+.ghh__head .ghh-ask[hidden] { display: none; }
+.ghh[dir=rtl] .ghh__head .ghh-ask { padding: 0 10px 0 14px; }
 .ghh-kbtn kbd, .ghh-pal kbd { display: inline-block; min-width: 22px; padding: 2px 6px; border: 1px solid var(--gh-line); border-bottom-width: 2px; border-radius: 6px; background: var(--gh-tint); color: var(--gh-muted); font: 600 11px/1.4 Inter, system-ui, sans-serif; text-align: center; box-shadow: none; direction: ltr; }
 .ghh-pal { position: fixed; inset: 0; z-index: 10060; display: flex; align-items: flex-start; justify-content: center; padding: 10vh 16px 16px; }
 .ghh-pal[hidden] { display: none !important; }
@@ -1578,3 +1581,4 @@ html.gh-renew #orderSummary h2 { margin: 0 !important; padding: 14px 18px !impor
 .gh-rn__period { font: 500 12px Inter, sans-serif; color: var(--gh-muted); white-space: nowrap; }
 html.gh-renew #scrollingPanelContainer { top: 0 !important; margin-top: 10px !important; }
 @media (max-width: 640px) { .gh-rn__period { white-space: normal; } }
+@media (max-width: 640px) { .ghh[dir=rtl] .ghh__head .ghh-ask, .ghh__head .ghh-ask { padding: 0; } }

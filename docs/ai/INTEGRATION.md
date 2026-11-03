@@ -14,6 +14,26 @@ Without it, every surface answers "assistant offline" and points to support.
 Code map: `lib/ai/agent.ts` (tool loop, permission checks), `gate.ts` (scope filter), `policy.ts` (ticket rules),
 `pricing.ts`, `settings-core.ts`, `server.ts` (client, logging, budgets), `prompts.ts`, `tools/*` (public, customer, admin).
 
+## Where the customer assistant is mounted
+
+| Surface | Entry points | Loads | Auth / context | After a confirmed change |
+|---|---|---|---|---|
+| Account portal (`/account/*`, signed in) | floating "Ask GlobalHostia" button, account menu item, Ctrl/⌘K palette ("Ask the assistant: “query”") | `account.js` injects `ai-assist.js/.css` on first open | session cookie + page CSRF; `lib/portal/views/frame.ts` renders `data-ai-page`, `data-ai-domain(-id)`, `data-ai-service-id`, `data-ai-invoice-id` | DNS: the `#dns` card is swapped for the one the form redirect returned (record highlighted), `GHAcct.initDns` re-binds it; ticket on `/account/support`: list refreshed |
+| Manage hosting panel (WHMCS service page) | "Ask" button next to Search in the panel header, palette action | `whmcs.js` injects the files on first open (same `?v=`), never before | `window.GH_HOSTING.token`; context = `page: 'hosting'`, current tab, selected domain, service id | the proposal runs through the panel's own `api()` (`/api/hosting/{dns,email,ssl}`), then that tab reloads and the new row flashes |
+
+Both use `GHAssist.sheet()` (side sheet on desktop, full screen at 640px and below; focus trap, Esc closes, focus
+returns to the opener, `aria-live` log, reduced motion respected) with English / Arabic strings and RTL built in.
+Signed-in portal pages do not load the website pre-sales chat. **Kill switch:** Admin > AI assistant > surfaces >
+customer assistant off (or no `ANTHROPIC_API_KEY`) hides every entry point: the portal frame renders none
+(`assistAvailable()` in `lib/ai/server.ts`) and `/api/hosting/session` returns `ai: false`, so the panel keeps its Ask
+button hidden.
+
+**Context** (`lib/ai/assist-context.ts`): the body's `context` is parsed to `{page, domain?, domainId?, serviceId?,
+invoiceId?, tab?, lang}` and re-resolved against the client's own WHMCS domains and services (panel: the service id
+comes from the token, never the browser). The result becomes one line of the system prompt, including "reply in Arabic"
+when the interface is Arabic. Starter chips per page / panel tab live in `ai-assist.js` (`GHAssist.chipsFor`); every
+chip must pass the scope filter as a clear account question (`tests/ai-assist.test.mts`).
+
 ## Mounting the customer assistant (account dashboard or hosting panel)
 
 ```html
@@ -43,17 +63,25 @@ Options
 | `auth` | `{type:'hosting', token}` or `{type:'portal', csrf}` | required | who is asking; `token` may be a string or a (async) function |
 | `endpoint` | string | `<script origin>/api/ai/assist` | assistant API |
 | `apiBase` | string | script origin | base URL for hosting / assist proposal requests |
-| `context` | `{domain?: string}` | `{}` | hint for the assistant; ownership is still checked server side |
+| `context` | `{page?, domain?, domainId?, serviceId?, invoiceId?, tab?}` or a function returning it | `{}` | what the customer is looking at; every id and name is re-checked server side |
 | `title`, `placeholder`, `suggestions` | string, string, string[] | built-in | text |
 | `onAction(proposal, inputs)` | async function | built-in executor | run a confirmed proposal yourself; return `{message}` |
 | `onDone(proposal, result)` | function | none | e.g. reload the DNS list after a record was added |
 
-Returned handle: `ask(text)`, `setContext(ctx)`, `reset()`, `destroy()`, `element`.
-`GHAssist.execute(proposal, inputs, options)` is exported for custom UIs.
+Returned handle: `ask(text)`, `setContext(ctx)`, `reset()`, `focus()`, `destroy()`, `element`.
+More options: `lang` (`'en'` / `'ar'`: strings, RTL, chips), `context` may be a function (read before every request),
+`linkBase` (prefix for site-relative links in answers, e.g. `https://globalhostia.com` inside the client area).
+
+`GHAssist.sheet(options)` takes the same options and returns `open(question?)`, `close()`, `isOpen()`, `toggle()`,
+`setContext()`, `reset()`, `destroy()`; `onOpen` / `onClose` callbacks.
+`GHAssist.execute(proposal, inputs, options)` is exported for custom UIs; `GHAssist.requestFor(proposal, inputs, options)`
+returns the request without sending it and throws for anything off the fixed list (kind -> endpoint: `dns.add` ->
+`/api/hosting/dns` or `/account/domains/<id>/dns`, `email.create` -> `/api/hosting/email`, `ssl.issue` ->
+`/api/hosting/ssl`, `ticket.open` -> `/api/ai/assist/action`; only the inputs the card declared are merged).
 
 ## Streaming protocol (`/api/ai/assist`, `/api/ai/chat`, `/api/ai/admin`)
 
-Request: `POST` JSON `{ "messages": [{"role":"user","content":"..."}, ...], "context": {"domain": "..."} }`
+Request: `POST` JSON `{ "messages": [{"role":"user","content":"..."}, ...], "context": {"page": "domain", "domainId": 301, "lang": "en"} }`
 (the whole conversation each time; the server trims it). Hosting auth: header `Authorization: GH-Hosting <token>`
 (CORS allows `https://my.globalhostia.com`, same list as `/api/hosting`). Portal auth: cookie + same origin.
 

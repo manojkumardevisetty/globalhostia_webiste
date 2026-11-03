@@ -3,6 +3,7 @@
 // the guard: CORS for my.globalhostia.com only, HMAC token, WHMCS ownership + Active status, per-client rate limits.
 //   GET  /api/hosting/<section>?op=…   reads      POST /api/hosting/<section>  {op, …} (JSON, or multipart for upload)
 // Every value is validated (lib/hosting/validate.ts); every write is audit-logged without secrets or file contents.
+import { assistAvailable } from '@/lib/ai/server';
 import { auditHosting, cors, errorResponse, hostingCtx, HttpError, ownedDomains, type Ctx } from '@/lib/hosting/context';
 import { probeSsl } from '@/lib/hosting/ssl-probe';
 import { limiter } from '@/lib/agents/http';
@@ -72,7 +73,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ section:
         for (const k of Object.keys(caps) as Section[]) if (!caps[k]?.length) delete caps[k];
         Object.assign(caps, { health: ['check'], connect: ['check'] }); // panel-independent (public DNS / HTTPS probes)
         return ok(req, { panel: p.panel, panelLabel: PANEL_LABEL[p.panel], username: ctx.acct.username, domain: ctx.acct.domain, server: ctx.acct.server.name, caps, domains,
-          limits: { editBytes: MAX_EDIT_BYTES, transferBytes: MAX_TRANSFER_BYTES } });
+          limits: { editBytes: MAX_EDIT_BYTES, transferBytes: MAX_TRANSFER_BYTES }, ai: await assistAvailable() });
       }
       case 'overview': {
         need(ctx, 'overview', 'usage');

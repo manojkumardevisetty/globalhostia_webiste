@@ -55,8 +55,11 @@
   dds.forEach(function (d) { d.addEventListener("toggle", function () { if (d.open) dds.forEach(function (o) { if (o !== d) o.open = false; }); }); });
 
   // DNS records editor (/account/domains/<id>#dns): open edit / delete panels in place, per-type fields, type filter.
-  var dns = D.querySelector(".ac-dns");
-  if (dns) {
+  // initDns runs again after the assistant adds a record and the #dns card is swapped for the fresh one (GHAcct.initDns).
+  var dnsClose = null;
+  D.addEventListener("keydown", function (e) { if (dnsClose && e.key === "Escape" && D.activeElement && D.activeElement.closest && D.activeElement.closest(".ac-dns__panel")) dnsClose(""); });
+  function initDns(dns) {
+    if (!dns) return;
     var HINT = {
       A: ["203.0.113.10", "IPv4 address of your server."], AAAA: ["2001:db8::10", "IPv6 address of your server."],
       CNAME: ["target.example.com", "Host name this name is an alias of. Not allowed on @."],
@@ -95,7 +98,7 @@
         if (b) b.focus();
       });
     });
-    D.addEventListener("keydown", function (e) { if (e.key === "Escape" && D.activeElement && D.activeElement.closest && D.activeElement.closest(".ac-dns__panel")) closeAll(""); });
+    dnsClose = closeAll;
     // per-type fields: the add form starts as data-type="all" (without JS every field shows)
     $$(".ac-dns-form", dns).forEach(function (f) {
       var sel = f.querySelector("[data-dns-type]");
@@ -124,6 +127,8 @@
       });
     }
   }
+  initDns(D.querySelector(".ac-dns"));
+  window.GHAcct = { initDns: initDns };
 
   // Renewal centre (/account/renewals): selection bar totals, per-group "select all", button counts.
   var rw = D.querySelector("[data-rw]"), bar = rw && rw.querySelector("[data-rw-bar]");
@@ -195,8 +200,11 @@
   var pal = D.getElementById("ac-pal");
   if (pal && typeof pal.showModal === "function") {
     var input = D.getElementById("ac-pal-q"), list = D.getElementById("ac-pal-list");
-    var GROUPS = ["recent", "actions", "pages", "services", "domains", "invoices", "tickets"];
-    var GL = { recent: L("Recent"), actions: L("Actions"), pages: L("Pages"), services: L("Services"), domains: L("Domains"), invoices: L("Invoices"), tickets: L("Tickets") };
+    var GROUPS = ["ai", "recent", "actions", "pages", "services", "domains", "invoices", "tickets"];
+    var GL = { ai: L("Assistant"), recent: L("Recent"), actions: L("Actions"), pages: L("Pages"), services: L("Services"), domains: L("Domains"), invoices: L("Invoices"), tickets: L("Tickets") };
+    // customer assistant (frame.ts sets data-ai when it is switched on): "Ask the assistant…" first when the box is empty,
+    // "Ask the assistant: “query”" last when typing, so Enter on a question with no matches hands it to the assistant
+    var AI = !!(ac && ac.getAttribute("data-ai") === "1");
     var data = null, loading = false, failed = false, shown = [], act = -1, opener = null;
     var mac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
     if (mac) $$("[data-mod]").forEach(function (k) { k.textContent = "⌘"; });
@@ -240,6 +248,11 @@
         var best = {}; sc.forEach(function (o) { best[o.x.g] = Math.max(best[o.x.g] || 0, o.s); });
         out = sc.sort(function (a, b) { return (best[b.x.g] - best[a.x.g]) || (GROUPS.indexOf(a.x.g) - GROUPS.indexOf(b.x.g)) || (b.s - a.s); }).map(function (o) { return o.x; });
       }
+      var matched = out.length;
+      if (AI) {
+        var ai = { g: "ai", l: q ? L("Ask the assistant: “{q}”", { q: raw.trim().slice(0, 300) }) : L("Ask the assistant…"), s: L("Ask about your account in plain words"), ic: "bot", ai: q ? raw.trim().slice(0, 1500) : "" };
+        out = q ? out.concat([ai]) : [ai].concat(out);
+      }
       shown = out; act = out.length ? 0 : -1;
       var html = "", g = "";
       out.forEach(function (it, i) {
@@ -247,6 +260,7 @@
         html += '<li role="option" id="ac-pal-o' + i + '" data-i="' + i + '" aria-selected="' + (i === act) + '">' + ico(it.ic || "arrow") + '<span><b>' + esc(it.l) + "</b>" + (it.s ? "<small>" + esc(it.s) + "</small>" : "") + '</span><i class="ac-pal__go" aria-hidden="true">↵</i></li>';
       });
       if (!out.length) html = '<li class="ac-pal__none" role="presentation">' + esc(q ? L("No results for “{q}”", { q: raw.trim() }) : L("Loading…")) + "</li>";
+      else if (q && !matched) html = '<li class="ac-pal__none" role="presentation">' + esc(L("No results for “{q}”", { q: raw.trim() })) + "</li>" + html;
       if (loading && q) html += '<li class="ac-pal__none" role="presentation">' + esc(L("Loading…")) + "</li>";
       if (failed) html += '<li class="ac-pal__none" role="presentation">' + esc(L("Could not load your account data. Pages and actions still work.")) + "</li>";
       list.innerHTML = html;
@@ -260,6 +274,7 @@
     };
     var go = function (it) {
       if (!it) return;
+      if (it.g === "ai") { pal.close(); if (W.GHAcctAsk) W.GHAcctAsk(it.ai); return; }
       remember(it);
       pal.close();
       if (it.h) W.location.href = it.h;
@@ -559,4 +574,76 @@
       });
     }
   }
+})();
+
+/* Customer assistant ("Ask GlobalHostia"): floating button, account-menu item and the palette action open a side sheet
+   (full screen on phones). /hp/ai-assist.js + .css load on first use only. The page tells the assistant what is on
+   screen (frame.ts data-ai-*: page, domain id, service id); the server re-checks every id against this account.
+   Confirmed changes go to the existing portal forms with this page's CSRF token; the DNS card is then refreshed in place. */
+(function () {
+  "use strict";
+  var D = document, W = window;
+  var ac = D.querySelector('[data-ac][data-ai="1"]');
+  if (!ac) return;
+  var I18N = {};
+  try { var ie = D.getElementById("ac-i18n"); if (ie) I18N = JSON.parse(ie.textContent || "{}"); } catch (e) { /* English */ }
+  function L(k) { return I18N[k] || k; }
+  function csrf() { var i = D.querySelector("input[name=csrf]"); return i ? i.value : ""; }
+  var fab = D.querySelector(".ac-ask"), sheet = null, loading = null;
+  var attr = function (k) { return ac.getAttribute("data-ai-" + k) || ""; };
+  function load() {
+    if (W.GHAssist && W.GHAssist.sheet) return Promise.resolve();
+    if (loading) return loading;
+    var get = function (tag, attrs) {
+      return new Promise(function (res, rej) {
+        var n = D.createElement(tag);
+        for (var k in attrs) n[k] = attrs[k];
+        n.onload = res; n.onerror = rej;
+        D.head.appendChild(n);
+      });
+    };
+    loading = Promise.all([get("link", { rel: "stylesheet", href: attr("css") }), get("script", { src: attr("js"), async: true })])
+      .catch(function (e) { loading = null; throw e; });
+    return loading;
+  }
+  function context() {
+    var c = { page: attr("page") || "other" }, n;
+    if (attr("domain")) c.domain = attr("domain");
+    if ((n = Number(attr("domain-id")))) c.domainId = n;
+    if ((n = Number(attr("service-id")))) c.serviceId = n;
+    if ((n = Number(attr("invoice-id")))) c.invoiceId = n;
+    return c;
+  }
+  /** after a confirmed change: swap in the fresh section from the page the form redirected to */
+  function refresh(p, r) {
+    if (p.kind === "dns.add" && r && r.html) {
+      try {
+        var doc = new DOMParser().parseFromString(r.html, "text/html"), fresh = doc.getElementById("dns"), cur = D.getElementById("dns");
+        if (fresh && cur) { var node = D.importNode(fresh, true); cur.parentNode.replaceChild(node, cur); if (W.GHAcct) W.GHAcct.initDns(node); }
+      } catch (e) { /* the record is saved; the list updates on the next page load */ }
+    } else if (p.kind === "ticket.open" && /^\/account\/support\/?$/.test(location.pathname)) {
+      fetch(location.pathname, { credentials: "same-origin" }).then(function (x) { return x.text(); }).then(function (h) {
+        var doc = new DOMParser().parseFromString(h, "text/html"), fresh = doc.querySelector(".ac-content"), cur = D.querySelector(".ac-content");
+        if (fresh && cur) cur.innerHTML = fresh.innerHTML;
+      }).catch(function () { /* keep the list */ });
+    }
+  }
+  function ask(q) {
+    load().then(function () {
+      if (!sheet) sheet = W.GHAssist.sheet({
+        auth: { type: "portal", csrf: csrf() }, lang: D.documentElement.lang === "ar" ? "ar" : "en", context: context, onDone: refresh,
+        onOpen: function () { if (fab) fab.hidden = true; }, onClose: function () { if (fab) fab.hidden = false; }
+      });
+      sheet.open(q || "");
+    }, function () {
+      var msg = L("The assistant could not load. Please try again.");
+      if (W.GHFx && W.GHFx.toast) W.GHFx.toast(msg, "err"); else W.alert(msg);
+    });
+  }
+  W.GHAcctAsk = ask;
+  [].forEach.call(D.querySelectorAll("[data-ac-ask]"), function (b) {
+    b.hidden = false;
+    b.addEventListener("click", function () { var dd = b.closest(".ac-dd"); if (dd) dd.open = false; ask(""); });
+  });
+  if (/[?&]assistant=open\b/.test(location.search)) ask("");
 })();

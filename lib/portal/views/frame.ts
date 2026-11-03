@@ -1,8 +1,11 @@
 // Portal frame: the site's Hostpen shell (utility bar, mega menu, footer) + the theme's charcoal page-hero band
 // (hex texture, network canvas, breadcrumbs, gold kicker) as the account header, then a control-panel layout:
 // left sidebar on desktop, bottom tab bar on mobile. Also: language (English / Arabic, RTL), the command palette
-// shell (Ctrl/⌘+K), the install-app menu item and the portal web manifest.
-import { page } from '../../theme/shell';
+// shell (Ctrl/⌘+K), the install-app menu item, the portal web manifest and the customer assistant entry points
+// (floating "Ask GlobalHostia" button, account menu item, palette action; account.js loads /hp/ai-assist.js on first use).
+import { asset, page } from '../../theme/shell';
+import { assistAvailable } from '../../ai/server';
+import { portalPageContext } from '../../ai/assist-context';
 import { breadcrumbs } from '../../theme/ui';
 import type { PageCtx } from '../../theme/index';
 import { esc, icon, initials, okMark, errMark, t, type Nav } from './kit';
@@ -76,6 +79,9 @@ export function localize(html: string) {
     .replace('<link rel="manifest" href="/site.webmanifest">', '<link rel="manifest" href="/account.webmanifest">');
 }
 
+/** The assistant's hexagon avatar (same mark as the website chat). */
+const AI_HEX = '<svg class="ac-ask__hex" viewBox="0 0 40 40" aria-hidden="true" focusable="false"><path d="M20 2.5 35.2 11.25v17.5L20 37.5 4.8 28.75v-17.5z" fill="#c5386f"/><path d="M20 8.6 29.9 14.3v11.4L20 31.4l-9.9-5.7V14.3z" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.4"/><circle cx="14.6" cy="20" r="2.1" fill="#fff"/><circle cx="20" cy="20" r="2.1" fill="#fff"/><circle cx="25.4" cy="20" r="2.1" fill="#fff"/></svg>';
+
 const langSwitch = (v: Viewer, path: string) => {
   const to = lang() === 'ar' ? 'en' : 'ar';
   return `<form method="post" action="/account/lang"><input type="hidden" name="csrf" value="${esc(v.csrf)}"><input type="hidden" name="lang" value="${to}"><input type="hidden" name="next" value="${esc(path)}"><button role="menuitem" type="submit" lang="${to}">${icon('globe')}${to === 'ar' ? 'العربية' : 'English'}</button></form>`;
@@ -105,8 +111,14 @@ const overlays = () => `<dialog class="ac-pal" id="ac-pal" aria-label="${esc(t('
 export async function frame(o: {
   path: string; query: URLSearchParams; title: string; h1?: string; sub?: string; active: Nav; viewer: Viewer; body: string;
   crumbs?: { label: string; href?: string }[]; headAction?: string; heroExtra?: string;
+  /** what the assistant should target on this page (domain / service detail pages) */
+  ai?: { domainId?: number; domain?: string; serviceId?: number };
 }) {
   const v = o.viewer;
+  // customer assistant: hidden entirely when switched off in Admin > AI assistant (or no API key)
+  const aiOn = await assistAvailable();
+  const aiCtx = aiOn ? portalPageContext(o.active, o.path, o.ai) : null;
+  const aiAttrs = aiCtx ? ` data-ai="1" data-ai-page="${aiCtx.page}"${aiCtx.domain ? ` data-ai-domain="${esc(aiCtx.domain)}"` : ''}${aiCtx.domainId ? ` data-ai-domain-id="${aiCtx.domainId}"` : ''}${aiCtx.serviceId ? ` data-ai-service-id="${aiCtx.serviceId}"` : ''}${aiCtx.invoiceId ? ` data-ai-invoice-id="${aiCtx.invoiceId}"` : ''} data-ai-js="${esc(asset('/hp/ai-assist.js'))}" data-ai-css="${esc(asset('/hp/ai-assist.css'))}"` : '';
   const fk = o.query.get('ok') || o.query.get('err') || '';
   const f = FLASH()[fk];
   // failures that a retry may not fix get a way to reach a person; a stale form gets a fresh page
@@ -138,6 +150,7 @@ export async function frame(o: {
       <details class="ac-dd ac-dd--me"><summary class="ac-me" aria-label="${esc(t('Account menu for {name}', { name: v.name || v.email }))}"><span class="ac-avatar ac-avatar--sm" aria-hidden="true">${esc(ini)}</span><span class="ac-me__n">${esc((v.name || v.email).split(' ')[0])}</span>${icon('chev')}</summary>
         <div class="ac-dd__menu" role="menu">
           <div class="ac-dd__who"><b>${esc(v.name)}</b><small>${esc(v.email)}</small></div>
+          ${aiOn ? `<button role="menuitem" type="button" data-ac-ask aria-haspopup="dialog" hidden>${AI_HEX}${esc(t('Ask the assistant'))}</button>` : ''}
           <a role="menuitem" href="/account/profile">${icon('user')}${esc(t('Profile'))}</a>
           <a role="menuitem" href="/account/team">${icon('users')}${esc(t('Team access'))}</a>
           <a role="menuitem" href="/account/settings">${icon('bell')}${esc(t('App & notifications'))}</a>
@@ -152,7 +165,7 @@ export async function frame(o: {
   </div>
 </section>`;
 
-  const body = `${hero}<div class="ac" data-ac data-lang="${lang()}" data-cid="${esc(v.clientId)}">
+  const body = `${hero}<div class="ac" data-ac data-lang="${lang()}" data-cid="${esc(v.clientId)}"${aiAttrs}>
   <aside class="ac-side" aria-label="${esc(t('Account'))}">
     <div class="ac-who"><span class="ac-avatar" aria-hidden="true">${esc(ini)}</span><div><b>${esc(v.name || t('Your account'))}</b><small>${esc(v.email)}</small></div></div>
     <nav aria-label="${esc(t('Account sections'))}"><ul class="ac-nav">${navList}</ul></nav>
@@ -164,11 +177,13 @@ export async function frame(o: {
   <div class="ac-main">${flash}<div class="ac-content">${o.body}</div></div>
   <nav class="ac-tabbar" aria-label="${esc(t('Account sections (mobile)'))}">${nav.filter((n) => n.tab).map((n) =>
     `<a href="${n.href}"${n.key === o.active ? ' aria-current="page" class="is-on"' : ''}>${icon(n.ic)}<span>${esc(n.short)}</span></a>`).join('')}</nav>
-</div>${overlays()}<script type="application/json" id="ac-i18n">${JSON.stringify(clientStrings()).replace(/</g, '\\u003c')}</script>`;
+</div>${aiOn ? `<button type="button" class="ac-ask" data-ac-ask aria-haspopup="dialog" hidden>${AI_HEX}<span>${esc(t('Ask GlobalHostia'))}</span></button>` : ''}${overlays()}<script type="application/json" id="ac-i18n">${JSON.stringify(clientStrings()).replace(/</g, '\\u003c')}</script>`;
 
   return localize(await page({
     ctx: ctxFor(o.path, o.query, o.title), path: o.path, title: `${o.title} · ${t('My account')}`, description: 'Your Globalhostia account.',
     css: ['account'], js: ['account'], bodyClass: `ac-page${isRtl() ? ' ac-rtl' : ''}`, noindex: true, body, headExtra: headExtra(),
+    // signed in, the customer assistant replaces the website's pre-sales chat
+    aiChat: !aiOn,
   }));
 }
 

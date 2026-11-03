@@ -116,6 +116,8 @@ export const CLIENT_KEYS = [
   'This service is busy right now. Your websites and email keep running. Please try again in a few minutes.',
   'Something went wrong on our side. Please try again in a minute.', 'Try again', 'Close',
   'Still stuck? Message us on WhatsApp', 'Still stuck? Contact our team',
+  // customer assistant entry points (palette action; the assistant's own strings live in public/hp/ai-assist.js)
+  'Ask the assistant…', 'Ask the assistant: “{q}”', 'Assistant', 'Ask about your account in plain words', 'The assistant could not load. Please try again.',
 ] as const;
 
 export function clientStrings(): Record<string, string> {
@@ -132,6 +134,8 @@ export const AR: Record<string, ArEntry> = {
   'Renewals': 'التجديدات', 'Billing': 'الفواتير', 'Support': 'الدعم', 'Profile': 'الملف الشخصي', 'Team access': 'صلاحيات الفريق', 'Team': 'الفريق',
   'App & notifications': 'التطبيق والإشعارات', 'Settings': 'الإعدادات', 'Web hosting': 'استضافة المواقع', 'VPS servers': 'خوادم VPS',
   'Dedicated servers': 'الخوادم المخصصة', 'Register a domain': 'تسجيل نطاق', 'SSL certificates': 'شهادات SSL', 'Business email': 'بريد الأعمال',
+  'Ask GlobalHostia': 'اسأل GlobalHostia', 'Ask the assistant': 'اسأل المساعد', 'Ask the assistant…': 'اسأل المساعد…', 'Ask the assistant: “{q}”': 'اسأل المساعد: «{q}»',
+  'Assistant': 'المساعد', 'Ask about your account in plain words': 'اسأل عن حسابك بكلمات بسيطة', 'The assistant could not load. Please try again.': 'تعذّر تحميل المساعد. حاول مرة أخرى.',
   'My account': 'حسابي', 'Customer #{n}': 'العميل رقم {n}', 'Search': 'بحث', 'Search your account': 'ابحث في حسابك', 'Buy more': 'شراء المزيد',
   'Account menu for {name}': 'قائمة الحساب الخاصة بـ {name}', 'Install app': 'تثبيت التطبيق', 'Change password': 'تغيير كلمة المرور',
   'Advanced settings': 'الإعدادات المتقدمة', 'Sign out': 'تسجيل الخروج', 'Account': 'الحساب', 'Your account': 'حسابك', 'Account sections': 'أقسام الحساب',

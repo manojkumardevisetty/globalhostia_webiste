@@ -89,7 +89,7 @@ export default {
       // ?v=<build sha> (shell.ts asset()): the URL changes on every deploy, so cache it for a year
       { source: '/hp/:path*', has: [{ type: 'query', key: 'v' }], headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
       // The WHMCS hook versions its skin by date (?v=YYYYMMDD), not by build: never cache those for a year.
-      { source: '/hp/:file(whmcs.js|whmcs-i18n.js|whmcs.css|promo.js|promo.css|whmcs.min.js|whmcs-i18n.min.js|whmcs.min.css|promo.min.js|promo.min.css)', headers: [{ key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=3600' }] },
+      { source: '/hp/:file(whmcs.js|whmcs-i18n.js|whmcs.css|promo.js|promo.css|ai-assist.js|ai-assist.css|whmcs.min.js|whmcs-i18n.min.js|whmcs.min.css|promo.min.js|promo.min.css|ai-assist.min.js|ai-assist.min.css)', headers: [{ key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=3600' }] },
       { source: '/hp/img/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }] },
       // font files never change under the same name (new @fontsource versions get new files via the build script)
       { source: '/hp/fonts/:path*.woff2', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },

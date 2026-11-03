@@ -751,6 +751,13 @@
 
     /* server messages shown as they are (exact matches; patterns are in srv below) */
     'Done': 'تم',
+    'Ask': 'اسأل',
+    'Ask the assistant about this hosting account': 'اسأل المساعد عن حساب الاستضافة هذا',
+    'Ask the assistant…': 'اسأل المساعد…',
+    'Ask the assistant: “{q}”': 'اسأل المساعد: «{q}»',
+    'AI assistant': 'المساعد الذكي',
+    'Assistant': 'المساعد',
+    'The assistant could not load. Please try again.': 'تعذّر تحميل المساعد. حاول مرة أخرى.',
     'Saved': 'تم الحفظ',
     'Record updated': 'تم تحديث السجل',
     'Record deleted': 'تم حذف السجل',

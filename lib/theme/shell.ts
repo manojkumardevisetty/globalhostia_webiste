@@ -29,6 +29,8 @@ export type PageOpts = {
   headExtra?: string;
   /** small label above the title on the generated OG image (e.g. product category) */
   ogKicker?: string;
+  /** false: no website pre-sales chat (signed-in account pages use the customer assistant instead) */
+  aiChat?: boolean;
 };
 
 const ASSET_V = (process.env.VERCEL_GIT_COMMIT_SHA || 'dev').slice(0, 8);
@@ -226,7 +228,7 @@ ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=or
 <script src="${asset('/hp/theme.js')}" defer></script>
 <script src="${asset('/hp/fx.js')}" defer></script>
 ${WEBMCP_LOADER}
-${aiChatLoader(s, cat.currency)}
+${o.aiChat === false ? '' : aiChatLoader(s, cat.currency)}
 <script src="${asset('/hp/track.js')}" defer></script>
 ${hasPromo(promo) ? `${promoDataScript(promo)}<script src="${asset('/hp/promo.js')}" defer></script>` : ''}
 ${js.map((k) => `<script src="${asset(`/hp/pages/${k}.js`)}" defer></script>`).join('\n')}

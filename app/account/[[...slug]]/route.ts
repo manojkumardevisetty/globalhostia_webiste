@@ -234,6 +234,7 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       title: p.translated_name || p.name || t('Service'), sub: `${p.domain ? `<span class="ac-mono">${esc(p.domain)}</span> ` : ''}${pill(p.status)}`, active: 'services',
       crumbs: [{ label: t('Products & Services'), href: '/account/services' }, { label: p.name || t('Service') }],
       headAction: ssoButton(v.csrf, 'service', p.id, t('Open control panel'), { variant: 'outline', ic: 'external' }),
+      ai: { serviceId: Number(p.id), domain: p.domain ? String(p.domain).toLowerCase() : undefined },
       body: serviceDetailView({ csrf: v.csrf, p, cur: sess.cur, dnsHref }),
     }));
   }
@@ -369,7 +370,7 @@ async function domainPage(F: (o: any) => Promise<string>, csrf: string, cur: str
   let ns: string[] | null = null;
   try { ns = await api.domainGetNameservers(Number(d.id)); } catch { ns = null; }
   const st = await dnsState(cid, d, ns);
-  return html(await F({ title: d.domainname, active: 'domains', crumbs: [{ label: t('Domains'), href: '/account/domains' }, { label: d.domainname }], body: domainDetailView({ csrf, d, cur, ns, dns: { ...dns, st } }) }), status);
+  return html(await F({ title: d.domainname, active: 'domains', crumbs: [{ label: t('Domains'), href: '/account/domains' }, { label: d.domainname }], ai: { domainId: Number(d.id), domain: String(d.domainname || '').toLowerCase() }, body: domainDetailView({ csrf, d, cur, ns, dns: { ...dns, st } }) }), status);
 }
 
 /** Team page: members + permissions (owner can manage). Never throws: a billing-API failure shows the fallback card. */

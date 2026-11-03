@@ -1008,6 +1008,8 @@
   var L10N = window.GH_L10N, _t = L10N.t, _tp = L10N.tp, RTL = L10N.rtl;
   var ORIGIN = (function () { try { return new URL(document.currentScript.src).origin; } catch (e) { return 'https://globalhostia.com'; } })();
   var API = ORIGIN + '/api/hosting/';
+  // ?v=… of this script, reused for /hp/ai-assist.js|css so the assistant loads the same deploy's files
+  var SRCQ = (function () { try { return new URL(document.currentScript.src).search; } catch (e) { return ''; } })();
   function ready(f) { if (document.readyState !== 'loading') f(); else document.addEventListener('DOMContentLoaded', f); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   /** a technical value (domain, address, path, IP) that keeps left-to-right order inside Arabic text */
@@ -1067,7 +1069,7 @@
     spam: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l6 0', ftp: 'M4 8h16v12H4zM8 4h8M12 11v6M9 14l3 3 3-3', protect: 'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4M12 15v2',
     cron: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2', wordpress: 'M12 3a9 9 0 100 18 9 9 0 000-18zM6 8l3.5 10L12 11l2.5 7L18 8', rename: 'M9 4h6M9 20h6M12 4v16M4 9l-2 3 2 3M20 9l2 3-2 3', ext: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6', gauge: 'M4 18a8 8 0 1116 0M12 18l4-6',
     health: 'M3 12h4l2-5 4 10 2-5h6', copy: 'M9 9h11v11H9zM5 15V4h11', search: 'M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-3.5-3.5', clock: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2',
-    bolt: 'M13 3L5 14h6l-1 7 8-11h-6z'
+    bolt: 'M13 3L5 14h6l-1 7 8-11h-6z', ask: 'M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5zM8.6 12h.01M12 12h.01M15.4 12h.01'
   };
   // icons that point somewhere: mirrored in right-to-left layouts
   var FLIP = { fwd: 1, redirects: 1, ext: 1, forwarders: 1, autoresponders: 1 };
@@ -1178,7 +1180,8 @@
     root.innerHTML =
       '<header class="ghh__head"><span class="ghh__mark" aria-hidden="true">' + ic('gauge', 20) + '</span><div class="ghh__ttl"><h2 id="ghh-title">' + _t('Manage hosting') + '</h2><p class="ghh__sub" data-sub>' + _t('Connecting to your hosting account') + '</p></div>' +
       '<div class="ghh__dom" data-dom hidden><label for="ghh-dom">' + _t('Domain') + '</label><select id="ghh-dom" data-domsel></select></div>' +
-      '<button type="button" class="ghh-kbtn" data-pal aria-haspopup="dialog" aria-keyshortcuts="' + (MAC ? 'Meta+K' : 'Control+K') + '" title="' + esc(_t('Search tools, domains, mailboxes and DNS records')) + '">' + ic('search', 16) + '<span class="ghh-kbtn__t">' + _t('Search') + '</span><kbd aria-hidden="true">' + (MAC ? '⌘ K' : 'Ctrl K') + '</kbd></button></header>' +
+      '<button type="button" class="ghh-kbtn" data-pal aria-haspopup="dialog" aria-keyshortcuts="' + (MAC ? 'Meta+K' : 'Control+K') + '" title="' + esc(_t('Search tools, domains, mailboxes and DNS records')) + '">' + ic('search', 16) + '<span class="ghh-kbtn__t">' + _t('Search') + '</span><kbd aria-hidden="true">' + (MAC ? '⌘ K' : 'Ctrl K') + '</kbd></button>' +
+      '<button type="button" class="ghh-kbtn ghh-ask" data-ask hidden aria-haspopup="dialog" title="' + esc(_t('Ask the assistant about this hosting account')) + '">' + ic('ask', 18) + '<span class="ghh-kbtn__t">' + _t('Ask') + '</span></button></header>' +
       '<div class="ghh__wrap"><nav class="ghh__nav" aria-label="' + esc(_t('Hosting tools')) + '" data-tabs></nav>' +
       '<div class="ghh__body" id="ghh-panel" tabindex="-1" data-body aria-live="polite"></div></div>' +
       '<div class="ghh__toasts" aria-live="polite" aria-atomic="false" data-toasts></div>';
@@ -1311,6 +1314,8 @@
     /* ------------------------------------------------------------ boot */
     api('session').then(function (s) {
       S.session = s;
+      // customer assistant: only when switched on (Admin > AI assistant); its script loads on first open
+      if (s.ai) { var ab = $('[data-ask]'); ab.hidden = false; ab.onclick = function () { askOpen(''); }; }
       S.domain = s.domains.indexOf(s.domain) >= 0 ? s.domain : s.domains[0] || '';
       $('[data-sub]').innerHTML = ltr(s.domain || s.username) + (s.server ? ' <span aria-hidden="true">·</span> ' + esc(s.server) : '');
       var sel = $('[data-domsel]');
@@ -1379,6 +1384,7 @@
     function clickWhen(sel) { return function () { whenEl(sel, function (b) { b.click(); }); }; }
     function palStatic() {
       var out = [], ds = (S.session && S.session.domains) || [], cur = S.domain;
+      if (S.session && S.session.ai) out.push({ id: 'act:ask', g: 'act', label: _t('Ask the assistant…'), sub: _t('AI assistant'), icon: 'ask', kw: 'ask assistant ai help question chat why how', run: function () { askOpen(''); } });
       (S.tabs || []).forEach(function (t) { out.push({ id: 'tab:' + t[0], g: 'sec', label: _t(t[1]), sub: t[4] ? _t(t[4]) : _t('Hosting'), icon: t[0], kw: t[1] + ' ' + t[0], run: function () { show(t[0], true); } }); });
       var per = function (d) {
         if (can('dns', 'add') && tabOn('dns')) out.push({ id: 'act:dns:' + d, g: 'act', label: _t('Add DNS record'), sub: d, icon: 'plus', kw: 'add dns record a cname mx txt', run: function () { go('dns', d, clickWhen('[data-add]')); } });
@@ -1418,8 +1424,8 @@
       });
     }
     function palAll() { var out = palStatic(), seen = {}; palSources().forEach(function (s) { if (PC[s[0]]) out = out.concat(PC[s[0]].items); }); return out.filter(function (x) { if (seen[x.id]) return false; seen[x.id] = 1; return true; }); }
-    var GROUPS = { rec: N_('Recent'), act: N_('Actions'), sec: N_('Sections'), dom: N_('Domains'), mbx: N_('Mailboxes'), dns: N_('DNS records'), db: N_('Databases'), ftp: N_('FTP accounts'), sub: N_('Subdomains') };
-    var ORDER = ['rec', 'sec', 'act', 'dom', 'mbx', 'dns', 'db', 'ftp', 'sub'];
+    var GROUPS = { rec: N_('Recent'), act: N_('Actions'), sec: N_('Sections'), dom: N_('Domains'), mbx: N_('Mailboxes'), dns: N_('DNS records'), db: N_('Databases'), ftp: N_('FTP accounts'), sub: N_('Subdomains'), ai: N_('Assistant') };
+    var ORDER = ['rec', 'sec', 'act', 'dom', 'mbx', 'dns', 'db', 'ftp', 'sub', 'ai'];
     // case, Arabic diacritics and letter variants do not matter when searching
     function norm(s) { return String(s == null ? '' : s).toLowerCase().replace(/[⁦-⁩ً-ْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); }
     function recent(add) {
@@ -1446,6 +1452,9 @@
       // groups in order of their best match (a DNS record named MX beats actions that only mention MX), then the usual order
       var best = {}; list.forEach(function (r) { var v = r.s == null ? 0 : Math.floor(r.s); if (!(r.g in best) || v < best[r.g]) best[r.g] = v; });
       list.sort(function (a, b) { return (best[a.g] - best[b.g]) || (ORDER.indexOf(a.g) - ORDER.indexOf(b.g)) || ((a.s || 0) - (b.s || 0)); });
+      // typed a question: hand it to the assistant (last, so Enter still opens the best match; the only row when nothing matches)
+      var askQ = palIn.value.trim();
+      if (askQ && S.session && S.session.ai) list.push({ g: 'ai', it: { id: 'ask:q', g: 'ai', label: _t('Ask the assistant: “{q}”', { q: askQ.slice(0, 200) }), sub: _t('AI assistant'), icon: 'ask', run: function () { askOpen(askQ.slice(0, 1500)); } } });
       palRes = list.map(function (r) { return r.it; });
       palAct = 0; if (prevId) palRes.forEach(function (x, i) { if (x.id === prevId) palAct = i; });
       var html = '', g = null, gi = 0;
@@ -1513,6 +1522,45 @@
       if (pal && !pal.hidden) palClose(); else palOpen();
     }
     document.addEventListener('keydown', palKey, true);
+
+    /* ------------------------------------------------------------ customer assistant ("Ask" in the header, palette action)
+       /hp/ai-assist.js + .css load on first open only, so client-area pages without this panel stay light. The assistant
+       authenticates with this panel's token and knows the current service, selected domain and tab; a confirmed proposal
+       runs through api() exactly like the panel's own forms, then the matching tab reloads and the new row flashes. */
+    var AI = null, aiLoading = null;
+    function aiAssets() {
+      if (window.GHAssist && window.GHAssist.sheet) return Promise.resolve();
+      if (aiLoading) return aiLoading;
+      var get = function (tag, attrs) { return new Promise(function (res, rej) { var n = document.createElement(tag); for (var k in attrs) n[k] = attrs[k]; n.onload = res; n.onerror = rej; document.head.appendChild(n); }); };
+      aiLoading = Promise.all([get('link', { rel: 'stylesheet', href: ORIGIN + '/hp/ai-assist.css' + SRCQ }), get('script', { src: ORIGIN + '/hp/ai-assist.js' + SRCQ, async: true })])
+        .catch(function (e) { aiLoading = null; throw e; });
+      return aiLoading;
+    }
+    function askOpen(q) {
+      if (!S.session || !S.session.ai) return;
+      aiAssets().then(function () {
+        var GA = window.GHAssist, auth = { type: 'hosting', token: function () { return G.token; } };
+        if (!AI) AI = GA.sheet({
+          auth: auth, apiBase: ORIGIN, linkBase: ORIGIN, lang: RTL ? 'ar' : 'en',
+          context: function () { return { page: 'hosting', tab: S.tab || 'overview', domain: S.domain || '', serviceId: G.sid }; },
+          onAction: function (p, inputs) {
+            var sec = GA.hostingSection(p);
+            if (!sec) return GA.execute(p, inputs, { auth: auth, apiBase: ORIGIN, lang: RTL ? 'ar' : 'en' });
+            var rq = GA.requestFor(p, inputs, { auth: auth, apiBase: ORIGIN }); // checks kind / endpoint before anything is sent
+            return api(sec, null, { json: JSON.parse(rq.init.body) }).then(function (r) { return { message: r && r.message ? L10N.srv(r.message) : _t('Done') }; });
+          },
+          onDone: function (p) {
+            var sec = GA.hostingSection(p), j = (p.request && p.request.json) || {};
+            if (!sec || !tabOn(sec)) return;
+            if (j.domain && j.domain !== S.domain && S.session.domains.indexOf(j.domain) >= 0) setDomain(j.domain);
+            S.cache = {};
+            if (sec === 'dns' && j.record) hlNext(j.record.value); else if (sec === 'email' && j.user) hlNext(j.user + '@' + j.domain); else if (j.domain) hlNext(j.domain);
+            show(sec);
+          }
+        });
+        AI.open(q || '');
+      }, function () { toast(_t('The assistant could not load. Please try again.'), 'err'); });
+    }
 
     /* ------------------------------------------------------------ copy buttons (any [data-copy] in the panel) */
     function copyBtn(text, label) { return '<button type="button" class="ghh-copy" data-copy="' + esc(text) + '" aria-label="' + esc(_t('Copy {what}', { what: label || text })) + '">' + ic('copy', 14) + '<span>' + _t('Copy') + '</span></button>'; }

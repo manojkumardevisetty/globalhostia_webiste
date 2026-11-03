@@ -1093,3 +1093,26 @@ tr.ac-hl>*,.ac-hl:not(tr){animation:ac-hl 2.6s ease-out 1}
 @media (prefers-reduced-motion:reduce){
   .ac-mk svg,.ac-mk__hex,.ac-mk__tick,.ac-flash--ok .ac-mk::before,.ac-flash--err,tr.ac-hl>*,.ac-hl:not(tr),.ac-switch.is-just i{animation:none!important}
 }
+
+/* ---------- customer assistant entry points (frame.ts; account.js opens /hp/ai-assist.js as a side sheet) */
+.ac-ask{position:fixed;z-index:60;inset-inline-end:20px;bottom:20px;display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 18px 0 8px;border:0;border-radius:999px;
+  background:var(--ink,#16212b);color:#fff;font:700 14.5px/1 var(--body,Inter),system-ui,sans-serif;box-shadow:0 16px 32px -14px rgba(22,33,43,.7),0 2px 6px rgba(22,33,43,.18);cursor:pointer;transition:transform .2s ease,background-color .2s}
+[dir=rtl] .ac-ask{padding:0 8px 0 18px;font-family:inherit}
+.ac-ask[hidden],.ac-dd__menu [hidden]{display:none}
+.ac-ask:hover{background:#0d151c;transform:translateY(-2px)}
+.ac-ask:focus-visible{outline:3px solid var(--brand,#c5386f);outline-offset:3px}
+.ac-ask .ac-ask__hex{width:38px;height:38px;flex:none}
+.ac-dd__menu .ac-ask__hex{width:18px;height:18px;flex:none}
+.hp-mo .ac-ask{animation:ac-ask-in .45s cubic-bezier(.2,.7,.2,1) .6s both}
+@keyframes ac-ask-in{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+html.ghas-lock .ac-ask,html.ghas-on .ac-ask{display:none}
+@media (max-width:960px){
+  /* above the bottom tab bar */
+  .ac-ask{bottom:calc(76px + env(safe-area-inset-bottom));inset-inline-end:14px}
+}
+@media (max-width:640px){
+  .ac-ask{min-height:48px;padding:0 6px;width:48px;justify-content:center}
+  [dir=rtl] .ac-ask{padding:0 6px}
+  .ac-ask span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+}
+@media (prefers-reduced-motion:reduce){.ac-ask{animation:none!important;transition:none}}

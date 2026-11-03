@@ -46,6 +46,12 @@ export async function aiClient(): Promise<AnthropicLike | null> {
   return client;
 }
 
+/** Customer assistant switch for the account portal and the hosting panel: on in AI settings and a key (or the local mock). */
+export async function assistAvailable(): Promise<boolean> {
+  if (!aiKeyPresent() && !(process.env.AI_MOCK === '1' && process.env.NODE_ENV !== 'production')) return false;
+  try { return (await aiSettings()).surfaces.assist !== false; } catch { return false; }
+}
+
 /* ------------------------------------------------------------------ identities */
 export const hashKey = (s: string) => createHash('sha256').update(`${s}|${process.env.AUTH_SECRET || 'gh'}`).digest('hex').slice(0, 24);
 export const reqIp = (req: Request) => (req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown').trim().slice(0, 64);
