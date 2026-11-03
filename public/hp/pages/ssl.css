@@ -87,7 +87,7 @@
 .ssl-depth i.on{background:var(--brand)}
 .ssl-level:nth-child(3) .ssl-depth i.on{background:var(--gold)}
 .ssl-level h3{display:flex;align-items:baseline;gap:10px;font-size:19px;line-height:1.25}
-.ssl-level h3 b{font:800 30px/1 var(--head);color:var(--brand-d);letter-spacing:-.03em}
+.ssl-level h3 b{font:800 26px/1 var(--head);color:var(--brand-d);letter-spacing:-.03em}
 .ssl-level dl{margin:0;display:grid;gap:14px;flex:1}
 .ssl-level dt{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:3px}
 .ssl-level dd{margin:0;font-size:15px;line-height:1.55}

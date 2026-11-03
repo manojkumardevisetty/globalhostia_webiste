@@ -51,7 +51,7 @@
 .ct-office{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center}
 .ct-office__img{margin:0;border-radius:var(--r-lg);overflow:hidden;aspect-ratio:4/3;box-shadow:var(--shadow)}
 .ct-office__img img{width:100%;height:100%;object-fit:cover}
-.ct-office h2{font:800 clamp(28px,3vw,38px)/1.15 var(--head)}
+.ct-office h2{font:800 var(--fs-h2)/1.2 var(--head)}
 .ct-office .hp-lead{margin-top:22px}
 .ct-facts{margin:26px 0 0;display:grid;gap:14px}
 .ct-facts div{display:grid;grid-template-columns:130px 1fr;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}

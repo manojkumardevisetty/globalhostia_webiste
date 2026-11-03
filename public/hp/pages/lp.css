@@ -17,7 +17,7 @@
 .lp-hero__in{position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(28px,5vw,72px);align-items:center}
 .lp-eyebrow{display:inline-flex;align-items:center;gap:10px;font:700 13px/1.2 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
 .lp-eyebrow i{width:10px;height:11px;background:var(--gold);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
-.lp-hero h1{margin-top:14px;color:#fff;font-size:clamp(32px,4.6vw,58px);line-height:1.06;letter-spacing:-.03em;font-weight:800}
+.lp-hero h1{margin-top:14px;color:#fff;font-size:var(--fs-h1);line-height:1.1;letter-spacing:-.03em;font-weight:800}
 .lp-sub{margin-top:18px;max-width:600px;font-size:clamp(16px,1.5vw,19px);line-height:1.6;color:var(--on-dark-mute)}
 .lp-bul{margin-top:26px;display:grid;gap:12px}
 .lp-bul li{display:flex;gap:12px;align-items:flex-start;font-size:16px;line-height:1.45;color:var(--on-dark)}
@@ -62,7 +62,7 @@
 .lp-facts span{font-size:14px;line-height:1.4;color:var(--muted)}
 
 /* sections */
-.lp-sec{padding:clamp(44px,6vw,80px) 0}
+.lp-sec{padding:var(--sec-y) 0}
 .lp-sec + .lp-sec{padding-top:0}
 .lp-h2{font-size:clamp(24px,2.6vw,34px);line-height:1.15}
 .lp-lead{margin-top:10px;color:var(--muted);font-size:16px;max-width:520px}

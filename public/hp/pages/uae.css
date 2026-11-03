@@ -7,7 +7,7 @@
 .ua-hero__grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:56px;align-items:center}
 .ua-eyebrow{display:inline-flex;align-items:center;gap:8px;font:600 14px/1 var(--body);color:var(--brand-d);margin-bottom:14px}
 .ua-eyebrow::before{content:"";width:22px;height:2px;background:var(--gold)}
-.ua-hero h1{font:800 clamp(32px,4vw,54px)/1.07 var(--head);letter-spacing:-.03em;max-width:20ch}
+.ua-hero h1{font:800 var(--fs-h1)/1.1 var(--head);letter-spacing:-.025em;max-width:20ch}
 .ua-lead{margin-top:18px;font-size:18px;line-height:1.6;color:var(--muted);max-width:60ch}
 .ua-hero .hp-actions{margin-top:28px;display:flex;flex-wrap:wrap;gap:12px}
 .ua-from{margin-top:18px;font-size:15px;color:var(--muted)}

@@ -4,7 +4,7 @@
 .dom-hero .hp-container{grid-template-columns:minmax(0,1fr)}
 .dom-hero .hp-hero__copy.dom-hero__copy{max-width:880px;margin:0 auto}
 .dom-hero .hp-crumbs ol{justify-content:center}
-.dom-hero h1{font-size:clamp(34px,4.6vw,58px)}
+.dom-hero h1{font-size:var(--fs-h1)}
 .dom-hero .hp-lead{margin-left:auto;margin-right:auto;max-width:62ch}
 .dom-search{margin-top:34px;text-align:left}
 .dom-search .hp-dpanel{color:var(--ink)}

@@ -42,55 +42,55 @@
 .ho-pick__live{height:0}
 
 /* ---------- plan finder ---------- */
-.ho-finder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:64px;align-items:start}
-.ho-q{border:0;padding:0;margin:34px 0 0}
+.ho-finder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:56px;align-items:start}
+.ho-q{border:0;padding:0;margin:28px 0 0}
 .ho-q legend{font:700 16px/1.3 var(--head);color:var(--ink);margin-bottom:12px;padding:0}
 .ho-chips{display:flex;flex-wrap:wrap;gap:8px}
 .ho-chips label{position:relative}
 .ho-chips input{position:absolute;opacity:0;width:1px;height:1px}
-.ho-chips span{display:inline-flex;align-items:center;min-height:46px;padding:0 18px;border-radius:999px;border:1.5px solid var(--line-2);background:#fff;font:600 14.5px var(--body);color:var(--ink);cursor:pointer;transition:border-color .15s,background-color .15s,color .15s}
+.ho-chips span{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line-2);background:#fff;font:600 14.5px var(--body);color:var(--ink);cursor:pointer;transition:border-color .15s,background-color .15s,color .15s}
 .ho-chips span:hover{border-color:var(--ink)}
 .ho-chips input:checked+span{border-color:var(--brand);background:var(--brand);color:#fff}
 .ho-chips input:focus-visible+span{outline:3px solid var(--brand);outline-offset:2px}
 .ho-finder__a{position:relative;position:sticky;top:calc(var(--header-h) + 24px)}
-.ho-res{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:30px 30px 28px;box-shadow:var(--shadow);overflow:hidden}
-.ho-res::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--brand-l),var(--brand-d))}
+.ho-res{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;box-shadow:var(--shadow);overflow:hidden}
+.ho-res::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--brand-l),var(--brand-d))}
 .ho-res:not([hidden]){animation:ho-pop .45s var(--ease-o)}
 @keyframes ho-pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 .ho-res__tag{display:inline-flex;align-items:center;gap:6px;font:600 13px var(--body);color:var(--brand-d);background:var(--brand-tint);padding:6px 10px;border-radius:999px}
 .ho-res__tag .hp-ico{width:15px;height:15px;stroke-width:2.4}
-.ho-res h3{margin-top:14px;font:800 28px/1.15 var(--head);letter-spacing:-.02em}
+.ho-res h3{margin-top:12px;font:800 24px/1.2 var(--head);overflow-wrap:anywhere;letter-spacing:-.02em}
 .ho-res>p{margin-top:10px;color:var(--muted)}
 .ho-res__specs{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
 .ho-res__specs li{font-size:13.5px;font-weight:500;background:var(--tint);border:1px solid var(--line);padding:6px 10px;border-radius:7px}
 .ho-res__buy{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
 .ho-res__price{color:var(--muted);font-size:15px}
-.ho-res__price b{font:800 30px/1 var(--head);color:var(--ink);letter-spacing:-.02em}
+.ho-res__price b{font:800 26px/1 var(--head);color:var(--ink);letter-spacing:-.02em}
 .ho-res__price small{display:block;font-size:13px;margin-top:6px}
 .ho-res .hp-btn{margin-top:0}
 .ho-res--vps .hp-btn{margin-top:20px}
 .ho-finder__note{margin-top:14px;font-size:13.5px;color:var(--muted)}
-.hp-plan.is-match{box-shadow:0 0 0 2px var(--brand),var(--shadow)}
+.hp-plan.is-match{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand),var(--shadow-sm)}
 
 /* ---------- migration timeline ---------- */
-.ho-mig{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:72px;align-items:start}
-.ho-mig__img{margin:36px 0 0;border-radius:var(--r-lg);overflow:hidden;border:1px solid rgba(255,255,255,.1);aspect-ratio:3/2}
+.ho-mig{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:start}
+.ho-mig__img{margin:28px 0 0;border-radius:var(--r-lg);overflow:hidden;border:1px solid rgba(255,255,255,.1);aspect-ratio:3/2}
 .ho-mig__img img{width:100%;height:100%;object-fit:cover}
 .ho-tl{position:relative;display:grid;gap:14px;counter-reset:s}
 .ho-tl::before{content:"";position:absolute;left:27px;top:28px;bottom:28px;width:2px;background:rgba(255,255,255,.12)}
 .ho-tl::after{content:"";position:absolute;left:27px;top:28px;bottom:28px;width:2px;background:linear-gradient(180deg,var(--gold),var(--brand-l));transform-origin:50% 0;transform:scaleY(var(--p,1))}
 .hp-mo .ho-tl::after{transform:scaleY(0);transition:transform 1.8s var(--ease-o) .2s}
 .hp-mo .ho-tl.is-in::after{transform:scaleY(1)}
-.ho-tl__step{position:relative;display:flex;gap:20px;align-items:flex-start;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);padding:20px 22px 20px 12px}
+.ho-tl__step{position:relative;display:flex;gap:16px;align-items:flex-start;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);padding:18px 20px 18px 12px}
 .ho-tl__n{position:relative;z-index:1;flex:none;width:32px;height:36px;margin-left:0;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:var(--brand);color:#fff;font:800 15px var(--head)}
 .ho-tl__step h3{color:#fff;font-size:17px;line-height:1.3}
 .ho-tl__step p{margin-top:6px;color:var(--on-dark-mute);font-size:15px;line-height:1.55}
 
-.ho-faq{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:64px;align-items:start}
+.ho-faq{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:56px;align-items:start}
 .ho-faq .hp-sec-head{margin-bottom:20px}
 
 @media (max-width:1023px){
-  .ho-finder,.ho-mig,.ho-faq{grid-template-columns:1fr;gap:40px}
+  .ho-finder,.ho-mig,.ho-faq{grid-template-columns:1fr;gap:28px}
   .ho-finder__a{position:relative;top:0}
   .ho-pick{max-width:620px}
 }
@@ -99,8 +99,8 @@
   .ho-map{height:150px}
   .ho-pick__seg button{font-size:13.5px;padding:0 6px;gap:5px}
   .ho-pick__seg button .hp-ico{display:none}
-  .ho-res{padding:24px 20px 22px}
-  .ho-res h3{font-size:24px}
+  .ho-res{padding:20px 18px}
+  .ho-res h3{font-size:21px}
   .ho-res__buy .hp-btn{width:100%}
   .ho-chips span{padding:0 14px;font-size:14px}
   .ho-tl::before,.ho-tl::after{left:27px}

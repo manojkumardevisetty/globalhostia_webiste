@@ -9,7 +9,7 @@
 .vx-term__bar i:nth-child(2){background:var(--gold)}
 .vx-term__bar span{margin-left:10px;font:500 12px var(--mono);color:var(--on-dark-mute)}
 .vx-term__body{margin:0;padding:18px 20px 8px;height:300px;overflow:hidden;font:400 13.5px/1.75 var(--mono);white-space:pre-wrap;word-break:break-all;display:flex;flex-direction:column;justify-content:flex-end}
-.vx-l{display:block;min-height:1.75em}
+.vx-l{display:block;flex:none;min-height:1.75em}
 .vx-l b{color:var(--brand-l);font-weight:600}
 .vx-l--cmd{color:#fff}
 .vx-l--out,.vx-l--ok{color:#9fb0bf}
@@ -93,7 +93,7 @@
   .vx-faq{gap:8px}
 }
 @media (max-width:640px){
-  .vx-term__body{height:260px;font-size:12px;padding:14px 14px 6px}
+  .vx-term__body{height:310px;font-size:12px;padding:14px 14px 6px}
   .vx-meters{gap:10px;padding:12px 14px}
   .vx-sizer__ctrls,.vx-match{padding:20px}
   .vx-match__name{font-size:23px}

@@ -94,7 +94,7 @@
 .pd-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:56px;align-items:start}
 .pd-col{min-width:0;display:grid;gap:72px}
 .pd-side{position:sticky;top:calc(var(--header-h) + 20px)}
-.pd-inc h2,.pd-cmp-wrap h2{font:800 clamp(26px,3vw,34px)/1.15 var(--head)}
+.pd-inc h2,.pd-cmp-wrap h2{font:800 var(--fs-h2)/1.2 var(--head)}
 .pd-fit{margin-top:18px;max-width:62ch;color:var(--muted);font-size:16.5px}
 .pd-desc{margin-top:14px}
 .pd-list{margin-top:26px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 28px}
@@ -124,7 +124,7 @@
 .pd-buy{padding:28px;border:1px solid var(--line);border-radius:var(--r-lg);background:#fff;box-shadow:var(--shadow)}
 .pd-buy h2{font:800 20px/1.25 var(--head)}
 .pd-buy__price{margin-top:14px;display:flex;align-items:baseline;gap:8px}
-.pd-buy__price span{font:800 40px/1 var(--head);color:var(--ink);letter-spacing:-.03em}
+.pd-buy__price span{font:800 34px/1 var(--head);color:var(--ink);letter-spacing:-.03em}
 .pd-buy__price small{font-size:15px;color:var(--muted)}
 .pd-buy__renew{margin-top:6px;font-size:13px;color:var(--muted)}
 .pd-buy__renew span{color:var(--ink);font-weight:600}
