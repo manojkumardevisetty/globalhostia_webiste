@@ -6,6 +6,7 @@ import { ALIAS_SLUGS } from './aliases.mjs';
 /** IndexNow key. The matching key file is served from public/<key>.txt. */
 export const INDEXNOW_KEY = '6a67d36c3c478068d0f08ecff6923e8a';
 export const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
+export const INDEXNOW_ENDPOINTS = [INDEXNOW_ENDPOINT, 'https://www.bing.com/indexnow', 'https://yandex.com/indexnow'];
 
 export const ROBOTS_INDEX = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 export const ROBOTS_NOINDEX = 'noindex,follow';
@@ -156,15 +157,24 @@ export async function submitIndexNow(site: string, urls: string[]): Promise<Inde
   const host = new URL(site).host;
   const list = [...new Set(urls)].filter((u) => { try { return new URL(u).host === host; } catch { return false; } }).slice(0, 10000);
   if (!list.length) return { ok: false, status: 0, submitted: 0, message: 'No URLs to submit' };
-  try {
-    const r = await fetch(INDEXNOW_ENDPOINT, {
-      method: 'POST', headers: { 'content-type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({ host, key: INDEXNOW_KEY, keyLocation: `${site}/${INDEXNOW_KEY}.txt`, urlList: list }),
-      signal: AbortSignal.timeout(15000),
-    });
-    const msg = r.status === 200 || r.status === 202 ? 'Accepted' : r.status === 403 ? 'Key not valid (is the key file live?)' : r.status === 422 ? 'URLs rejected (host mismatch)' : r.status === 429 ? 'Too many requests, try later' : `HTTP ${r.status}`;
-    return { ok: r.status === 200 || r.status === 202, status: r.status, submitted: list.length, message: msg };
-  } catch (e: any) {
-    return { ok: false, status: 0, submitted: 0, message: `${e?.message || 'Request failed'} (${list.length} URLs prepared)` };
+  const body = JSON.stringify({ host, key: INDEXNOW_KEY, keyLocation: `${site}/${INDEXNOW_KEY}.txt`, urlList: list });
+  const notes: string[] = [];
+  let last: IndexNowResult = { ok: false, status: 0, submitted: 0, message: '' };
+  // api.indexnow.org shares with every engine; when it refuses, the engines' own endpoints are tried (each one
+  // validates the key file itself), and every answer is kept for the log
+  for (const endpoint of INDEXNOW_ENDPOINTS) {
+    const name = new URL(endpoint).host;
+    try {
+      const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json; charset=utf-8' }, body, signal: AbortSignal.timeout(15000) });
+      const detail = (await r.text().catch(() => '')).replace(/\s+/g, ' ').trim().slice(0, 160);
+      const msg = r.status === 200 || r.status === 202 ? 'Accepted' : r.status === 403 ? 'Key not valid or not verified yet' : r.status === 422 ? 'URLs rejected (host mismatch)' : r.status === 429 ? 'Too many requests, try later' : `HTTP ${r.status}`;
+      notes.push(`${name}: ${r.status} ${msg}${detail && r.status >= 400 ? ` (${detail})` : ''}`);
+      last = { ok: r.status === 200 || r.status === 202, status: r.status, submitted: list.length, message: notes.join(' | ') };
+      if (last.ok) return last;
+    } catch (e: any) {
+      notes.push(`${name}: ${e?.message || 'request failed'}`);
+      last = { ...last, message: notes.join(' | ') };
+    }
   }
+  return last;
 }

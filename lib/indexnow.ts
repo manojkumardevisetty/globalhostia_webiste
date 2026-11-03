@@ -73,26 +73,29 @@ export async function pingChanged(paths: string[], trigger: string) {
   await submitAndLog(paths.map((p) => (p.startsWith('http') ? p : site + (p.startsWith('/') ? p : `/${p}`))), trigger);
 }
 
-let deployChecked = false;
+let nextDeployCheck = 0;
 /**
  * Once per production deployment: the first request after a deploy claims a lock keyed by the commit SHA
- * (settings.indexnow_deploy) and submits the whole sitemap. Call it from after(), so it never delays a response.
+ * (settings.indexnow_deploy) and submits the whole sitemap. When that submission failed, a request at least
+ * 30 minutes later retries it (a new key can take a while to verify). Call it from after(): it never delays a page.
  */
 export async function onDeploy() {
-  if (deployChecked) return;
-  deployChecked = true;
+  if (Date.now() < nextDeployCheck) return;
+  nextDeployCheck = Date.now() + 10 * 60e3; // each server instance looks at the lock at most every 10 minutes
   const sha = process.env.VERCEL_GIT_COMMIT_SHA;
-  if (process.env.VERCEL_ENV !== 'production' || !sha) return;
+  if (process.env.VERCEL_ENV !== 'production' || !sha) { nextDeployCheck = Infinity; return; }
   try {
-    const value = JSON.stringify({ sha, at: new Date().toISOString() });
-    // the conditional upsert returns a row only for the one request that moves the lock to this SHA
+    const value = JSON.stringify({ sha, at: new Date().toISOString(), ok: null });
+    // the conditional upsert returns a row only for the one request that takes the lock
     const r = await db.execute(sql`insert into settings (key, value) values ('indexnow_deploy', ${value}::jsonb)
-      on conflict (key) do update set value = excluded.value where settings.value->>'sha' is distinct from excluded.value->>'sha'
+      on conflict (key) do update set value = excluded.value
+      where settings.value->>'sha' is distinct from excluded.value->>'sha'
+         or (settings.value->>'ok' = 'false' and (settings.value->>'at')::timestamptz < now() - interval '30 minutes')
       returning key`);
-    const claimed = Array.from(r as unknown as ArrayLike<unknown>).length > 0;
-    if (claimed) {
-      revalidateTag('site'); // the sitemap's <lastmod> for hand-written pages uses the deploy time
-      await submitSitemap(`deploy ${sha.slice(0, 7)}`);
-    }
-  } catch { /* retried by the daily cron */ }
+    if (!Array.from(r as unknown as ArrayLike<unknown>).length) return;
+    revalidateTag('site'); // the sitemap's <lastmod> for hand-written pages uses the deploy time
+    const res = await submitSitemap(`deploy ${sha.slice(0, 7)}`);
+    await setSetting('indexnow_deploy', { sha, at: new Date().toISOString(), ok: res.ok });
+    if (res.ok) nextDeployCheck = Infinity;
+  } catch { /* the daily cron still submits changed URLs */ }
 }
