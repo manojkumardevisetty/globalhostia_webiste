@@ -381,7 +381,7 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .gh-co__aside h3 { font: 800 19px/1.2 Manrope, Inter, sans-serif; margin: 0 0 12px; color: var(--gh-ink); }
 .gh-co__aside .btn, .gh-co__aside a.btn, .gh-co__aside #checkout, .gh-co__aside [class*="continue"] { display: none !important; }
 .gh-co__trust { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; font-size: 13px; color: var(--gh-muted); }
-.gh-co__trust li::before { content: "✓"; color: #1c9a5b; font-weight: 700; margin-right: 8px; }
+.gh-co__trust li::before { content: ""; display: inline-block; width: 11px; height: 12px; margin-right: 8px; vertical-align: -1px; background: linear-gradient(135deg, #c5386f 0%, #e0517f 55%, #fdd700 100%); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
 @media (max-width: 1023px) { .gh-co { grid-template-columns: 1fr; } .gh-co__aside { position: static; order: -1; } }
 .register-area-box-checkout { background: #fff !important; border: 1px solid var(--gh-line) !important; border-radius: 20px !important; box-shadow: var(--gh-shadow) !important; padding: 56px 24px 20px !important; margin-bottom: 18px !important; }
 .register-area-box-checkout-title { position: absolute !important; top: 20px !important; left: 24px !important; transform: none !important; background: transparent !important; color: var(--gh-ink) !important; padding: 0 !important; box-shadow: none !important; font: 800 18px/1.2 Manrope, Inter, sans-serif !important; border-radius: 0 !important; }
@@ -435,7 +435,7 @@ html.gh-domstep .domain-ltds-prices-confi-page { display: none !important; }
 .domain-lookup-primary-results .alert { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
 .domain-lookup-primary-results .alert-heading { font: 800 24px/1.2 Manrope, Inter, sans-serif !important; color: var(--gh-ink) !important; margin: 0 0 4px !important; }
 .domain-lookup-primary-results .alert p { margin: 0 !important; color: #1c9a5b !important; font-weight: 600; }
-.domain-lookup-primary-results .alert p::before { content: "✓ "; }
+.domain-lookup-primary-results .alert p::before { content: ""; display: inline-block; width: 11px; height: 12px; margin-right: 8px; vertical-align: -1px; background: linear-gradient(135deg, #c5386f 0%, #e0517f 55%, #fdd700 100%); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
 .domain-lookup-primary-results .domain-price { margin: 0 !important; text-align: right; }
 .domain-lookup-primary-results .register-price-label { display: block; font-size: 13px; color: var(--gh-muted); }
 .domain-lookup-primary-results .price { font: 800 26px/1.1 Manrope, Inter, sans-serif; color: var(--gh-ink); }
@@ -722,7 +722,7 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .gh-broker a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 18px; border-radius: 999px; background: var(--gh-gold); color: #3a3000 !important; font-weight: 800; text-decoration: none !important; white-space: nowrap; }
 
 /* 2026-11-03: spotlight TLD cards — equal-height grid, no gaps, badges never wrap mid-word */
-.spotlight-tlds-group { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px !important; align-items: stretch; }
+.spotlight-tlds-group { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px !important; align-items: stretch; }
 .spotlight-tlds-group > .spotlight-tld-item, .spotlight-tld-item { display: flex !important; width: auto !important; max-width: none !important; float: none !important; margin: 0 !important; flex: none !important; }
 .spotlight-tld-item > .spotlight-tld { flex: 1; width: 100%; }
 .spotlight-tld .domain-lookup-result { margin-top: auto; }
@@ -777,7 +777,7 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .gh-tk__feetx b i { font: 500 15px Inter, sans-serif; font-style: normal; color: #4b5864; }
 .gh-tk__feetx em { display: block; font-style: normal; color: #4b5864; font-size: 13px; }
 .gh-tk__ticks { list-style: none; margin: 0; padding: 0; display: flex; gap: 20px; flex-wrap: wrap; font-size: 14px; color: #23313d; }
-.gh-tk__ticks li::before { content: "✓"; color: #1c9a5b; font-weight: 800; margin-right: 6px; }
+.gh-tk__ticks li::before { content: ""; display: inline-block; width: 11px; height: 12px; margin-right: 8px; vertical-align: -1px; background: linear-gradient(135deg, #c5386f 0%, #e0517f 55%, #fdd700 100%); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
 .gh-tk__steps { margin: 0; padding: 16px 20px 16px 40px; background: #fbf6f8; border-radius: 14px; display: grid; gap: 8px; font-size: 14.5px; }
 .gh-tk__steps[hidden] { display: none; }
 .gh-tk__act { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-top: auto; }
@@ -800,3 +800,7 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 @media (max-width: 860px) { .gh-tk { grid-template-columns: 1fr; } .gh-tk__card { padding: 22px; } .gh-tk__dom { font-size: 30px; } .gh-tk__altdom { font-size: 30px; } .gh-tk__buy { width: 100%; } .gh-tk__feetx b { font-size: 28px; } }
 /* header currency chip: JS shows the code, hide the duplicate " - USD" */
 .btn-header-lang .header-lang-currency { display: none !important; }
+
+/* GlobalHostia signature mark (brand hexagon) for "available" lines, replacing the generic tick */
+.gh-avail small::before { content: ""; display: inline-block; width: 11px; height: 12px; margin-right: 8px; vertical-align: -1px; background: linear-gradient(135deg, #c5386f 0%, #e0517f 55%, #fdd700 100%); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.gh-hexmark { display: inline-block; width: 11px; height: 12px; margin-right: 8px; vertical-align: -1px; background: linear-gradient(135deg, #c5386f, #fdd700); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }

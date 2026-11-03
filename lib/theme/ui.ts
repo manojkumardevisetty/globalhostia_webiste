@@ -22,7 +22,8 @@ const ICONS: Record<string, string> = {
   right: '<path d="m9 18 6-6-6-6"/>',
   up: '<path d="m18 15-6-6-6 6"/>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-  check: '<path d="M20 6 9 17l-5-5"/>',
+  // GlobalHostia signature mark (brand hexagon with a solid core) used wherever a tick would be
+  check: '<path d="M12 2.6 20.2 7.3v9.4L12 21.4 3.8 16.7V7.3Z"/><path d="M12 8.2 15.3 10.1v3.8L12 15.8 8.7 13.9v-3.8Z" fill="currentColor" stroke="none"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
   server: '<rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/><path d="M6 7h.01M6 17h.01M10 7h4M10 17h4"/>',

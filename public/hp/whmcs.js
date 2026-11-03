@@ -515,7 +515,7 @@
       var b = r.querySelector('[data-domain]'); if (!b) return;
       var avail = r.classList.contains('domain-available');
       var p = r.querySelector('p'); if (p && /click on the link below/i.test(p.textContent)) p.style.display = 'none';
-      var hd = document.createElement('div'); hd.className = 'gh-avail'; hd.innerHTML = esc(b.getAttribute('data-domain')) + (avail ? '<small>✓ Available — register it before someone else does</small>' : '');
+      var hd = document.createElement('div'); hd.className = 'gh-avail'; hd.innerHTML = esc(b.getAttribute('data-domain')) + (avail ? '<small>Available — register it before someone else does</small>' : '');
       r.insertBefore(hd, r.firstChild); r.dataset.gh = 1;
     };
     new MutationObserver(function () { clearTimeout(fill.t); fill.t = setTimeout(fill, 120); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
@@ -708,7 +708,7 @@
           card.querySelector('[data-gh-altp]').textContent = a.price.replace(/\s*[A-Z]{3}$/, '');
           var row = a.btn.closest('.domain-suggestion'); var rn = renewOf(row);
           card.querySelector('[data-gh-altr]').textContent = rn ? 'Renews at ' + rn + ' / year' : '';
-          card.querySelector('.gh-tk__add').onclick = function () { a.btn.click(); this.textContent = 'Added ✓'; this.disabled = true; };
+          card.querySelector('.gh-tk__add').onclick = function () { a.btn.click(); this.textContent = 'Added'; this.disabled = true; };
           // two more available alternatives
           var more = [].slice.call(document.querySelectorAll('.domain-suggestion')).filter(function (r) { var b2 = r.querySelector('.btn-add-to-cart'); return r.offsetParent !== null && b2 && b2 !== a.btn && b2.offsetParent !== null; }).slice(0, 2);
           var box = card.querySelector('[data-gh-more2]');
@@ -716,7 +716,7 @@
             var b2 = r.querySelector('.btn-add-to-cart'); var d2 = (b2.getAttribute('data-domain') || '').toLowerCase(); var p2 = r.querySelector('.price'); if (!d2) return;
             var it = document.createElement('div'); it.className = 'gh-tk__mini';
             it.innerHTML = '<span><b>' + esc(d2) + '</b><small>' + esc(p2 ? p2.textContent.replace(/\s+/g, ' ').trim() : '') + '</small></span><button type="button">Add</button>';
-            it.querySelector('button').onclick = function () { b2.click(); this.textContent = '✓'; this.disabled = true; };
+            it.querySelector('button').onclick = function () { b2.click(); this.textContent = 'Added'; this.disabled = true; };
             box.appendChild(it);
           });
           card.hidden = false;
