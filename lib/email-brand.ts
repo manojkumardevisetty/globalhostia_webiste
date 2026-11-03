@@ -196,10 +196,9 @@ export function globalFooter(): string {
 <tr><td style="padding:18px 20px;font-family:${FONT_BODY};">
 <p class="gh-help-title" style="margin:0 0 4px;font-family:${FONT_HEAD};font-size:16px;font-weight:700;color:${C.deep};">Need a hand? We're here 24/7.</p>
 <p class="gh-muted" style="margin:0 0 14px;font-size:14px;line-height:1.5;color:${C.muted};">Real engineers, not bots. Message us on WhatsApp or open a ticket and we'll reply fast.</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td class="gh-stack gh-stack-gap" valign="top" style="padding:0 8px 0 0;">${button(BRAND.whatsapp, 'WhatsApp us', 'wa')}</td>
-<td class="gh-stack" valign="top" style="padding:0;">${button(LINKS.ticket, 'Open a ticket', 'ghost')}</td>
-<td class="gh-stack" width="99%" style="font-size:0;line-height:0;">&nbsp;</td>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="gh-stack gh-stack-gap" valign="top" style="padding:0 10px 0 0;white-space:nowrap;">${button(BRAND.whatsapp, 'Chat on WhatsApp', 'wa')}</td>
+<td class="gh-stack" valign="top" style="padding:0;white-space:nowrap;">${button(LINKS.ticket, 'Open a ticket', 'ghost')}</td>
 </tr></table>
 </td></tr></table>
 </td></tr>
@@ -238,7 +237,7 @@ export function button(href: string, label: string, kind: 'brand' | 'wa' | 'ghos
   const border = kind === 'ghost' ? C.line2 : bg;
   const cls = kind === 'ghost' ? 'gh-btn-ghost' : 'gh-btn';
   const text = kind === 'ghost' ? esc(label) : `<span class="gh-gm-s"><span class="gh-gm-d">${esc(label)}</span></span>`;
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" class="${cls}" style="border-collapse:separate;"><tr><td align="center" bgcolor="${bg}" style="background-color:${bg};border:1px solid ${border};border-radius:8px;mso-padding-alt:12px 22px;"><a href="${href}" target="_blank" style="display:inline-block;padding:12px 22px;font-family:${FONT_BODY};font-size:15px;font-weight:600;line-height:1.2;color:${fg};text-decoration:none;border-radius:8px;">${text}</a></td></tr></table>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" class="${cls}" style="border-collapse:separate;"><tr><td align="center" bgcolor="${bg}" style="background-color:${bg};border:1px solid ${border};border-radius:8px;mso-padding-alt:12px 22px;"><a href="${href}" target="_blank" style="display:inline-block;padding:12px 22px;font-family:${FONT_BODY};font-size:15px;font-weight:600;line-height:1.2;color:${fg};text-decoration:none;border-radius:8px;white-space:nowrap;">${text}</a></td></tr></table>`;
 }
 
 const h1 = (s: string) => `<h1 style="margin:0 0 14px;font-family:${FONT_HEAD};font-size:26px;line-height:1.25;font-weight:800;color:${C.deep};">${s}</h1>`;
