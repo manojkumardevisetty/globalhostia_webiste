@@ -1,0 +1,224 @@
+{
+  "generatedBy": "tests/generate-fixtures.mjs (YouPI webhook-engine algorithm)",
+  "secret": "whsec_test_5f0c1e2d3c4b5a69788796a5b4c3d2e1f0",
+  "cases": [
+    {
+      "name": "valid V2 delivery",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"b3f1c2d4-1111-4a2b-9c3d-0123456789ab\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "b3f1c2d4-1111-4a2b-9c3d-0123456789ab",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=f951e93a6ead280b938c8fd4756a78bd7548cf9b8c9f59d763a1adc1aea952e6",
+        "x-gateway-signature-v2": "sha256=53fcb92a637f6c8fbc9f5bfd6a7e905d5276a97b4136a308d9a3796eef6707f7"
+      },
+      "nowMs": 1793000002000,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": true,
+      "expectReason": ""
+    },
+    {
+      "name": "valid V2 retried 4 minutes later (same timestamp)",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"b3f1c2d4-1111-4a2b-9c3d-0123456789ab\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "b3f1c2d4-1111-4a2b-9c3d-0123456789ab",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=f951e93a6ead280b938c8fd4756a78bd7548cf9b8c9f59d763a1adc1aea952e6",
+        "x-gateway-signature-v2": "sha256=53fcb92a637f6c8fbc9f5bfd6a7e905d5276a97b4136a308d9a3796eef6707f7"
+      },
+      "nowMs": 1793000240000,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": true,
+      "expectReason": ""
+    },
+    {
+      "name": "V2 retry 6 minutes later is stale",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"b3f1c2d4-1111-4a2b-9c3d-0123456789ab\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "b3f1c2d4-1111-4a2b-9c3d-0123456789ab",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=f951e93a6ead280b938c8fd4756a78bd7548cf9b8c9f59d763a1adc1aea952e6",
+        "x-gateway-signature-v2": "sha256=53fcb92a637f6c8fbc9f5bfd6a7e905d5276a97b4136a308d9a3796eef6707f7"
+      },
+      "nowMs": 1793000360000,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": false,
+      "expectReason": "timestamp outside"
+    },
+    {
+      "name": "clock 2 minutes behind sender still ok",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"b3f1c2d4-1111-4a2b-9c3d-0123456789ab\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "b3f1c2d4-1111-4a2b-9c3d-0123456789ab",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=f951e93a6ead280b938c8fd4756a78bd7548cf9b8c9f59d763a1adc1aea952e6",
+        "x-gateway-signature-v2": "sha256=53fcb92a637f6c8fbc9f5bfd6a7e905d5276a97b4136a308d9a3796eef6707f7"
+      },
+      "nowMs": 1792999880000,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": true,
+      "expectReason": ""
+    },
+    {
+      "name": "tampered amount",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"b3f1c2d4-1111-4a2b-9c3d-0123456789ab\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":1,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "b3f1c2d4-1111-4a2b-9c3d-0123456789ab",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=f951e93a6ead280b938c8fd4756a78bd7548cf9b8c9f59d763a1adc1aea952e6",
+        "x-gateway-signature-v2": "sha256=53fcb92a637f6c8fbc9f5bfd6a7e905d5276a97b4136a308d9a3796eef6707f7"
+      },
+      "nowMs": 1793000002000,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": false,
+      "expectReason": "V2 signature mismatch"
+    },
+    {
+      "name": "wrong secret",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"b3f1c2d4-1111-4a2b-9c3d-0123456789ab\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "b3f1c2d4-1111-4a2b-9c3d-0123456789ab",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=f7d9fab922a6e549bba2c1b87624dff833d9ad63b6a0f72f62b6eed26a00fe7f",
+        "x-gateway-signature-v2": "sha256=e81abe6467a612c779c5aa579f6cc50d7eea032cf2bd87e7ce9c919b147ad9b6"
+      },
+      "nowMs": 1793000002000,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": false,
+      "expectReason": "V2 signature mismatch"
+    },
+    {
+      "name": "header timestamp re-signed but body timestamp differs",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"b3f1c2d4-1111-4a2b-9c3d-0123456789ab\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "b3f1c2d4-1111-4a2b-9c3d-0123456789ab",
+        "x-gateway-timestamp": "1793000100000",
+        "x-gateway-signature": "sha256=f951e93a6ead280b938c8fd4756a78bd7548cf9b8c9f59d763a1adc1aea952e6",
+        "x-gateway-signature-v2": "sha256=d1ad76b3d54f9827717240685d9dd83cb4fad4d5d389fb27c6d9d51cdeef40b0"
+      },
+      "nowMs": 1793000100000,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": false,
+      "expectReason": "body timestamp does not match"
+    },
+    {
+      "name": "V1 only, fallback disabled",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"9d0e7c6b-2222-4c1d-8e9f-abcdefabcdef\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "9d0e7c6b-2222-4c1d-8e9f-abcdefabcdef",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=cf319619394d55a06abd26a810c4eb0545fb96b42b2ed8d3d955b13e7d5453db"
+      },
+      "nowMs": 1793000001000,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": false,
+      "expectReason": "fallback is disabled"
+    },
+    {
+      "name": "V1 only, fallback enabled",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"9d0e7c6b-2222-4c1d-8e9f-abcdefabcdef\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "9d0e7c6b-2222-4c1d-8e9f-abcdefabcdef",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=cf319619394d55a06abd26a810c4eb0545fb96b42b2ed8d3d955b13e7d5453db"
+      },
+      "nowMs": 1793000001000,
+      "allowV1": true,
+      "maxSkewSec": 300,
+      "expectOk": true,
+      "expectReason": ""
+    },
+    {
+      "name": "V1 only, fallback enabled but body timestamp stale",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"9d0e7c6b-2222-4c1d-8e9f-abcdefabcdef\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "9d0e7c6b-2222-4c1d-8e9f-abcdefabcdef",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=cf319619394d55a06abd26a810c4eb0545fb96b42b2ed8d3d955b13e7d5453db"
+      },
+      "nowMs": 1793000900000,
+      "allowV1": true,
+      "maxSkewSec": 300,
+      "expectOk": false,
+      "expectReason": "timestamp outside"
+    },
+    {
+      "name": "delivery id header differs from body",
+      "body": "{\"event\":\"OBSERVED_SUCCESS\",\"deliveryId\":\"b3f1c2d4-1111-4a2b-9c3d-0123456789ab\",\"timestamp\":1793000000000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"NOT_RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "OBSERVED_SUCCESS",
+        "x-gateway-delivery-id": "ffffffff-3333-4444-5555-666666666666",
+        "x-gateway-timestamp": "1793000000000",
+        "x-gateway-signature": "sha256=f951e93a6ead280b938c8fd4756a78bd7548cf9b8c9f59d763a1adc1aea952e6",
+        "x-gateway-signature-v2": "sha256=53fcb92a637f6c8fbc9f5bfd6a7e905d5276a97b4136a308d9a3796eef6707f7"
+      },
+      "nowMs": 1793000001000,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": false,
+      "expectReason": "deliveryId does not match"
+    },
+    {
+      "name": "RECONCILED event next day",
+      "body": "{\"event\":\"RECONCILED\",\"deliveryId\":\"aa11bb22-cc33-4d44-8e55-ff6677889900\",\"timestamp\":1793086400000,\"paymentId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"orderId\":\"WHMCS-1042-k3m7q2xa\",\"attemptId\":\"c7942127-14e3-469a-9e4a-9359a16f903a\",\"amount\":\"1499.00\",\"amountPaise\":149900,\"currency\":\"INR\",\"method\":\"UPI\",\"utr\":\"412345678901\",\"verificationTag\":\"SMS_OBSERVED\",\"verificationLevel\":1,\"completedAt\":\"2026-10-26T09:33:20.000Z\",\"metadata\":{\"source\":\"whmcs\",\"whmcsInvoiceId\":1042,\"note\":\"GlobalHostia ₹ invoice\"},\"settlementState\":\"RECONCILED\"}",
+      "headers": {
+        "content-type": "application/json",
+        "x-gateway-event": "RECONCILED",
+        "x-gateway-delivery-id": "aa11bb22-cc33-4d44-8e55-ff6677889900",
+        "x-gateway-timestamp": "1793086400000",
+        "x-gateway-signature": "sha256=53e05da0fae9053c47efcc0ce836d7f0bfa8aa74fa96c4e532ac4351f22c94e8",
+        "x-gateway-signature-v2": "sha256=cb9da0e5c12c43c34e2c816574d1cd8996a58723ab0dde0ccccb91779be09da4"
+      },
+      "nowMs": 1793086400500,
+      "allowV1": false,
+      "maxSkewSec": 300,
+      "expectOk": true,
+      "expectReason": ""
+    }
+  ],
+  "orderIds": {
+    "valid": [
+      "WHMCS-1042-k3m7q2xa",
+      "WHMCS-1-abcdefgh",
+      "WHMCS-9999999999-22222222"
+    ],
+    "invalid": [
+      "WHMCS-0-abcdefgh",
+      "WHMCS-1042-K3M7Q2XA",
+      "WHMCS-1042-k3m7q2x",
+      "WHMCS-1042-k3m7q2xa-R1",
+      "ORDER-1001",
+      "WHMCS-1042-k3m7q2x1",
+      "WHMCS-01-abcdefgh",
+      " WHMCS-1-abcdefgh"
+    ]
+  }
+}

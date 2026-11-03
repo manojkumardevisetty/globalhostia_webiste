@@ -1,0 +1,4 @@
+# Library code is included by WHMCS, never requested over HTTP. Assets stay public.
+<FilesMatch "\.php$">
+  Require all denied
+</FilesMatch>

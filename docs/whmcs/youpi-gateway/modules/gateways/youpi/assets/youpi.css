@@ -1,0 +1,31 @@
+/* GlobalHostia x YouPI UPI payment card (WHMCS invoice page). Brand #c5386f, ink #16212b. */
+.ghy{--ghy-brand:#c5386f;--ghy-ink:#16212b;--ghy-mute:#5a6774;--ghy-line:#e6e9ee;box-sizing:border-box;max-width:420px;margin:12px auto;padding:18px 18px 16px;border:1px solid var(--ghy-line);border-radius:14px;background:#fff;color:var(--ghy-ink);text-align:left;font:400 14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.ghy *{box-sizing:border-box}
+.ghy__head{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.ghy-hex{flex:none;display:block}
+.ghy__brand{font-weight:800;font-size:15px;letter-spacing:-.01em;line-height:1.2}
+.ghy__sub{font-size:12.5px;color:var(--ghy-mute)}
+.ghy__amount{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#f6f7f9}
+.ghy__amount span{color:var(--ghy-mute);font-size:13px}
+.ghy__amount b{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.ghy__btn{display:block;width:100%;min-height:48px;padding:0 18px;border:0;border-radius:10px;background:var(--ghy-brand);color:#fff;font:700 16px/1 inherit;font-family:inherit;cursor:pointer;transition:filter .15s,box-shadow .15s}
+.ghy__btn:hover{filter:brightness(.94)}
+.ghy__btn:focus-visible{outline:none;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--ghy-brand)}
+.ghy__btn[disabled]{opacity:.65;cursor:progress}
+.ghy__title{margin:0 0 4px;font-weight:700;font-size:15px}
+.ghy__text{margin:10px 0 0;color:var(--ghy-ink)}
+.ghy__fine{margin:8px 0 0;font-size:12.5px;color:var(--ghy-mute)}
+.ghy a{color:#a6225f;text-decoration:underline;text-underline-offset:2px}
+.ghy__status{margin-top:12px;padding:10px 12px;border-radius:10px;background:#16a34a14;color:var(--ghy-ink);font-size:13.5px}
+.ghy__status[hidden]{display:none}
+.ghy__test{margin:12px 0 0;padding:6px 10px;border-radius:8px;background:#fdd70033;font-size:12px}
+.ghy--warn{border-color:#f5c2c7}
+.ghy--warn .ghy__title{color:#9f1239}
+.ghy--ok .ghy__title{color:#15803d}
+/* Modal */
+.ghy-modal{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(22,33,43,.62)}
+.ghy-modal__box{position:relative;width:100%;max-width:460px;height:min(760px,calc(100vh - 32px));border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 30px 80px -20px rgba(22,33,43,.6)}
+.ghy-modal__box iframe{display:block;width:100%;height:100%;border:0}
+.ghy-modal__close{position:absolute;top:8px;right:8px;z-index:2;width:36px;height:36px;border:0;border-radius:50%;background:#16212b;color:#fff;font:700 18px/36px system-ui,sans-serif;cursor:pointer}
+.ghy-modal__close:focus-visible{outline:3px solid var(--ghy-brand,#c5386f);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){.ghy-modal__box{animation:ghy-in .25s cubic-bezier(.16,1,.3,1) both}@keyframes ghy-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}}
