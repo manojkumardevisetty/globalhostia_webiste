@@ -1071,7 +1071,8 @@
         var n = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? i + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? bs.length - 1 : null;
         if (n === null) return; e.preventDefault(); n = (n + bs.length) % bs.length; bs[n].focus();
       };
-      var want = (location.hash.match(/^#hosting-(\w+)/) || [])[1];
+      var want; try { want = sessionStorage.getItem('gh-hosting-tab-' + G.sid); } catch (e) {}
+      if (/^#hosting-/.test(location.hash)) try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
       show(tabs.some(function (t) { return t[0] === want; }) ? want : tabs[0] ? tabs[0][0] : null);
     }, function (e) {
       if (e && e.code === 'expired') return expired();
@@ -1084,7 +1085,7 @@
       [].forEach.call(root.querySelectorAll('[data-tab]'), function (b) { var on = b.getAttribute('data-tab') === tab; b.setAttribute('aria-current', on ? 'page' : 'false'); if (on && b.scrollIntoView && b.parentNode.parentNode.scrollWidth > b.parentNode.parentNode.clientWidth) b.scrollIntoView({ block: 'nearest', inline: 'center' }); });
       body.setAttribute('aria-labelledby', 'ghh-tab-' + tab);
       $('[data-dom]').hidden = !DOMAIN_VIEWS[tab] || S.session.domains.length < 2;
-      try { history.replaceState(null, '', '#hosting-' + tab); } catch (e) {}
+      try { sessionStorage.setItem('gh-hosting-tab-' + G.sid, tab); } catch (e) {} // no URL hash: the theme's own tabs read it and blank the page
       bindAll = function () {};
       ({ overview: overview, dns: dns, subdomains: subdomains, aliases: aliases, redirects: redirects, php: php, email: email, forwarders: email, autoresponders: autoresponders, spam: spam,
         files: files, ftp: ftp, protect: protect, databases: databases, cron: cron, ssl: ssl, backups: backups, wordpress: wordpress })[tab]();
