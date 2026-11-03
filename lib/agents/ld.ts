@@ -1,6 +1,7 @@
 // Shared schema.org helpers: category ItemList and the home page OfferCatalog. Prices only from the catalog; no ratings or reviews.
 import { cycles, orderUrl, productsFor, categoryProducts, type Catalog, type TProduct } from '../theme/data';
 import { categoryPath } from './catalog';
+import { isMachineName, prettyName } from '../theme/sitelinks';
 
 const siteOf = (cat: Catalog) => String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
 const tag = (o: unknown) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`;
@@ -31,14 +32,14 @@ export function itemListLd(cat: Catalog, ps: TProduct[], name: string, url: stri
 /** Organization.hasOfferCatalog for the home page: one sub-catalog per category with its priced products. */
 export function offerCatalogLd(cat: Catalog) {
   const site = siteOf(cat);
-  const subs = cat.categories.map((c) => {
+  const subs = cat.categories.filter((c) => !isMachineName(c.slug, c.name)).map((c) => {
     const items = categoryProducts(cat, c.slug).map((p) => {
       const n = productNode(p, cat, site);
       return n ? { '@type': 'Offer', itemOffered: { '@type': 'Product', name: n.name, url: n.url }, price: n.offers.lowPrice, priceCurrency: cat.currency, availability: n.offers.availability, url: n.url } : null;
     }).filter(Boolean);
     if (!items.length) return null;
     const path = categoryPath(c.slug, cat);
-    return { '@type': 'OfferCatalog', name: c.name, ...(path ? { url: site + path } : {}), itemListElement: items };
+    return { '@type': 'OfferCatalog', name: prettyName(c.name), ...(path ? { url: site + path } : {}), itemListElement: items };
   }).filter(Boolean);
   if (!subs.length) return '';
   return tag({ '@context': 'https://schema.org', '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`,
