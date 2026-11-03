@@ -294,7 +294,7 @@ function SettingsTab({ cs, canEdit, est, budget }: { cs: Awaited<ReturnType<type
           <div className="space-y-3">
             {chk('enabled', cs.enabled, 'Content engine on', 'Off stops all AI calls from the engine (planning and editing still work).')}
             {chk('autoDraft', cs.autoDraft, 'Write drafts automatically', 'The daily job drafts approved calendar items that are due soon.')}
-            {chk('autoPublish', cs.autoPublish, 'Auto-publish approved drafts on schedule', 'Off by default. When on, a fresh draft with no failed checks is scheduled on its calendar date without your review. Leave off to approve every article yourself.')}
+            {chk('autoPublish', cs.autoPublish, 'Autopilot: pick topics, draft and publish automatically', 'On. Every day the engine fills the calendar with the highest-priority ideas (seasonal topics first), tops up ideas when a track runs low, drafts a week ahead and publishes drafts that pass every check on their date. Drafts with a failed check wait for you. Turn off to approve every article yourself.')}
             {chk('notify', cs.notify, 'Email me when drafts are ready', 'Sent through WHMCS to the same account as the support alerts.')}
             {chk('arabicDefault', cs.arabicDefault, 'Suggest an Arabic version for UAE articles', 'You still switch it on per article.')}
           </div>

@@ -53,7 +53,7 @@ export type ContentSettings = {
   perMonth: Record<Track, number>;
   autoDraft: boolean; // cron drafts approved calendar items due soon
   draftLeadDays: number;
-  autoPublish: boolean; // cron schedules drafts that pass every check (default off: owner approves each one)
+  autoPublish: boolean; // autopilot: cron picks the next topics, drafts them and publishes drafts that pass every check (failed checks wait for the owner)
   perRun: number; // drafts per cron run
   minWords: number;
   maxWords: number;
@@ -64,7 +64,7 @@ export type ContentSettings = {
   seedKeywords: string[];
 };
 export const DEFAULT_CONTENT: ContentSettings = {
-  enabled: true, perMonth: { uae: 4, global: 4 }, autoDraft: true, draftLeadDays: 7, autoPublish: false, perRun: 2,
+  enabled: true, perMonth: { uae: 4, global: 4 }, autoDraft: true, draftLeadDays: 7, autoPublish: true, perRun: 2,
   minWords: 1200, maxWords: 2000, publishHour: 9, notify: true, arabicDefault: false, monthlyCapUsd: 10, seedKeywords: [],
 };
 const n = (v: unknown, d: number, lo: number, hi: number) => { const x = typeof v === 'number' ? v : typeof v === 'string' && v.trim() ? Number(v) : NaN; return Number.isFinite(x) ? Math.min(hi, Math.max(lo, Math.round(x * 100) / 100)) : d; };

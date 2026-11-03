@@ -159,8 +159,8 @@ test('reconcile with the linked blog post', () => {
   assert.equal(reconcileState('idea', { status: 'PUBLISHED', publishAt: null }, now), 'idea');
 });
 
-test('settings normalisation and defaults (auto-publish off)', () => {
-  assert.equal(DEFAULT_CONTENT.autoPublish, false);
+test('settings normalisation and defaults (autopilot on)', () => {
+  assert.equal(DEFAULT_CONTENT.autoPublish, true);
   assert.deepEqual(DEFAULT_CONTENT.perMonth, { uae: 4, global: 4 });
   const s = normalizeContent({ perMonth: { uae: '6', global: 99 }, minWords: 2000, maxWords: 1000, autoPublish: 'on', seedKeywords: 'a, ab\nvps uae' });
   assert.deepEqual(s.perMonth, { uae: 6, global: 31 });

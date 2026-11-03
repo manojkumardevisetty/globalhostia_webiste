@@ -2,6 +2,7 @@
 // and the daily cron step (server only). Articles are ordinary blog posts: DRAFT until the owner schedules or publishes.
 // Nothing is ever published without an owner action, unless the owner switched on "auto-publish approved drafts".
 import 'server-only';
+import { TRACKS } from './core';
 import { and, eq, inArray, isNull, lt, ne, sql } from 'drizzle-orm';
 import { revalidateTag } from 'next/cache';
 import { db, schema } from '../db';
@@ -371,15 +372,19 @@ export async function reconcile() {
   return changed;
 }
 
+async function unapproveIfFar(id: string) {
+  await db.update(schema.contentIdeas).set({ state: 'idea', plannedFor: null, approvedBy: '', approvedAt: null }).where(and(eq(schema.contentIdeas.id, id), eq(schema.contentIdeas.state, 'approved')));
+}
+
 /* ------------------------------------------------------------------ cron */
-export type CronResult = { ok: boolean; skipped?: string; drafted: string[]; failed: { id: string; error: string }[]; published: string[]; autoScheduled: string[]; notified: number; budget?: string | null };
+export type CronResult = { ok: boolean; skipped?: string; drafted: string[]; autoApproved: string[]; failed: { id: string; error: string }[]; published: string[]; autoScheduled: string[]; notified: number; budget?: string | null };
 
 /** Daily step (piggybacks on /api/cron/sync): record posts that went live, draft approved items due soon,
  *  auto-schedule clean drafts only when the owner enabled it, then email the owner about drafts waiting for review. */
 export async function runContentCron(o: { deadlineMs?: number } = {}): Promise<CronResult> {
   const t0 = Date.now();
   const deadline = t0 + (o.deadlineMs ?? 170_000);
-  const res: CronResult = { ok: true, drafted: [], failed: [], published: [], autoScheduled: [], notified: 0 };
+  const res: CronResult = { ok: true, drafted: [], failed: [], published: [], autoScheduled: [], autoApproved: [], notified: 0 };
   const cs = await contentSettings();
   if (!cs.enabled) return { ...res, skipped: 'disabled' };
   await reconcile();
@@ -392,8 +397,31 @@ export async function runContentCron(o: { deadlineMs?: number } = {}): Promise<C
     res.published.push(i.id);
   }
 
+  // Autopilot: keep the calendar filled day to day. Approve the highest-priority open ideas into the next free slots
+  // (seasonal topics carry higher priority), and top up a track's backlog with fresh AI ideas when it runs low.
+  let pool = ideas;
+  if (cs.autoPublish) {
+    try {
+      const horizon = Date.now() + (cs.draftLeadDays + 7) * 86_400_000;
+      for (const tr of TRACKS) {
+        if (!(cs.perMonth[tr] > 0)) continue;
+        let open = await listIdeas({ track: tr, states: ['idea'], limit: 50 });
+        if (open.length < 4 && Date.now() < deadline - 60_000 && !(await budgetGate())) {
+          try { await generateIdeas({ track: tr, count: 8, seeds: cs.seedKeywords, by: SYSTEM }); open = await listIdeas({ track: tr, states: ['idea'], limit: 50 }); } catch { /* ideas next run */ }
+        }
+        const queued = (await listIdeas({ track: tr, states: ['approved', 'drafting', 'draft_ready', 'in_review', 'scheduled'], limit: 200 }))
+          .filter((i) => i.plannedFor && new Date(i.plannedFor).getTime() <= horizon).length;
+        const want = Math.max(0, Math.ceil((cs.perMonth[tr] * (cs.draftLeadDays + 7)) / 30) - queued);
+        for (const i of open.slice(0, want)) {
+          try { const at = await approve(i.id, SYSTEM); if (at.getTime() > horizon) { await unapproveIfFar(i.id); break; } res.autoApproved.push(i.id); } catch { break; }
+        }
+      }
+    } catch { /* never block the rest of the run */ }
+    pool = await listIdeas({ states: ['approved', 'draft_ready', 'scheduled'], limit: 1000 });
+  }
+
   if (cs.autoDraft) {
-    for (const i of selectForDrafting(ideas, Date.now(), cs.draftLeadDays, cs.perRun)) {
+    for (const i of selectForDrafting(pool, Date.now(), cs.draftLeadDays, cs.perRun)) {
       if (Date.now() > deadline) break;
       const gate = await budgetGate();
       if (gate) { res.budget = gate; break; }
