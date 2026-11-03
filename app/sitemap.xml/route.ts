@@ -4,6 +4,8 @@ import { getSettings } from '@/lib/settings';
 import { getPosts, blogCategories } from '@/lib/blog';
 import { SITEMAP_EXCLUDE } from '@/lib/seo';
 import { THEME_ONLY } from '@/lib/theme/routes';
+import { getCatalog } from '@/lib/theme/data';
+import { pseoPaths } from '@/lib/theme/pseo';
 
 export const revalidate = 3600;
 
@@ -23,8 +25,11 @@ export async function GET() {
   // theme-only landing pages (plan finder, free migration, .ae, data centers, UAE guides) have no CMS page row
   const have = new Set(rows.map((r) => r.slug));
   const themeOnly = [...THEME_ONLY].filter((slug) => !have.has(slug)).map((slug) => `<url><loc>${base}/${slug}</loc></url>`).join('\n');
+  // programmatic SEO pages (domains A–Z, locations, use cases): derived from the cached catalog, so this stays fast
+  const pseo = await getCatalog().then((cat) => pseoPaths(cat)).catch(() => [] as string[]);
+  const prog = pseo.filter((p) => !have.has(p.slice(1))).map((p) => `<url><loc>${base}${p}</loc></url>`).join('\n');
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${rows
     .filter((r) => !SITEMAP_EXCLUDE.has(r.slug) && r.slug !== 'blog')
-    .map((r) => `<url><loc>${base}${r.slug === 'index' ? '/' : '/' + r.slug}</loc><lastmod>${new Date(r.updatedAt).toISOString()}</lastmod></url>`).join('\n')}\n${prods.map((p) => `<url><loc>${base}/p/${p.slug}</loc><lastmod>${new Date(p.updatedAt).toISOString()}</lastmod></url>`).join('\n')}\n<url><loc>${base}/ai</loc></url>\n${blog}\n</urlset>`;
+    .map((r) => `<url><loc>${base}${r.slug === 'index' ? '/' : '/' + r.slug}</loc><lastmod>${new Date(r.updatedAt).toISOString()}</lastmod></url>`).join('\n')}\n${prods.map((p) => `<url><loc>${base}/p/${p.slug}</loc><lastmod>${new Date(p.updatedAt).toISOString()}</lastmod></url>`).join('\n')}\n<url><loc>${base}/ai</loc></url>\n${blog}\n${themeOnly}\n${prog}\n</urlset>`;
   return new Response(xml, { headers: { 'content-type': 'application/xml' } });
 }

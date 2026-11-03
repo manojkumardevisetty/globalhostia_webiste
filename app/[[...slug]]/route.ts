@@ -5,7 +5,8 @@ import { db, schema } from '@/lib/db';
 import { renderPage } from '@/lib/render/page';
 import { renderProductPage } from '@/lib/render/product-page';
 import { renderTheme, renderBlogRoute } from '@/lib/theme';
-import { THEME_ONLY } from '@/lib/theme/routes';
+import { THEME_ONLY, dynamicRoute } from '@/lib/theme/routes';
+import { PSEO_REDIRECTS } from '@/lib/theme/pseo';
 import { getSettings } from '@/lib/settings';
 import { verifySession, COOKIE } from '@/lib/auth';
 
@@ -26,6 +27,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: stri
   const path = '/' + segs.join('/');
   const r = (await redirectMap())[path.toLowerCase()];
   if (r) return NextResponse.redirect(new URL(r[0], req.url), r[1]);
+  const pr = PSEO_REDIRECTS[path.slice(1).toLowerCase()];
+  if (pr) return NextResponse.redirect(new URL(pr, req.url), 301);
   if (/\.html?$/i.test(path)) return NextResponse.redirect(new URL(path.replace(/\/?index\.html?$/i, '/').replace(/\.html?$/i, ''), req.url), 301);
 
   const session = await verifySession(req.cookies.get(COOKIE)?.value);
@@ -47,7 +50,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: stri
 
   // Site theme: Admin > Design "Site theme". ?theme=hostpen previews it, ?theme=original previews the old one.
   const tq = req.nextUrl.searchParams.get('theme');
-  const themed = (tq ? tq === 'hostpen' : s.site_theme === 'hostpen') || (segs.length <= 2 && segs.length > 0 && THEME_ONLY.has(segs.join('/').toLowerCase()));
+  const themed = (tq ? tq === 'hostpen' : s.site_theme === 'hostpen') || (segs.length <= 2 && segs.length > 0 && THEME_ONLY.has(segs.join('/').toLowerCase())) || !!dynamicRoute(segs);
   if (themed) {
     const out = await renderTheme(segs, { path, preview, query: req.nextUrl.searchParams });
     if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'));

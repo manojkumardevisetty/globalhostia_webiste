@@ -10,6 +10,7 @@ import { pageHero, sectionHead, dcMap, faq, faqJsonLd, ctaBand, breadcrumbJsonLd
 import { trustStrip } from '../growth';
 import { siteOf, crumbsFor } from './vps';
 import { TYPE, TYPE_LABEL, TYPE_PAGE } from './planfinder';
+import { locationGroups, typeLocPages, TYPE_LOC } from '../pseo';
 
 /** Coordinates and plain-language reach for known location labels (as used in product attributes). */
 const GEO: Record<string, { ll: [number, number]; region: string; near: string; name?: string }> = {
@@ -93,6 +94,14 @@ export default async function render(ctx: PageCtx): Promise<string> {
     ${cards}
   </div></section>`;
 
+  // links to the per-location pages (/locations/<loc>, /<type>/<loc>) generated from the same catalog
+  const lg = locationGroups(cat), tl = typeLocPages(cat, lg);
+  const guides = lg.length ? `<section class="hp-section hp-section--tint" aria-labelledby="dc-guides-h"><div class="hp-container">
+    ${sectionHead({ id: 'dc-guides-h', title: 'Plans by location', lead: 'Every plan that runs in each location, with live prices and who each location suits.' })}
+    <ul class="dc-guides">${lg.map((g) => `<li><a class="hp-link" href="/locations/${esc(g.loc.slug)}">${esc(`Hosting in ${g.loc.the}`)}${icon('arrow')}</a>${tl.filter((x) => x.loc.slug === g.loc.slug).map((x) =>
+      `<a class="dc-guides__sub" href="/${esc(x.prefix)}/${esc(x.loc.slug)}">${esc(TYPE_LOC[x.prefix].label)} in ${esc(g.loc.the)}</a>`).join('')}</li>`).join('')}</ul>
+  </div></section>` : '';
+
   const speed = `<section class="hp-section hp-section--dark hp-on-dark" id="speed" aria-labelledby="dc-speed-h"><div class="hp-container dc-speed" data-dc-speed>
     <div class="dc-speed__copy">
       <h2 id="dc-speed-h" class="hp-hline hp-h2">Test the connection from your browser</h2>
@@ -134,8 +143,8 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   return page({
     ctx, catalog: cat, path: '/data-centers', title: ctx.route.title, description: ctx.route.description,
-    css: ['datacenters'], js: ['datacenters'],
+    css: ['datacenters', 'pseo'], js: ['datacenters'],
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(faqs)],
-    body: [hero, trustStrip(s), where, speed, faqSec, cta].join('\n'),
+    body: [hero, trustStrip(s), where, guides, speed, faqSec, cta].join('\n'),
   });
 }

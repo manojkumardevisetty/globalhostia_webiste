@@ -116,6 +116,21 @@ export const ROUTES: Record<string, RouteDef> = {
 /** Pages that only exist in the Hostpen theme: always rendered by it, whatever the site theme (like /blog). */
 export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS]);
 
+/**
+ * Programmatic SEO pages (lib/theme/pseo.ts): /domains/<tld>, /locations/<loc>, /<type>/<loc>, /hosting-for[/<usecase>].
+ * Always rendered by the Hostpen theme (like THEME_ONLY). The page module returns null for an unknown slug → 404.
+ */
+const DYNAMIC_PREFIX: Record<string, string> = {
+  domains: 'tld', locations: 'location', 'hosting-for': 'usecase',
+  'web-hosting': 'location', vps: 'location', 'dedicated-servers': 'location', 'windows-rdp': 'location', 'linux-rdp': 'location',
+};
+export function dynamicRoute(segs: string[]): RouteDef | null {
+  const s = segs.map((x) => x.toLowerCase());
+  if (s.length === 1 && s[0] === 'hosting-for') return { kind: 'usecase', title: '', description: '' };
+  if (s.length !== 2 || !DYNAMIC_PREFIX[s[0]] || !/^[a-z0-9][a-z0-9-]{0,62}$/.test(s[1])) return null;
+  return { kind: DYNAMIC_PREFIX[s[0]], title: '', description: '' };
+}
+
 /** product detail pages /p/<slug> use kind 'product' */
 export const PRODUCT_ROUTE: RouteDef = { kind: 'product', title: '', description: '' };
 

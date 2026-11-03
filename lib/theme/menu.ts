@@ -149,6 +149,11 @@ export function footerColumns(menus: ThemeMenu[]) {
   const cols = menus.map((m) => ({ title: m.label, links: dedupe(m.groups.flatMap((g) => g.items)).map((i) => ({ label: i.label, href: i.href })) }));
   const sec = cols.findIndex((c) => /security/i.test(c.title)), dom = cols.findIndex((c) => /domain/i.test(c.title));
   if (sec >= 0 && dom >= 0) { cols[dom].links.push(cols[sec].links[0]); cols.splice(sec, 1); }
+  // hubs of the programmatic SEO pages (lib/theme/pseo.ts)
+  const col = (re: RegExp) => cols.find((c) => re.test(c.title));
+  col(/domain/i)?.links.push({ label: 'Domains A–Z', href: '/domains/all' });
+  col(/server/i)?.links.push({ label: 'Locations', href: '/data-centers#dc-loc-h' });
+  col(/hosting/i)?.links.push({ label: 'Hosting for…', href: '/hosting-for' });
   cols.push({ title: 'In the UAE', links: [
     { label: 'Web hosting in Dubai', href: '/web-hosting-dubai' }, { label: 'VPS hosting UAE', href: '/vps-uae' },
     { label: 'Windows RDP UAE', href: '/windows-rdp-uae' },
