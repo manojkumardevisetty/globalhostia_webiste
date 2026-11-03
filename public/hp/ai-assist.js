@@ -103,7 +103,11 @@
         var headers = { "content-type": "application/json", accept: "text/event-stream" };
         if (o.auth && o.auth.type === "hosting") headers.authorization = "GH-Hosting " + (await tokenOf(o.auth));
         var r = await fetch(endpoint, { method: "POST", headers: headers, credentials: o.auth && o.auth.type === "portal" ? "include" : "omit", body: JSON.stringify({ messages: msgs, context: ctx }) });
-        if ((r.headers.get("content-type") || "").indexOf("text/event-stream") < 0) { var j = await r.json().catch(function () { return {}; }); b.innerHTML = md(j.message || "The assistant is not available right now."); msgs.pop(); return; }
+        if ((r.headers.get("content-type") || "").indexOf("text/event-stream") < 0) {
+          var j = await r.json().catch(function () { return {}; });
+          b.innerHTML = md(j.message || (r.status === 429 ? "Too many messages in a short time. Please wait a minute, then try again." : r.status === 401 || r.status === 403 ? "Your session expired. Reload the page and try again." : "The assistant is not available right now. Please try again in a minute, or open a support ticket."));
+          msgs.pop(); return;
+        }
         var rd = r.body.getReader(), dec = new TextDecoder(), buf = "";
         for (;;) {
           var x = await rd.read(); if (x.done) break;
@@ -117,7 +121,7 @@
           });
         }
         if (reply) msgs.push({ role: "assistant", content: reply }); else { if (b.textContent === "…") b.textContent = "Done."; msgs.push({ role: "assistant", content: "(shown a card)" }); }
-      } catch (e) { b.textContent = "Connection problem. Please try again."; msgs.pop(); }
+      } catch (e) { b.textContent = navigator.onLine === false ? "You seem to be offline. Check your connection and try again." : "The connection dropped before the answer finished. Please ask again."; msgs.pop(); }
       finally { busy = false; btn.disabled = false; }
     }
     return {

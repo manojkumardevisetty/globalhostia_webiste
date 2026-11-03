@@ -156,7 +156,7 @@
       (e.items || []).forEach(function (x) {
         wrap.appendChild(el("div", { class: "ghai-dom" + (x.available ? "" : " ghai-dom--taken") }, [
           el("span", {}, [el("b", { text: x.domain }), el("small", { text: x.available ? money(x.register, x.currency) + " first year · renews " + money(x.renew, x.currency) : "Already registered" })]),
-          x.available ? el("button", { class: "ghai-btn ghai-btn--sm", type: "button", text: "Add", "aria-label": "Add " + x.domain + " to cart", onclick: function (ev) { addItem({ key: "d:" + x.domain, kind: "domain", domain: x.domain, label: x.domain, detail: "Domain, 1 year", price: x.register, setupFee: 0, currency: x.currency }); ev.target.textContent = "Added"; ev.target.disabled = true; } }) : null
+          x.available ? el("button", { class: "ghai-btn ghai-btn--sm", type: "button", text: "Add", "aria-label": "Add " + x.domain + " to cart", onclick: function (ev) { addItem({ key: "d:" + x.domain, kind: "domain", domain: x.domain, label: x.domain, detail: "Domain, 1 year", price: x.register, setupFee: 0, currency: x.currency }); ev.target.textContent = "Added"; ev.target.disabled = true; if (window.GHFx) window.GHFx.pop(ev.target); } }) : null
         ]));
       });
       box.appendChild(wrap);
@@ -180,6 +180,8 @@
     if (!it || !it.key) return;
     st.cart = st.cart.filter(function (x) { return x.key !== it.key && !(it.kind === "product" && x.slug === it.slug); });
     st.cart.push(it); save(); renderCart();
+    var sm = cartBox.querySelector("summary"); if (sm && window.GHFx) window.GHFx.bump(sm);
+    if (window.GHFx && !cartBox.dataset.live) { cartBox.dataset.live = 1; cartBox.setAttribute("aria-live", "polite"); }
   }
   function renderCart() {
     cartBox.innerHTML = "";
@@ -221,13 +223,27 @@
   }
   function strip(m) { return { role: m.role, content: m.content }; }
 
+  /* ---------------------------------------------------------------- errors: what happened + a way forward */
+  function errText(status) {
+    if (window.GHFx) return window.GHFx.errInfo(status, null, null).msg;
+    return !status ? "You seem to be offline. Check your connection and try again." : status === 429 ? "Too many messages in a short time. Please wait a minute, then try again." : "Something went wrong on our side. Please try again in a minute.";
+  }
+  function failBubble(msg, retryText) {
+    var b = bubble("ai", msg + " ");
+    var row = el("div", { class: "ghai-row" }, [
+      retryText ? el("button", { class: "ghai-btn ghai-btn--sm", type: "button", text: "Try again", onclick: function () { row.remove(); submit(retryText, null, true); } }) : null,
+      el("button", { class: "ghai-btn ghai-btn--ghost ghai-btn--sm", type: "button", text: "Talk to a person", onclick: function () { row.remove(); handoffForm(); } })]);
+    b.appendChild(row); scroll();
+  }
+
   /* ---------------------------------------------------------------- send */
-  async function submit(text, turnstile) {
+  async function submit(text, turnstile, again) {
     text = String(text || "").trim();
     if (!text || busy) return;
     if (text.length > MAXC) { bubble("ai", "Please keep messages under " + MAXC + " characters."); return; }
     busy = true; sendBtn.disabled = true;
-    if (!turnstile) { bubble("me", text); st.msgs.push({ role: "user", content: text }); save(); input.value = ""; input.style.height = ""; count.textContent = ""; }
+    if (again) { st.msgs.push({ role: "user", content: text }); save(); }
+    else if (!turnstile) { bubble("me", text); st.msgs.push({ role: "user", content: text }); save(); input.value = ""; input.style.height = ""; count.textContent = ""; }
     var typed = typedAt ? Date.now() - typedAt : 0; typedAt = 0;
     var wait = el("div", { class: "ghai-msg ghai-msg--ai" }, [hex(), el("div", { class: "ghai-bub" }, [el("span", { class: "ghai-typing", "aria-label": "Assistant is typing" }, [el("i"), el("i"), el("i")])])]);
     log.appendChild(wait); scroll();
@@ -242,7 +258,11 @@
         wait.remove();
         if (j.error === "challenge" && j.siteKey) { busy = false; sendBtn.disabled = false; return challenge(j.siteKey, text); }
         if (j.error === "offline") { st.msgs.pop(); save(); return offline(j); }
-        bubble("ai", j.message || "Something went wrong. Please try again."); st.msgs.pop(); save(); return;
+        st.msgs.pop(); save();
+        // our own answers (rate limit, too long) carry a sentence; anything else (proxy page, 5xx) gets plain words + retry
+        var retry = r.status === 429 || r.status >= 500 || !j.message;
+        if (retry && j.error !== "too_long") failBubble(j.message || errText(r.status), text); else bubble("ai", j.message || errText(r.status));
+        return;
       }
       var rd = r.body.getReader(), dec = new TextDecoder(), buf = "";
       for (;;) {
@@ -260,7 +280,12 @@
           else if (ev === "error") { if (wait.parentNode) wait.remove(); bubble("ai", o.message || "Something went wrong."); }
         });
       }
-    } catch (e) { if (wait.parentNode) wait.remove(); bubble("ai", "Connection problem. Please try again."); if (!reply.content && !reply.ui.length) { noStream = true; st.msgs.pop(); } }
+    } catch (e) {
+      if (wait.parentNode) wait.remove();
+      var empty = !reply.content && !reply.ui.length;
+      if (empty) { noStream = true; st.msgs.pop(); }
+      failBubble(navigator.onLine === false ? errText(0) : "The connection dropped before the answer finished.", empty ? text : null);
+    }
     finally {
       if (wait.parentNode) wait.remove(); if (tools && tools.parentNode) tools.remove();
       if (!noStream) { if (reply.content || reply.ui.length) st.msgs.push(reply); else st.msgs.pop(); }
