@@ -897,7 +897,7 @@
     ssl: 'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4',
     backups: 'M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.8L3 8M3 3v5h5M12 7v5l3 3',
     plus: 'M12 5v14M5 12h14', edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4', trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
-    key: 'M15 7a4 4 0 11-3.9 5H3v3h3v3h3v-3h2.1A4 4 0 0115 7z', down: 'M12 4v12M6 10l6 6 6-6M4 20h16', up: 'M12 20V8M6 14l6-6 6 6M4 4h16',
+    key: 'M15 7a4 4 0 11-3.9 5H3v3h3v3h3v-3h2.1A4 4 0 0115 7z', down: 'M12 4v12M6 10l6 6 6-6M4 20h16', chevron: 'm6 9 6 6 6-6', up: 'M12 20V8M6 14l6-6 6 6M4 4h16',
     folder: 'M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z', file: 'M6 3h8l4 4v14H6zM14 3v4h4',
     refresh: 'M20 11a8 8 0 10-2.3 5.7M20 4v7h-7', fwd: 'M4 12h14M13 6l6 6-6 6', user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0',
     shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', alert: 'M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z',
@@ -1045,6 +1045,7 @@
       [].forEach.call(document.querySelectorAll('.ghh .nice-select'), function (n) { n.remove(); });
       sel.innerHTML = s.domains.map(function (d) { return '<option' + (d === S.domain ? ' selected' : '') + '>' + esc(d) + '</option>'; }).join('');
       sel.onchange = function () { S.domain = sel.value; S.cache = {}; show(S.tab); };
+      ghDrop(sel);
       var vis = function (it) { var c = s.caps[it[2]]; return !!(c && c.length && (!it[3] || c.indexOf(it[3]) >= 0)); };
       var groups = NAV.map(function (g) { return [g[0], g[1].filter(vis)]; }).filter(function (g) { return g[1].length; });
       var tabs = [].concat.apply([], groups.map(function (g) { return g[1]; }));
@@ -1147,7 +1148,33 @@
     function bindChips(el, pick) {
       [].forEach.call(el.querySelectorAll('[data-dom]'), function (b) { b.onclick = function () { pick(b.getAttribute('data-dom')); }; });
     }
-    function setDomain(d) { S.domain = d; S.cache = {}; var sel = $('[data-domsel]'); if (sel) sel.value = d; }
+    function setDomain(d) { S.domain = d; S.cache = {}; var sel = $('[data-domsel]'); if (sel) { sel.value = d; if (sel._ghSync) sel._ghSync(); } }
+    function ghDrop(sel) {
+      if (sel._ghSync) { sel._ghSync(); return; }
+      var wrap = document.createElement('div'); wrap.className = 'ghh-dd';
+      var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'ghh-dd__btn'; btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false');
+      var list = document.createElement('ul'); list.className = 'ghh-dd__list'; list.setAttribute('role', 'listbox'); list.hidden = true; list.tabIndex = -1;
+      sel.parentNode.insertBefore(wrap, sel); wrap.appendChild(sel); wrap.appendChild(btn); wrap.appendChild(list); sel.classList.add('ghh-dd__native'); sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
+      var lab = sel.closest('label') || (sel.id && document.querySelector('label[for="' + sel.id + '"]')); if (lab) btn.setAttribute('aria-label', lab.textContent.trim());
+      var act = 0;
+      var sync = function () {
+        var o = sel.options[sel.selectedIndex]; btn.innerHTML = '<span>' + esc(o ? o.text : '') + '</span>' + ic('chevron', 14);
+        list.innerHTML = [].map.call(sel.options, function (op, i) { return '<li role="option" data-i="' + i + '" aria-selected="' + (i === sel.selectedIndex) + '"' + (i === act ? ' class="act"' : '') + '>' + esc(op.text) + '</li>'; }).join('');
+      };
+      var close = function () { list.hidden = true; btn.setAttribute('aria-expanded', 'false'); wrap.classList.remove('open'); };
+      var open = function () { act = sel.selectedIndex; sync(); list.hidden = false; btn.setAttribute('aria-expanded', 'true'); wrap.classList.add('open'); list.focus(); };
+      var pick = function (i) { if (i !== sel.selectedIndex) { sel.selectedIndex = i; sel.dispatchEvent(new Event('change')); } close(); sync(); btn.focus(); };
+      btn.onclick = function () { list.hidden ? open() : close(); };
+      list.onclick = function (e) { var li = e.target.closest('li'); if (li) pick(+li.getAttribute('data-i')); };
+      list.onkeydown = function (e) {
+        var n = sel.options.length;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); act = (act + (e.key === 'ArrowDown' ? 1 : n - 1)) % n; sync(); }
+        else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(act); }
+        else if (e.key === 'Escape' || e.key === 'Tab') { close(); btn.focus(); }
+      };
+      document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) close(); });
+      sel._ghSync = sync; sync();
+    }
     function email() {
       var d = S.domain, fw = S.tab === 'forwarders';
       body.innerHTML = fw ? bar('Forwarders', 'Send mail for an address on <b>' + esc(d) + '</b> on to another inbox.', '<button type="button" class="ghh-btn ghh-btn--pri" data-addf>' + ic('plus') + ' New forwarder</button>') + domChips(d, 'Domain') + '<div data-fslot></div><div data-flist>' + skel(2) + '</div>'
