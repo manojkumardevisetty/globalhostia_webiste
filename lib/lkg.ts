@@ -99,6 +99,26 @@ export function guard<A extends unknown[], T>(fn: (...a: A) => Promise<T>) {
   };
 }
 
+// The Next data cache refuses items over 2MB (it then logs "items over 2MB can not be cached" and the read goes to
+// Postgres on every request). A read that grows near the limit says which key and which fields, once per instance.
+const SIZE_WARN = 1_500_000;
+function sized<A extends unknown[], T>(name: string, fn: (...a: A) => Promise<T>) {
+  return async (...a: A): Promise<T> => {
+    const v = await fn(...a);
+    try {
+      const n = JSON.stringify(v)?.length || 0;
+      if (n > SIZE_WARN && !st.warned.has(`size:${name}`)) {
+        st.warned.set(`size:${name}`, Date.now());
+        const parts = v && typeof v === 'object' && !Array.isArray(v)
+          ? Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, JSON.stringify(x)?.length || 0] as const).sort((p, q) => q[1] - p[1]).slice(0, 8).map(([k, x]) => `${k}=${x}`).join(' ')
+          : '';
+        console.warn(`[lkg] ${name}: cached value is ${n} bytes (data cache limit 2MB) ${parts}`);
+      }
+    } catch { /* not serialisable: unstable_cache reports it */ }
+    return v;
+  };
+}
+
 type Arg = string | number | boolean;
 const keyOf = (name: string, a: Arg[]) => (a.length ? `${name}:${a.join('|')}` : name);
 
@@ -107,7 +127,7 @@ const keyOf = (name: string, a: Arg[]) => (a.length ? `${name}:${a.join('|')}` :
  * unstable_cache). `fallback` is used when there is neither a database nor a snapshot.
  */
 export function cachedRead<A extends Arg[], T>(name: string, fn: (...a: A) => Promise<T>, o: { revalidate?: number; tags?: string[]; fallback?: (...a: A) => T } = {}) {
-  const c = unstable_cache(guard(fn), [name, BUILD], { tags: o.tags ?? ['site'], revalidate: o.revalidate ?? REVALIDATE });
+  const c = unstable_cache(sized(name, guard(fn)), [name, BUILD], { tags: o.tags ?? ['site'], revalidate: o.revalidate ?? REVALIDATE });
   return (...a: A): Promise<T> => lkg(keyOf(name, a), () => c(...a), o.fallback ? () => o.fallback!(...a) : undefined);
 }
 

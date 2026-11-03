@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { and, eq, like } from 'drizzle-orm';
 import { db, schema } from './db';
 import { snapshotDump } from './lkg';
-import { getCatalog } from './theme/data';
+import { getCatalog, productConfigOptions } from './theme/data';
 import { getPosts } from './blog';
 import { cachedPage } from './render/page';
 import { loadLegacy } from './theme/pages/content';
@@ -34,6 +34,8 @@ async function main() {
   await each(pages, (p) => Promise.all([cachedPage(p.slug), loadLegacy(p.slug)]));
   // /p/<slug> is rendered by the theme from the catalog; the CMS product page only serves the original theme
   if (cat.settings.site_theme !== 'hostpen') await each(products, (p) => cachedProductPage(p.slug));
+  // configurator prices of products with WHMCS configurable options (kept out of the catalog for size)
+  await each(cat.products.filter((p) => p.configOptions.length), (p) => productConfigOptions(p.slug));
   await each(lps, (l) => landingRow(l.slug));
   await each(blocks, (b) => blockHtml(b.key));
 

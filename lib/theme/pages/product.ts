@@ -6,7 +6,7 @@ import { db, schema } from '../../db';
 import { esc } from '../../render/util';
 import { CYCLE_MONTHS, money } from '../../pricing';
 import { ROUTES } from '../routes';
-import { getCatalog, productBySlug, categoryBySlug, cycles, orderUrl, deriveSpecs, SPEC_LABEL, fromPrice, type TProduct, type Catalog } from '../data';
+import { getCatalog, productBySlug, categoryBySlug, cycles, orderUrl, deriveSpecs, SPEC_LABEL, fromPrice, productConfigOptions, type TProduct, type Catalog } from '../data';
 import { page } from '../shell';
 import { ogImageUrl, fitDescription } from '../../seo';
 import { productTitle, nounOf, inLoc } from '../../seo-product';
@@ -324,6 +324,8 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
   const cat = await getCatalog();
   const { currency, base } = cat;
   let p: TProduct | null = productBySlug(cat, ctx.slug) || null;
+  // the cached catalog carries configurable-option names only; the configurator's prices are read per product
+  if (p && p.configOptions.length) p = { ...p, configOptions: await productConfigOptions(p.slug) };
   if (!p && ctx.preview) p = await previewProduct(ctx.slug, cat);
   if (!p) return null;
 

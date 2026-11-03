@@ -28,6 +28,18 @@ export type Catalog = { settings: Settings; currency: string; currencyIds?: Reco
 
 const num = (v: unknown) => (v === null || v === undefined || v === '' ? null : Number.isFinite(parseFloat(String(v))) ? parseFloat(String(v)) : null);
 
+/** WHMCS configurable options without their per-currency/per-cycle prices: the catalog only needs names and types
+ *  (servers page, agents). The full prices (by far the largest part of a product row) are read per product by
+ *  productConfigOptions() on the product page, so the whole catalog stays well under the 2MB data-cache item limit. */
+const lightOptions = (o: unknown): import('../schema').ConfigOption[] =>
+  (Array.isArray(o) ? o : []).map((c: any) => ({ ...c, options: (Array.isArray(c?.options) ? c.options : []).map((x: any) => ({ id: x.id, name: x.name, pricing: {}, setup: {} })) }));
+
+/** Full configurable options (with prices) of one published product. Cached (tag `site`), snapshot-backed. */
+export const productConfigOptions = cachedRead('product-config-options', async (slug: string): Promise<import('../schema').ConfigOption[]> => {
+  const [r] = await db.select({ o: schema.products.configOptions }).from(schema.products).where(eq(schema.products.slug, slug)).limit(1);
+  return (r?.o as import('../schema').ConfigOption[]) || [];
+}, { fallback: () => [] });
+
 type CatalogData = Pick<Catalog, 'categories' | 'hiddenCategories' | 'products' | 'tlds'>;
 const EMPTY_CATALOG: CatalogData = { categories: [], hiddenCategories: [], products: [], tlds: [] };
 
@@ -56,7 +68,7 @@ const loadCatalog = cachedRead('theme-catalog', async (): Promise<CatalogData> =
       id: r.id, slug: r.slug, name: r.name, tagline: r.tagline, description: r.description,
       features: (r.features || []).filter((f) => typeof f === 'string' && f.trim()), attributes: r.attributes || {},
       badge: r.badge, badgeColor: r.badgeColor, featured: r.featured, displayCycle: r.displayCycle, orderUrl: r.orderUrl,
-      whmcsPid: r.whmcsPid, categoryId: r.categoryId, sortOrder: r.sortOrder, whmcsType: r.whmcsType, payType: r.payType, configOptions: (r as any).configOptions || [],
+      whmcsPid: r.whmcsPid, categoryId: r.categoryId, sortOrder: r.sortOrder, whmcsType: r.whmcsType, payType: r.payType, configOptions: lightOptions((r as any).configOptions),
       categorySlug: (r.categoryId && catById.get(r.categoryId)?.slug) || '',
       type: typeOf(r.categoryId ? catById.get(r.categoryId) : undefined),
       prices: (byProduct.get(r.id) || []).map((p) => ({ currency: p.currency, prefix: p.prefix, suffix: p.suffix, cycle: p.cycle, price: String(p.price), setupFee: String(p.setupFee) })),
