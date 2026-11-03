@@ -1,4 +1,6 @@
-// Account dashboard: greeting + key numbers, My Products, invoices due, expiring domains, recent tickets.
+// Account dashboard: greeting + key numbers, Next renewals, My Products, invoices due, hosting usage, recent tickets.
+import { renewalsCard, usageCard } from './renewals';
+import type { RenewalInvoices } from '../api';
 import { hexIcon, card, daysUntil, empty, errorBox, esc, fmtDate, icon, ipList, money, pill, productIcon, ssoButton, btn } from './kit';
 
 type R<T> = { ok: true; v: T } | { ok: false };
@@ -19,10 +21,10 @@ export function productRow(p: any, csrf: string, cur: string) {
 }
 
 export function dashboardView(o: {
-  csrf: string; client: R<any>; products: R<any[]>; domains: R<any[]>; unpaid: R<any[]>; tickets: R<any[]>;
+  csrf: string; client: R<any>; products: R<any[]>; domains: R<any[]>; unpaid: R<any[]>; tickets: R<any[]>; inv?: RenewalInvoices; cur?: string;
 }) {
   const c = o.client.ok ? o.client.v : {};
-  const cur = c.currency_code || 'USD';
+  const cur = c.currency_code || o.cur || 'USD';
   const first = String(c.firstname || '').trim();
   const hour = new Date().getUTCHours() + 4; // Dubai (UTC+4) greeting
   const greet = (hour % 24) < 12 ? 'Good morning' : (hour % 24) < 18 ? 'Good afternoon' : 'Good evening';
@@ -62,13 +64,8 @@ export function dashboardView(o: {
     : `<p class="ac-ok-line">${icon('check')}You're all paid up.</p>`,
   { id: 'ac-inv-h', i: 1, action: `<a class="ac-more" href="/account/invoices">Billing${icon('right')}</a>` });
 
-  const exp = doms.map((d) => ({ d, n: daysUntil(d.expirydate) })).filter((x) => x.n !== null && x.n <= 60 && !/cancelled|transferred|fraud/i.test(x.d.status)).sort((a, b) => a.n! - b.n!);
-  const domains = card('Domains expiring soon', !o.domains.ok ? errorBox('your domains', '/account')
-    : exp.length ? `<ul class="ac-mini">${exp.slice(0, 4).map(({ d, n }) => `<li>
-        <div><a class="ac-mono" href="/account/domains/${esc(d.id)}">${esc(d.domainname)}</a><small class="${n! <= 14 ? 'is-bad' : 'is-soon'}">${n! < 0 ? `Expired ${esc(fmtDate(d.expirydate))}` : `Expires in ${n} day${n === 1 ? '' : 's'}`}${d.donotrenew && d.donotrenew !== '0' ? ' · auto-renew off' : ''}</small></div>
-        ${ssoButton(o.csrf, 'domain_renew', d.id, 'Renew', { sm: true })}</li>`).join('')}</ul>`
-    : `<p class="ac-ok-line">${icon('check')}${doms.length ? 'No domains expire in the next 60 days.' : 'No domains on this account yet.'}</p>`,
-  { id: 'ac-dom-h', i: 2, action: `<a class="ac-more" href="/account/domains">All domains${icon('right')}</a>` });
+  const renewals = renewalsCard({ csrf: o.csrf, cur, products: o.products, domains: o.domains, unpaid: o.unpaid, inv: o.inv });
+  const usage = usageCard({ csrf: o.csrf, products: o.products, i: 2 });
 
   const tix = card('Recent tickets', !o.tickets.ok ? errorBox('your tickets', '/account')
     : tickets.length ? `<ul class="ac-mini">${tickets.slice(0, 4).map((t) => `<li>
@@ -81,5 +78,5 @@ export function dashboardView(o: {
     <div class="ac-promo__a"><a class="hp-btn hp-btn--light ac-sm" href="/vps-hosting">${icon('cloud')}VPS servers</a><a class="hp-btn hp-btn--outline ac-sm" href="/domains-registration">${icon('globe')}Find a domain</a></div>
   </aside>`;
 
-  return { greeting: `${greet}${first ? `, ${first}` : ''}`, summary, statsHtml, body: `<div class="ac-grid"><div class="ac-col">${products}${promo}</div><div class="ac-col">${inv}${domains}${tix}</div></div>` };
+  return { greeting: `${greet}${first ? `, ${first}` : ''}`, summary, statsHtml, body: `<div class="ac-grid"><div class="ac-col">${renewals}${products}${promo}</div><div class="ac-col">${inv}${usage}${tix}</div></div>` };
 }

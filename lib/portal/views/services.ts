@@ -1,5 +1,6 @@
 // Products & Services: list and detail. Passwords are never shown; login details open in the secure client area.
 import { productRow } from './dashboard';
+import { usageDetailCard } from './renewals';
 import { hexIcon, card, configOptions, cycleLabel, daysUntil, dl, empty, esc, fmtDate, icon, ipList, isServer, money, pill, productIcon, ssoButton, btn } from './kit';
 
 export function servicesView(o: { csrf: string; products: any[]; cur: string; filter: string }) {
@@ -77,5 +78,5 @@ export function serviceDetailView(o: { csrf: string; p: any; cur: string }) {
     <li class="ac-actions__danger">${icon('x')}<div><b>Request cancellation</b><small>Choose immediate or end-of-term cancellation.</small></div>${ssoButton(o.csrf, 'cancel', p.id, 'Request', { sm: true })}</li>
   </ul>`, { id: 'ac-man-h', flush: true });
 
-  return `<div class="ac-grid ac-grid--detail"><div class="ac-col">${serverCard}${overview}${config}</div><div class="ac-col">${billing}${manage}</div></div>`;
+  return `<div class="ac-grid ac-grid--detail"><div class="ac-col">${serverCard}${usageDetailCard(p, o.csrf)}${overview}${config}</div><div class="ac-col">${billing}${manage}</div></div>`;
 }

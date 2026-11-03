@@ -105,6 +105,27 @@ export async function getInvoice(clientId: number, id: number) {
   } catch (e) { if (e instanceof WhmcsError && e.kind === 'api') return null; throw e; }
 }
 
+/**
+ * Which services/domains already have an unpaid renewal invoice. GetInvoices has no line items, so the
+ * newest unpaid invoices (max 10) are read with GetInvoice. Read-only and best-effort: failures give empty maps.
+ */
+export type RenewalInvoices = { services: Map<number, number>; domains: Map<number, number> };
+export async function unpaidRenewalInvoices(clientId: number, unpaid: any[]): Promise<RenewalInvoices> {
+  const out: RenewalInvoices = { services: new Map(), domains: new Map() };
+  const ids = unpaid.map((i) => Number(i.id ?? i.invoiceid)).filter((n) => Number.isInteger(n) && n > 0).slice(0, 10);
+  const invs = await Promise.all(ids.map((id) => getInvoice(clientId, id).catch(() => null)));
+  for (const inv of invs) {
+    if (!inv || !/unpaid/i.test(String(inv.status || ''))) continue;
+    for (const it of inv.items) {
+      const rel = Number(it.relid);
+      if (!rel) continue;
+      if (/^hosting$/i.test(String(it.type || ''))) { if (!out.services.has(rel)) out.services.set(rel, Number(inv.invoiceid)); }
+      else if (/^domain$/i.test(String(it.type || ''))) { if (!out.domains.has(rel)) out.domains.set(rel, Number(inv.invoiceid)); }
+    }
+  }
+  return out;
+}
+
 /* ---------------- support ---------------- */
 export async function getTickets(clientId: number, status?: string) {
   const r = await whmcs('GetTickets', { clientid: clientId, status, limitnum: 100 });

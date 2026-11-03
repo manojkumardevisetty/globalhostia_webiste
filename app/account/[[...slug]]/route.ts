@@ -86,7 +86,8 @@ export async function GET(req: NextRequest, ctx: Ctx) {
       settle(api.getClientsDetails(cid)), settle(api.getClientsProducts(cid)), settle(api.getClientsDomains(cid)),
       settle(api.getInvoices(cid, 'Unpaid').then((r) => r.list)), settle(api.getTickets(cid, 'All Active Tickets')),
     ]);
-    const d = dashboardView({ csrf: v.csrf, client, products, domains, unpaid, tickets });
+    const inv = unpaid.ok && unpaid.v.length ? await api.unpaidRenewalInvoices(cid, unpaid.v).catch(() => undefined) : undefined;
+    const d = dashboardView({ csrf: v.csrf, client, products, domains, unpaid, tickets, inv, cur: sess.cur });
     return html(await F({ title: 'Dashboard', h1: d.greeting, sub: esc(d.summary), active: 'dashboard', heroExtra: d.statsHtml, body: d.body }));
   }
 
@@ -115,8 +116,10 @@ export async function GET(req: NextRequest, ctx: Ctx) {
   if (a === 'domains') {
     if (!b) {
       try {
-        const domains = await api.getClientsDomains(cid);
-        return html(await F({ title: 'Domains', sub: 'Renewals, auto-renew and nameservers.', active: 'domains', body: domainsView({ csrf: v.csrf, domains }) }));
+        const [domains, unpaid] = await Promise.all([api.getClientsDomains(cid), api.getInvoices(cid, 'Unpaid').then((r) => r.list).catch(() => null)]);
+        const inv = unpaid?.length ? await api.unpaidRenewalInvoices(cid, unpaid).catch(() => undefined) : undefined;
+        const view = domainsView({ csrf: v.csrf, domains, cur: sess.cur, invoices: inv?.domains });
+        return html(await F({ title: 'Domains', sub: 'Renewals, auto-renew and nameservers.', active: 'domains', headAction: view.headAction, body: view.body }));
       } catch { return failed('Domains', 'your domains', 'domains'); }
     }
     const id = idOf(b);
@@ -271,13 +274,22 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       } else if (to === 'invoice' || to === 'invoice_pdf') {
         if (!id || !(await api.getInvoice(cid, id))) return fail();
         dest = { destination: 'sso:custom_redirect', path: to === 'invoice' ? `viewinvoice.php?id=${id}` : `dl.php?type=i&id=${id}` };
-      } else if (['domain', 'domain_renew', 'domain_dns', 'domain_contacts'].includes(to)) {
+      } else if (to === 'domain_renew') {
+        // the client area's own renewal cart for this one domain: the customer reviews and pays there (never DomainRenew)
+        const d = id ? await api.getDomain(cid, id) : null;
+        if (!d) return fail();
+        const name = String(d.domainname || '').trim().toLowerCase();
+        dest = { destination: 'sso:custom_redirect', path: /^(?=.{3,253}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(name) ? `index.php?rp=/cart/domain/renew/${name}` : 'cart.php?gid=renewals' };
+      } else if (['domain', 'domain_dns', 'domain_contacts'].includes(to)) {
         if (!id || !(await api.getDomain(cid, id))) return fail();
         dest = { destination: to === 'domain_dns' ? 'clientarea:domain_dns' : to === 'domain_contacts' ? 'clientarea:domain_contacts' : 'clientarea:domain_details', domain_id: id };
       } else {
         const fixed: Record<string, Parameters<typeof api.createSso>[1]> = {
           home: { destination: 'clientarea:homepage' },
           invoices: { destination: 'clientarea:invoices' },
+          // pay every unpaid invoice in one checkout, and the domain renewals cart (all renewable domains)
+          masspay: { destination: 'sso:custom_redirect', path: 'clientarea.php?action=masspay&all=true' },
+          domain_renewals: { destination: 'sso:custom_redirect', path: 'cart.php?gid=renewals' },
           password: { destination: 'sso:custom_redirect', path: 'index.php?rp=/user/password' },
           email: { destination: 'sso:custom_redirect', path: 'index.php?rp=/user/profile' },
           security: { destination: 'sso:custom_redirect', path: 'index.php?rp=/user/security' },

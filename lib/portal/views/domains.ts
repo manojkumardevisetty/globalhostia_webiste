@@ -1,4 +1,5 @@
 // Domains: list and detail with nameserver editing.
+import { RENEW_WINDOW, daysBadge, renewAllDomainsButton } from './renewals';
 import { card, daysUntil, dl, empty, esc, fmtDate, icon, money, pill, ssoButton, btn, fieldErr, invalid } from './kit';
 
 const autoRenew = (d: any) => !(d.donotrenew === true || d.donotrenew === 1 || d.donotrenew === '1');
@@ -9,16 +10,28 @@ const expiryNote = (d: any) => {
   return `<small class="${cls}">${n < 0 ? `expired ${-n} days ago` : `in ${n} day${n === 1 ? '' : 's'}`}</small>`;
 };
 
-export function domainsView(o: { csrf: string; domains: any[] }) {
-  if (!o.domains.length) return card('Your domains', empty('No domains yet', 'Search for the perfect name, or transfer a domain you already own.', `${btn('Find a domain', '/domains-registration', { variant: 'brand', ic: 'search' })}`, 'globe'), { id: 'ac-dl-h' });
-  const rows = [...o.domains].sort((a, b) => String(a.expirydate).localeCompare(String(b.expirydate))).map((d) => `<tr>
+const renewable = (d: any) => /^(active|grace|redemption|expired)$/i.test(String(d.status || ''));
+
+export function domainsView(o: { csrf: string; domains: any[]; cur: string; invoices?: Map<number, number> }) {
+  if (!o.domains.length) return { headAction: '', body: card('Your domains', empty('No domains yet', 'Search for the perfect name, or transfer a domain you already own.', `${btn('Find a domain', '/domains-registration', { variant: 'brand', ic: 'search' })}`, 'globe'), { id: 'ac-dl-h' }) };
+  const soon = (d: any) => { const n = daysUntil(d.expirydate); return renewable(d) && n !== null && n <= RENEW_WINDOW; };
+  const toRenew = o.domains.filter((d) => soon(d) && !o.invoices?.has(Number(d.id))).length;
+  const rows = [...o.domains].sort((a, b) => String(a.expirydate).localeCompare(String(b.expirydate))).map((d) => {
+    const inv = o.invoices?.get(Number(d.id));
+    const act = !soon(d) ? '' : inv ? ssoButton(o.csrf, 'invoice', inv, 'Pay invoice', { variant: 'brand', sm: true }) : ssoButton(o.csrf, 'domain_renew', d.id, 'Renew', { sm: true });
+    return `<tr>
     <th scope="row"><a class="ac-mono ac-strong" href="/account/domains/${esc(d.id)}">${esc(d.domainname)}</a></th>
     <td data-l="Status">${pill(d.status)}</td>
-    <td data-l="Expires"><span class="num">${esc(fmtDate(d.expirydate))}</span> ${expiryNote(d)}</td>
+    <td data-l="Expires"><span class="num">${esc(fmtDate(d.expirydate))}</span> ${soon(d) ? daysBadge(daysUntil(d.expirydate)) : expiryNote(d)}</td>
+    <td data-l="Renewal"><span class="num">${parseFloat(d.recurringamount) > 0 ? esc(money(d.recurringamount, o.cur)) : '—'}</span></td>
     <td data-l="Auto-renew">${autoRenew(d) ? `<span class="ac-on">${icon('check')}On</span>` : '<span class="ac-off">Off</span>'}</td>
-    <td class="ac-td-act"><a class="hp-btn hp-btn--dark ac-sm" href="/account/domains/${esc(d.id)}">Manage</a></td></tr>`).join('');
-  return card(`Your domains`, `<table class="ac-table ac-table--rows"><thead><tr><th scope="col">Domain</th><th scope="col">Status</th><th scope="col">Expires</th><th scope="col">Auto-renew</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}</tbody></table>`,
-    { id: 'ac-dl-h', flush: true, action: `<a class="ac-more" href="/domains-registration">Register another${icon('right')}</a>` });
+    <td class="ac-td-act"><div class="ac-td-btns">${act}<a class="hp-btn hp-btn--dark ac-sm" href="/account/domains/${esc(d.id)}">Manage</a></div></td></tr>`;
+  }).join('');
+  return {
+    headAction: renewAllDomainsButton(o.csrf, toRenew),
+    body: card(`Your domains`, `<table class="ac-table ac-table--rows"><thead><tr><th scope="col">Domain</th><th scope="col">Status</th><th scope="col">Expires</th><th scope="col">Renewal</th><th scope="col">Auto-renew</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}</tbody></table>`,
+      { id: 'ac-dl-h', flush: true, action: `<a class="ac-more" href="/domains-registration">Register another${icon('right')}</a>` }),
+  };
 }
 
 export function domainDetailView(o: { csrf: string; d: any; cur: string; ns: string[] | null; nsInput?: string[]; errs?: Record<string, string> }) {
