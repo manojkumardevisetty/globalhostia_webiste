@@ -4,13 +4,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { REF_PRICES, REF_PRICES_CHECKED } from '@/lib/compare';
+import { cachedRead } from '@/lib/lkg';
+
+// cached 6h (tag `site`); snapshot-backed when the database is unavailable (lib/lkg.ts)
+const tldRows = cachedRead('store-tlds', async (cur: string) => ({
+  rows: await db.select().from(schema.tlds).where(eq(schema.tlds.visible, true)),
+  extra: cur === 'USD' ? [] : await db.select().from(schema.tldPrices).where(eq(schema.tldPrices.currency, cur)),
+}), { fallback: () => ({ rows: [], extra: [] }) });
 
 export const revalidate = 3600;
 
 export async function GET(req: NextRequest) {
   const cur = (req.nextUrl.searchParams.get('currency') || 'USD').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) || 'USD';
-  const rows = await db.select().from(schema.tlds).where(eq(schema.tlds.visible, true));
-  const extra = cur === 'USD' ? [] : await db.select().from(schema.tldPrices).where(eq(schema.tldPrices.currency, cur));
+  const { rows, extra } = await tldRows(cur);
   const byTld = new Map(extra.map((x) => [x.tld, x]));
   const n = (v: unknown) => (v === null || v === undefined ? null : Number(v));
   const items: Record<string, { reg: number | null; renew: number | null; ref?: { reg: number; renew: number } }> = {};

@@ -5,6 +5,7 @@
 import 'server-only';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '../../db';
+import { cachedRead } from '../../lkg';
 import { esc } from '../../render/util';
 import { money, CYCLE_MONTHS } from '../../pricing';
 import { getCatalog, productsFor, productBySlug, categoryBySlug, fromPrice, orderUrl, deriveSpecs, pricedTlds, domainCartUrl, type Catalog, type TProduct, type TTld } from '../data';
@@ -81,10 +82,14 @@ function notFound(cat: Catalog) {
 <body class="lp"><main id="main" class="lp-404"><div class="hp-container"><img src="/image/logo-main-black.png" alt="${name}" width="178" height="34"><h1>This offer is no longer available</h1><p>Our current plans and prices are on the main website.</p><a class="hp-btn hp-btn--brand" href="/">Go to ${name}</a></div></main></body></html>`;
 }
 
+/** A landing page row by slug (cached 6h, tag `site`; snapshot-backed, lib/lkg.ts). */
+export const landingRow = cachedRead('landing', async (slug: string): Promise<LandingPage | null> =>
+  (await db.select().from(schema.landingPages).where(eq(schema.landingPages.slug, slug)).limit(1))[0] || null);
+
 export async function renderLanding(slug: string, o: { path: string; preview: boolean; query: URLSearchParams }): Promise<{ status: number; body: string; cache: boolean }> {
   const cat = await getCatalog();
   let lp: LandingPage | undefined;
-  try { [lp] = await db.select().from(schema.landingPages).where(eq(schema.landingPages.slug, slug)).limit(1); } catch { lp = undefined; }
+  try { lp = (o.preview ? (await db.select().from(schema.landingPages).where(eq(schema.landingPages.slug, slug)).limit(1))[0] : await landingRow(slug)) || undefined; } catch { lp = undefined; }
   if (!lp || (lp.status !== 'PUBLISHED' && !o.preview)) return { status: 404, body: notFound(cat), cache: false };
 
   const s = cat.settings;

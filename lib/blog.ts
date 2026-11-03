@@ -2,8 +2,8 @@
 // request so scheduled posts appear on time. Drafts are only read uncached, for admin previews.
 import 'server-only';
 import { desc, eq } from 'drizzle-orm';
-import { unstable_cache } from 'next/cache';
 import { db, schema } from './db';
+import { cachedRead, isDbError } from './lkg';
 import { autoExcerpt, readingMinutes, markdownText } from './markdown-text';
 
 export type BlogPost = {
@@ -35,16 +35,18 @@ function toPost(r: typeof schema.posts.$inferSelect): BlogPost {
   };
 }
 
-const loadPublished = unstable_cache(async (): Promise<BlogPost[]> => {
+// cached 6h (tag `site`, admin saves revalidate it); snapshot-backed when the database is unavailable (lib/lkg.ts)
+const loadPublished = cachedRead('blog-posts', async (): Promise<BlogPost[]> => {
   try {
     const rows = await db.select().from(schema.posts).where(eq(schema.posts.status, 'PUBLISHED')).orderBy(desc(schema.posts.publishAt), desc(schema.posts.createdAt));
     return rows.map(toPost);
   } catch (e) {
+    if (isDbError(e)) throw e; // outage: last known good posts, never a cached empty blog
     // table not created yet (db-setup not run) → behave like an empty blog
     console.error('[blog] load failed', (e as Error).message);
     return [];
   }
-}, ['blog-posts', process.env.VERCEL_GIT_COMMIT_SHA || 'dev'], { tags: ['site'], revalidate: 300 });
+}, { fallback: () => [] });
 
 /** Published posts whose publish time has passed, newest first. */
 export async function getPosts(): Promise<BlogPost[]> {

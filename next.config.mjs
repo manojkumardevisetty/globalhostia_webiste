@@ -37,6 +37,8 @@ export default {
   poweredByHeader: false,
   serverExternalPackages: ['postgres'],
   outputFileTracingExcludes: { '*': ['public/**', 'legacy/html/**'] },
+  // last-known-good snapshot (scripts/snapshot.mjs, read by lib/lkg.ts when the database is unavailable)
+  outputFileTracingIncludes: { '/**/*': ['./.snapshot/lkg.json'] },
   env: { HP_MIN },
   // WHMCS moved from globalhostia.com/secure to my.globalhostia.com: 308 keeps the method, so payment
   // callbacks and form posts to old URLs still reach the client area.

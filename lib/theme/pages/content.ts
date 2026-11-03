@@ -6,8 +6,8 @@
 import type { PageCtx } from '../index';
 import { parseFragment } from 'parse5';
 import { and, asc, eq } from 'drizzle-orm';
-import { unstable_cache } from 'next/cache';
 import { db, schema } from '../../db';
+import { cachedRead } from '../../lkg';
 import { esc, tokens } from '../../render/util';
 import { picture, HERO_BG_SIZES } from '../img';
 import { getCatalog, whmcsLinks, productsFor, deriveSpecs, minFrom, pricedTlds, fmt, type Catalog } from '../data';
@@ -254,7 +254,8 @@ async function loadLegacyRaw(slug: string, preview: boolean): Promise<Legacy | n
   for (const s of secs) if (s.type === 'faq' && Array.isArray(s.data?.items)) for (const it of s.data.items) if (it?.q && it?.a) faqs.push({ q: String(it.q), a: String(it.a) });
   return { title: pg.title, html: secs.filter((s) => s.type === 'html').map((s) => s.html).join('\n'), faqs };
 }
-const loadLegacy = unstable_cache((slug: string) => loadLegacyRaw(slug, false), ['theme-content', process.env.VERCEL_GIT_COMMIT_SHA || 'dev'], { tags: ['site'], revalidate: 3600 });
+/** Published CMS copy for a theme page (cached 6h, tag `site`; snapshot-backed, lib/lkg.ts). */
+export const loadLegacy = cachedRead('theme-content', (slug: string) => loadLegacyRaw(slug, false), { fallback: () => null });
 
 /* ================================================================== rendering */
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'section';

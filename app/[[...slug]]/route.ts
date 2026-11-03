@@ -1,7 +1,7 @@
 // Public site: every non-admin URL is rendered from the CMS database.
 import { NextRequest, NextResponse, after } from 'next/server';
-import { unstable_cache } from 'next/cache';
-import { db, schema } from '@/lib/db';
+import { redirectMap } from '@/lib/redirects';
+import { cdnCache } from '@/lib/lkg';
 import { renderPage } from '@/lib/render/page';
 import { renderProductPage } from '@/lib/render/product-page';
 import { renderTheme, renderBlogRoute } from '@/lib/theme';
@@ -16,15 +16,22 @@ import { onDeploy } from '@/lib/indexnow';
 
 export const dynamic = 'force-dynamic';
 
-const redirectMap = unstable_cache(async () => {
-  const rows = await db.select().from(schema.redirects);
-  return Object.fromEntries(rows.map((r) => [r.from.toLowerCase(), [r.to, r.code] as const]));
-}, ['redirects', process.env.VERCEL_GIT_COMMIT_SHA || 'dev'], { tags: ['site'], revalidate: 3600 });
-
+// Public HTML is served from the CDN for an hour (then stale for up to a day while it refreshes), so crawler bursts
+// never reach the function or Postgres; admin saves revalidate the data cache (tag 'site'). The ?_cur= rewrite
+// (middleware.ts) keeps one cached copy per currency. While a page is built from snapshot data (database
+// unavailable, lib/lkg.ts) the TTL is one minute so fresh content returns quickly after recovery.
+const pageCache = cdnCache;
 const html = (body: string, status = 200, cache = true) => new NextResponse(body, {
   status,
-  headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache && status === 200 ? 'public, s-maxage=60, stale-while-revalidate=600' : 'private, no-store' },
+  headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache && status === 200 ? pageCache() : 'private, no-store' },
 });
+
+/** Last resort when a page cannot be built at all (no database and no snapshot): 503 + Retry-After, never a 500. */
+function unavailable(e: unknown) {
+  console.error('[page] render failed:', (e as Error)?.message || e);
+  return new NextResponse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="robots" content="noindex"><title>GlobalHostia</title><body style="font:16px system-ui;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;padding:24px"><div><h1>We'll be right back</h1><p>This page is temporarily unavailable. Please try again in a few minutes.</p><p><a href="https://my.globalhostia.com/clientarea.php">Client area</a> · <a href="mailto:support@globalhostia.com">support@globalhostia.com</a></p></div>`,
+    { status: 503, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'retry-after': '120' } });
+}
 
 /** <page>.md: the same page as Markdown for AI agents (also reached with Accept: text/markdown via middleware). */
 async function markdown(req: NextRequest, segs: string[]): Promise<Response> {
@@ -50,11 +57,15 @@ async function markdown(req: NextRequest, segs: string[]): Promise<Response> {
   return new NextResponse(body, { headers: {
     'content-type': 'text/markdown; charset=utf-8', 'access-control-allow-origin': '*', vary: 'Accept',
     'x-robots-tag': 'noindex', link: `<${site}${path === '/' ? '/' : path}>; rel="canonical"`,
-    'cache-control': 'public, s-maxage=300, stale-while-revalidate=3600',
+    'cache-control': pageCache(),
   } });
 }
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: string[] }> }): Promise<Response> {
+  try { return await render(req, ctx); } catch (e) { return unavailable(e); }
+}
+
+async function render(req: NextRequest, ctx: { params: Promise<{ slug?: string[] }> }): Promise<Response> {
   const { slug: segs = [] } = await ctx.params;
   after(onDeploy); // first request after a production deploy: submit the sitemap to IndexNow (once per commit)
   if (segs.length && /\.md$/i.test(segs[segs.length - 1]) && segs[segs.length - 1].length > 3) return markdown(req, segs);
@@ -83,7 +94,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: stri
     const cache = b.status === 200 && b.cache !== false && !preview;
     return new NextResponse(b.body, { status: b.status, headers: {
       'content-type': b.type || 'text/html; charset=utf-8',
-      'cache-control': cache ? 'public, s-maxage=60, stale-while-revalidate=600' : 'private, no-store',
+      'cache-control': cache ? pageCache() : 'private, no-store',
     } });
   }
 

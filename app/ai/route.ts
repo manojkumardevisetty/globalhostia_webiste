@@ -1,5 +1,6 @@
 // /ai — "Shop GlobalHostia with your AI assistant": how to connect the public MCP server and the other agent endpoints.
 import { NextRequest, NextResponse } from 'next/server';
+import { cdnCache } from '@/lib/lkg';
 import { page } from '@/lib/theme/shell';
 import { getCatalog } from '@/lib/theme/data';
 import { pageHero, sectionHead, section, faq, faqJsonLd, breadcrumbJsonLd, ctaBand, ld } from '@/lib/theme/ui';
@@ -76,5 +77,5 @@ export async function GET(req: NextRequest) {
     jsonLd: [breadcrumbJsonLd(crumbs.map((c) => ({ ...c, href: c.href || '/ai' })), site), faqJsonLd(qs), webApi],
     body: ['<style>.ai-pg ol,.ai-pg ul.hp-prose{list-style:revert;padding-left:1.3em}.ai-pg ol li{margin:.3em 0}.ai-pg .hp-prose a{color:#a6225f;text-decoration:underline;text-underline-offset:2px}</style><div class="ai-pg">', hero, connect, tools, devs, faqHtml, cta, '</div>'].join('\n'),
   });
-  return new NextResponse(out, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, s-maxage=300, stale-while-revalidate=3600' } });
+  return new NextResponse(out, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cdnCache() } });
 }

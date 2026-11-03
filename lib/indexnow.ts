@@ -8,6 +8,7 @@ import 'server-only';
 import { sql, eq } from 'drizzle-orm';
 import { revalidateTag } from 'next/cache';
 import { db, schema } from './db';
+import { dbDown } from './lkg';
 import { getSettings, setSetting } from './settings';
 import { siteUrl, submitIndexNow, type IndexNowResult } from './seo';
 import { sitemapEntries } from './sitemap';
@@ -80,7 +81,7 @@ let nextDeployCheck = 0;
  * 30 minutes later retries it (a new key can take a while to verify). Call it from after(): it never delays a page.
  */
 export async function onDeploy() {
-  if (Date.now() < nextDeployCheck) return;
+  if (Date.now() < nextDeployCheck || dbDown()) return;
   nextDeployCheck = Date.now() + 10 * 60e3; // each server instance looks at the lock at most every 10 minutes
   const sha = process.env.VERCEL_GIT_COMMIT_SHA;
   if (process.env.VERCEL_ENV !== 'production' || !sha) { nextDeployCheck = Infinity; return; }
@@ -92,10 +93,16 @@ export async function onDeploy() {
       where settings.value->>'sha' is distinct from excluded.value->>'sha'
          or (settings.value->>'ok' = 'false' and (settings.value->>'at')::timestamptz < now() - interval '30 minutes')
       returning key`);
-    if (!Array.from(r as unknown as ArrayLike<unknown>).length) return;
+    if (!Array.from(r as unknown as ArrayLike<unknown>).length) {
+      // another request holds this deploy's lock: once it has succeeded, this instance never looks again
+      // (previously every instance re-ran the upsert every 10 minutes for its whole life, keeping Postgres awake)
+      const cur = await readKey<{ sha?: string; ok?: boolean | null }>('indexnow_deploy').catch(() => undefined);
+      nextDeployCheck = cur?.sha === sha && cur.ok === true ? Infinity : Date.now() + 30 * 60e3;
+      return;
+    }
     revalidateTag('site'); // the sitemap's <lastmod> for hand-written pages uses the deploy time
     const res = await submitSitemap(`deploy ${sha.slice(0, 7)}`);
     await setSetting('indexnow_deploy', { sha, at: new Date().toISOString(), ok: res.ok });
     if (res.ok) nextDeployCheck = Infinity;
-  } catch { /* the daily cron still submits changed URLs */ }
+  } catch { nextDeployCheck = Date.now() + 30 * 60e3; /* database unavailable: retry later; the daily cron still submits changed URLs */ }
 }

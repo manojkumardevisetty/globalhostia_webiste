@@ -5,7 +5,7 @@ import { getSettings } from '@/lib/settings';
 import { CYCLE_MONTHS } from '@/lib/pricing';
 import { AddressBar, PlanFinder, Plans } from './client';
 
-export const revalidate = 300;
+export const revalidate = 21600;
 
 const LINES: { slug: string; name: string; what: string; href: string }[] = [
   { slug: 'hostia-shared', name: 'Web hosting', what: 'Websites, blogs and small business sites with cPanel', href: '/web-hosting' },
@@ -21,9 +21,11 @@ export default async function V2Home() {
   const s = await getSettings();
   const w = (s.whmcs_base_url || 'https://globalhostia.com/secure').replace(/\/$/, '');
   const cur = s.currency || 'USD';
-  const cats = await db.select().from(schema.categories).where(inArray(schema.categories.slug, LINES.map((l) => l.slug)));
-  const prods = cats.length ? await db.select().from(schema.products).where(and(inArray(schema.products.categoryId, cats.map((c) => c.id)), eq(schema.products.status, 'PUBLISHED'), eq(schema.products.whmcsRetired, false))).orderBy(asc(schema.products.sortOrder)) : [];
-  const prices = prods.length ? await db.select().from(schema.productPrices).where(and(inArray(schema.productPrices.productId, prods.map((p) => p.id)), eq(schema.productPrices.currency, cur))) : [];
+  // preview page: an unavailable database renders it without plans instead of failing (or failing the build)
+  const safe = <T,>(q: Promise<T[]>) => q.catch(() => [] as T[]);
+  const cats = await safe(db.select().from(schema.categories).where(inArray(schema.categories.slug, LINES.map((l) => l.slug))));
+  const prods = cats.length ? await safe(db.select().from(schema.products).where(and(inArray(schema.products.categoryId, cats.map((c) => c.id)), eq(schema.products.status, 'PUBLISHED'), eq(schema.products.whmcsRetired, false))).orderBy(asc(schema.products.sortOrder))) : [];
+  const prices = prods.length ? await safe(db.select().from(schema.productPrices).where(and(inArray(schema.productPrices.productId, prods.map((p) => p.id)), eq(schema.productPrices.currency, cur)))) : [];
   // headline price per product: monthly if offered, otherwise the yearly price (shown as /yr)
   const headline = (pid: string): { v: number; unit: 'mo' | 'yr' } | null => {
     const rows = prices.filter((p) => p.productId === pid);
@@ -56,7 +58,7 @@ export default async function V2Home() {
       return { name: p.name, tagline: p.tagline, features: p.features, monthly: num('monthly'), annually: num('annually'), prefix, url: p.orderUrl || `${w}/cart.php?a=add&pid=${p.whmcsPid}`, recommended: i === 1 };
     });
   })();
-  const tldRows = await db.select().from(schema.tlds).where(inArray(schema.tlds.tld, ['.com', '.ae', '.net', '.org', '.io', '.shop']));
+  const tldRows = await safe(db.select().from(schema.tlds).where(inArray(schema.tlds.tld, ['.com', '.ae', '.net', '.org', '.io', '.shop'])));
   const tlds = ['.com', '.ae', '.net', '.org', '.io', '.shop'].map((t) => tldRows.find((r) => r.tld === t)).filter((t) => t?.register && t.visible)
     .map((t) => ({ tld: t!.tld, price: `${prefix}${parseFloat(String(t!.register)).toFixed(2)}/yr` }));
   const href = (h: string) => h.replace('{{w}}', w);

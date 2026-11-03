@@ -1,6 +1,7 @@
 // Ad landing pages /lp/<slug> (Admin → Marketing → Landing pages). Always rendered with the Hostpen brand, whatever
 // the site theme. Drafts are visible only to signed-in admins with ?preview=1.
 import { NextRequest, NextResponse } from 'next/server';
+import { cdnCache } from '@/lib/lkg';
 import { renderLanding } from '@/lib/theme/pages/landing';
 import { getSettings } from '@/lib/settings';
 import { verifySession, COOKIE } from '@/lib/auth';
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug: strin
   const r = await renderLanding(clean, { path: `/lp/${clean}`, preview, query: req.nextUrl.searchParams });
   return new NextResponse(r.body, { status: r.status, headers: {
     'content-type': 'text/html; charset=utf-8',
-    'cache-control': r.cache && r.status === 200 && !req.nextUrl.searchParams.has('lead') ? 'public, s-maxage=60, stale-while-revalidate=600' : 'private, no-store',
+    'cache-control': r.cache && r.status === 200 && !req.nextUrl.searchParams.has('lead') ? cdnCache() : 'private, no-store',
     ...(r.status === 200 ? {} : { 'x-robots-tag': 'noindex' }),
   } });
 }

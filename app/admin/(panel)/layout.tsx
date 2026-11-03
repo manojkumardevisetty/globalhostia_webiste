@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requireSession } from '@/lib/session';
+import { requireSession, dbReachable } from '@/lib/session';
 import { can } from '@/lib/auth';
 import { Icon } from '@/components/icons';
 import NavLink from '@/components/NavLink';
@@ -16,6 +16,7 @@ const NAV: { group: string; items: [string, string, string, string][] }[] = [
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const s = await requireSession('content');
+  const dbOk = await dbReachable();
   const initials = (s.name || s.email).split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((x) => x[0]!.toUpperCase()).join('');
   const nav = NAV.map((g) => ({ ...g, items: g.items.filter(([, , p]) => can(s, p)) })).filter((g) => g.items.length);
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
@@ -66,6 +67,12 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             </details>
           </div>
         </header>
+        {!dbOk && (
+          <div role="alert" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 lg:px-8">
+            <b>Database unavailable.</b> The live website keeps working from its last saved copy, but admin changes cannot be saved right now
+            (for example, the database plan quota is used up). Try again once the database is back.
+          </div>
+        )}
         <main className="gh-fade mx-auto w-full max-w-[1400px] flex-1 px-4 py-8 lg:px-10">{children}</main>
       </div>
     </div>

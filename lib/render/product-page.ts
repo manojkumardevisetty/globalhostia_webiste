@@ -2,6 +2,7 @@
 import 'server-only';
 import { and, eq, inArray, ne, sql } from 'drizzle-orm';
 import { db, schema } from '../db';
+import { cachedRead } from '../lkg';
 import { getSettings } from '../settings';
 import { shell, siteVars } from './page';
 import { renderProducts, cycles, orderUrl, type RProduct } from './products';
@@ -13,7 +14,13 @@ import { money, CYCLE_LABEL } from '../pricing';
 const CHECK = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10.5 3.2 3L15 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CROSS = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
+/** /p/<slug> HTML (published products: cached 6h, tag `site`, snapshot-backed via lib/lkg.ts; previews read live). */
 export async function renderProductPage(slug: string, preview: boolean) {
+  return preview ? buildProductPage(slug, true) : cachedProductPage(slug);
+}
+export const cachedProductPage = cachedRead('product-page', (slug: string) => buildProductPage(slug, false));
+
+async function buildProductPage(slug: string, preview: boolean): Promise<string | null> {
   const [p] = await db.select().from(schema.products).where(eq(schema.products.slug, slug)).limit(1);
   if (!p || (!preview && (p.status !== 'PUBLISHED' || p.whmcsRetired))) return null;
   const s = await getSettings();

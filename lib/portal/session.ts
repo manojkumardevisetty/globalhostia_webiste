@@ -66,9 +66,11 @@ export const MAX_FAILS = 5;
 export async function recentFailures(action: string, ip: string, email: string) {
   const since = new Date(Date.now() - WINDOW_MS);
   const base = and(eq(schema.auditLogs.action, action), gt(schema.auditLogs.createdAt, since));
+  // database unavailable: no count (WHMCS still applies its own failed-login bans)
+  const none = [{ n: 0 }];
   const [byIp, byEmail] = await Promise.all([
-    db.select({ n: count() }).from(schema.auditLogs).where(and(base, eq(schema.auditLogs.entityId, ip))),
-    email ? db.select({ n: count() }).from(schema.auditLogs).where(and(base, eq(schema.auditLogs.userEmail, email))) : Promise.resolve([{ n: 0 }]),
+    db.select({ n: count() }).from(schema.auditLogs).where(and(base, eq(schema.auditLogs.entityId, ip))).catch(() => none),
+    email ? db.select({ n: count() }).from(schema.auditLogs).where(and(base, eq(schema.auditLogs.userEmail, email))).catch(() => none) : Promise.resolve(none),
   ]);
   return Math.max(Number(byIp[0]?.n || 0), Number(byEmail[0]?.n || 0));
 }

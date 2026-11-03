@@ -4,6 +4,7 @@ import 'server-only';
 import { and, asc, eq, isNull, lte, or } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
 import { db, schema } from '../db';
+import { cachedRead, isDbError } from '../lkg';
 import { getSettings, type Settings } from '../settings';
 import { cycles, orderUrl, type RProduct } from '../render/products';
 import { deriveSpecs, SPEC_LABEL } from '../render/specs';
@@ -27,7 +28,11 @@ export type Catalog = { settings: Settings; currency: string; currencyIds?: Reco
 
 const num = (v: unknown) => (v === null || v === undefined || v === '' ? null : Number.isFinite(parseFloat(String(v))) ? parseFloat(String(v)) : null);
 
-const loadCatalog = unstable_cache(async () => {
+type CatalogData = Pick<Catalog, 'categories' | 'hiddenCategories' | 'products' | 'tlds'>;
+const EMPTY_CATALOG: CatalogData = { categories: [], hiddenCategories: [], products: [], tlds: [] };
+
+// Cached 6h (tag `site`); snapshot-backed when the database is unavailable (lib/lkg.ts).
+const loadCatalog = cachedRead('theme-catalog', async (): Promise<CatalogData> => {
   const now = new Date();
   const allCats = await db.select().from(schema.categories).orderBy(asc(schema.categories.sortOrder), asc(schema.categories.name));
   const cats = allCats.filter((c) => c.visible);
@@ -40,7 +45,7 @@ const loadCatalog = unstable_cache(async () => {
   )).orderBy(asc(schema.products.sortOrder), asc(schema.products.name));
   const prices = rows.length ? await db.select().from(schema.productPrices) : [];
   const tlds = await db.select().from(schema.tlds).where(eq(schema.tlds.visible, true));
-  const tldExtra = await db.select().from(schema.tldPrices).catch(() => [] as (typeof schema.tldPrices.$inferSelect)[]);
+  const tldExtra = await db.select().from(schema.tldPrices).catch((e) => { if (isDbError(e)) throw e; return [] as (typeof schema.tldPrices.$inferSelect)[]; });
   const catById = new Map(cats.map((c) => [c.id, c]));
   const byProduct = new Map<string, typeof prices>();
   for (const p of prices) { const l = byProduct.get(p.productId) || []; l.push(p); byProduct.set(p.productId, l); }
@@ -67,7 +72,7 @@ const loadCatalog = unstable_cache(async () => {
     ]
       .sort((a, b) => a.sortOrder - b.sortOrder || Number(b.featured) - Number(a.featured)),
   };
-}, ['theme-catalog', process.env.VERCEL_GIT_COMMIT_SHA || 'dev'], { tags: ['site'], revalidate: 3600 });
+}, { fallback: () => EMPTY_CATALOG });
 
 /** Settings + visible categories + published, non-retired products (with prices) + visible TLDs. Cached (tag `site`). */
 export async function getCatalog(): Promise<Catalog> {

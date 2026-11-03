@@ -6,11 +6,12 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/build-assets.mjs && node scripts/db-setup.mjs && next build",
+    "build": "node scripts/build-assets.mjs && node scripts/db-setup.mjs && node scripts/snapshot.mjs && next build",
     "assets": "node scripts/build-assets.mjs",
     "start": "next start",
     "db:generate": "drizzle-kit generate",
     "db:setup": "node scripts/db-setup.mjs",
+    "snapshot": "node scripts/snapshot.mjs",
     "import:legacy": "node scripts/import-legacy.mjs",
     "test": "node --test --experimental-strip-types tests/"
   },

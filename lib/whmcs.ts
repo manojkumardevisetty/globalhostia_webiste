@@ -2,6 +2,7 @@
 // Docs: https://developers.whmcs.com/api/
 import 'server-only';
 import { db, schema } from './db';
+import { dbDown, isDbError, markDbDown } from './lkg';
 
 export class WhmcsError extends Error {
   constructor(message: string, public action: string, public kind: 'api' | 'network' | 'config' = 'api') { super(message); }
@@ -18,12 +19,18 @@ const cfg = () => {
 export const whmcsConfigured = () => !!(process.env.WHMCS_API_URL && process.env.WHMCS_API_IDENTIFIER && process.env.WHMCS_API_SECRET);
 export const whmcsBase = () => (process.env.WHMCS_BASE_URL || 'https://globalhostia.com/secure').replace(/\/$/, '');
 
-function logCall(action: string, ok: boolean, ms: number, error = '') {
-  db.insert(schema.apiLogs).values({ action, ok, ms, error: error.slice(0, 500) }).catch(() => {});
-}
-
 // Read-only actions are safe to retry; write actions are never retried automatically (idempotency).
 const RETRYABLE = /^(Get|Domain(Whois|GetNameservers|GetWhoisInfo)|WhmcsDetails)/;
+
+// api_logs: every failure and every write is logged; successful read-only calls (domain checks, product and price
+// lookups: most of the traffic) are sampled 1 in 20, so routine reads do not keep the database awake.
+// Nothing is written while the database is known to be unavailable (lib/lkg.ts).
+const READ_SAMPLE = 20;
+function logCall(action: string, ok: boolean, ms: number, error = '') {
+  if (ok && RETRYABLE.test(action) && Math.random() * READ_SAMPLE >= 1) return;
+  if (dbDown()) return;
+  db.insert(schema.apiLogs).values({ action, ok, ms, error: error.slice(0, 500) }).catch((e) => { if (isDbError(e)) markDbDown(e); });
+}
 
 export async function whmcs<T = any>(action: string, params: Record<string, string | number | boolean | undefined> = {}): Promise<T> {
   const c = cfg();

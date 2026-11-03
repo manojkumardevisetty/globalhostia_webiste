@@ -1,22 +1,43 @@
 // Runs on every deploy (and locally): applies SQL migrations, then seeds an
 // empty database from legacy/seed.json and creates the first owner account.
 // Idempotent — never overwrites existing content.
+// Fast path: one query compares a fingerprint of this script, its seeds and the migrations with the one stored by the
+// last successful run (settings.setup_fingerprint); when nothing changed the step ends there.
+// Never fails the build because the database is unreachable or over its plan quota: it warns and the deploy goes on
+// (pages then use the last-known-good snapshot, lib/lkg.ts).
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import bcrypt from 'bcryptjs';
 import fs from 'node:fs';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
 import { enrichment } from '../lib/enrich-core.mjs';
 import { BLOG_SEED, BLOG_SEED_V1 } from './blog-seed.mjs';
 import { ALIAS_REDIRECTS } from '../lib/aliases.mjs';
 
 const url = process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL;
 if (!url) { console.log('[db-setup] no DATABASE_URL — skipping'); process.exit(0); }
-const sql = postgres(url, { max: 1, onnotice: () => {} });
+const sql = postgres(url, { max: 1, onnotice: () => {}, connect_timeout: 10 });
 const id = () => Date.now().toString(36) + randomBytes(8).toString('hex');
 
+const FINGERPRINT = (() => {
+  const h = createHash('sha256');
+  const files = ['scripts/db-setup.mjs', 'scripts/blog-seed.mjs', 'scripts/landing-seed.mjs', 'lib/enrich-core.mjs', 'lib/aliases.mjs', 'drizzle/meta/_journal.json',
+    ...fs.readdirSync('drizzle').filter((f) => f.endsWith('.sql')).sort().map((f) => `drizzle/${f}`)];
+  for (const f of files) { h.update(f); try { h.update(fs.readFileSync(f)); } catch { h.update('-'); } }
+  return h.digest('hex').slice(0, 24);
+})();
+// connection refused / DNS / timeout, SQLSTATE class 08 (connection), 53 (insufficient resources: Neon "exceeded the
+// quota" is 53000), 57P (shutdown), XX000 (Neon "endpoint is disabled")
+const unreachable = (e) => /^(08|53|57P|XX000|ECONN|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|CONNECT_TIMEOUT|CONNECTION_)/.test(String(e?.code || e?.errno || ''))
+  || /quota|connect(ion)? (timeout|refused|terminated)|getaddrinfo|endpoint .*(disabled|suspended)/i.test(String(e?.message || ''));
+
 try {
+  // a fresh database has no settings table yet: that error just means "run everything"
+  const [fp] = await sql`select value from settings where key = 'setup_fingerprint'`.catch((e) => { if (unreachable(e)) throw e; return []; });
+  if (fp?.value === FINGERPRINT) {
+    console.log('[db-setup] up to date (fingerprint ' + FINGERPRINT + '), nothing to do');
+  } else {
   await migrate(drizzle(sql), { migrationsFolder: './drizzle' });
   console.log('[db-setup] migrations applied');
 
@@ -411,9 +432,15 @@ try {
     await sql`insert into settings (key,value) values ('patches', ${JSON.stringify([...applied])}::jsonb) on conflict (key) do update set value = excluded.value`;
     console.log('[db-setup] patch applied:', key);
   }
+  await sql`insert into settings (key,value) values ('setup_fingerprint', ${JSON.stringify(FINGERPRINT)}::jsonb) on conflict (key) do update set value = excluded.value`;
+  }
 } catch (e) {
-  console.error('[db-setup] FAILED', e);
-  process.exitCode = 1;
+  if (unreachable(e)) {
+    console.warn('[db-setup] WARNING: database unreachable or over quota, skipped (the build continues; migrations run on the next deploy):', e?.code || '', String(e?.message || e).slice(0, 200));
+  } else {
+    console.error('[db-setup] FAILED', e);
+    process.exitCode = 1;
+  }
 } finally {
-  await sql.end();
+  await sql.end({ timeout: 5 }).catch(() => {});
 }

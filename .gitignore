@@ -8,3 +8,5 @@ next-env.d.ts
 # minified theme assets, written by scripts/build-assets.mjs at build time
 public/hp/**/*.min.js
 public/hp/**/*.min.css
+# last-known-good data snapshot, written by scripts/snapshot.mjs at build time
+.snapshot/

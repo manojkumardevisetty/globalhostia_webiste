@@ -1,8 +1,8 @@
 // Assembles a complete HTML document for a CMS page: shared blocks + ordered sections.
 import 'server-only';
 import { and, eq, inArray, asc, or, isNull, lte, ne } from 'drizzle-orm';
-import { unstable_cache } from 'next/cache';
 import { db, schema } from '../db';
+import { cachedRead } from '../lkg';
 import { getSettings, type Settings } from '../settings';
 import { renderProducts, type RProduct, type RCategory } from './products';
 import { domainSearchForm, domainResults, tldTable, faq } from './domains';
@@ -44,7 +44,8 @@ async function loadPage(slug: string, preview: boolean) {
   return { page, secs, blocks, cats, prods, tlds };
 }
 
-const cachedPage = unstable_cache((slug: string) => loadPage(slug, false), ['page', process.env.VERCEL_GIT_COMMIT_SHA || 'dev'], { tags: ['site'], revalidate: 3600 });
+/** A published CMS page with its blocks, products and TLDs (cached 6h, tag `site`; snapshot-backed, lib/lkg.ts). */
+export const cachedPage = cachedRead('page', (slug: string) => loadPage(slug, false));
 
 export async function renderPage(slug: string, opts: { preview: boolean; query: URLSearchParams; ip: string; path: string }) {
   const data = opts.preview ? await loadPage(slug, true) : await cachedPage(slug);
