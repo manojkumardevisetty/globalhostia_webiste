@@ -2,6 +2,7 @@
    1) Replaces the endless horizontal store-category scroller with 5 grouped menus (Hostpen Modern style).
    2) Adds a promo banner above store listings.
    Pure progressive enhancement: if anything fails the original page stays as it was. */
+(function (s) { try { if (window.GH_MOBILE) return; window.GH_MOBILE = 1; var o = new URL(s.src).origin, q = '?v=20261103a', h = document.head, l = document.createElement('link'), j = document.createElement('script'); l.rel = 'stylesheet'; l.href = o + '/hp/whmcs-mobile.css' + q; h.appendChild(l); j.src = o + '/hp/whmcs-mobile.js' + q; j.async = true; h.appendChild(j); } catch (e) {} })(document.currentScript || {}); // phone layer: public/hp/whmcs-mobile.css + .js (bump q after editing them)
 
 /* Language (English / Arabic) for everything this file adds; WHMCS's own language decides. Signals, strongest first:
    ?language=<name> on the URL (WHMCS's switch), window.GH_LANG (printed by docs/whmcs/globalhostia_hosting_hook.php),
