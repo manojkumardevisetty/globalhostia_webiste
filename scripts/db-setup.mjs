@@ -562,6 +562,20 @@ try {
       await tx`create table if not exists oauth_assertions (key text primary key, client_id text not null, expires_at timestamptz not null)`;
       await tx`create index if not exists oauth_assertions_exp_idx on oauth_assertions (expires_at)`;
     },
+    // 37. Domain health alerts (lib/health/*): one row per customer domain with open issues and what was alerted; email opt-out.
+    '037-domain-health': async (tx) => {
+      await tx`create table if not exists domain_health (
+        id text primary key, domain text not null, client_id integer not null, sources jsonb not null default '[]'::jsonb, whmcs_domain_id integer,
+        service_id integer, server_id text not null default '', server_ip text not null default '', ssl_issue boolean not null default false, reg jsonb,
+        external boolean not null default false, active boolean not null default true, status text not null default 'unknown',
+        checks jsonb not null default '{}'::jsonb, issues jsonb not null default '{}'::jsonb, last_alerted jsonb not null default '{}'::jsonb,
+        first_seen_issue timestamptz, last_checked timestamptz, created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      await tx`create unique index if not exists domain_health_uniq on domain_health (domain, client_id)`;
+      await tx`create index if not exists domain_health_due_idx on domain_health (active, last_checked)`;
+      await tx`create index if not exists domain_health_client_idx on domain_health (client_id)`;
+      await tx`create index if not exists domain_health_status_idx on domain_health (status)`;
+      await tx`create table if not exists health_prefs (client_id integer primary key, email text not null default '', alerts boolean not null default true, updated_at timestamptz not null default now())`;
+    },
     // 35. Abandoned-cart and renewal reminders (lib/reminders/*): customer choices, unsubscribes, captured carts, send log.
     '035-reminders': async (tx) => {
       await tx`create table if not exists reminder_prefs (

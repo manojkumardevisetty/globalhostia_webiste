@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyUnsub, type UnsubScope } from '@/lib/reminders/core';
 import { linkSecret, suppress, setPrefs, prefsFor } from '@/lib/reminders/store';
+import { setHealthPrefs } from '@/lib/health/engine';
 import { unsubscribeView, type UnsubState } from '@/lib/portal/views/reminders';
 import { guestFrame } from '@/lib/portal/views/frame';
 import { t, withLocale, parseLang, LANG_COOKIE } from '@/lib/portal/i18n';
@@ -30,7 +31,8 @@ async function apply(email: string, clientId: number, scope: UnsubScope) {
   if (clientId) {
     // mirror it in the portal switches, so the account settings show the same thing
     const cur = await prefsFor(clientId).catch(() => null);
-    if (cur) await setPrefs(clientId, email, { cartEmail: scope === 'renewal' ? cur.cartEmail : false, renewalEmail: scope === 'cart' ? cur.renewalEmail : false }, 'unsubscribe');
+    if (cur && scope !== 'health') await setPrefs(clientId, email, { cartEmail: scope === 'renewal' ? cur.cartEmail : false, renewalEmail: scope === 'cart' ? cur.renewalEmail : false }, 'unsubscribe');
+    if (scope === 'health' || scope === 'all') await setHealthPrefs(clientId, email, false).catch(() => {});
   }
 }
 
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
   const c = claims(tok);
   if (!c) return page(req, { state: 'invalid' }, 400);
   const s = form.get('scope');
-  const scope: UnsubScope = s === 'cart' || s === 'renewal' || s === 'all' ? s : c.s;
+  const scope: UnsubScope = s === 'cart' || s === 'renewal' || s === 'health' || s === 'all' ? s : c.s;
   try { await apply(c.e, c.c, scope); } catch { return page(req, { state: 'error', token: tok!, scope, email: c.e }, 503); }
   await auditClient('reminder_unsubscribe', c.e, ip, { scope, via: 'page' });
   return page(req, { state: 'done', scope, email: c.e });

@@ -129,6 +129,32 @@ export function clientStrings(): Record<string, string> {
 /* ============================================================== Arabic (Modern Standard Arabic) */
 // Brand and product names stay in Latin script. Keep placeholders ({n}, {d}, …) and markup identical to the English key.
 export const AR: Record<string, ArEntry> = {
+  // domain health (lib/portal/views/health.ts, /account/health, the reminders card)
+  'Urgent': 'عاجل', 'Needs attention': 'يحتاج إلى انتباه', 'Not checked yet': 'لم يُفحص بعد', 'Health: {s}': 'الحالة: {s}', 'Health': 'سلامة النطاق', 'Domain health': 'سلامة النطاقات',
+  'Checked again just now. The results below are current.': 'أعدنا الفحص الآن. النتائج أدناه محدّثة.',
+  'This domain was checked less than a minute ago. The results below are current.': 'فُحص هذا النطاق قبل أقل من دقيقة. النتائج أدناه محدّثة.',
+  'Too many checks in a short time. Please wait a few minutes and try again.': 'عدد كبير من الفحوصات في وقت قصير. يُرجى الانتظار بضع دقائق والمحاولة مرة أخرى.',
+  'Free SSL requested. It is usually active within a few minutes; then choose Re-check now.': 'تم طلب شهادة SSL المجانية. تصبح فعّالة عادةً خلال دقائق؛ ثم اختر «أعد الفحص الآن».',
+  'Free SSL cannot be issued for this domain from here. Open a ticket and we will do it.': 'لا يمكن إصدار شهادة SSL مجانية لهذا النطاق من هنا. افتح تذكرة وسنقوم بذلك.',
+  'The hosting panel could not issue the certificate right now. Make sure the domain points to your hosting, then try again or open a ticket.': 'تعذّر على لوحة الاستضافة إصدار الشهادة الآن. تأكد من أن النطاق يشير إلى استضافتك، ثم حاول مرة أخرى أو افتح تذكرة.',
+  'Saved. We no longer flag the nameservers or address of this domain.': 'تم الحفظ. لن ننبّه بعد الآن إلى خوادم الأسماء أو عنوان هذا النطاق.',
+  'Saved. The next check looks at the nameservers and address again.': 'تم الحفظ. سيفحص الفحص التالي خوادم الأسماء والعنوان مجددًا.',
+  'Issue free SSL': 'أصدر شهادة SSL مجانية', 'Add this TXT record where your DNS is managed': 'أضف سجل TXT هذا حيث تُدار DNS الخاصة بك', 'Ask our team to fix it': 'اطلب من فريقنا إصلاحه',
+  'First seen {d}': 'ظهر أول مرة في {d}', 'SSL valid until {d}': 'شهادة SSL صالحة حتى {d}', 'Domain resolves': 'النطاق يعمل في DNS', 'Website answers over HTTPS': 'الموقع يستجيب عبر HTTPS',
+  'Re-check now': 'أعد الفحص الآن', 'Last checked {d}': 'آخر فحص {d}', 'Not checked yet. The first check runs within a day.': 'لم يُفحص بعد. يجري الفحص الأول خلال يوم.',
+  'All checks passed. We check this domain every day and email you if something goes wrong.': 'اجتاز كل الفحوصات. نفحص هذا النطاق يوميًا ونراسلك إذا حدث خطأ.',
+  'You told us the DNS or website for this domain is managed elsewhere on purpose, so we do not flag it.': 'أخبرتنا أن DNS أو موقع هذا النطاق يُدار في مكان آخر عمدًا، لذلك لا ننبّه إليه.',
+  'Is the DNS or the website for this domain managed elsewhere on purpose? Tell us and we stop flagging it.': 'هل تُدار DNS أو موقع هذا النطاق في مكان آخر عمدًا؟ أخبرنا وسنتوقف عن التنبيه.',
+  'Check it again': 'افحصه مجددًا', 'Yes, this is on purpose': 'نعم، هذا مقصود', 'All domains': 'كل النطاقات',
+  'We check every domain on your account once a day: SSL certificate, website, DNS, nameservers and email authentication. You get an email only when something new goes wrong or gets worse.': 'نفحص كل نطاق في حسابك مرة يوميًا: شهادة SSL والموقع وDNS وخوادم الأسماء ومصادقة البريد. تصلك رسالة فقط عند ظهور مشكلة جديدة أو تفاقمها.',
+  'Health alert emails are off': 'رسائل تنبيهات السلامة متوقفة', 'Last checked': 'آخر فحص', 'Details': 'التفاصيل', 'No domains to check yet.': 'لا توجد نطاقات لفحصها بعد.',
+  'All your domains look healthy.': 'كل نطاقاتك تبدو سليمة.', 'Daily checks of your domains.': 'فحوصات يومية لنطاقاتك.', 'See all': 'عرض الكل',
+  '{n} issues': { one: 'مشكلة واحدة', two: 'مشكلتان', few: '{n} مشكلات', many: '{n} مشكلة', other: '{n} مشكلة' },
+  '{n} domains need urgent attention': { one: 'نطاق واحد يحتاج إلى انتباه عاجل', two: 'نطاقان يحتاجان إلى انتباه عاجل', few: '{n} نطاقات تحتاج إلى انتباه عاجل', many: '{n} نطاقًا يحتاج إلى انتباه عاجل', other: '{n} نطاق يحتاج إلى انتباه عاجل' },
+  '{n} domains need attention': { one: 'نطاق واحد يحتاج إلى انتباه', two: 'نطاقان يحتاجان إلى انتباه', few: '{n} نطاقات تحتاج إلى انتباه', many: '{n} نطاقًا يحتاج إلى انتباه', other: '{n} نطاق يحتاج إلى انتباه' },
+  'Website and domain health alerts (email)': 'تنبيهات سلامة المواقع والنطاقات (بريد إلكتروني)',
+  'When an SSL certificate expires, your site goes down or DNS or email settings break. Only new or worse problems.': 'عند انتهاء شهادة SSL أو توقف موقعك أو تعطل إعدادات DNS أو البريد. فقط المشكلات الجديدة أو التي تتفاقم.',
+  'website and domain health alerts': 'تنبيهات سلامة المواقع والنطاقات', 'Website and domain health alerts': 'تنبيهات سلامة المواقع والنطاقات',
   // ---- frame, navigation, menus
   'Dashboard': 'لوحة التحكم', 'Home': 'الرئيسية', 'Products & Services': 'المنتجات والخدمات', 'Products': 'المنتجات', 'Domains': 'النطاقات',
   'Renewals': 'التجديدات', 'Billing': 'الفواتير', 'Support': 'الدعم', 'Profile': 'الملف الشخصي', 'Team access': 'صلاحيات الفريق', 'Team': 'الفريق',

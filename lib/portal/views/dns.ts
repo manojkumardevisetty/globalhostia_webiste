@@ -27,6 +27,8 @@ export interface DnsView {
   csrf: string; d: any; st?: DnsState; ok?: string;
   /** record id whose edit / delete panel is open (no-JS links), or 'add' */
   edit?: string; del?: string; add?: boolean; tpl?: string;
+  /** add form pre-filled from a link (?add=1&type=TXT&name=_dmarc&value=…, e.g. a health alert fix); validated on submit as usual */
+  pre?: DnsForm;
   err?: { msg: string; scope: 'add' | 'edit' | 'tpl' | 'zone'; id?: string; form?: DnsForm };
 }
 
@@ -199,7 +201,7 @@ export function dnsSection(o: DnsView): string {
   const addOpen = !!o.add || o.err?.scope === 'add' || recs.filter((r) => !r.readonly).length === 0;
   const addForm = `<details class="ac-dns__add" id="dns-add"${addOpen ? ' open' : ''}><summary><span class="ac-dns__addh">${icon('plus')}<b>${esc(t('Add a record'))}</b></span><small>${esc(t('A, AAAA, CNAME, MX, TXT and SRV'))}</small>${icon('chev')}</summary>
     <div class="ac-dns__addb">${o.err?.scope === 'add' ? alert('err', esc(o.err.msg)) : ''}
-    ${formOpen(o, 'add', '', ` data-type="${esc(o.err?.form?.type || 'all')}"`)}<div class="ac-dns__grid">${fields('add', zone, o.err?.scope === 'add' ? o.err.form || {} : {})}</div>
+    ${formOpen(o, 'add', '', ` data-type="${esc(o.err?.form?.type || o.pre?.type || 'all')}"`)}<div class="ac-dns__grid">${fields('add', zone, o.err?.scope === 'add' ? o.err.form || {} : o.pre || {})}</div>
       <div class="ac-dns__btns"><button class="hp-btn hp-btn--brand" type="submit">${icon('plus')}${esc(t('Add record'))}</button><p class="ac-muted">${esc(t('New records are usually visible within minutes.'))}</p></div></form></div></details>`;
 
   const table = recs.length ? `<div class="ac-dns__tw"><table class="ac-table ac-dns__t"><thead><tr><th scope="col">${esc(t('Type'))}</th><th scope="col">${esc(t('Name'))}</th><th scope="col">${esc(t('Value'))}</th><th scope="col">${esc(t('Priority'))}</th><th scope="col">${esc(t('TTL'))}</th><th scope="col"><span class="sr-only">${esc(t('Actions'))}</span></th></tr></thead>

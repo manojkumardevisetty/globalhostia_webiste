@@ -289,13 +289,13 @@ export function verifyValue<T = any>(domain: string, token: unknown, secret: unk
   try { return JSON.parse(unb64(p).toString('utf8')) as T; } catch { return null; }
 }
 
-/** Unsubscribe link token (no expiry: an unsubscribe link must keep working). scope: which reminders it stops. */
-export type UnsubScope = 'cart' | 'renewal' | 'all';
+/** Unsubscribe link token (no expiry: an unsubscribe link must keep working). scope: which reminders it stops (health = domain health alerts, lib/health). */
+export type UnsubScope = 'cart' | 'renewal' | 'health' | 'all';
 export type UnsubClaims = { e: string; c: number; s: UnsubScope };
 export const signUnsub = (c: UnsubClaims, secret: string) => signValue('gh-unsub.v1', { e: c.e.toLowerCase(), c: c.c, s: c.s }, secret, 16);
 export function verifyUnsub(token: unknown, secret: unknown): UnsubClaims | null {
   const v = verifyValue<UnsubClaims>('gh-unsub.v1', token, secret, { maxLen: 600, macBytes: 16 });
-  if (!v || typeof v.e !== 'string' || !EMAIL_RE.test(v.e) || !Number.isInteger(v.c) || v.c < 0 || !['cart', 'renewal', 'all'].includes(v.s)) return null;
+  if (!v || typeof v.e !== 'string' || !EMAIL_RE.test(v.e) || !Number.isInteger(v.c) || v.c < 0 || !['cart', 'renewal', 'health', 'all'].includes(v.s)) return null;
   return v;
 }
 export const scopeOf = (k: Kind): UnsubScope => (k === 'cart' ? 'cart' : 'renewal');

@@ -5,6 +5,7 @@
 // still work (server-side filtering, confirmation page for nameserver changes).
 import { RENEW_WINDOW, daysBadge, renewAllDomainsButton } from './renewals';
 import { dnsSection, type DnsView } from './dns';
+import { healthBadge, HEALTH_CSS, type HealthView } from './health';
 import { card, daysUntil, dl, empty, esc, fmtDate, icon, money, pill, ssoButton, btn, fieldErr, invalid, okMark, t } from './kit';
 import { tn } from '../i18n';
 import {
@@ -50,7 +51,7 @@ function bulkPanel(r: BulkResult, rows: PortfolioRow[]) {
   return `<div class="ac-alert ac-alert--${tone} ac-pf__res" role="${tone === 'ok' ? 'status' : 'alert'}" data-fx-done="${r.done.join(' ')}">${tone === 'ok' ? okMark() : ''}<div><b>${esc(actionLabel(r.action))}</b><ul>${lines}</ul></div></div>`;
 }
 
-function rowHtml(r: PortfolioRow, o: { csrf: string; cur: string; invoices?: Map<number, number>; ns?: Map<number, string[] | null>; nsKind?: Map<number, NsKind>; f: Filter }) {
+function rowHtml(r: PortfolioRow, o: { csrf: string; cur: string; invoices?: Map<number, number>; ns?: Map<number, string[] | null>; nsKind?: Map<number, NsKind>; f: Filter; health?: Map<number, HealthView> }) {
   const tone = expiryTone(r.days);
   const soon = renewable(r) && r.days !== null && r.days <= RENEW_WINDOW;
   const inv = o.invoices?.get(r.id);
@@ -66,7 +67,7 @@ function rowHtml(r: PortfolioRow, o: { csrf: string; cur: string; invoices?: Map
   const active = r.group === 'active';
   return `<tr class="ac-pf__row" data-pf-row data-id="${r.id}" data-name="${esc(r.name)}" data-group="${r.group}" data-days="${r.days ?? ''}" data-ar="${r.autoRenew ? 1 : 0}" data-ns="${kind || ''}" data-active="${active ? 1 : 0}"${hide ? ' hidden' : ''}>
     <td class="ac-pf__cb"><input type="checkbox" name="sel" value="d:${r.id}" form="ac-pf-bulk" aria-label="${esc(t('Select {x}', { x: r.name }))}"></td>
-    <th scope="row" class="ac-pf__dom"><a class="ac-mono ac-strong" href="/account/domains/${r.id}">${esc(r.name)}</a><small class="ac-pf__dns" data-pf-dns>${active ? '' : ''}</small></th>
+    <th scope="row" class="ac-pf__dom"><a class="ac-mono ac-strong" href="/account/domains/${r.id}">${esc(r.name)}</a>${healthBadge(o.health?.get(r.id), { href: true })}<small class="ac-pf__dns" data-pf-dns>${active ? '' : ''}</small></th>
     <td data-l="${esc(t('Status'))}">${pill(r.status)}</td>
     <td data-l="${esc(t('Expires'))}" class="ac-pf__exp"><span class="num">${esc(fmtDate(r.expiry))}</span><small class="ac-pf__rel ac-pf__rel--${tone}">${esc(relExpiry(r.days))}</small></td>
     <td data-l="${esc(t('Auto-renew'))}">${ar}</td>
@@ -85,7 +86,7 @@ export function nsLabelHtml(kind: NsKind | undefined, ns: string[] | null, host?
   return `<span class="ac-pf__tag" title="${title}">${esc(host && host !== 'another provider' ? host : t('External'))}</span>`;
 }
 
-export function domainsView(o: { csrf: string; domains: any[]; cur: string; invoices?: Map<number, number>; f: Filter; bulk?: BulkResult | null; ns?: Map<number, string[] | null>; nsKind?: Map<number, NsKind> }) {
+export function domainsView(o: { csrf: string; domains: any[]; cur: string; invoices?: Map<number, number>; f: Filter; bulk?: BulkResult | null; ns?: Map<number, string[] | null>; nsKind?: Map<number, NsKind>; health?: Map<number, HealthView> }) {
   if (!o.domains.length) return { headAction: '', statsHtml: '', body: card(t('Your domains'), empty(t('No domains yet'), t('Search for the perfect name, or transfer a domain you already own.'), `${btn(t('Find a domain'), '/domains-registration', { variant: 'brand', ic: 'search' })}`, 'globe'), { id: 'ac-dl-h' }) };
   const f = o.f;
   const all = toRows(o.domains);
@@ -152,7 +153,7 @@ export function domainsView(o: { csrf: string; domains: any[]; cur: string; invo
   return {
     headAction: renewAllDomainsButton(o.csrf, toRenew),
     statsHtml,
-    body: `<div class="ac-pfw" data-pfw>${o.bulk ? bulkPanel(o.bulk, all) : ''}${table}${bar}</div>`,
+    body: `${o.health?.size ? HEALTH_CSS : ''}<div class="ac-pfw" data-pfw>${o.bulk ? bulkPanel(o.bulk, all) : ''}${table}${bar}</div>`,
   };
 }
 
@@ -166,7 +167,7 @@ export function nsConfirmView(o: { csrf: string; rows: PortfolioRow[]; back: str
       <button class="hp-btn hp-btn--brand" type="submit">${esc(t('Switch nameservers'))}</button><a class="hp-btn hp-btn--ghost" href="/account/domains${esc(o.back)}">${esc(t('Cancel'))}</a></form>`, { id: 'ac-nsc-h' });
 }
 
-export function domainDetailView(o: { csrf: string; d: any; cur: string; ns: string[] | null; nsInput?: string[]; errs?: Record<string, string>; dns?: Omit<DnsView, 'csrf' | 'd'> }) {
+export function domainDetailView(o: { csrf: string; d: any; cur: string; ns: string[] | null; nsInput?: string[]; errs?: Record<string, string>; dns?: Omit<DnsView, 'csrf' | 'd'>; health?: string }) {
   const d = o.d;
   const editable = /active/i.test(d.status);
   const vals = o.nsInput || o.ns || [];
@@ -202,7 +203,7 @@ export function domainDetailView(o: { csrf: string; d: any; cur: string; ns: str
     <li>${icon('key')}<div><b>${esc(t('Transfer code and lock'))}</b><small>${esc(t('Get the EPP code or change the registrar lock.'))}</small></div>${ssoButton(o.csrf, 'domain', d.id, t('View'), { sm: true })}</li>
   </ul>`, { id: 'ac-dm-h', flush: true });
 
-  return `<div class="ac-grid ac-grid--detail"><div class="ac-col">${card(t('Nameservers'), nsForm, { id: 'ac-ns-h' })}</div><div class="ac-col">${overview}${more}</div></div>${o.dns ? dnsSection({ ...o.dns, csrf: o.csrf, d }) : ''}`;
+  return `<div class="ac-grid ac-grid--detail"><div class="ac-col">${card(t('Nameservers'), nsForm, { id: 'ac-ns-h' })}</div><div class="ac-col">${overview}${more}</div></div>${o.health || ''}${o.dns ? dnsSection({ ...o.dns, csrf: o.csrf, d }) : ''}`;
 }
 
 const HOST = /^(?=.{4,253}$)(?!-)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}\.?$/i;

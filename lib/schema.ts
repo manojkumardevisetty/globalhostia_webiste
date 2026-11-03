@@ -625,3 +625,37 @@ export const remindersLog = pgTable('reminders_log', {
 }, (t) => [uniqueIndex('reminders_log_uniq').on(t.kind, t.item, t.stage, t.channel, t.cycle), index('reminders_log_client_idx').on(t.clientId, t.sentAt), index('reminders_log_created_idx').on(t.createdAt)]);
 export type ReminderLogRow = typeof remindersLog.$inferSelect;
 export type ReminderCartRow = typeof reminderCarts.$inferSelect;
+
+// Domain health alerts (lib/health/*, Admin → Business → Domain health). Created by db-setup patch '037-domain-health'.
+// One row per customer domain (registered, hosting service, addon / alias). issues: open problems {key: {sev, stage,
+// first, last, params}}; last_alerted: what the customer was last told per issue (alerts only on new / worse issues).
+export const domainHealth = pgTable('domain_health', {
+  id: id(),
+  domain: text('domain').notNull(),
+  clientId: integer('client_id').notNull(),
+  sources: jsonb('sources').$type<string[]>().notNull().default([]),
+  whmcsDomainId: integer('whmcs_domain_id'),
+  serviceId: integer('service_id'),
+  serverId: text('server_id').notNull().default(''),
+  serverIp: text('server_ip').notNull().default(''),
+  sslIssue: boolean('ssl_issue').notNull().default(false),
+  reg: jsonb('reg'),
+  external: boolean('external').notNull().default(false),
+  active: boolean('active').notNull().default(true),
+  status: text('status').notNull().default('unknown'),
+  checks: jsonb('checks').notNull().default({}),
+  issues: jsonb('issues').notNull().default({}),
+  lastAlerted: jsonb('last_alerted').notNull().default({}),
+  firstSeenIssue: timestamp('first_seen_issue', { withTimezone: true }),
+  lastChecked: timestamp('last_checked', { withTimezone: true }),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [uniqueIndex('domain_health_uniq').on(t.domain, t.clientId), index('domain_health_due_idx').on(t.active, t.lastChecked), index('domain_health_client_idx').on(t.clientId), index('domain_health_status_idx').on(t.status)]);
+export type DomainHealthRow = typeof domainHealth.$inferSelect;
+// Customer choice for health alert emails (WhatsApp follows the reminders WhatsApp opt-in). No row = alerts on.
+export const healthPrefs = pgTable('health_prefs', {
+  clientId: integer('client_id').primaryKey(),
+  email: text('email').notNull().default(''),
+  alerts: boolean('alerts').notNull().default(true),
+  updatedAt: now('updated_at'),
+});

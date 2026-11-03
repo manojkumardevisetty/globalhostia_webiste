@@ -105,7 +105,7 @@ export async function suppressedScopes(email: string): Promise<Set<string>> {
   const rows = await db.select({ s: schema.reminderSuppress.scope }).from(schema.reminderSuppress).where(eq(schema.reminderSuppress.email, email.toLowerCase()));
   return new Set(rows.map((r) => r.s));
 }
-export const blocks = (sup: Set<string>, scope: 'cart' | 'renewal') => sup.has('all') || sup.has(scope);
+export const blocks = (sup: Set<string>, scope: 'cart' | 'renewal' | 'health') => sup.has('all') || sup.has(scope);
 
 /* ---------------- carts */
 export type CartItems = { p: { pid: number; cycle: string; domain: string; options: boolean }[]; d: { domain: string; type: 'register' | 'transfer'; years: number }[]; lang?: 'en' | 'ar' };

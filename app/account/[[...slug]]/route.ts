@@ -31,6 +31,8 @@ import { listMembers, inviteUser, updatePermissions, removeUser } from '@/lib/po
 import { EMAIL_RE, normalizeEmail, permsFromForm, viewerIsOwner } from '@/lib/portal/team-perms';
 import { settingsView } from '@/lib/portal/views/settings';
 import { remindersCard } from '@/lib/portal/views/reminders';
+import { healthPanel, healthStrip, healthFlash } from '@/lib/portal/views/health';
+import { rowsFor as healthRows, rowFor as healthRow, healthPrefs, setHealthPrefs } from '@/lib/health/engine';
 import { prefsFor, setPrefs, loadConfig as reminderConfig } from '@/lib/reminders/store';
 import { toE164 } from '@/lib/reminders/core';
 import { vapid, subscriptions, saveSubscription, removeSubscription, setCategories, setLanguage, sendToClient, PushUnavailable } from '@/lib/portal/push';
@@ -207,7 +209,8 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     ]);
     const inv = unpaid.ok && unpaid.v.length ? await api.unpaidRenewalInvoices(cid, unpaid.v).catch(() => undefined) : undefined;
     const d = dashboardView({ csrf: v.csrf, client, products, domains, unpaid, tickets, inv, cur: sess.cur });
-    return html(await F({ title: 'Dashboard', h1: d.greeting, sub: d.alert ? `<span class="ac-hero-alert" role="status">${esc(d.summary)}</span>` : esc(d.summary), active: 'dashboard', heroExtra: d.statsHtml, body: d.body }));
+    const strip = healthStrip(await healthRows(cid).catch(() => [])); // urgent domain health problems (lib/health)
+    return html(await F({ title: 'Dashboard', h1: d.greeting, sub: d.alert ? `<span class="ac-hero-alert" role="status">${esc(d.summary)}</span>` : esc(d.summary), active: 'dashboard', heroExtra: d.statsHtml, body: strip + d.body }));
   }
 
   /* services */
@@ -261,7 +264,8 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
           nsKind.set(id, dnsKind(dctx, String(d.domainname), list).deleg);
         };
         await mapLimit(active.slice(0, f.ns === 'ext' ? 60 : 250), 6, fill);
-        const view = domainsView({ csrf: v.csrf, domains, cur: sess.cur, invoices: inv?.domains, f, bulk: parseBulkResult(q), ns, nsKind });
+        const health = new Map((await healthRows(cid).catch(() => [])).filter((h) => h.target.whmcsDomainId).map((h) => [Number(h.target.whmcsDomainId), h]));
+        const view = domainsView({ csrf: v.csrf, domains, cur: sess.cur, invoices: inv?.domains, f, bulk: parseBulkResult(q), ns, nsKind, health });
         return html(await F({ title: t('Domains'), sub: esc(t('Your domain portfolio: renewals, auto-renew, registrar lock, nameservers and SSL.')), active: 'domains', headAction: view.headAction, heroExtra: view.statsHtml, body: view.body }));
       } catch { return failed(t('Domains'), 'your domains', 'domains'); }
     }
@@ -286,7 +290,8 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     const okKey = q.get('ok') || '';
     return domainPage(F, v.csrf, sess.cur, cid, d, {
       ok: DNS_OK[okKey] ? okKey : undefined, edit: q.get('edit') || undefined, del: q.get('del') || undefined, add: q.has('add'), tpl: q.get('tpl') || undefined,
-    });
+      pre: q.has('add') ? { type: (q.get('type') || '').slice(0, 10).toUpperCase() || undefined, name: (q.get('name') || '').slice(0, 260) || undefined, value: (q.get('value') || '').slice(0, 1024) || undefined } : undefined,
+    }, 200, q.get('ok') || q.get('err'));
   }
 
   /* team access */
@@ -297,12 +302,12 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
 
   /* app & notifications */
   if (a === 'settings' && !b) {
-    const [keys, subs, rp, rcfg, cl] = await Promise.all([vapid(), subscriptions(cid).catch(() => []), prefsFor(cid).catch(() => null), reminderConfig().catch(() => null), api.getClientsDetails(cid).catch(() => null)]);
+    const [keys, subs, rp, rcfg, cl, hp] = await Promise.all([vapid(), subscriptions(cid).catch(() => []), prefsFor(cid).catch(() => null), reminderConfig().catch(() => null), api.getClientsDetails(cid).catch(() => null), healthPrefs(cid).catch(() => null)]);
     const cats = subs.length ? [...new Set(subs.flatMap((s) => (Array.isArray(s.categories) ? s.categories : []) as string[]))] : [...PUSH_CATEGORIES];
     // reminder choices: WhatsApp is offered only once the owner switched it on for at least one account reminder
     const waOffered = !!rcfg && rcfg.whatsapp.enabled && (rcfg.renewal.channels.whatsapp || rcfg.overdue.channels.whatsapp || rcfg.domain.channels.whatsapp);
     const reminders = rp ? remindersCard({ csrf: v.csrf, cartEmail: rp.cartEmail, renewalEmail: rp.renewalEmail, whatsapp: rp.whatsapp, whatsappAt: rp.whatsappAt ? rp.whatsappAt.toISOString() : null,
-      phone: cl ? toE164(cl.phonenumberformatted || cl.phonenumber, { country: cl.countrycode || cl.country, cc: cl.phonecc }) : null, waOffered, saved: q.get('ok') === 'reminders_saved' }) : '';
+      phone: cl ? toE164(cl.phonenumberformatted || cl.phonenumber, { country: cl.countrycode || cl.country, cc: cl.phonecc }) : null, waOffered, saved: q.get('ok') === 'reminders_saved', health: hp ? hp.alerts : undefined }) : '';
     return html(await F({
       title: t('App & notifications'), sub: esc(t('Install GlobalHostia as an app, choose notifications and set your language.')), active: 'settings',
       body: settingsView({ csrf: v.csrf, publicKey: keys?.publicKey || null, available: !!keys, devices: subs.length, cats: parseCategories(cats), lang: curLang(), digits: curDigits(), reminders }),
@@ -373,11 +378,12 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
 }
 
 /** Domain detail with its DNS section (nameservers read live from the registry, zone resolved per request). */
-async function domainPage(F: (o: any) => Promise<string>, csrf: string, cur: string, cid: number, d: any, dns: Omit<DnsView, 'csrf' | 'd' | 'st'>, status = 200) {
+async function domainPage(F: (o: any) => Promise<string>, csrf: string, cur: string, cid: number, d: any, dns: Omit<DnsView, 'csrf' | 'd' | 'st'>, status = 200, healthKey?: string | null) {
   let ns: string[] | null = null;
   try { ns = await api.domainGetNameservers(Number(d.id)); } catch { ns = null; }
-  const st = await dnsState(cid, d, ns);
-  return html(await F({ title: d.domainname, active: 'domains', crumbs: [{ label: t('Domains'), href: '/account/domains' }, { label: d.domainname }], ai: { domainId: Number(d.id), domain: String(d.domainname || '').toLowerCase() }, body: domainDetailView({ csrf, d, cur, ns, dns: { ...dns, st } }) }), status);
+  const [st, hv] = await Promise.all([dnsState(cid, d, ns), healthRow(cid, String(d.domainname || '')).catch(() => null)]);
+  const health = healthPanel(hv, csrf, { back: `/account/domains/${Number(d.id)}#health`, flash: healthFlash(healthKey) });
+  return html(await F({ title: d.domainname, active: 'domains', crumbs: [{ label: t('Domains'), href: '/account/domains' }, { label: d.domainname }], ai: { domainId: Number(d.id), domain: String(d.domainname || '').toLowerCase() }, body: domainDetailView({ csrf, d, cur, ns, dns: { ...dns, st }, health }) }), status);
 }
 
 /** Team page: members + permissions (owner can manage). Never throws: a billing-API failure shows the fallback card. */
@@ -698,7 +704,10 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       // unticked boxes are absent from the form: absent = off. WhatsApp stays off unless ticked (explicit opt-in).
       const next: { cartEmail: boolean; renewalEmail: boolean; whatsapp?: boolean } = { cartEmail: fd.get('cart') === '1', renewalEmail: fd.get('renewal') === '1' };
       if (fd.get('wa_shown') === '1') next.whatsapp = fd.get('whatsapp') === '1'; // WhatsApp row not shown: keep the earlier choice
-      try { await setPrefs(cid, sess.email, next, 'portal'); } catch { return go(req, '/account/settings?err=failed#reminders'); }
+      try {
+        await setPrefs(cid, sess.email, next, 'portal');
+        if (fd.get('health_shown') === '1') await setHealthPrefs(cid, sess.email, fd.get('health') === '1'); // domain health alerts (lib/health)
+      } catch { return go(req, '/account/settings?err=failed#reminders'); }
       await auditClient('client_reminder_prefs', sess.email, ip, next);
       return go(req, '/account/settings?ok=reminders_saved#reminders');
     }

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse, after } from 'next/server';
 import { verifyHook, EMAIL_RE } from '@/lib/reminders/core';
 import { hookSecret, cartsOrdered, patchState, state, setPrefs, closeCart } from '@/lib/reminders/store';
 import { invoicePaid, runReminders } from '@/lib/reminders/engine';
+import { tickHealth } from '@/lib/health/engine';
 import { limiter } from '@/lib/agents/http';
 import { db, schema } from '@/lib/db';
 import { eq } from 'drizzle-orm';
@@ -52,6 +53,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
   if (ev === 'tick') {
+    // domain health checks ride the same WHMCS cron tick (their own 10-minute spacing and lock: lib/health/engine.ts)
+    after(() => tickHealth().catch((x) => console.warn('[health] tick', x?.message || x)));
     const st = await state();
     const last = st.lastRun ? Date.parse(st.lastRun) : 0;
     if (Date.now() - last < TICK_EVERY_MS) return NextResponse.json({ ok: true, skipped: 'recent' });
