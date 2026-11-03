@@ -34,21 +34,28 @@ export function dashboardView(o: {
   const doms = o.domains.ok ? o.domains.v : [];
   const unpaid = o.unpaid.ok ? o.unpaid.v : [];
   const due = unpaid.reduce((s, i) => s + (parseFloat(i.balance ?? i.total) || 0), 0);
+  // services past their due date with no invoice yet still count as money owed
+  const overdue = active.filter((p) => { const n = daysUntil(p.nextduedate); return n !== null && n < 0 && (parseFloat(p.recurringamount) || 0) > 0; });
+  const overdueAmt = unpaid.length ? 0 : overdue.reduce((s, p) => s + (parseFloat(p.recurringamount) || 0), 0);
+  const owed = due + overdueAmt;
+  const dueSub = !o.unpaid.ok ? '' : unpaid.length ? `${unpaid.length} unpaid invoice${unpaid.length === 1 ? '' : 's'}${overdue.length ? ` · ${overdue.length} overdue` : ''}`
+    : overdue.length ? `${overdue.length} service${overdue.length === 1 ? '' : 's'} overdue` : 'All paid up';
   const tickets = o.tickets.ok ? o.tickets.v : [];
   const dash = (ok: boolean, v: string) => (ok ? v : '—');
 
   const stats: [string, string, string, string, string?][] = [
     ['/account/services', 'Active services', dash(o.products.ok, String(active.length)), 'server', prods.length > active.length ? `${prods.length} in total` : ''],
     ['/account/domains', 'Domains', dash(o.domains.ok, String(doms.length)), 'globe', ''],
-    ['/account/invoices?status=Unpaid', 'Amount due', dash(o.unpaid.ok, money(due, unpaid[0]?.currencycode || cur)), 'card', o.unpaid.ok ? (unpaid.length ? `${unpaid.length} unpaid invoice${unpaid.length === 1 ? '' : 's'}` : 'All paid up') : ''],
+    [unpaid.length || !overdue.length ? '/account/invoices?status=Unpaid' : '/account/services', 'Amount due', dash(o.unpaid.ok, money(owed, unpaid[0]?.currencycode || cur)), 'card', dueSub],
     ['/account/support', 'Open tickets', dash(o.tickets.ok, String(tickets.length)), 'headset', ''],
   ];
-  const attention = (unpaid.length ? 1 : 0) + doms.filter((d) => { const n = daysUntil(d.expirydate); return n !== null && n <= 30 && /active/i.test(d.status); }).length;
+  const attention = (unpaid.length ? 1 : 0) + overdue.length + doms.filter((d) => { const n = daysUntil(d.expirydate); return n !== null && n <= 30 && /active/i.test(d.status); }).length;
   const summary = !o.products.ok ? 'Here is your account at a glance.'
+    : overdue.length ? `${overdue.length} service${overdue.length === 1 ? ' is' : 's are'} overdue — renew now to avoid suspension.`
     : attention ? `You have ${attention} item${attention === 1 ? '' : 's'} that need${attention === 1 ? 's' : ''} attention.`
     : prods.length ? 'Everything is running. Nothing needs your attention today.' : 'Your account is ready. Add your first service to get started.';
 
-  const statsHtml = `<div class="hp-stats hp-stats--4 ac-stats">${stats.map(([h, l, v, ic, sub], i) => `<a class="hp-stat" href="${h}" data-reveal style="--i:${i}"><span class="ac-stats__l">${icon(ic)}${l}</span><b class="num"${/\d/.test(v) && v !== '0' ? ' data-count' : ''}>${esc(v)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</a>`).join('')}</div>`;
+  const statsHtml = `<div class="hp-stats hp-stats--4 ac-stats">${stats.map(([h, l, v, ic, sub], i) => `<a class="hp-stat${l === 'Amount due' && (overdue.length || unpaid.length) ? ' is-alert' : ''}" href="${h}" data-reveal style="--i:${i}"><span class="ac-stats__l">${icon(ic)}${l}</span><b class="num"${/\d/.test(v) && v !== '0' ? ' data-count' : ''}>${esc(v)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</a>`).join('')}</div>`;
 
   const order = (a: any, b: any) => Number(/active/i.test(b.status)) - Number(/active/i.test(a.status)) || String(a.nextduedate).localeCompare(String(b.nextduedate));
   const shown = [...prods].filter((p) => !/terminated|cancelled|fraud/i.test(p.status)).sort(order).slice(0, 6);
@@ -78,5 +85,5 @@ export function dashboardView(o: {
     <div class="ac-promo__a"><a class="hp-btn hp-btn--light ac-sm" href="/vps-hosting">${icon('cloud')}VPS servers</a><a class="hp-btn hp-btn--outline ac-sm" href="/domains-registration">${icon('globe')}Find a domain</a></div>
   </aside>`;
 
-  return { greeting: `${greet}${first ? `, ${first}` : ''}`, summary, statsHtml, body: `<div class="ac-grid"><div class="ac-col">${renewals}${products}${promo}</div><div class="ac-col">${inv}${usage}${tix}</div></div>` };
+  return { greeting: `${greet}${first ? `, ${first}` : ''}`, summary, alert: overdue.length > 0 || unpaid.length > 0, statsHtml, body: `<div class="ac-grid"><div class="ac-col">${renewals}${products}${promo}</div><div class="ac-col">${inv}${usage}${tix}</div></div>` };
 }

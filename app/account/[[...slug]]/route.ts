@@ -101,7 +101,7 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     ]);
     const inv = unpaid.ok && unpaid.v.length ? await api.unpaidRenewalInvoices(cid, unpaid.v).catch(() => undefined) : undefined;
     const d = dashboardView({ csrf: v.csrf, client, products, domains, unpaid, tickets, inv, cur: sess.cur });
-    return html(await F({ title: 'Dashboard', h1: d.greeting, sub: esc(d.summary), active: 'dashboard', heroExtra: d.statsHtml, body: d.body }));
+    return html(await F({ title: 'Dashboard', h1: d.greeting, sub: d.alert ? `<span class="ac-hero-alert" role="status">${esc(d.summary)}</span>` : esc(d.summary), active: 'dashboard', heroExtra: d.statsHtml, body: d.body }));
   }
 
   /* services */
