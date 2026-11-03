@@ -696,8 +696,8 @@
           f.textContent = money(d.currency, d.fee);
           n.textContent = '+ ' + d.pct + '% only if we buy it for you (minimum ' + money(d.currency, d.minCommission) + ')';
           if (d.team && d.team.length) { var pick = d.team[Math.floor(Math.random() * d.team.length)]; d.name = pick.name; d.title = pick.title; d.photo = pick.photo; }
-          if (d.name) wrap.querySelector('[data-gh-who]').textContent = 'Your broker · ' + d.name + (d.title ? ', ' + d.title : '');
-          if (d.photo && /^https:\/\//.test(d.photo)) { var im = new Image(); im.alt = d.name ? 'Photo of ' + d.name : 'Your broker'; im.src = d.photo; im.onload = function () { var ph = wrap.querySelector('[data-gh-ph]'); ph.innerHTML = ''; ph.appendChild(im); }; }
+          if (d.name) wrap.querySelector('[data-gh-who]').textContent = d.name + (d.title ? ', ' + d.title : '');
+          if (d.photo && /^https:\/\//.test(d.photo)) { var im = new Image(); im.alt = ''; im.src = d.photo; im.onload = function () { var ph = wrap.querySelector('[data-gh-ph]'); ph.innerHTML = ''; ph.appendChild(im); }; }
         });
         var renewOf = function (row) { var m = row && row.textContent.match(/Renews\s+([^\s/]+)\s*\/\s*yr/i); return m ? m[1] : ''; };
         var tries = 0, fill = function () {
