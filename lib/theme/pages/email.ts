@@ -154,7 +154,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const site = String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
   const offer = from ? ld({ '@context': 'https://schema.org', '@type': 'Product', name: ctx.route.title, description: ctx.route.description, brand: { '@type': 'Brand', name: cat.settings.site_name || 'Globalhostia' },
     offers: { '@type': 'AggregateOffer', priceCurrency: currency, lowPrice: from.price.toFixed(2), offerCount: products.length, url: `${site}/${ctx.slug}` } }) : '';
-  const service = ld({ '@context': 'https://schema.org', '@type': 'Service', name: ctx.route.title, description: ctx.route.description, serviceType: 'Business email hosting', provider: { '@type': 'Organization', name: cat.settings.site_name || 'Globalhostia', url: site } });
+  const service = ld({ '@context': 'https://schema.org', '@type': 'Service', name: ctx.route.title, description: ctx.route.description, serviceType: 'Business email hosting', provider: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/` } });
 
   return page({
     ctx, catalog: cat, path: `/${ctx.slug}`, title: ctx.route.title, description: ctx.route.description,

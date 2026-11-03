@@ -110,7 +110,7 @@ async function dubai(cat: Catalog, ctx: PageCtx) {
   ];
   const body = [hero, trustStrip(s), why, plans, steps, faqBlock('ua-faq', 'Web hosting in Dubai: questions', faqs),
     ctaBand({ title: 'Talk to a hosting engineer in Dubai', text: 'Tell us about your site and we will recommend a plan, or start the free migration.', primary: wa ? { label: 'WhatsApp us', href: wa, icon: 'whatsapp' } : { label: 'Contact us', href: '/contact' }, secondary: { label: 'Open the plan finder', href: '/plan-finder' } })].join('\n');
-  return { body, faqs, ld: [ld({ '@context': 'https://schema.org', '@type': 'Service', serviceType: 'Web hosting', name: 'Web hosting in Dubai', areaServed: { '@type': 'Country', name: 'United Arab Emirates' }, provider: { '@type': 'Organization', name: s.site_name || 'Globalhostia', url: siteOf(cat) }, url: `${siteOf(cat)}/web-hosting-dubai` })] };
+  return { body, faqs, ld: [ld({ '@context': 'https://schema.org', '@type': 'Service', serviceType: 'Web hosting', name: 'Web hosting in Dubai', areaServed: { '@type': 'Country', name: 'United Arab Emirates' }, provider: { '@type': 'Organization', '@id': `${siteOf(cat)}/#organization`, name: 'GlobalHostia', url: `${siteOf(cat)}/` }, url: `${siteOf(cat)}/web-hosting-dubai` })] };
 }
 
 /* ================================================================== /vps-uae */
@@ -303,6 +303,6 @@ async function guide(cat: Catalog, ctx: PageCtx) {
       ${linksRow([['Web hosting in Dubai', '/web-hosting-dubai'], ['VPS hosting UAE', '/vps-uae'], ['Windows RDP UAE', '/windows-rdp-uae'], ['.ae domains', '/ae-domains'], ['Free migration', '/free-migration']])}</div>
   </div>`, trustStrip(s), faqBlock('ua-faq', 'Choosing hosting in the UAE: questions', faqs)].join('\n');
   const article = ld({ '@context': 'https://schema.org', '@type': 'Article', headline: 'How to choose the best web hosting in the UAE', description: ctx.route.description, url: `${site}/best-hosting-uae`, inLanguage: 'en',
-    author: { '@type': 'Organization', name: s.site_name || 'Globalhostia', url: site }, publisher: { '@type': 'Organization', name: s.site_name || 'Globalhostia', url: site }, mainEntityOfPage: `${site}/best-hosting-uae` });
+    author: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/` }, publisher: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/` }, mainEntityOfPage: `${site}/best-hosting-uae` });
   return { body, faqs, ld: [article] };
 }

@@ -7,6 +7,8 @@ import { requireSession, audit, saveRevision } from '@/lib/session';
 import { done, fail, bust, str } from '@/lib/admin';
 import { setSetting } from '@/lib/settings';
 import { renderMarkdown } from '@/lib/markdown';
+import { after } from 'next/server';
+import { pingChanged } from '@/lib/indexnow';
 
 export type SaveState = { error?: string; field?: string };
 
@@ -95,6 +97,7 @@ export async function savePost(_prev: SaveState, fd: FormData): Promise<SaveStat
   bust();
 
   const live = v.status === 'PUBLISHED' && (!publishAt || publishAt.getTime() <= Date.now());
+  if (live && !v.canonical) after(() => pingChanged([`/blog/${v.slug}`, '/blog'], 'blog post saved'));
   const msg = v.status === 'PUBLISHED' ? (live ? (old?.status === 'PUBLISHED' ? 'Saved. The live article is updated.' : 'Published. The article is live now.') : 'Scheduled. The article goes live at the publish time.')
     : v.status === 'ARCHIVED' ? 'Saved as archived (hidden from the website).' : old ? 'Draft saved.' : 'Draft created.';
   redirect(`/admin/blog/${id}?ok=${encodeURIComponent(msg)}`);
@@ -117,6 +120,7 @@ export async function setPostStatus(fd: FormData) {
     await db.update(schema.posts).set({ status: 'ARCHIVED', updatedAt: new Date() }).where(eq(schema.posts.id, id));
   } else fail(back, 'Unknown action');
   await audit(s, op, 'post', id, { slug: p.slug });
+  if (op === 'publish' && !(p.publishAt && p.publishAt.getTime() > Date.now())) after(() => pingChanged([`/blog/${p.slug}`, '/blog'], 'blog post published'));
   const scheduled = op === 'publish' && p.publishAt && p.publishAt.getTime() > Date.now();
   done(back, op === 'publish' ? (scheduled ? `"${p.title}" is scheduled` : `"${p.title}" is live`) : op === 'archive' ? `"${p.title}" archived` : `"${p.title}" moved to drafts`);
 }

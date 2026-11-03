@@ -86,6 +86,7 @@ export const ROUTES: Record<string, RouteDef> = {
     seoTitle: 'Our Network & Datacenter Locations',
     meta: 'Where GlobalHostia servers run: shared hosting in the USA, Malaysia and Singapore, server datacenters from the USA and Brazil to India, supported from Dubai.' },
   'privacy-policy': { kind: 'content', title: 'Privacy policy', description: 'How Globalhostia handles your data.',
+    seoTitle: 'Privacy Policy: How We Protect Your Data',
     meta: 'How GlobalHostia collects, uses, stores and protects your personal data when you visit our website or use our hosting, domain and server services.' },
   'terms-conditions': { kind: 'content', title: 'Terms & conditions', description: 'Terms of service.',
     seoTitle: 'Terms & Conditions of Service',

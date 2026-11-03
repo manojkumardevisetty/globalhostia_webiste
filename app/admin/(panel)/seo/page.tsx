@@ -7,15 +7,17 @@ import { getSettings } from '@/lib/settings';
 import { VERIFICATION_KEYS, INDEXNOW_KEY, verificationToken, siteUrl } from '@/lib/seo';
 import { saveRedirect, deleteRedirect, bulkSeo, saveSearchEngines, notifySearchEngines, saveTracking } from './actions';
 import { TRACKING_FIELDS, normTracking, anyTracker } from '@/lib/tracking';
+import { indexNowLog } from '@/lib/indexnow';
 
 export const metadata = { title: 'Marketing & SEO' };
 
 export default async function Seo({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const sp = await searchParams;
-  const [settings, pages, redirects] = await Promise.all([
+  const [settings, pages, redirects, inLog] = await Promise.all([
     getSettings(),
     db.select().from(schema.pages).orderBy(asc(schema.pages.slug)),
     db.select().from(schema.redirects).orderBy(desc(schema.redirects.createdAt)),
+    indexNowLog(),
   ]);
   let promos: any[] = [], promoErr = '';
   if (whmcsConfigured()) { try { promos = (await whmcs('GetPromotions')).promotions?.promotion ?? []; } catch (e: any) { promoErr = e.message; } }
@@ -42,12 +44,23 @@ export default async function Seo({ searchParams }: { searchParams: Promise<Reco
               </div>
             </Card>
           </form>
-          <Card title="Notify search engines (IndexNow)" actions={<form action={notifySearchEngines}><button className="btn btn-primary">Notify search engines</button></form>}>
+          <Card title="Notify search engines (IndexNow)" actions={<form action={notifySearchEngines}><button className="btn btn-primary">Submit now</button></form>}>
             <div className="space-y-2 text-sm text-slate-600">
-              <p>Sends every URL in the <a className="text-brand-600" href="/sitemap.xml" target="_blank">sitemap</a> to IndexNow, which shares it with Bing, Yandex, Seznam, Naver and other participating engines. Published product and page saves are also sent automatically.</p>
+              <p>Every URL in the <a className="text-brand-600" href="/sitemap.xml" target="_blank">sitemap</a> is sent to IndexNow (shared with Bing, Yandex, Seznam, Naver and others) automatically: once after every deployment, daily for pages whose content changed, and whenever a page, product, blog post or landing page is published or saved. <b>Submit now</b> sends the whole sitemap again.</p>
               <p className="text-xs">Key file: <a className="font-mono text-brand-600" href={`/${INDEXNOW_KEY}.txt`} target="_blank">{siteUrl(settings)}/{INDEXNOW_KEY}.txt</a></p>
-              {settings.indexnow_last?.at ? <p className="text-xs">Last run {new Date(settings.indexnow_last.at).toLocaleString('en-GB', { timeZone: 'Asia/Dubai' })} (Dubai): {settings.indexnow_last.submitted} URLs, {settings.indexnow_last.message}{settings.indexnow_last.ok ? '' : ' (failed)'}</p> : <p className="text-xs">Not run yet.</p>}
-              <p className="text-xs text-slate-400">Google does not use IndexNow: it reads the sitemap from robots.txt. Submit the sitemap once in Google Search Console.</p>
+              {inLog.length ? (
+                <div className="overflow-x-auto"><table className="table text-xs"><thead><tr><th>When (Dubai)</th><th>Trigger</th><th>URLs</th><th>Result</th></tr></thead><tbody>
+                  {inLog.slice(0, 12).map((l, i) => (
+                    <tr key={i}>
+                      <td className="whitespace-nowrap">{new Date(l.at).toLocaleString('en-GB', { timeZone: 'Asia/Dubai' })}</td>
+                      <td>{l.trigger}</td>
+                      <td>{l.submitted}</td>
+                      <td>{l.status ? <Badge tone={l.ok ? 'green' : 'red'}>{`HTTP ${l.status}`}</Badge> : null} {l.message}</td>
+                    </tr>
+                  ))}
+                </tbody></table></div>
+              ) : <p className="text-xs">No submissions yet. The first one runs automatically after the next deployment.</p>}
+              <p className="text-xs text-slate-400">Google does not use IndexNow: it reads the sitemap from the Sitemap: line in robots.txt. Submit the sitemap once in Google Search Console.</p>
             </div>
           </Card>
         </div>

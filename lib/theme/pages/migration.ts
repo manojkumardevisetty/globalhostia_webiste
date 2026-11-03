@@ -97,7 +97,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   </div></section>`;
 
   const service = ld({ '@context': 'https://schema.org', '@type': 'Service', name: 'Website migration', serviceType: 'Website migration', url: `${site}/free-migration`,
-    provider: { '@type': 'Organization', name: s.site_name || 'Globalhostia', url: site }, areaServed: 'Worldwide', ...(free ? { offers: { '@type': 'Offer', price: '0', priceCurrency: cat.currency } } : {}) });
+    provider: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/` }, areaServed: 'Worldwide', ...(free ? { offers: { '@type': 'Offer', price: '0', priceCurrency: cat.currency } } : {}) });
   return page({
     ctx, catalog: cat, path: '/free-migration', title: ctx.route.title, description: ctx.route.description,
     css: ['migration'], js: ['migration'], noindex: !!(ticket || err),

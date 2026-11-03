@@ -275,7 +275,7 @@ ${cta()}`;
     description: lead, css: ['blog'], js: ['blog'], jsonLd: [listLd, breadcrumbJsonLd(crumbs.map((c, i) => (i === crumbs.length - 1 ? { label: c.label, href: base } : c)), site)],
     headExtra: `<link rel="alternate" type="application/rss+xml" title="${esc(cat.settings.site_name || 'Globalhostia')} blog" href="${esc(site)}/blog/rss.xml">`,
     preload: feat?.coverImage ? [feat.coverImage] : undefined, bodyClass: 'bl-page', body: main,
-    noindex: tag && tag.count < 3 ? true : undefined, // thin tag pages stay out of the index
+    noindex: (tag && tag.count < 3) || !posts.length ? true : undefined, // thin tag pages and empty listings stay out of the index
   });
   return { status: 200, body: html };
 }
@@ -383,7 +383,7 @@ async function article(ctx: PageCtx, slug: string): Promise<BlogResult> {
   const postLd = ld({
     '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title.slice(0, 110), description: post.seoDescription || post.excerpt,
     ...(image ? { image: [image] } : {}), datePublished: iso(post.date), dateModified: iso(post.updatedAt),
-    author: { '@type': post.author ? 'Person' : 'Organization', name: author }, publisher: { '@type': 'Organization', name: cat.settings.site_name || 'Globalhostia', logo: { '@type': 'ImageObject', url: `${site}/image/logo-main-black.png` } },
+    author: { '@type': post.author ? 'Person' : 'Organization', name: author }, publisher: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`, logo: { '@type': 'ImageObject', url: `${site}/image/logo-main-black.png` } },
     mainEntityOfPage: { '@type': 'WebPage', '@id': post.canonical || url }, url, wordCount: post.body.split(/\s+/).length, ...(post.category ? { articleSection: post.category } : {}), ...(post.keywords.length ? { keywords: post.keywords.join(', ') } : {}),
   });
   const headExtra = [

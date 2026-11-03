@@ -5,6 +5,8 @@ import { requireSession, audit, saveRevision } from '@/lib/session';
 import { done, fail, str, bool } from '@/lib/admin';
 import { normLanding, validateLanding, LP_SLUG } from '@/lib/landing';
 import { getCatalog } from '@/lib/theme/data';
+import { after } from 'next/server';
+import { pingChanged } from '@/lib/indexnow';
 
 const LIST = '/admin/landing-pages';
 
@@ -51,6 +53,7 @@ export async function saveLanding(fd: FormData) {
   await saveRevision(s, 'landing_page', id, cur);
   await db.update(schema.landingPages).set({ ...next, updatedAt: new Date() }).where(eq(schema.landingPages.id, id));
   const changed = (Object.keys(next) as (keyof typeof next)[]).filter((k) => JSON.stringify((cur as any)[k]) !== JSON.stringify(next[k]));
+  if (next.status === 'PUBLISHED' && !next.noindex) after(() => pingChanged([`/lp/${next.slug}`], 'landing page saved'));
   await audit(s, cur.status !== next.status ? (next.status === 'PUBLISHED' ? 'publish' : 'unpublish') : 'update', 'landing_page', id, { slug: next.slug, changed });
   done(to, next.status === 'PUBLISHED' ? (cur.status === 'PUBLISHED' ? 'Saved. Live within a minute.' : `Published at /lp/${next.slug}`) : cur.status === 'PUBLISHED' ? 'Unpublished: the page now shows "offer no longer available"' : 'Draft saved');
 }

@@ -38,7 +38,7 @@ export function offerCatalogLd(cat: Catalog) {
   const subs = cat.categories.filter((c) => !isMachineName(c.slug, c.name)).map((c) => {
     const items = categoryProducts(cat, c.slug).map((p) => {
       const n = productNode(p, cat, site);
-      return n ? { '@type': 'Offer', itemOffered: { '@type': 'Product', name: n.name, url: n.url }, price: n.offers.lowPrice, priceCurrency: cat.currency, availability: n.offers.availability, url: n.url } : null;
+      return n ? { '@type': 'Offer', itemOffered: { '@type': 'Service', name: n.name, url: n.url }, price: n.offers.lowPrice, priceCurrency: cat.currency, availability: n.offers.availability, url: n.url } : null;
     }).filter(Boolean);
     if (!items.length) return null;
     const path = categoryPath(c.slug, cat);

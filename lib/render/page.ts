@@ -90,7 +90,22 @@ ${NOINDEX_SLUGS.has(slug) ? `<meta name="robots" content="${ROBOTS_NOINDEX}" />\
 <meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="${esc(title)}" /><meta name="twitter:description" content="${esc(page.seoDescription)}" /><meta name="twitter:image" content="${esc(ogImg)}" />
 `;
   const previewBar = opts.preview ? `<div class="gh-preview-bar"><span>Preview — ${esc(page.status)}${page.status !== 'PUBLISHED' ? ' (not public)' : ''}. Hidden sections are outlined.</span><a href="/admin/pages/${page.id}">Back to editor →</a></div>` : '';
-  return shell({ page, blocks, s, vars, seo, body: parts.join('\n'), extra: previewBar, look: opts.query.get('look') || undefined });
+  return dedupeHead(shell({ page, blocks, s, vars, seo, body: parts.join('\n'), extra: previewBar, look: opts.query.get('look') || undefined }), seo);
+}
+
+/**
+ * Imported template head blocks carry their own <title>, canonical (often relative, e.g. href="/") and og:url.
+ * Keep only the tags this renderer writes (in `seo`), so every page has exactly one title, canonical and og:url.
+ */
+function dedupeHead(html: string, seo: string) {
+  const ours = new Set((seo.match(/<title>[\s\S]*?<\/title>|<link rel="canonical"[^>]*>|<meta property="og:url"[^>]*>|<meta name="description"[^>]*>/g) || []));
+  const seen = new Set<string>();
+  return html.replace(/<title>[\s\S]*?<\/title>\s*|<link[^>]+rel=["']canonical["'][^>]*>\s*|<meta[^>]+property=["']og:url["'][^>]*>\s*|<meta[^>]+name=["']description["'][^>]*>\s*/gi, (m) => {
+    const t = m.trim();
+    if (!ours.has(t) || seen.has(t)) return '';
+    seen.add(t);
+    return m;
+  });
 }
 
 export function siteVars(s: Settings) {

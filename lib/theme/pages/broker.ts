@@ -190,7 +190,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     primary: { label: 'Search available domains', href: '/domains-registration' }, secondary: { label: 'Start a broker request', href: '#request' } });
 
   const service = ld({ '@context': 'https://schema.org', '@type': 'Service', name: 'Domain broker service', serviceType: 'Domain name acquisition', url: `${site}/domain-broker`,
-    provider: { '@type': 'Organization', name: s.site_name || 'Globalhostia', url: site }, areaServed: 'Worldwide',
+    provider: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/` }, areaServed: 'Worldwide',
     offers: { '@type': 'Offer', price: cfg.feeUsd.toFixed(2), priceCurrency: 'USD', description: `Non-refundable service fee. ${pctTxt} commission on the agreed price (minimum ${minTxt}) only if a deal closes.` } });
   return page({
     ctx, catalog: cat, path: '/domain-broker', title: ctx.route.title, description: ctx.route.description,

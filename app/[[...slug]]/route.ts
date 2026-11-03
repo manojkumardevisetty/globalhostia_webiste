@@ -1,5 +1,5 @@
 // Public site: every non-admin URL is rendered from the CMS database.
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { unstable_cache } from 'next/cache';
 import { db, schema } from '@/lib/db';
 import { renderPage } from '@/lib/render/page';
@@ -12,6 +12,7 @@ import { getSettings } from '@/lib/settings';
 import { verifySession, COOKIE } from '@/lib/auth';
 import { pageMarkdown, mdPath } from '@/lib/agents/markdown';
 import { GET as aiPage } from '../ai/route';
+import { onDeploy } from '@/lib/indexnow';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +56,7 @@ async function markdown(req: NextRequest, segs: string[]): Promise<Response> {
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: string[] }> }): Promise<Response> {
   const { slug: segs = [] } = await ctx.params;
+  after(onDeploy); // first request after a production deploy: submit the sitemap to IndexNow (once per commit)
   if (segs.length && /\.md$/i.test(segs[segs.length - 1]) && segs[segs.length - 1].length > 3) return markdown(req, segs);
   const path = '/' + segs.join('/');
   const r = (await redirectMap())[path.toLowerCase()];

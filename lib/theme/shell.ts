@@ -149,7 +149,10 @@ export async function page(o: PageOpts): Promise<string> {
   const description = seoDescription(r.meta && o.description === r.description ? r.meta
     : isBlogList ? blogListingDescription(o.description, o.title) : o.description);
   const preview = o.ctx.query.get('theme') === 'hostpen';
-  const noindex = preview || o.noindex || NOINDEX_SLUGS.has(o.ctx.slug);
+  // a plan page whose categories have no live plans only shows "Plans are being updated": keep it out of the
+  // index until plans are back (a soft 404 otherwise). The sitemap leaves it out too (lib/sitemap.ts).
+  const emptyListing = !!r.categories?.length && !!o.path && o.path !== '/' && !productsFor(cat, r.categories).length;
+  const noindex = preview || o.noindex || NOINDEX_SLUGS.has(o.ctx.slug) || emptyListing;
   const css = (o.css || []).map(safeKey).filter(Boolean);
   const js = (o.js || []).map(safeKey).filter(Boolean);
   // drop empty FAQPage blocks (pages with no FAQ items) so structured data stays valid

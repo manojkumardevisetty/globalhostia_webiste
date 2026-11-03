@@ -651,7 +651,7 @@ async function renderItem(ctx: PageCtx, cat: Catalog, item: LearnPage) {
     </article>
   </div>`, trustStrip(s), faqBlock(`${item.title}: questions`, b.faqs), cta(cat)].join('\n');
 
-  const org = { '@type': 'Organization', name: s.site_name || 'Globalhostia', url: site };
+  const org = { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/` };
   const lds = [breadcrumbJsonLd(crumbs, site), faqJsonLd(b.faqs),
     ld({ '@context': 'https://schema.org', '@type': 'Article', headline: item.title, description: item.meta, url, mainEntityOfPage: url, inLanguage: 'en', author: org, publisher: org, articleSection: sec.title })];
   if (isGuide && b.steps?.length) {

@@ -71,6 +71,11 @@ export default {
       // config headers win over route headers, so /account (which sends its own X-Frame-Options: DENY) is left out
       { source: '/((?!account(?:/|$)).*)', headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }] },
       { source: '/admin/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
+      // machine endpoints (APIs, feeds, NLWeb /ask, OpenAPI/MCP manifests) are not search results pages
+      { source: '/(api|feeds)/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] },
+      { source: '/(ask|openapi.json|server.json)', headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] },
+      // *.vercel.app copies of the site (production alias, deployment URLs) must never be indexed next to globalhostia.com
+      { source: '/:path*', has: [{ type: 'host', value: '(?<vhost>.*)\\.vercel\\.app' }], headers: [{ key: 'X-Robots-Tag', value: 'noindex' }] },
       // Browser + CDN caching keeps Vercel transfer down. Later rules override earlier ones for the same header.
       { source: '/(css|js|fonts|plugins|assets|lang)/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=2592000, stale-while-revalidate=86400' }] },
       { source: '/image/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }] },

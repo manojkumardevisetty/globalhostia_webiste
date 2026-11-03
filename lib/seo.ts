@@ -149,28 +149,6 @@ export const ICON_LINKS = [
 
 /* ---------------- IndexNow ---------------- */
 
-const locs = (xml: string) => [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
-
-/** Every URL in the sitemap (follows a sitemap index one level deep). */
-export async function sitemapUrls(site: string): Promise<string[]> {
-  let xml = '';
-  try {
-    // render the sitemap in-process so this works without a public round trip
-    const mod: any = await import('@/app/sitemap.xml/route');
-    const res: Response = await mod.GET(new Request(`${site}/sitemap.xml`));
-    xml = await res.text();
-  } catch {
-    const r = await fetch(`${site}/sitemap.xml`, { cache: 'no-store' });
-    xml = r.ok ? await r.text() : '';
-  }
-  let urls = locs(xml);
-  if (/<sitemapindex/i.test(xml)) {
-    const nested = await Promise.all(urls.map((u) => fetch(u, { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).catch(() => '')));
-    urls = nested.flatMap(locs);
-  }
-  return [...new Set(urls)];
-}
-
 export type IndexNowResult = { ok: boolean; status: number; submitted: number; message: string };
 
 /** Submit URLs (same host as site_url) to IndexNow (Bing, Yandex, Seznam, Naver and others share submissions). */
@@ -189,10 +167,4 @@ export async function submitIndexNow(site: string, urls: string[]): Promise<Inde
   } catch (e: any) {
     return { ok: false, status: 0, submitted: 0, message: `${e?.message || 'Request failed'} (${list.length} URLs prepared)` };
   }
-}
-
-/** Fire-and-forget ping for changed URLs; only on the production deployment. */
-export async function pingIndexNow(site: string, urls: string[]) {
-  if (process.env.VERCEL_ENV !== 'production') return;
-  await submitIndexNow(site, urls).catch(() => undefined);
 }

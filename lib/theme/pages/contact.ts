@@ -112,7 +112,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     primary: { label: 'Compare hosting plans', href: '/web-hosting' }, secondary: { label: 'Open a ticket', href: L.ticket } });
 
   const contactLd = ld({ '@context': 'https://schema.org', '@type': 'ContactPage', name: 'Contact Globalhostia', url: `${site}/contact`,
-    mainEntity: { '@type': 'Organization', name: s.site_name || 'Globalhostia', legalName: company, address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' },
+    mainEntity: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`, legalName: company, address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' },
       contactPoint: ['sales', 'technical support', 'billing support'].map((t) => ({ '@type': 'ContactPoint', contactType: t, ...(phone ? { telephone: phone } : {}), ...(email ? { email } : {}), availableLanguage: ['English'] })) } });
 
   return page({

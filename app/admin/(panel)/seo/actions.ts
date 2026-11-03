@@ -4,7 +4,8 @@ import { db, schema } from '@/lib/db';
 import { requireSession, audit } from '@/lib/session';
 import { done, fail, str, bust } from '@/lib/admin';
 import { getSettings, setSetting } from '@/lib/settings';
-import { VERIFICATION_KEYS, verificationToken, siteUrl, sitemapUrls, submitIndexNow } from '@/lib/seo';
+import { VERIFICATION_KEYS, verificationToken } from '@/lib/seo';
+import { submitSitemap } from '@/lib/indexnow';
 import { TRACKING_FIELDS, trackingErrors, normTracking } from '@/lib/tracking';
 
 export async function saveRedirect(fd: FormData) {
@@ -63,11 +64,8 @@ export async function saveTracking(fd: FormData) {
 
 export async function notifySearchEngines() {
   const s = await requireSession('content');
-  const site = siteUrl(await getSettings());
-  const urls = await sitemapUrls(site);
-  const r = await submitIndexNow(site, urls);
-  await setSetting('indexnow_last', { at: new Date().toISOString(), ...r });
+  const r = await submitSitemap(`admin: ${s.email || 'Submit now'}`);
   await audit(s, 'indexnow', 'seo', null, r);
-  if (!r.ok) { bust(); fail('/admin/seo', `IndexNow: ${r.message}`); }
-  done('/admin/seo', `Sent ${r.submitted} URLs to IndexNow (Bing, Yandex, Seznam, Naver…): ${r.message}`);
+  if (!r.ok) { bust(); fail('/admin/seo', `IndexNow: ${r.message} (HTTP ${r.status || 'no answer'})`); }
+  done('/admin/seo', `Sent ${r.submitted} URLs to IndexNow (Bing, Yandex, Seznam, Naver…): HTTP ${r.status} ${r.message}`);
 }

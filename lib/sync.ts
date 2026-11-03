@@ -13,6 +13,12 @@ import legacyDetails from '../legacy/product-details.json';
 const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'product';
 const groupSlugFromUrl = (u?: string) => u?.match(/\/store\/([\w-]+)\//)?.[1];
 
+/** Order-independent JSON for change detection (jsonb columns come back with their keys sorted). */
+const stable = (v: unknown): string => JSON.stringify(v, (_k, x) => (x && typeof x === 'object' && !Array.isArray(x) && !(x instanceof Date) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => a.localeCompare(b))) : x)) ?? 'null';
+const priceKey = (r: { currency: string; cycle: string; price: string | number; setupFee: string | number; prefix?: string; suffix?: string }) =>
+  `${r.currency}:${r.cycle}:${Number(r.price)}:${Number(r.setupFee)}:${r.prefix ?? ''}:${r.suffix ?? ''}`;
+const pricesOf = (joined: string) => joined.split('|').filter(Boolean).sort().join('|');
+
 async function startRun(kind: string, trigger: string) {
   const [r] = await db.insert(schema.syncRuns).values({ kind, trigger }).returning();
   return r.id;
@@ -31,8 +37,11 @@ export async function syncProducts(trigger = 'manual') {
     const cats = await db.select().from(schema.categories);
     const bySlug = new Map(cats.map((c) => [c.slug, c]));
     const byGid = new Map(cats.filter((c) => c.whmcsGroupId != null).map((c) => [c.whmcsGroupId!, c]));
-    const existing = await db.select({ id: schema.products.id, pid: schema.products.whmcsPid, slug: schema.products.slug, locked: schema.products.contentLocked }).from(schema.products);
+    const existing = (await db.select().from(schema.products)).map((p) => ({ ...p, pid: p.whmcsPid, locked: p.contentLocked }));
     const byPid = new Map(existing.filter((p) => p.pid != null).map((p) => [p.pid!, p]));
+    // current prices per product, so a product's updatedAt (sitemap <lastmod>, IndexNow) only moves when something changed
+    const oldPrices = new Map<string, string>();
+    for (const r of await db.select().from(schema.productPrices)) oldPrices.set(r.productId, (oldPrices.get(r.productId) || '') + '|' + priceKey(r));
     const slugs = new Set(existing.map((p) => p.slug));
 
     for (const wp of list) {
@@ -81,7 +90,11 @@ export async function syncProducts(trigger = 'manual') {
         let productId: string;
         const ex = byPid.get(pid);
         if (ex) {
-          await db.update(schema.products).set({ ...mirror, ...(ex.locked ? {} : content), ...(rule ? { categoryId: cat.id } : {}), updatedAt: new Date() }).where(eq(schema.products.id, ex.id));
+          const next = { ...mirror, ...(ex.locked ? {} : content), ...(rule ? { categoryId: cat.id } : {}) };
+          const newPrices = Object.entries(wp.pricing || {}).flatMap(([cur, p]) => parseWhmcsPricing(wp.paytype, p, cur));
+          const changed = Object.entries(next).some(([k, v]) => k !== 'syncedAt' && k !== 'syncError' && stable(v) !== stable((ex as any)[k]))
+            || pricesOf(oldPrices.get(ex.id) || '') !== pricesOf(newPrices.map((r) => '|' + priceKey(r)).join(''));
+          await db.update(schema.products).set({ ...next, ...(changed ? { updatedAt: new Date() } : {}) }).where(eq(schema.products.id, ex.id));
           productId = ex.id; stats.updated++;
         } else {
           let slug = wp.slug || slugify(wp.name);
@@ -130,9 +143,15 @@ export async function syncTlds(trigger = 'manual') {
     const { pricing, currency } = await getTldPricing(cur ? Number(cur.id) : undefined);
     const entries = Object.entries(pricing);
     stats.fetched = entries.length;
+    // remember when any TLD price last changed: <lastmod> of the /domains/* pages in the sitemap
+    const before = new Map((await db.select().from(schema.tlds)).map((t) => [t.tld, `${t.register}|${t.transfer}|${t.renew}`]));
+    let tldChanged = false;
     const first = (o?: Record<string, string>) => { const v = o ? parseFloat(o['1'] ?? Object.values(o)[0]) : NaN; return Number.isFinite(v) && v >= 0 ? String(v) : null; };
     for (const [ext, p] of entries) {
       const tld = '.' + ext.replace(/^\./, '');
+      const num = (v: string | null) => (v == null ? 'null' : String(Number(v)));
+      const prev = before.get(tld)?.split('|').map((v) => (v === 'null' ? 'null' : String(Number(v)))).join('|');
+      if (prev !== [first(p.register), first(p.transfer), first(p.renew)].map(num).join('|')) tldChanged = true;
       await db.insert(schema.tlds).values({ tld, currency: currency || cur?.code || s.currency, register: first(p.register), transfer: first(p.transfer), renew: first(p.renew), syncedAt: new Date() })
         .onConflictDoUpdate({ target: schema.tlds.tld, set: { currency: currency || cur?.code || s.currency, register: first(p.register), transfer: first(p.transfer), renew: first(p.renew), syncedAt: new Date() } });
       stats.upserted++;
@@ -149,6 +168,7 @@ export async function syncTlds(trigger = 'manual') {
           .onConflictDoUpdate({ target: [schema.tldPrices.tld, schema.tldPrices.currency], set: v });
       }
     }
+    if (tldChanged || entries.length !== before.size) await setSetting('tlds_changed_at', new Date().toISOString());
     await endRun(runId, 'ok', stats);
     revalidateTag('site');
     return { ok: true, runId, stats };
