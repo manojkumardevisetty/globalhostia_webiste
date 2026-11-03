@@ -57,9 +57,11 @@ export function scrubMessage(msg: unknown): string {
   let s = String(msg ?? '');
   s = s.split(/\r?\n/).filter((l) => !/^\s*at\s+\S+.*\(?.+:\d+:\d+\)?\s*$/.test(l) && !/^\s*(Error|TypeError|RangeError|SyntaxError):/.test(l)).join(' ');
   s = s.replace(/https?:\/\/\S+/gi, '').replace(/\(?\b(HTTP|status|code)\s*[:=]?\s*\d{3}\b\)?/gi, '').replace(/\b(E[A-Z]{3,}|ERR_[A-Z_]+)\b/g, '');
+  s = s.replace(new RegExp(INTERNAL.source + '(?: API)?\\s*(?:error)?\\s*:\\s*', 'gi'), ''); // "DirectAdmin: …" / "WHMCS API error: …" prefixes
   s = s.replace(INTERNAL, (m) => (/^(cpanel|plesk|directadmin|whm)$/i.test(m) ? 'the hosting panel' : 'our system'));
   s = s.replace(/\bthe the hosting panel\b/gi, 'the hosting panel').replace(/\s{2,}/g, ' ').replace(/\s+([.,;:])/g, '$1').trim();
   if (!/[a-z]{3}/i.test(s)) return '';
+  s = s.charAt(0).toUpperCase() + s.slice(1);
   if (s.length > 220) { const cut = s.slice(0, 220); const dot = cut.lastIndexOf('. '); s = (dot > 60 ? cut.slice(0, dot + 1) : cut.replace(/\s+\S*$/, '') + '…'); }
   return s;
 }
