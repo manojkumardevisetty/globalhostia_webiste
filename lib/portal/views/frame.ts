@@ -145,7 +145,7 @@ export async function frame(o: {
     <div class="ac-hero__a">
       <button type="button" class="ac-search" data-ac-palette aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" title="${esc(t('Search your account'))}">${icon('search')}<span class="ac-search__l">${esc(t('Search'))}</span>${mac}</button>
       ${o.headAction || ''}
-      <details class="ac-dd ac-dd--buy"><summary class="hp-btn hp-btn--brand">${icon('plus')}${esc(t('Buy more'))}</summary>
+      <details class="ac-dd ac-dd--buy"><summary class="hp-btn ${o.headAction ? 'hp-btn--ghost' : 'hp-btn--brand'}">${icon('plus')}${esc(t('Buy more'))}</summary>
         <div class="ac-dd__menu" role="menu">${BUY().map(([h, l, i]) => `<a role="menuitem" href="${h}">${icon(i)}${esc(l)}</a>`).join('')}</div></details>
       <details class="ac-dd ac-dd--me"><summary class="ac-me" aria-label="${esc(t('Account menu for {name}', { name: v.name || v.email }))}"><span class="ac-avatar ac-avatar--sm" aria-hidden="true">${esc(ini)}</span><span class="ac-me__n">${esc((v.name || v.email).split(' ')[0])}</span>${icon('chev')}</summary>
         <div class="ac-dd__menu" role="menu">

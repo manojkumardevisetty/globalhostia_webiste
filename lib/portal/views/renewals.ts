@@ -53,7 +53,7 @@ function renewRow(it: RenewItem, csrf: string, cur: string) {
   const href = it.kind === 'service' ? `/account/services/${it.id}` : `/account/domains/${it.id}`;
   const amt = parseFloat(it.amount) > 0 ? `<b class="num">${esc(money(it.amount, cur))}</b><small>${esc(it.cycle)}</small>` : `<small class="ac-muted">${esc(t('No charge'))}</small>`;
   const act = it.invoiceId
-    ? ssoButton(csrf, 'invoice', it.invoiceId, t('Pay invoice'), { variant: 'brand', sm: true })
+    ? ssoButton(csrf, 'invoice', it.invoiceId, t('Pay invoice'), { sm: true })
     : it.kind === 'domain'
       ? ssoButton(csrf, 'domain_renew', it.id, t('Renew'), { sm: true })
       : `<span class="ac-rn__wait">${esc(t('Invoice issued before the due date'))}</span>`;
@@ -105,7 +105,7 @@ export function renewalsCard(o: {
   // Services cannot be renewed early; their renewal invoices are paid with "Pay all due" above.
   const domainsToRenew = items.filter((x) => x.kind === 'domain' && !x.invoiceId).length;
   const foot = domainsToRenew > 1
-    ? `<div class="ac-rn__foot">${ssoButton(o.csrf, 'domain_renewals', undefined, t('Renew all domains ({n})', { n: domainsToRenew }), { variant: 'dark', ic: 'refresh', sm: true })}<span class="ac-muted">${esc(t('You review the cart and pay in the secure checkout.'))}</span></div>`
+    ? `<div class="ac-rn__foot">${ssoButton(o.csrf, 'domain_renewals', undefined, t('Renew all domains ({n})', { n: domainsToRenew }), { variant: 'ghost', ic: 'refresh', sm: true })}<span class="ac-muted">${esc(t('You review the cart and pay in the secure checkout.'))}</span></div>`
     : '';
 
   const totalAmt = items.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
@@ -166,7 +166,7 @@ export function usageBlock(p: any, csrf: string, o: { title?: boolean } = {}) {
   }
   return `<div class="ac-usage">${head}
     <div class="ac-usage__m">${meter(t('Disk space'), u.disk)}${meter(t('Bandwidth'), u.bw)}</div>
-    ${canUpgrade ? `<div class="ac-usage__up"><p>${icon('trend')}<span>${esc(hi >= 100 ? t('You have reached a plan limit.') : t('You are using {p}% of a plan limit.', { p: hi }))} ${esc(t('Upgrade to keep your site fast and online.'))}</span></p>${ssoButton(csrf, 'upgrade', p.id, t('Upgrade'), { variant: 'brand', sm: true })}</div>` : ''}
+    ${canUpgrade ? `<div class="ac-usage__up"><p>${icon('trend')}<span>${esc(hi >= 100 ? t('You have reached a plan limit.') : t('You are using {p}% of a plan limit.', { p: hi }))} ${esc(t('Upgrade to keep your site fast and online.'))}</span></p>${ssoButton(csrf, 'upgrade', p.id, t('Upgrade'), { sm: true })}</div>` : ''}
     ${u.updated ? `<small class="ac-usage__t">${esc(t('Updated {d}', { d: fmtDate(u.updated) }))}</small>` : ''}
   </div>`;
 }

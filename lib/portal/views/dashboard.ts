@@ -17,7 +17,7 @@ export function productRow(p: any, csrf: string, cur: string) {
       <span class="ac-prow__meta">${host ? `<span class="ac-mono">${esc(host)}</span>` : ''}${p.groupname ? `<span>${esc(p.translated_groupname || p.groupname)}</span>` : ''}</span></div>
     <div class="ac-prow__st">${pill(p.status)}</div>
     <div class="ac-prow__due"><small class="ac-k">${esc(t('Renews'))}</small>${due}${p.recurringamount && parseFloat(p.recurringamount) > 0 ? `<small class="num ac-muted">${esc(money(p.recurringamount, cur))} · ${esc(cycleLabel(p.billingcycle))}</small>` : ''}</div>
-    <div class="ac-prow__act">${soon ? ssoButton(csrf, 'service', p.id, t('Renew'), { sm: true }) : ''}<a class="hp-btn hp-btn--dark ac-sm" href="/account/services/${esc(p.id)}">${esc(t('Manage'))}</a></div>
+    <div class="ac-prow__act">${soon ? ssoButton(csrf, 'service', p.id, t('Renew'), { sm: true }) : ''}<a class="hp-btn hp-btn--ghost ac-sm" href="/account/services/${esc(p.id)}">${esc(t('Manage'))}</a></div>
   </li>`;
 }
 
@@ -84,7 +84,7 @@ export function dashboardView(o: {
   const inv = card(t('Invoices due'), !o.unpaid.ok ? errorBox(t('your invoices'), '/account')
     : unpaid.length ? `<ul class="ac-mini">${unpaid.slice(0, 4).map((i) => { const d = daysUntil(i.duedate); return `<li>
         <div><a href="/account/invoices/${esc(i.id)}">${esc(t('Invoice #{n}', { n: i.invoicenum || i.id }))}</a><small class="${d !== null && d < 0 ? 'is-bad' : ''}">${esc(d !== null && d < 0 ? t('Overdue since {d}', { d: fmtDate(i.duedate) }) : t('Due {d}', { d: fmtDate(i.duedate) }))}</small></div>
-        <b class="num">${esc(money(i.balance ?? i.total, i.currencycode || cur))}</b>${ssoButton(o.csrf, 'invoice', i.id, t('Pay'), { variant: 'brand', sm: true })}</li>`; }).join('')}</ul>`
+        <b class="num">${esc(money(i.balance ?? i.total, i.currencycode || cur))}</b>${ssoButton(o.csrf, 'invoice', i.id, t('Pay'), { sm: true })}</li>`; }).join('')}</ul>`
     : `<p class="ac-ok-line">${icon('check')}${esc(t("You're all paid up."))}</p>`,
   { id: 'ac-inv-h', i: 1, action: `<a class="ac-more" href="/account/invoices">${esc(t('Billing'))}${icon('right')}</a>` });
 

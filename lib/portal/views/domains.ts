@@ -73,7 +73,7 @@ function rowHtml(r: PortfolioRow, o: { csrf: string; cur: string; invoices?: Map
     <td data-l="${esc(t('Lock'))}"><span class="ac-pf__lz" data-pf-lock>${active ? '<i class="ac-pf__sk" aria-hidden="true"></i>' : '<span class="ac-muted">—</span>'}</span></td>
     <td data-l="${esc(t('Nameservers'))}"><span class="ac-pf__lz" data-pf-ns>${known ? nsLabelHtml(kind, known) : active ? '<i class="ac-pf__sk" aria-hidden="true"></i>' : '<span class="ac-muted">—</span>'}</span></td>
     <td data-l="${esc(t('SSL'))}"><span class="ac-pf__lz" data-pf-ssl>${active ? '<i class="ac-pf__sk" aria-hidden="true"></i>' : '<span class="ac-muted">—</span>'}</span></td>
-    <td class="ac-td-act"><div class="ac-td-btns">${act}<a class="hp-btn hp-btn--dark ac-sm" href="/account/domains/${r.id}">${esc(t('Manage'))}</a></div></td></tr>`;
+    <td class="ac-td-act"><div class="ac-td-btns">${act}<a class="hp-btn hp-btn--ghost ac-sm" href="/account/domains/${r.id}">${esc(t('Manage'))}</a></div></td></tr>`;
 }
 
 /** Nameserver cell text (shared with the JSON endpoint so the server and the lazy fill read the same). */
