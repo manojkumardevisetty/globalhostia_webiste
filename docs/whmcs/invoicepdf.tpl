@@ -21,12 +21,12 @@ $pdf->SetFillColor($pink[0], $pink[1], $pink[2]);
 $pdf->Rect(0, 44, 210, 1.6, 'F');
 
 $logoFilename = '';
-foreach (['logo-white.png', 'logo.png', 'logo.jpg'] as $f) {
+foreach (['gh-logo-white.png', 'logo-white.png', 'logo.png', 'logo.jpg'] as $f) {
     if (file_exists(ROOTDIR . '/assets/img/' . $f)) { $logoFilename = $f; break; }
 }
 if ($logoFilename) {
     // white rounded tile behind the logo so the colour logo reads on the dark band
-    if ($logoFilename !== 'logo-white.png') {
+    if (strpos($logoFilename, 'white') === false) {
         $pdf->SetFillColor(255, 255, 255);
         $pdf->RoundedRect(13, 10, 72, 24, 4, '1111', 'F');
     }
@@ -47,7 +47,7 @@ $sc = $statusColours[$status] ?? $pink;
 $pdf->SetTextColor(255, 255, 255);
 $pdf->SetFont('helvetica', 'B', 20);
 $pdf->SetXY(110, 11);
-$pdf->Cell(85, 9, strtoupper($pagetitle ?: Lang::trans('invoicestitle')), 0, 1, 'R');
+$pdf->Cell(85, 9, (stripos((string) $pagetitle, 'quote') !== false ? 'QUOTE' : 'INVOICE'), 0, 1, 'R');
 $pdf->SetFont('helvetica', '', 10);
 $pdf->SetX(110);
 $pdf->Cell(85, 6, '#' . $invoicenum, 0, 1, 'R');
