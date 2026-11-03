@@ -43,10 +43,12 @@ export const FONT_PRELOADS = ['inter-latin-400-normal', 'manrope-latin-800-norma
 const WEBMCP_LOADER = `<script>if(document.modelContext||navigator.modelContext){var w=document.createElement("script");w.src="${asset('/hp/webmcp.js')}";w.defer=true;document.head.appendChild(w)}</script>`;
 const safeKey = (k: string) => k.replace(/[^a-z0-9_-]/gi, '');
 /** Website AI assistant (public/hp/ai-chat.js, lib/ai/*): CSS + JS load only after the page has loaded and the browser is
- *  idle, so they never compete with first paint. Switched off in Admin > AI assistant (settings.ai_chat_public.enabled). */
+ *  idle, so they never compete with first paint. Switched off in Admin > AI assistant (settings.ai_chat_public.enabled), and absent without ANTHROPIC_API_KEY. */
 function aiChatLoader(s: Record<string, any>, currency: string) {
   const pub = s.ai_chat_public && typeof s.ai_chat_public === 'object' ? s.ai_chat_public : {};
   if (pub.enabled === false) return '';
+  // nothing loads until the owner has added ANTHROPIC_API_KEY (Vercel env + redeploy): no button that can only say "offline"
+  if (!process.env.ANTHROPIC_API_KEY?.trim() && process.env.AI_MOCK !== '1') return '';
   const cfg = JSON.stringify({ cur: currency }).replace(/</g, '\\u003c');
   return `<script>window.GH_AI=${cfg};addEventListener("load",function(){var go=function(){var l=document.createElement("link");l.rel="stylesheet";l.href="${asset('/hp/ai-chat.css')}";document.head.appendChild(l);var j=document.createElement("script");j.src="${asset('/hp/ai-chat.js')}";j.defer=true;document.head.appendChild(j)};"requestIdleCallback"in window?requestIdleCallback(go,{timeout:5000}):setTimeout(go,3000)})</script>`;
 }
