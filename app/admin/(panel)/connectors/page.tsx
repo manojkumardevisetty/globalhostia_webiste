@@ -7,7 +7,9 @@ import { connectorConfig } from '@/lib/connector/config';
 import { adminClients, adminGrants } from '@/lib/oauth/store';
 import { SCOPES, PLATFORM_LABEL } from '@/lib/oauth/core';
 import { TOOLS } from '@/lib/connector/tools';
-import { saveConnector, revokeOne, toggleClient, revokeEverything } from './actions';
+import { saveConnector, revokeOne, toggleClient, revokeEverything, savePromo } from './actions';
+import { getSettings } from '@/lib/settings';
+import { normalizeAiPromo, HOME_POSITIONS, HOME_POSITION_LABEL } from '@/lib/connector/promo';
 
 export const metadata = { title: 'AI connectors' };
 export const dynamic = 'force-dynamic';
@@ -19,9 +21,10 @@ const plat = (p: string) => PLATFORM_LABEL[(p in PLATFORM_LABEL ? p : 'other') a
 export default async function ConnectorsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireSession('settings');
   const sp = await searchParams;
-  const [cfg, clients, grants] = await Promise.all([
-    connectorConfig(true), adminClients().catch(() => null), adminGrants({ limit: 200 }).catch(() => null),
+  const [cfg, clients, grants, settings] = await Promise.all([
+    connectorConfig(true), adminClients().catch(() => null), adminGrants({ limit: 200 }).catch(() => null), getSettings().catch(() => ({} as Record<string, any>)),
   ]);
+  const promo = normalizeAiPromo(settings.ai_promo);
   const live = (grants || []).filter((g) => !g.revokedAt && g.expiresAt.getTime() > Date.now());
   const reads = TOOLS.filter((t) => t.annotations.readOnlyHint).length;
   return (
@@ -66,6 +69,33 @@ export default async function ConnectorsPage({ searchParams }: { searchParams: P
         </form>
       </Card>
 
+      <Card title="Website promotion" className="mb-6">
+        <form action={savePromo} id="promo" className="grid gap-5 lg:grid-cols-2">
+          <div className="space-y-3 text-sm">
+            <p className="text-slate-500">Where customers find the connector on the website. Every link goes to <a className="text-indigo-600 underline" href="/connectors" target="_blank" rel="noreferrer">/connectors</a>.</p>
+            <label className="flex items-start gap-2"><input type="checkbox" name="p_nav" defaultChecked={promo.nav.enabled} className="mt-1" /><span><b>Main navigation</b>: a top-level link on desktop (from 1100px wide), a highlighted row at the top of the phone menu, and an item in the menu below.</span></label>
+            <div className="grid grid-cols-3 gap-2">
+              <div><label className="text-xs font-medium" htmlFor="p_label">Link label</label><input id="p_label" name="p_label" defaultValue={promo.nav.label} className={input} maxLength={28} /></div>
+              <div><label className="text-xs font-medium" htmlFor="p_badge">Badge (empty: none)</label><input id="p_badge" name="p_badge" defaultValue={promo.nav.badge} className={input} maxLength={12} /></div>
+              <div><label className="text-xs font-medium" htmlFor="p_menu">Also list in menu</label><input id="p_menu" name="p_menu" defaultValue={promo.nav.menu} className={input} placeholder="support" /></div>
+            </div>
+            <p className="text-xs text-slate-500">Menu ids: hosting, servers, domains, security, business, support (or the id of a custom menu in Site links). Not added again when a menu already links /connectors.</p>
+            <label className="flex items-start gap-2"><input type="checkbox" name="p_footer" defaultChecked={promo.footer} className="mt-1" /><span><b>Footer link</b> (in the column of that menu)</span></label>
+            <label className="flex items-start gap-2"><input type="checkbox" name="p_pill" defaultChecked={promo.pill.enabled} className="mt-1" /><span><b>&quot;New&quot; pill</b>: top bar on desktop, under the hero card on the phone homepage</span></label>
+            <div><label className="text-xs font-medium" htmlFor="p_pill_text">Pill text</label><input id="p_pill_text" name="p_pill_text" defaultValue={promo.pill.text} className={input} maxLength={70} /></div>
+          </div>
+          <div className="space-y-3 text-sm">
+            <div><label className="font-medium" htmlFor="p_position">Homepage section</label>
+              <select id="p_position" name="p_position" defaultValue={promo.home.position} className={input}>{HOME_POSITIONS.map((k) => <option key={k} value={k}>{HOME_POSITION_LABEL[k]}</option>)}</select></div>
+            <div><label className="text-xs font-medium" htmlFor="p_eyebrow">Eyebrow</label><input id="p_eyebrow" name="p_eyebrow" defaultValue={promo.home.eyebrow} className={input} maxLength={60} /></div>
+            <div><label className="text-xs font-medium" htmlFor="p_title">Title</label><input id="p_title" name="p_title" defaultValue={promo.home.title} className={input} maxLength={90} /></div>
+            <div><label className="text-xs font-medium" htmlFor="p_lead">Text</label><textarea id="p_lead" name="p_lead" defaultValue={promo.home.lead} rows={3} className={input} maxLength={320} /></div>
+            <div><label className="text-xs font-medium" htmlFor="p_prompts">Example prompts, shown as chat bubbles (one per line, up to 4)</label><textarea id="p_prompts" name="p_prompts" defaultValue={promo.home.prompts.join('\n')} rows={4} className={input} /></div>
+            <div><label className="text-xs font-medium" htmlFor="p_trust">Trust points (one per line, up to 4)</label><textarea id="p_trust" name="p_trust" defaultValue={promo.home.trust.join('\n')} rows={4} className={input} /></div>
+          </div>
+          <div className="lg:col-span-2"><PendingButton>Save website promotion</PendingButton> <a className="ml-3 text-sm text-indigo-600 underline" href="/#ai-connectors" target="_blank" rel="noreferrer">View on the homepage</a></div>
+        </form>
+      </Card>
       <Card title={`Customer connections (${live.length} active)`} className="mb-6">
         {!grants?.length ? <p className="text-sm text-slate-500">No customer has connected an assistant yet.</p> : (
           <div className="overflow-x-auto"><table className="w-full text-sm">

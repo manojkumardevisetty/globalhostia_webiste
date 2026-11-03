@@ -1036,3 +1036,34 @@ body .ghai-launch .ghai-hex{width:38px;height:38px}
 .hp-drawer__cur .hp-cur__menu{position:static;transform:none;margin-top:4px;box-shadow:none;max-height:40vh;overflow:auto}
 }
 @media (max-width:340px){.hp-micon{width:40px}.hp-header__inner{padding-left:4px;padding-right:4px}}
+/* ---------- AI connector promotion (lib/theme/aiconnect.ts; Admin → AI connectors → Website promotion):
+   "New" badge, top-level nav link, phone-menu row, top-bar pill. The homepage section lives in pages/aic.css. ---------- */
+.aic-new{display:inline-flex;align-items:center;margin-left:6px;padding:3px 6px 2px;border-radius:4px;background:var(--brand-tint);color:var(--brand-d);font:700 10.5px/1 var(--body);font-style:normal;letter-spacing:.04em;text-transform:uppercase;vertical-align:2px}
+.hp-nav__ai .hp-ico{width:15px;height:15px;color:var(--brand)}
+.hp-nav__ai[aria-current="page"]{color:var(--brand-d)}
+.hp-nav__ai[aria-current="page"]::after{transform:scaleX(1)}
+.hp-nav__ai:hover::after{transform:scaleX(1)}
+.hp-nav__ai .aic-new{margin-left:0}
+/* room for the extra link: the header "Client login" button gives way first (the top bar keeps one), then the icon and
+   badge; below 1100px the link stays in the Support menu and the top-bar pill */
+@media (max-width:1439px){.hp-header:has(.hp-nav__ai) .hp-header__actions .hp-btn--ghost{display:none}}
+@media (max-width:1240px){.hp-nav__ai>.hp-ico{display:none}}
+@media (max-width:1180px){.hp-nav__ai .aic-new{display:none}}
+@media (max-width:1100px){.hp-nav__ai{display:none!important}}
+.hp-dai{display:flex;align-items:center;gap:12px;margin:8px 0 6px;padding:12px 14px;border-radius:var(--r-lg);background:var(--tint);border:1px solid var(--line);color:var(--ink)}
+.hp-dai .aic-mark{flex:none;width:32px;height:32px}
+.hp-dai>span{flex:1;min-width:0;display:grid;gap:3px}
+.hp-dai b{font:700 15.5px/1.25 var(--head)}
+.hp-dai small{font-size:13px;line-height:1.35;color:var(--muted)}
+.hp-dai>.hp-ico{flex:none;width:18px;height:18px;color:var(--brand)}
+.hp-aipill{display:none!important}
+@media (min-width:1024px){
+.hp-util .hp-aipill{display:inline-flex!important;align-items:center;gap:8px;min-height:30px;margin:0 auto 0 14px;padding:0 12px;border-radius:999px;border:1px solid rgba(253,215,0,.35);background:rgba(253,215,0,.08);color:var(--on-dark);font-weight:500;white-space:nowrap;transition:background-color .15s,border-color .15s}
+.hp-util .hp-aipill:hover{background:rgba(253,215,0,.16);border-color:rgba(253,215,0,.6);color:#fff}
+.hp-util .hp-aipill .hp-ico{width:14px;height:14px}
+.hp-util .hp-aipill .hp-ico:last-child{color:var(--on-dark-mute)}
+.hp-util:has(.hp-aipill) .hp-u-right{margin-left:0}
+}
+@media (min-width:1024px) and (max-width:1599px){.hp-util:has(.hp-aipill) .hp-u-left a[href^="mailto:"],.hp-util:has(.hp-aipill) .hp-u-left .hp-sep{display:none}}
+@media (min-width:1024px) and (max-width:1599px){.hp-util:has(.hp-aipill) .hp-u-lang{display:none}}
+@media (min-width:1024px) and (max-width:1180px){.hp-util:has(.hp-aipill) .hp-u-right>a.hp-hide-md{display:none}}

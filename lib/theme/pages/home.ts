@@ -8,6 +8,7 @@ import { trustStrip, brokerCard } from '../growth';
 import { getLatestPosts, postPath, fmtPostDate } from '../../blog';
 import { postCard } from './blog';
 import { mobileSearch, mobileHero } from '../mobile-hero';
+import { aiPromo, homeSection, mobilePill } from '../aiconnect';
 import {
   heroSlider, domainSearch, sectionHead, bigTabs, planCards, plansNote, link, statRow, barChart, dcMap, splitHead, featureGrid,
   ctaBand, colHead, testimonials, faq, articleList, logosStrip, available,
@@ -88,7 +89,9 @@ export default async function render(ctx: PageCtx): Promise<string> {
   ], { desktopOnly: true });
   // phones (up to 767px): sticky domain search + the admin-managed hero card (Admin > Marketing > Mobile hero)
   const mHero = mobileHero(cat);
-  const mTop = mobileSearch(base, ctx.route.title) + mHero.html;
+  // AI connector promotion (Admin > AI connectors > Website promotion): phone pill under the hero card, section below
+  const ai = aiPromo(cat.settings);
+  const mTop = mobileSearch(base, ctx.route.title) + mHero.html + mobilePill(ai);
 
   /* ---------------- domain search ---------------- */
   const domain = `<section class="hp-domain" aria-labelledby="domain-q-h"><div class="hp-container">${domainSearch({ tlds, base, moreHref: '/domains-registration', prefix })}${brokerCard(cat.settings)}</div></section>`;
@@ -207,7 +210,11 @@ export default async function render(ctx: PageCtx): Promise<string> {
     ctx, catalog: cat, path: '/', title: ctx.route.title, description: ctx.route.description,
     // the blog strip's card styles live in theme.css, so no page stylesheet is needed here
     preload: [{ src: '/hp/img/hero-hosting.jpg', sizes: '100vw', media: '(min-width: 768px)' }, ...(mHero.preload ? [mHero.preload] : [])],
-    bodyClass: 'hp-home', css: ['mhero'], js: ['mhero'],
-    body: [mTop, hero, domain, trustStrip(cat.settings), plans, infra, features, cta, trio, blog, logosStrip()].join('\n'),
+    bodyClass: 'hp-home', css: ['mhero', 'aic'], js: ['mhero'],
+    body: (() => {
+      const aiSec = ai.home.position === 'off' ? '' : homeSection(ai);
+      const at = (pos: string) => (ai.home.position === pos ? aiSec : '');
+      return [mTop, hero, domain, trustStrip(cat.settings), plans, at('after-plans'), infra, at('after-infra'), features, at('after-features'), cta, trio, at('before-blog'), blog, logosStrip()];
+    })().filter(Boolean).join('\n'),
   });
 }

@@ -13,6 +13,8 @@ import { activeFor, barHtml, promoDataScript, hasPromo } from '../promo';
 import { normalize as mobileHeroCfg } from '../mobile-hero';
 import { waFloat } from './growth';
 import { leadForm } from './lead';
+import { aiPromo, withAiMenu, navLink, drawerRow, utilPill, itemBadge } from './aiconnect';
+import type { AiPromo } from '../connector/promo';
 import { trackingHead, consentLink } from '../tracking';
 import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta, blogListingDescription } from '../seo';
 
@@ -66,7 +68,7 @@ const telHref = (p: string) => 'tel:' + String(p).replace(/[^\d+]/g, '');
 function megaPanel(m: ThemeMenu) {
   const f = m.featured;
   const links = m.groups.map((g) => `<div class="hp-mega__group"><h3${g.title ? '' : ' aria-hidden="true"'}>${esc(g.title || '\u00a0')}</h3>${g.items.map((i) =>
-    `<a class="hp-mega-link" href="${esc(i.href)}">${hexIcon(i.icon)}<div><strong>${esc(i.label)}${i.soon ? '<em class="hp-soon">Soon</em>' : ''}</strong>${i.desc ? `<span>${esc(i.desc)}</span>` : ''}</div></a>`).join('')}</div>`).join('');
+    `<a class="hp-mega-link" href="${esc(i.href)}">${hexIcon(i.icon)}<div><strong>${esc(i.label)}${i.soon ? '<em class="hp-soon">Soon</em>' : ''}${itemBadge(i)}</strong>${i.desc ? `<span>${esc(i.desc)}</span>` : ''}</div></a>`).join('')}</div>`).join('');
   const feat = f ? `<div class="hp-mega-feat">${f.tag ? `<span class="hp-tag">${esc(f.tag)}</span>` : ''}<h4>${esc(f.title)}</h4>${f.big ? `<div class="hp-big num"><span class="sr-only">From </span>${esc(f.big.amount)}${f.big.unit ? `<small>${esc(f.big.unit)}</small>` : ''}</div>` : ''}${f.text ? `<p>${esc(f.text)}</p>` : ''}${f.list?.length ? `<ul class="hp-tl num">${f.list.map(([k, v]) => `<li><span>${esc(k)}</span><b>${esc(v)}</b></li>`).join('')}</ul>` : ''}${f.link ? `<a class="hp-link" href="${esc(f.link.href)}">${esc(f.link.label)}${icon('arrow')}</a>` : ''}</div>` : '';
   return `<div class="hp-mega" id="m-${esc(m.id)}" data-panel><div class="hp-mega__panel"${f ? '' : ' style="grid-template-columns:1fr"'}><div class="hp-mega__cols">${links}</div>${feat}</div></div>`;
 }
@@ -79,11 +81,11 @@ function phoneIcons(cat: Catalog, L: ReturnType<typeof whmcsLinks>) {
   return `<div class="hp-micons">${a(m.dealsHref, 'Deals and domain prices', 'tag')}${a(m.helpHref, 'Help center', 'help')}${a('/account', 'Your account', 'user')}${a(`${L.cart}?a=view`, 'Cart', 'cart', '<span class="hp-cartn" data-cart-count hidden></span>')}</div>`;
 }
 
-function header(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, cat: Catalog) {
+function header(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, cat: Catalog, ai: AiPromo, path = '') {
   return `<header class="hp-header">
   <div class="hp-container hp-header__inner">
     <a class="hp-brand" href="/" aria-label="Globalhostia home">${logo('black', 178, 34)}<img class="hp-brand__mark" src="/icon-192.png" alt="" width="36" height="36" loading="lazy"></a>
-    <nav class="hp-nav" aria-label="Main">${menus.map((m) => `<button type="button" class="hp-nav__btn" aria-expanded="false" aria-controls="m-${esc(m.id)}" data-menu="m-${esc(m.id)}">${esc(m.label)}${icon('chev')}</button>`).join('')}</nav>
+    <nav class="hp-nav" aria-label="Main">${menus.map((m) => `<button type="button" class="hp-nav__btn" aria-expanded="false" aria-controls="m-${esc(m.id)}" data-menu="m-${esc(m.id)}">${esc(m.label)}${icon('chev')}</button>`).join('')}${navLink(ai, path)}</nav>
     <div class="hp-header__actions">
       <a class="hp-btn hp-btn--ghost" href="/account">Client login</a>
       <a class="hp-btn hp-btn--brand" href="${esc(L.register)}">Sign up</a>
@@ -95,13 +97,13 @@ function header(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, cat: Catal
 </header>`;
 }
 
-function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: string, email: string, currency = '') {
+function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: string, email: string, currency = '', ai?: AiPromo) {
   return `<div class="hp-drawer" id="hp-drawer" aria-hidden="true" inert>
   <div class="hp-drawer__scrim" data-close></div>
   <div class="hp-drawer__sheet" role="dialog" aria-modal="true" aria-label="Menu">
     <div class="hp-drawer__head">${logo('black', 147, 28, true)}<button type="button" data-close aria-label="Close menu">${icon('close')}</button></div>
-    <nav class="hp-drawer__body" aria-label="Mobile">${menus.map((m, i) => `<button type="button" class="hp-dacc__btn" aria-expanded="false" aria-controls="hp-dp${i}">${esc(m.label)}${icon('chev')}</button><div class="hp-dacc__panel" id="hp-dp${i}"><ul>${m.groups.flatMap((g) => g.items).map((it) =>
-      `<li><a href="${esc(it.href)}">${icon(it.icon)}${esc(it.label)}</a></li>`).join('')}</ul></div>`).join('')}</nav>
+    <nav class="hp-drawer__body" aria-label="Mobile">${ai ? drawerRow(ai) : ''}${menus.map((m, i) => `<button type="button" class="hp-dacc__btn" aria-expanded="false" aria-controls="hp-dp${i}">${esc(m.label)}${icon('chev')}</button><div class="hp-dacc__panel" id="hp-dp${i}"><ul>${m.groups.flatMap((g) => g.items).map((it) =>
+      `<li><a href="${esc(it.href)}">${icon(it.icon)}${esc(it.label)}${itemBadge(it)}</a></li>`).join('')}</ul></div>`).join('')}</nav>
     <div class="hp-drawer__foot">
       <a class="hp-btn hp-btn--ghost" href="/account">Client login</a>
       <a class="hp-btn hp-btn--brand" href="${esc(L.register)}">Sign up</a>
@@ -112,13 +114,14 @@ function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: str
 </div>`;
 }
 
-function utilBar(cat: Catalog, L: ReturnType<typeof whmcsLinks>, phone: string, email: string) {
+function utilBar(cat: Catalog, L: ReturnType<typeof whmcsLinks>, phone: string, email: string, ai?: AiPromo) {
   return `<div class="hp-util"><div class="hp-container">
   <div class="hp-u-left">${phone ? `<a href="${esc(telHref(phone))}" aria-label="Call us on ${esc(phone)}">${icon('phone')}<span class="num">${esc(phone)}</span></a>` : ''}${phone && email ? '<span class="hp-sep" aria-hidden="true"></span>' : ''}${email ? `<a href="mailto:${esc(email)}">${icon('mail')}${esc(email)}</a>` : ''}</div>
+  ${ai ? utilPill(ai) : ''}
   <div class="hp-u-right">
     ${currencyPicker(cat)}
-    <span class="hp-u-item">${icon('globe')}Language <b>English</b></span>
-    <span class="hp-sep" aria-hidden="true"></span>
+    <span class="hp-u-item hp-u-lang">${icon('globe')}Language <b>English</b></span>
+    <span class="hp-sep hp-u-lang" aria-hidden="true"></span>
     <a href="${esc(L.ticket)}" class="hp-hide-md">${icon('ticket')}Submit a ticket</a>
     <a href="/account">${icon('user')}Client login</a>
   </div>
@@ -169,7 +172,11 @@ export async function page(o: PageOpts): Promise<string> {
   const cat = o.catalog || await getCatalog();
   const s = cat.settings;
   const L = whmcsLinks(cat.base);
-  const menus = getMenu(cat);
+  // AI connector link and menu item (Admin → AI connectors → Website promotion); the footer can list it on its own
+  const ai = aiPromo(s);
+  const baseMenus = getMenu(cat);
+  const menus = withAiMenu(baseMenus, ai);
+  const footMenus = !ai.footer ? baseMenus : ai.nav.enabled ? menus : withAiMenu(baseMenus, { ...ai, nav: { ...ai.nav, enabled: true } });
   const phone = String(s.phone || ''), email = String(s.email || '');
   const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
   const canonical = o.canonical || site + (o.path === '/' || !o.path ? '/' : o.path);
@@ -236,13 +243,13 @@ ${iconSprite()}
 <div class="hp-progress" aria-hidden="true"></div>
 <a class="hp-skip" href="#main">Skip to content</a>
 ${barHtml(promo.bar)}
-${utilBar(cat, L, phone, email)}
-${header(menus, L, cat)}
-${drawer(menus, L, phone, email, currencyPicker(cat))}
+${utilBar(cat, L, phone, email, ai)}
+${header(menus, L, cat, ai, o.path)}
+${drawer(menus, L, phone, email, currencyPicker(cat), ai)}
 <main id="main" tabindex="-1">
 ${o.body}
 </main>
-${footer(menus, cat, phone, email, s.lead_footer === false || s.lead_footer === 'false' ? '' : leadForm({ source: 'footer', page: o.path || '/', tone: 'dark', title: 'Get hosting deals & guides', text: 'Occasional offers and practical hosting tips. No spam.', cta: 'Sign me up', level: 3, done: o.ctx.query.get('lead') === 'ok' }))}
+${footer(footMenus, cat, phone, email, s.lead_footer === false || s.lead_footer === 'false' ? '' : leadForm({ source: 'footer', page: o.path || '/', tone: 'dark', title: 'Get hosting deals & guides', text: 'Occasional offers and practical hosting tips. No spam.', cta: 'Sign me up', level: 3, done: o.ctx.query.get('lead') === 'ok' }))}
 ${waFloat(s, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.path)}
 ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=original')}"><i aria-hidden="true"></i>Theme preview · switch back to the current site</a>` : ''}
 <script src="${asset('/hp/theme.js')}" defer></script>

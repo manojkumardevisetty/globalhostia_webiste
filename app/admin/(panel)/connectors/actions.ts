@@ -5,6 +5,8 @@ import { requireSession, audit } from '@/lib/session';
 import { bool, done, fail, lines, str } from '@/lib/admin';
 import { connectorConfig, saveConnectorConfig } from '@/lib/connector/config';
 import { revokeAll, revokeGrant, setClientDisabled } from '@/lib/oauth/store';
+import { setSetting } from '@/lib/settings';
+import { normalizeAiPromo, AI_PROMO_KEY } from '@/lib/connector/promo';
 
 const P = '/admin/connectors';
 
@@ -54,4 +56,18 @@ export async function revokeEverything(fd: FormData) {
   const n = await revokeAll(`admin:${s.email}`);
   await audit(s, 'revoke_all', 'oauth_grant', null, { count: n });
   done(P, `${n} connection(s) revoked. Customers must connect again.`);
+}
+
+/** Website promotion (settings.ai_promo): nav link and menu item, footer link, homepage section and "New" pill. */
+export async function savePromo(fd: FormData) {
+  const s = await requireSession('settings');
+  const next = normalizeAiPromo({
+    nav: { enabled: bool(fd, 'p_nav'), label: str(fd, 'p_label'), badge: str(fd, 'p_badge'), menu: str(fd, 'p_menu') },
+    footer: bool(fd, 'p_footer'),
+    home: { position: str(fd, 'p_position'), eyebrow: str(fd, 'p_eyebrow'), title: str(fd, 'p_title'), lead: str(fd, 'p_lead'), prompts: lines(str(fd, 'p_prompts')), trust: lines(str(fd, 'p_trust')) },
+    pill: { enabled: bool(fd, 'p_pill'), text: str(fd, 'p_pill_text') },
+  });
+  await setSetting(AI_PROMO_KEY, next);
+  await audit(s, 'update', 'settings', AI_PROMO_KEY, { nav: next.nav.enabled, footer: next.footer, home: next.home.position, pill: next.pill.enabled });
+  done(`${P}#promo`, 'Website promotion saved. The site shows the change now.');
 }

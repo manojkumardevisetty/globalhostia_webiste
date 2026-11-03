@@ -1,0 +1,100 @@
+/* AI connector promotion: homepage section, chat visual (also the /connectors hero) and the phone pill.
+   Markup: lib/theme/aiconnect.ts. Copy: Admin → AI connectors → Website promotion. */
+.aic-home{background:linear-gradient(180deg,#fff 0,var(--tint) 100%);border-top:1px solid var(--line)}
+.aic-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(32px,4vw,72px);align-items:center}
+.aic-copy{min-width:0}
+.aic-eyebrow{display:inline-flex;align-items:center;gap:8px;font:600 14px/1 var(--body);color:var(--brand-d)}
+.aic-eyebrow .hp-ico{width:16px;height:16px}
+.aic-eyebrow .aic-new{margin-left:2px}
+.aic-copy .hp-h2{margin-top:14px;max-width:18ch}
+.aic-copy .hp-lead{margin-top:16px}
+.aic-prompts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:26px}
+.aic-prompts li{position:relative;padding:11px 14px 11px 38px;background:#fff;border:1px solid var(--line);border-radius:12px 12px 12px 4px;font-size:15px;line-height:1.4;color:var(--ink);box-shadow:var(--shadow-sm)}
+.aic-prompts li .hp-ico{position:absolute;left:13px;top:13px;width:16px;height:16px;color:var(--brand)}
+.aic-trust{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 20px;margin-top:22px;font-size:14.5px;color:var(--muted)}
+.aic-trust li{display:flex;align-items:flex-start;gap:8px;line-height:1.4}
+.aic-trust .hp-ico{flex:none;width:16px;height:16px;margin-top:2px;color:var(--brand)}
+.aic-copy .hp-actions{align-items:center;margin-top:28px}
+.aic-copy .hp-link{margin-left:6px}
+.aic-visual{min-width:0;position:relative;padding:clamp(16px,2.4vw,32px);border-radius:12px;background:radial-gradient(120% 90% at 100% 0,rgba(197,56,111,.10),transparent 60%),radial-gradient(90% 80% at 0 100%,rgba(253,215,0,.12),transparent 60%),#fff;border:1px solid var(--line)}
+
+/* chat visual */
+.aic-chat{margin:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;text-align:left;color:var(--ink);font-size:14.5px;line-height:1.5}
+.aic-chat__bar{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-bottom:1px solid var(--line);background:#fbfbfc}
+.aic-dots{display:inline-flex;gap:5px}.aic-dots i{width:9px;height:9px;border-radius:50%;background:var(--line-2)}
+.aic-chat__app{font:600 13px/1 var(--body);color:var(--ink)}.aic-chat__app span{font-weight:400;color:var(--muted)}
+.aic-chat__conn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:4px 9px 4px 6px;border-radius:999px;border:1px solid var(--line);background:#fff;font:600 12px/1 var(--body);white-space:nowrap}
+.aic-chat__conn::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.aic-mark{display:block;flex:none}
+.aic-chat__body{display:flex;flex-direction:column;gap:14px;padding:18px 18px 16px}
+.aic-msg{margin:0}
+.aic-msg--you{align-self:flex-end;max-width:86%;padding:10px 14px;border-radius:12px 12px 4px 12px;background:var(--deep);color:#fff}
+.aic-msg--ai{display:grid;gap:10px;max-width:100%}
+.aic-msg--ai>p{margin:0}
+.aic-tool{border:1px solid var(--line);border-radius:10px;background:var(--tint);overflow:hidden}
+.aic-tool__h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid var(--line);background:#fff}
+.aic-tool__h b{font:700 13px/1 var(--head)}
+.aic-tool__h code{font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);background:var(--tint);border:1px solid var(--line);border-radius:6px;padding:3px 6px}
+.aic-ok{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font:600 12px/1 var(--body);color:#11803c}
+.aic-ok .hp-ico{width:13px;height:13px}
+.aic-rec{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.2fr) minmax(0,1.6fr) minmax(0,.8fr);gap:1px;margin:0;background:var(--line)}
+.aic-rec>div{padding:9px 12px;background:var(--tint);min-width:0}
+.aic-rec dt{font:600 10.5px/1.2 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.aic-rec dd{margin:4px 0 0;font:600 13.5px/1.3 var(--body);overflow-wrap:break-word}
+.aic-tool__f{display:flex;align-items:center;gap:6px;margin:0;padding:8px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);background:#fff}
+.aic-tool__f .hp-ico{width:13px;height:13px;color:var(--brand)}
+.aic-chat__in{display:flex;align-items:center;gap:10px;margin:0 16px 16px;padding:0 6px 0 14px;min-height:44px;border:1px solid var(--line-2);border-radius:10px;color:var(--muted);font-size:14px}
+.aic-chat__in span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aic-chat__in i{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:var(--brand);color:#fff;font-style:normal}
+.aic-chat__in .hp-ico{width:16px;height:16px}
+.hp-hero .aic-chat{max-width:520px;margin-left:auto;box-shadow:0 30px 60px -30px rgba(0,0,0,.6)}
+
+/* phone pill on the homepage (under the mobile hero card) */
+.aic-mpill-wrap{display:none}
+@media (max-width:767px){
+.aic-mpill-wrap{display:block;padding:14px 16px 0}
+.aic-mpill{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 14px 8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--brand-tint);color:var(--ink);font:600 14px/1.35 var(--body)}
+.aic-mpill span{flex:1;min-width:0}
+.aic-mpill .hp-ico{flex:none;width:16px;height:16px;color:var(--brand-d)}
+}
+
+@media (max-width:1023px){
+.aic-grid{grid-template-columns:minmax(0,1fr)}
+.aic-copy .hp-h2{max-width:none}
+.aic-visual{max-width:620px}
+}
+@media (max-width:560px){
+.aic-prompts,.aic-trust{grid-template-columns:minmax(0,1fr)}
+.aic-rec{grid-template-columns:repeat(2,minmax(0,1fr))}
+.aic-copy .hp-actions .hp-btn{flex:1 1 100%}
+.aic-copy .hp-link{margin-left:0}
+.aic-visual{padding:12px}
+.aic-chat__body{padding:14px 14px 12px}
+.aic-chat__in{margin:0 12px 12px}
+}
+@media (max-width:380px){.aic-chat__app span,.aic-dots{display:none}}
+
+/* /connectors: copyable URLs, capabilities and numbered steps */
+.aic-url{display:flex;align-items:stretch;gap:0;margin:12px 0 16px;border:1px solid #2a3946;border-radius:10px;background:#16212b;overflow:hidden}
+.aic-url code{flex:1;min-width:0;padding:12px 14px;color:#f6f7f9;font:500 14px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.aic-copy-btn{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:0;border-left:1px solid #2a3946;background:#1c2a36;color:#e9edf1;font:600 13.5px/1 var(--body);cursor:pointer}
+.aic-copy-btn:hover{background:#243443}
+.aic-copy-btn .hp-ico{width:15px;height:15px}
+.aic-copy-btn.is-done{color:var(--gold)}
+.aic-caps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.aic-cap{display:flex;gap:14px;align-items:flex-start;padding:18px;border:1px solid var(--line);border-radius:12px;background:#fff;min-width:0}
+.aic-cap h3{font:700 16px/1.3 var(--head);margin:2px 0 6px}
+.aic-cap p{margin:0;color:var(--muted);font-size:14.5px;line-height:1.5}
+.aic-steps{counter-reset:s;list-style:none!important;padding:0!important;margin:14px 0 0}
+.aic-steps li{counter-increment:s;position:relative;padding-left:40px;margin:0 0 14px!important;line-height:1.55}
+.aic-steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:8px;background:var(--brand-tint);color:var(--brand-d);font:700 14px/28px var(--head);text-align:center}
+.aic-apps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.aic-app--wide{grid-column:1/-1}
+.aic-app{display:flex;flex-direction:column;padding:24px;border:1px solid var(--line);border-radius:12px;background:#fff;min-width:0}
+.aic-app h3{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0;font:800 20px/1.25 var(--head)}
+.aic-app h3 small{font:500 13px/1 var(--body);color:var(--muted)}
+.aic-app .aic-lbl{margin:6px 0 0;font:600 12px/1.2 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.aic-note{display:flex;gap:10px;align-items:flex-start;margin-top:18px;padding:12px 14px;border-radius:10px;background:#fff8db;border:1px solid #f3e2a0;color:#5b4a00;font-size:14px;line-height:1.5}
+.aic-note .hp-ico{flex:none;width:16px;height:16px;margin-top:2px}
+@media (max-width:1023px){.aic-caps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){.aic-apps{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){.aic-caps{grid-template-columns:minmax(0,1fr)}.aic-app{padding:18px}.aic-copy-btn{padding:0 13px}.aic-copy-btn span{position:absolute;left:0;top:0;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}}
