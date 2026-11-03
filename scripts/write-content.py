@@ -7,7 +7,7 @@ PH = re.compile(r'(lorem|ipsum|dummy text|type specimen|five centuries|typesetti
 
 COPY = {  # heading keyword -> paragraphs (first match wins)
     'what we do': [
-        'GlobalHostia is a Dubai-based web hosting and domain company operated by Desert Tech Cloud Services LLC. We provide shared and WordPress hosting, VPS, dedicated and AI/LLM servers, SSL certificates and domains for businesses, developers and agencies.',
+        'GlobalHostia is a Dubai-based web hosting and domain company based in Dubai, UAE. We provide shared and WordPress hosting, VPS, dedicated and AI/LLM servers, SSL certificates and domains for businesses, developers and agencies.',
         'Every plan runs on fast NVMe storage with free SSL and is backed by real 24/7 support from our own team — so you can focus on growing your business while we take care of the technology.',
     ],
     'algeria server': ['Host in our Algeria location (EU region) to serve visitors across North Africa and southern Europe with low latency and reliable connectivity.'],

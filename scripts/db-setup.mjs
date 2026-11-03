@@ -56,7 +56,7 @@ try {
   // default settings
   const defaults = {
     site_name: 'GlobalHostia', site_url: 'https://globalhostia.com', phone: '(+971) 50-7341578', email: 'support@globalhostia.com',
-    company: 'Desert Tech Cloud Services LLC', currency: 'USD', default_cycle: 'auto',
+    company: 'GlobalHostia', currency: 'USD', default_cycle: 'auto',
     whmcs_base_url: process.env.WHMCS_BASE_URL || 'https://globalhostia.com/secure',
     order_button_label: 'Order Now', custom_css: '', custom_head: '', maintenance: false,
     sync_auto: true, publish_new_products: true, domain_suggest_tlds: ['.com', '.net', '.org', '.ae', '.io', '.shop', '.online', '.co'],
