@@ -3,6 +3,7 @@
 import 'server-only';
 import { agentData, agentTlds, type AgentData, type AgentProduct } from './catalog';
 import { SPEC_LABEL } from '../render/specs';
+import { LEARN_SECTIONS, learnPages, learnPath, type LearnSection } from '../theme/learn';
 
 const SPEC_ORDER = ['cpu', 'ram', 'storage', 'bandwidth', 'ips', 'websites', 'email', 'os'];
 const md = (s: string) => String(s || '').replace(/[\[\]]/g, '').replace(/\s+/g, ' ').trim();
@@ -125,6 +126,13 @@ export async function buildLlms(full: boolean) {
       L.push(`- ${t.tld}: register ${t.register !== null ? amt(t.register, t.currency) : 'n/a'}${t.renew !== null ? `, renew ${amt(t.renew, t.currency)}` : ''}${t.transfer !== null ? `, transfer ${amt(t.transfer, t.currency)}` : ''}${t.promo ? ` (${md(t.promo)})` : ''}`);
     }
     if (!full && tlds.length > list.length) L.push(`- ${tlds.length - list.length} more extensions: ${S}/api/catalog/tlds`);
+    L.push('');
+  }
+
+  // comparison and how-to pages (lib/theme/learn.ts)
+  for (const k of Object.keys(LEARN_SECTIONS) as LearnSection[]) {
+    L.push(`## ${LEARN_SECTIONS[k].title}`, '', `- [${LEARN_SECTIONS[k].title}](${S}/${k}): ${md(LEARN_SECTIONS[k].description)}`);
+    for (const p of learnPages(k)) L.push(`- [${md(p.title)}](${S}${learnPath(p)}): ${md(p.description)}`);
     L.push('');
   }
 

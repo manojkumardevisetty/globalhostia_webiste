@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: stri
 
   // Site theme: Admin > Design "Site theme". ?theme=hostpen previews it, ?theme=original previews the old one.
   const tq = req.nextUrl.searchParams.get('theme');
-  const themed = (tq ? tq === 'hostpen' : s.site_theme === 'hostpen') || (segs.length === 1 && THEME_ONLY.has(segs[0].toLowerCase()));
+  const themed = (tq ? tq === 'hostpen' : s.site_theme === 'hostpen') || (segs.length <= 2 && segs.length > 0 && THEME_ONLY.has(segs.join('/').toLowerCase()));
   if (themed) {
     const out = await renderTheme(segs, { path, preview, query: req.nextUrl.searchParams });
     if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'));

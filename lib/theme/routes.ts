@@ -3,6 +3,8 @@
 // in <title> and the meta/OG description only (lib/theme/shell.ts), so search snippets can be longer and more
 // specific without changing the visible copy. Keep meta 140-160 characters and only state what the page shows.
 // Legacy alias URLs (/aws-pro-*, /vps-2) are 301-redirected to their main page: see lib/aliases.mjs.
+import { LEARN_PAGES, LEARN_SECTIONS, LEARN_SLUGS, learnPath, type LearnSection } from './learn';
+
 export type RouteDef = { kind: string; title: string; description: string; categories?: string[]; seoTitle?: string; meta?: string };
 
 const H = ['hosting-usa', 'hostia-shared', 'hosting-singapore'];
@@ -106,10 +108,13 @@ export const ROUTES: Record<string, RouteDef> = {
   'vps-uae': { kind: 'uae', title: 'VPS Hosting UAE', description: 'Linux and Windows VPS for UAE businesses: dedicated vCPU and RAM, NVMe storage, root access and engineers on WhatsApp 24/7. Live prices in AED or USD.', categories: ['hostiavps', 'high-performance-vps'] },
   'windows-rdp-uae': { kind: 'uae', title: 'Windows RDP in the UAE', description: 'An always-on Windows desktop in the cloud for UAE teams and traders: administrator access, NVMe storage and setup after payment. Connect from any device.', categories: ['windows-rdp', 'linux-rdp'] },
   'best-hosting-uae': { kind: 'uae', title: 'Best Web Hosting in the UAE: how to choose', description: 'What to compare before you buy hosting in the UAE: renewal prices, support hours, data location, VAT invoices and migration. An honest checklist and our live plans.', categories: H },
+  // /compare and /guides indexes and pages (lib/theme/learn.ts, rendered by lib/theme/pages/learn.ts)
+  ...Object.fromEntries((Object.keys(LEARN_SECTIONS) as LearnSection[]).map((k) => [k, { kind: 'learn', title: LEARN_SECTIONS[k].title, description: LEARN_SECTIONS[k].description, seoTitle: LEARN_SECTIONS[k].seoTitle, meta: LEARN_SECTIONS[k].meta }])),
+  ...Object.fromEntries(LEARN_PAGES.map((p) => [learnPath(p).slice(1), { kind: 'learn', title: p.title, description: p.description, seoTitle: p.seoTitle, meta: p.meta }])),
 };
 
 /** Pages that only exist in the Hostpen theme: always rendered by it, whatever the site theme (like /blog). */
-export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae']);
+export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS]);
 
 /** product detail pages /p/<slug> use kind 'product' */
 export const PRODUCT_ROUTE: RouteDef = { kind: 'product', title: '', description: '' };

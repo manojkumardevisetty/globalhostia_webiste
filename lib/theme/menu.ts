@@ -154,6 +154,10 @@ export function footerColumns(menus: ThemeMenu[]) {
     { label: 'Windows RDP UAE', href: '/windows-rdp-uae' },
     { label: 'Choosing hosting in the UAE', href: '/best-hosting-uae' },
   ] });
+  cols.push({ title: 'Learn', links: [
+    { label: 'Hosting comparisons', href: '/compare' }, { label: 'Hosting guides', href: '/guides' },
+    { label: 'Shared vs VPS vs cloud', href: '/compare/shared-vs-vps-vs-cloud-vs-dedicated' }, { label: 'Move your website', href: '/guides/move-website-to-hostia' },
+  ] });
   return cols;
 }
 function dedupe(items: MenuItem[]) { const seen = new Set<string>(); return items.filter((i) => (seen.has(i.label) ? false : (seen.add(i.label), true))); }
