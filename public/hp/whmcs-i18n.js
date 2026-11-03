@@ -896,7 +896,18 @@
     'Ticket opened': 'تم فتح التذكرة',
     'Your ticket number is {n}.': 'رقم تذكرتك هو {n}.',
     'Our engineers reply by email and here in your account, usually within the hour.': 'يرد مهندسونا عبر البريد الإلكتروني وهنا في حسابك، عادةً خلال ساعة.',
-    '{d} is in your cart.': 'أصبح {d} في سلة التسوق.'
+    '{d} is in your cart.': 'أصبح {d} في سلة التسوق.',
+    /* renewal carts */
+    '{name} added to your cart.': 'تمت إضافة {name} إلى سلة التسوق.',
+    'Add a domain to renew': 'أضف نطاقًا لتجديده',
+    'Add a service to renew': 'أضف خدمة لتجديدها',
+    'Your total appears here as you add items.': 'يظهر الإجمالي هنا عند إضافة العناصر.',
+    'Nothing to renew right now': 'لا يوجد ما يحتاج إلى تجديد الآن',
+    'Domains you can renew early appear here before they expire. Domains with auto-renew on renew by themselves.': 'تظهر هنا النطاقات التي يمكنك تجديدها مبكرًا قبل انتهاء صلاحيتها. النطاقات المفعّل لها التجديد التلقائي تتجدد بنفسها.',
+    'Services appear here when they are close to their due date. Your active services keep renewing on their normal schedule.': 'تظهر الخدمات هنا عند اقتراب موعد استحقاقها. تستمر خدماتك النشطة في التجديد وفق جدولها المعتاد.',
+    'View my domains': 'عرض نطاقاتي',
+    'View my services': 'عرض خدماتي',
+    'Renew a domain': 'تجديد نطاق'
   };
   // server messages with values in them: [regular expression, Arabic with $1, $2 …]
   var srv = [

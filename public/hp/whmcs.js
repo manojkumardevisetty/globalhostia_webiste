@@ -2549,3 +2549,126 @@
     try { cartFx(); } catch (e) {}
   });
 })();
+
+// Renewal carts (WHMCS standard_cart: /service-renewals, domain renewals cart.php?gid=renewals / a=renewals): two
+// top-aligned columns, each service or domain as a brand card (name, muted host name, due date with its "renewing in"
+// pill, price, pink Add to Cart that turns into an added state with the hexagon check), an order summary that says
+// what to do instead of a big $0.00, and an empty state. Plus: any page title whose colour matches its own background
+// (dark on the dark title bar) is made legible. Markup follows WHMCS 8.13 standard_cart; each step is skipped when its
+// element is missing.
+(function () {
+  'use strict';
+  if (!window.GH_L10N || window.GH_L10N.wait) return;
+  var _t = window.GH_L10N.t, D = document, W = window;
+  var reduce = false; try { reduce = W.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  function ready(f) { if (D.readyState !== 'loading') f(); else D.addEventListener('DOMContentLoaded', f); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var HEXP = 'M12 2.2 20.5 7.1v9.8L12 21.8 3.5 16.9V7.1z';
+  var ICON = { server: 'M7 8h10M7 12h10M7 16h6', globe: 'M5 12h14M12 5c2 2.2 3 4.6 3 7s-1 4.8-3 7c-2-2.2-3-4.6-3-7s1-4.8 3-7z' };
+  var hexIc = function (k) { return '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="' + HEXP + '" fill="currentColor" opacity=".14"/><path d="' + HEXP + '" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="' + ICON[k] + '" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'; };
+  var checkIc = '<svg class="gh-rn__ok" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="' + HEXP + '" fill="currentColor"/><path d="m8 12.3 2.8 2.8 5.2-5.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" pathLength="100"/></svg>';
+  var MONEY = /(?:[$€£₹]\s?\d[\d,]*(?:\.\d+)?(?:\s?[A-Z]{3})?|\d[\d,]*(?:\.\d+)?\s?(?:USD|AED|EUR|GBP|INR|SAR))/g;
+  var live = function (msg) { var r = D.getElementById('gh-live'); if (!r) { r = D.createElement('div'); r.id = 'gh-live'; r.className = 'gh-sr'; r.setAttribute('aria-live', 'polite'); D.body.appendChild(r); } r.textContent = ''; setTimeout(function () { r.textContent = msg; }, 60); };
+
+  /* ---------------- page titles: never the same colour as the bar behind them */
+  function lum(c) { var m = String(c).match(/[\d.]+/g); if (!m || (m[3] !== undefined && +m[3] === 0)) return null; var f = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(+m[0]) + 0.7152 * f(+m[1]) + 0.0722 * f(+m[2]); }
+  function titleContrast() {
+    [].forEach.call(D.querySelectorAll('#main-body h1, #main-body h2, .header-lined h1, .page-header h1, .main-content h1'), function (h) {
+      if (h.closest('.gh-ok, .ghh, .gh-tk-done') || !h.offsetParent) return;
+      var e = h, bg = null; while (e && e.nodeType === 1) { bg = lum(getComputedStyle(e).backgroundColor); if (bg !== null) break; e = e.parentElement; }
+      if (bg === null) bg = 1;
+      var fg = lum(getComputedStyle(h).color); if (fg === null) return;
+      var ratio = (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
+      if (ratio < 3) h.style.setProperty('color', bg < 0.4 ? '#fff' : '#16212b', 'important');
+    });
+  }
+
+  /* ---------------- renewal cards */
+  function card(it) {
+    if (it.dataset.gh) return; it.dataset.gh = '1';
+    var domain = it.classList.contains('domain-renewal');
+    var h3 = it.querySelector('h3, h4'), pill = it.querySelector('.label, .badge'), p = it.querySelector('p'), btn = it.querySelector('.btn-add-renewal-to-cart, button[type=button], .btn');
+    var form = it.querySelector('form, select'); if (form && form.tagName === 'SELECT') form = form.closest('form') || form;
+    if (!h3 || !btn) return;
+    // "Windows RDP - <span>pokerpro</span>": product name bold, host name muted on its own line
+    var host = h3.querySelector('span');
+    if (host) { host.className += ' gh-rn__host'; [].forEach.call(h3.childNodes, function (n) { if (n.nodeType === 3) n.nodeValue = n.nodeValue.replace(/\s*[-–]\s*$/, ''); }); }
+    // the renewal price, shown on the card's right (from the "Renewal Period" line, or the selected domain term)
+    var price = '';
+    if (p) { var all = p.textContent.match(MONEY); if (all) price = all[all.length - 1].trim(); }
+    var sel = it.querySelector('select');
+    var fromSel = function () { if (!sel || !sel.options[sel.selectedIndex]) return ''; var m = sel.options[sel.selectedIndex].text.match(MONEY); return m ? m[m.length - 1].trim() : ''; };
+    if (sel) price = fromSel() || price;
+    var days = pill ? +((pill.textContent.match(/\d+/) || [])[0] || 99) : 99;
+    if (pill) pill.className += ' gh-rn__pill' + (days <= 7 ? ' is-urgent' : days <= 14 ? ' is-soon' : '');
+    var main = D.createElement('div'); main.className = 'gh-rn__main';
+    var side = D.createElement('div'); side.className = 'gh-rn__side';
+    var ic = D.createElement('span'); ic.className = 'gh-rn__ic'; ic.innerHTML = hexIc(domain ? 'globe' : 'server');
+    var due = D.createElement('div'); due.className = 'gh-rn__due';
+    main.appendChild(h3); if (p) { p.className += ' gh-rn__meta'; due.appendChild(p); } if (pill) due.appendChild(pill); main.appendChild(due); if (form) main.appendChild(form);
+    var pr = D.createElement('b'); pr.className = 'gh-rn__price'; pr.textContent = price; if (!price) pr.hidden = true;
+    side.appendChild(pr); side.appendChild(btn);
+    [].forEach.call(it.querySelectorAll('.pull-right, .float-right'), function (x) { if (!x.textContent.trim()) x.remove(); });
+    it.innerHTML = ''; it.appendChild(ic); it.appendChild(main); it.appendChild(side); it.classList.add('gh-rn');
+    if (sel) sel.addEventListener('change', function () { var v = fromSel(); if (v) { pr.textContent = v; pr.hidden = false; } });
+    // WHMCS marks the button .checkout (and shows its "added" text) once the item is in the cart
+    btn.classList.add('gh-rn__btn');
+    var name = (h3.textContent || '').replace(/\s+/g, ' ').trim();
+    var mark = function () {
+      if (!btn.classList.contains('checkout') || it.classList.contains('is-added')) return;
+      it.classList.add('is-added'); btn.insertAdjacentHTML('afterbegin', checkIc);
+      if (!reduce) { it.classList.add('gh-rn--pop'); setTimeout(function () { it.classList.remove('gh-rn--pop'); }, 700); }
+      live(_t('{name} added to your cart.', { name: name }));
+    };
+    if (W.MutationObserver) new MutationObserver(mark).observe(btn, { attributes: true, attributeFilter: ['class'] });
+    btn.addEventListener('click', function () { if (!btn.classList.contains('checkout')) btn.classList.add('is-busy'); setTimeout(function () { btn.classList.remove('is-busy'); }, 6000); });
+    mark();
+  }
+
+  /* ---------------- order summary: "Add a service to renew" instead of a large $0.00 */
+  function summary(domain) {
+    var s = D.getElementById('orderSummary'); if (!s) return;
+    var amt = s.querySelector('.total-due-today .amt, #totalDueToday, .amt');
+    var zero = !amt || !/[1-9]/.test(amt.textContent.replace(/\.0+\b/g, ''));
+    s.classList.toggle('gh-sum-empty', zero);
+    var msg = s.querySelector('.gh-sum-msg');
+    if (zero && !msg) {
+      msg = D.createElement('p'); msg.className = 'gh-sum-msg';
+      msg.innerHTML = '<span aria-hidden="true">' + hexIc(domain ? 'globe' : 'server') + '</span><span>' + esc(domain ? _t('Add a domain to renew') : _t('Add a service to renew')) + '<small>' + esc(_t('Your total appears here as you add items.')) + '</small></span>';
+      var box = s.querySelector('.summary-container, #producttotal') || s; box.parentNode.insertBefore(msg, box);
+    } else if (!zero && msg) msg.remove();
+    var vc = s.querySelector('a[href*="a=view"], .btn-checkout, #checkout');
+    if (vc) { vc.classList.add('gh-sum-btn'); vc.classList.toggle('is-ready', !zero); }
+  }
+
+  function emptyState(host, domain) {
+    if (!host || host.querySelector('.gh-rn-empty')) return;
+    [].forEach.call((host.closest('.secondary-cart-body') || host).querySelectorAll('.alert-info, .alert-warning'), function (a) { a.classList.add('gh-hidden'); }); // our card says it
+    var el = D.createElement('div'); el.className = 'gh-rn-empty';
+    el.innerHTML = '<span class="gh-rn__ic">' + hexIc(domain ? 'globe' : 'server') + '</span><h2>' + esc(_t('Nothing to renew right now')) + '</h2><p>' +
+      esc(domain ? _t('Domains you can renew early appear here before they expire. Domains with auto-renew on renew by themselves.') : _t('Services appear here when they are close to their due date. Your active services keep renewing on their normal schedule.')) +
+      '</p><div class="gh-rn-empty__a"><a class="btn btn-primary" href="clientarea.php?action=' + (domain ? 'domains' : 'services') + '">' + esc(domain ? _t('View my domains') : _t('View my services')) + '</a>' +
+      (domain ? '' : '<a class="btn btn-default" href="cart.php?gid=renewals">' + esc(_t('Renew a domain')) + '</a>') + '</div>';
+    host.insertBefore(el, host.firstChild);
+  }
+
+  function renewals() {
+    var root = D.getElementById('order-standard_cart'); if (!root) return;
+    var items = root.querySelectorAll('.service-renewal, .domain-renewal');
+    var list = root.querySelector('#serviceRenewals, #domainRenewals, .service-renewals, .domain-renewals');
+    var url = location.pathname + location.search;
+    if (!items.length && !list && !/service-renewals|domain-renewals|gid=renewals|a=renewals/i.test(url)) return;
+    var domain = !!root.querySelector('.domain-renewal, #domainRenewals') || /domain-renewals|gid=renewals|a=renewals/i.test(url);
+    D.documentElement.classList.add('gh-renew');
+    [].forEach.call(items, card);
+    if (!items.length) emptyState(list || root.querySelector('.secondary-cart-body'), domain);
+    summary(domain);
+    var s = D.getElementById('orderSummary');
+    if (s && W.MutationObserver) { var busy = false; new MutationObserver(function () { if (busy) return; busy = true; summary(domain); busy = false; }).observe(s, { childList: true, subtree: true, characterData: true }); }
+  }
+
+  ready(function () {
+    try { renewals(); } catch (e) {}
+    try { titleContrast(); setTimeout(titleContrast, 1500); } catch (e) {}
+  });
+})();

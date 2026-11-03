@@ -1513,3 +1513,64 @@ html[dir=rtl] .gh-catnav__btn i, html[dir=rtl] .gh-mega__all, html[dir=rtl] .gh-
   .gh-wait__hex { animation: none !important; }
 }
 .gh-ok.is-still .gh-ok__p { display: none; }
+
+/* ======================================================================== renewal carts (whmcs.js "Renewal carts")
+   /service-renewals, domain renewals, and any title that matched its bar. html.gh-renew is set by whmcs.js. */
+#order-standard_cart .header-lined h1, #order-standard_cart .header-lined h2, #order-standard_cart .header-lined .h1, #order-standard_cart .view-cart-items-header * { color: #fff !important; }
+html.gh-renew #order-standard_cart .header-lined { border-radius: 16px; padding: 18px 22px !important; margin: 0 0 18px !important; border: 0 !important; }
+html.gh-renew #order-standard_cart .header-lined h1 { margin: 0 !important; font: 800 clamp(22px, 3vw, 30px)/1.2 Manrope, Inter, sans-serif !important; }
+html.gh-renew #order-standard_cart > .row { display: grid !important; grid-template-columns: minmax(200px, 250px) minmax(0, 1fr); gap: 24px; margin: 0 !important; align-items: start; }
+html.gh-renew #order-standard_cart > .row > *, html.gh-renew #order-standard_cart .cart-body > .row > * { width: auto !important; max-width: none !important; flex: none !important; float: none !important; padding: 0 !important; margin: 0 !important; min-width: 0; }
+html.gh-renew #order-standard_cart .cart-body > .row { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(260px, 330px); gap: 24px; margin: 0 !important; align-items: start; }
+html.gh-renew .secondary-cart-sidebar { padding-top: 0 !important; margin-top: 0 !important; }
+html.gh-renew .cart-sidebar .card, html.gh-renew .cart-sidebar .panel { background: #fff !important; border: 1px solid var(--gh-line) !important; border-radius: 16px !important; box-shadow: var(--gh-shadow) !important; overflow: hidden; margin: 0 0 16px !important; }
+html.gh-renew .cart-sidebar .card-header, html.gh-renew .cart-sidebar .panel-heading { background: #fff !important; border-bottom: 1px solid var(--gh-line) !important; }
+html.gh-renew .cart-sidebar .card-title, html.gh-renew .cart-sidebar .panel-title { color: var(--gh-deep) !important; font: 700 15px Manrope, Inter, sans-serif !important; }
+html.gh-renew .secondary-cart-body > p { color: var(--gh-muted); margin: 0 0 14px; }
+.gh-rn { display: grid !important; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 18px 20px !important; margin: 0 0 12px !important; background: #fff; border: 1px solid var(--gh-line) !important; border-radius: 18px; box-shadow: var(--gh-shadow); transition: border-color .25s, box-shadow .25s; }
+.gh-rn.is-added { border-color: rgba(197,56,111,.45) !important; box-shadow: 0 0 0 3px rgba(197,56,111,.1), var(--gh-shadow); }
+.gh-rn--pop { animation: gh-bump .5s cubic-bezier(.3,1.7,.5,1); }
+.gh-rn__ic { display: inline-grid; place-items: center; width: 44px; height: 48px; color: var(--gh-brand); }
+.gh-rn__ic svg { width: 40px; height: 40px; }
+.gh-rn__main { min-width: 0; }
+.gh-rn__main h3, .gh-rn__main h4 { margin: 0 !important; font: 800 17px/1.3 Manrope, Inter, sans-serif !important; color: var(--gh-deep) !important; }
+.gh-rn__host { display: block; margin-top: 2px; font: 500 14px Inter, sans-serif; color: var(--gh-muted); overflow-wrap: anywhere; }
+.gh-rn__due { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 8px; }
+.gh-rn__meta { margin: 0 !important; font-size: 13.5px !important; line-height: 1.55; color: var(--gh-muted) !important; }
+.gh-rn__pill { display: inline-flex !important; align-items: center; padding: 3px 10px !important; border-radius: 999px !important; background: var(--gh-tint) !important; color: var(--gh-ink) !important; border: 1px solid var(--gh-line); font: 700 11.5px/1.4 Inter, sans-serif !important; letter-spacing: .04em; text-transform: uppercase; }
+.gh-rn__pill.is-soon { background: #fff6cc !important; color: #6b5800 !important; border-color: #f1df86; }
+.gh-rn__pill.is-urgent { background: #fdecef !important; color: #a6225f !important; border-color: #f3b8c8; }
+.gh-rn__main form, .gh-rn__main > select { margin-top: 10px; max-width: 320px; }
+.gh-rn__side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; text-align: end; }
+.gh-rn__price { font: 800 19px/1.2 Manrope, Inter, sans-serif; color: var(--gh-deep); white-space: nowrap; }
+.gh-rn .gh-rn__btn { display: inline-flex !important; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 0 18px !important; border-radius: 12px !important; border: 1px solid var(--gh-brand) !important; background: var(--gh-brand) !important; color: #fff !important; font-weight: 700 !important; font-size: 14px !important; white-space: nowrap; box-shadow: 0 10px 22px -14px rgba(197,56,111,.8); }
+.gh-rn .gh-rn__btn:hover { background: var(--gh-brand-d) !important; }
+.gh-rn .gh-rn__btn.is-busy { opacity: .75; cursor: progress; }
+.gh-rn .gh-rn__btn.checkout { background: #fff !important; color: var(--gh-brand-d) !important; box-shadow: none; cursor: default; opacity: 1 !important; }
+.gh-rn__ok { color: var(--gh-brand); flex: none; }
+.gh-rn__ok path:last-child { stroke-dasharray: 100; animation: gh-ok-draw .35s .1s ease-out both; }
+.gh-rn .gh-rn__btn .added { display: none; } .gh-rn .gh-rn__btn.checkout .added { display: inline; } .gh-rn .gh-rn__btn.checkout .to-add { display: none; }
+#orderSummary.gh-sum-empty .total-due-today, #orderSummary.gh-sum-empty .subtotal, #orderSummary.gh-sum-empty .summary-container > .clearfix { display: none !important; }
+.gh-sum-msg { display: flex; gap: 12px; align-items: center; margin: 16px; padding: 16px; border-radius: 14px; background: var(--gh-tint); border: 1px dashed #d3d9e0; color: var(--gh-deep); font-weight: 700; }
+.gh-sum-msg > span:first-child { color: var(--gh-brand); flex: none; }
+.gh-sum-msg small { display: block; margin-top: 2px; font-weight: 500; font-size: 13px; color: var(--gh-muted); }
+#orderSummary .gh-sum-btn { display: flex !important; align-items: center; justify-content: center; gap: 8px; min-height: 46px; margin: 0 16px 16px !important; width: calc(100% - 32px) !important; border-radius: 12px !important; font-weight: 700 !important; text-decoration: none !important; border: 1.5px solid var(--gh-line) !important; background: #fff !important; color: var(--gh-ink) !important; }
+#orderSummary .gh-sum-btn.is-ready { background: var(--gh-brand) !important; border-color: var(--gh-brand) !important; color: #fff !important; }
+.gh-rn-empty { display: grid; justify-items: center; gap: 6px; padding: 32px 20px; text-align: center; background: #fff; border: 1px solid var(--gh-line); border-radius: 18px; box-shadow: var(--gh-shadow); }
+.gh-rn-empty h2 { margin: 6px 0 0; font: 800 21px/1.3 Manrope, Inter, sans-serif; color: var(--gh-deep) !important; }
+.gh-rn-empty p { margin: 0; max-width: 46ch; color: var(--gh-muted); }
+.gh-rn-empty__a { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 12px; }
+@media (max-width: 991px) {
+  html.gh-renew #order-standard_cart > .row, html.gh-renew #order-standard_cart .cart-body > .row { grid-template-columns: minmax(0, 1fr); }
+  html.gh-renew #order-standard_cart .cart-sidebar { display: none !important; }
+  html.gh-renew .secondary-cart-sidebar { position: static !important; }
+}
+@media (max-width: 560px) {
+  .gh-rn { grid-template-columns: auto minmax(0, 1fr); padding: 16px !important; }
+  .gh-rn__side { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; text-align: start; padding-top: 12px; border-top: 1px solid var(--gh-line); }
+}
+@media (prefers-reduced-motion: reduce) { .gh-rn--pop, .gh-rn__ok path:last-child { animation: none !important; } }
+html.gh-renew #orderSummary { overflow: hidden; }
+html.gh-renew #orderSummary h2 { margin: 0 !important; padding: 14px 18px !important; border-radius: 0 !important; font: 800 17px/1.3 Manrope, Inter, sans-serif !important; color: #fff !important; }
+#orderSummary.gh-sum-empty .summary-container { display: none !important; }
+.gh-rn-empty__a a { text-decoration: none !important; }
