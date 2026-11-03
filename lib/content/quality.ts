@@ -42,6 +42,16 @@ export const countWords = (md: string) => { const t = plainText(md); return t ? 
 const norm = (t: string) => ' ' + String(t || '').toLowerCase().replace(/[^a-z0-9؀-ۿ]+/g, ' ').trim() + ' ';
 /** Phrase match on normalised words (so "VPS hosting" matches "VPS-hosting" and "vps hosting,"). */
 export const hasPhrase = (text: string, phrase: string) => !!phrase.trim() && norm(text).includes(norm(phrase));
+const KW_STOP = new Set(['a', 'an', 'the', 'to', 'of', 'and', 'or', 'for', 'in', 'on', 'with', 'your', 'how', 'what', 'vs', 'is']);
+/** Keyword present: the exact phrase, or every significant word of it (so "spf dkim dmarc" matches "SPF, DKIM and DMARC"). */
+export function hasKeyword(text: string, kw: string) {
+  if (hasPhrase(text, kw)) return true;
+  const need = norm(kw).trim().split(' ').filter((w) => w && !KW_STOP.has(w));
+  if (!need.length) return false;
+  const st = (w: string) => (w.length > 3 ? w.replace(/s$/, '') : w);
+  const have = new Set(norm(text).trim().split(' ').map(st));
+  return need.every((w) => have.has(st(w)));
+}
 
 export function headings(md: string, level: 2 | 3 = 2) {
   const re = level === 2 ? /^##\s+(.+?)\s*#*\s*$/ : /^###\s+(.+?)\s*#*\s*$/;
@@ -205,11 +215,11 @@ export function runQualityChecks(q: QualityInput): Check[] {
   const kw = q.primaryKeyword.trim();
   if (lang === 'en') {
     const h2 = headings(q.body, 2);
-    const places: [string, boolean][] = [['title', hasPhrase(mt, kw) || hasPhrase(q.h1, kw)], ['H1', hasPhrase(q.h1, kw)], ['intro', hasPhrase(introParagraph(q.body), kw)], ['an H2', h2.some((h) => hasPhrase(h, kw))]];
+    const places: [string, boolean][] = [['title', hasKeyword(mt, kw) || hasKeyword(q.h1, kw)], ['H1', hasKeyword(q.h1, kw)], ['intro', hasKeyword(introParagraph(q.body), kw)], ['an H2', h2.some((h) => hasKeyword(h, kw))]];
     const missing = places.filter(([, ok]) => !ok).map(([p]) => p);
     out.push(ck('keyword', 'Primary keyword in title, H1, intro and one H2', !kw ? 'fail' : !missing.length ? 'pass' : missing.length >= 3 ? 'fail' : 'warn', kw ? (missing.length ? `Missing in: ${missing.join(', ')}` : `“${kw}”`) : 'No primary keyword'));
     const sec = (q.secondaryKeywords || []).filter(Boolean);
-    if (sec.length) { const used = sec.filter((s) => hasPhrase(q.body, s)).length; out.push(ck('secondary', 'Secondary keywords used', used >= Math.ceil(sec.length / 2) ? 'pass' : 'warn', `${used} of ${sec.length}`)); }
+    if (sec.length) { const used = sec.filter((s) => hasKeyword(q.body, s)).length; out.push(ck('secondary', 'Secondary keywords used', used >= Math.ceil(sec.length / 2) ? 'pass' : 'warn', `${used} of ${sec.length}`)); }
   }
 
   const h2s = headings(q.body, 2);

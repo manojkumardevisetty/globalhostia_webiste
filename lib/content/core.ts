@@ -15,6 +15,8 @@ export const STATE_LABEL: Record<IdeaState, string> = {
   idea: 'Idea', approved: 'Approved', drafting: 'Drafting', draft_ready: 'Draft ready', in_review: 'In review',
   scheduled: 'Scheduled', published: 'Published', rejected: 'Rejected',
 };
+/** Badge tone per state (admin UI). */
+export const STATE_TONE: Record<string, string> = { idea: 'gray', approved: 'blue', drafting: 'yellow', draft_ready: 'yellow', in_review: 'yellow', scheduled: 'blue', published: 'green', rejected: 'red' };
 /** Allowed moves. Publishing always passes through an owner action (in_review/draft_ready → scheduled/published). */
 const MOVES: Record<IdeaState, IdeaState[]> = {
   idea: ['approved', 'rejected'],

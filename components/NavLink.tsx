@@ -5,7 +5,9 @@ import { Icon } from './icons';
 
 export default function NavLink({ href, label, icon }: { href: string; label: string; icon: string }) {
   const path = usePathname();
-  const active = href === '/admin' ? path === '/admin' : path === href || path.startsWith(href + '/');
+  // sections with their own nav entry below a parent (Marketing & SEO → Content engine) highlight only that entry
+  const own = ['/admin/seo/content'].some((sub) => sub !== href && sub.startsWith(href + '/') && (path === sub || path.startsWith(sub + '/')));
+  const active = href === '/admin' ? path === '/admin' : !own && (path === href || path.startsWith(href + '/'));
   return (
     <Link href={href} aria-current={active ? 'page' : undefined}
       className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors duration-150 ${active ? 'bg-white/10 text-white shadow-[inset_2px_0_0_0_#8b83ff]' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'}`}>

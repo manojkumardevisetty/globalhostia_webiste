@@ -26,7 +26,8 @@ export default async function Seo({ searchParams }: { searchParams: Promise<Reco
 
   return (
     <>
-      <PageHeader title="Marketing & SEO" desc="Search metadata for every page, URL redirects, and WHMCS promotions/coupons." />
+      <PageHeader title="Marketing & SEO" desc="Search metadata for every page, URL redirects, and WHMCS promotions/coupons."
+        actions={<Link href="/admin/seo/content" className="btn btn-primary">Content engine: AI article calendar →</Link>} />
       <Flash sp={sp} />
       <div className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-2">

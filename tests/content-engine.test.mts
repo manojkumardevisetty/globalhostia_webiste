@@ -7,7 +7,7 @@ import {
   monthSlots, nextFreeSlot, quotaUse, monthKey, parseDubaiLocal, toDubaiLocal, selectForDrafting, selectDuePublished, selectAutoSchedule,
   estimateArticleCost, closestExisting, overlapLevel, replaceSection, splitSections, seasonalHints,
 } from '../lib/content/core.ts';
-import { runQualityChecks, brokenInternalLinks, internalPath, extractLinks, countWords, unknownPrices, unsourcedPercentages, faqCount, mostSimilar, summarize } from '../lib/content/quality.ts';
+import { runQualityChecks, hasKeyword, brokenInternalLinks, internalPath, extractLinks, countWords, unknownPrices, unsourcedPercentages, faqCount, mostSimilar, summarize } from '../lib/content/quality.ts';
 import { parseIdeas, parseDraft, assembleMarkdown, parseJson, draftArticle, generateIdeasWith, reviewWith, callJson, parseArabic } from '../lib/content/prompts.ts';
 import { SEED_IDEAS } from '../lib/content/seed-ideas.mjs';
 
@@ -60,6 +60,14 @@ test('keyword placement: missing from H1/intro/H2 is flagged', () => {
   assert.equal(status(c, 'keyword'), 'fail');
   const one = runQualityChecks(base(goodArticle().replace('VPS hosting gives', 'A server gives')));
   assert.equal(status(one, 'keyword'), 'warn', 'only the intro is missing');
+});
+
+test('keyword match tolerates punctuation and filler words, not missing words', () => {
+  assert.ok(hasKeyword('SPF, DKIM and DMARC explained', 'spf dkim dmarc'));
+  assert.ok(hasKeyword('How to choose a domain name', 'how to choose a domain name'));
+  assert.ok(hasKeyword('Hosting websites for agencies', 'website hosting'), 'plural forms');
+  assert.ok(!hasKeyword('SPF and DKIM explained', 'spf dkim dmarc'));
+  assert.ok(!hasKeyword('anything', ''));
 });
 
 test('duplicate H2s fail', () => {

@@ -1,8 +1,11 @@
 // Local/dev stand-in for the Anthropic client (AI_MOCK=1, never in production): deterministic tool calls and streamed text,
 // so the chat UI, tools, SSE and logging can be exercised without an API key. Tests use their own mocks.
 import type { AnthropicLike } from './agent';
+import { mockContentReply } from './mock-content';
 
 function reply(params: any) {
+  const content = mockContentReply(params);
+  if (content !== null) return { content: [{ type: 'text', text: content }], stop_reason: 'end_turn', usage: { input_tokens: 7000, output_tokens: 4200, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 } };
   const msgs = params.messages || [];
   const last = msgs[msgs.length - 1];
   const usage = { input_tokens: 1200, output_tokens: 80, cache_read_input_tokens: 3000, cache_creation_input_tokens: 0 };
