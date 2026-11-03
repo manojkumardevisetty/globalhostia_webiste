@@ -389,7 +389,7 @@ export function directAdmin(acct: Account): HostingProvider {
     remove: async (path) => { await post('CMD_API_FILE_MANAGER', { action: 'protect', path, name: 'Protected' }); },
   };
 
-  P.wordpress = { list: async () => parseWpSites(await jsonApi(s, u, '/api/wordpress/locations')) };
+  P.wordpress = { list: async () => { const j = await jsonApi(s, u, '/api/wordpress/locations'); const a = Array.isArray(j) ? j : j?.locations || j?.data || []; if (a[0]) console.log('[hosting] wp keys', JSON.stringify(Object.keys(a[0])), a[0]?.wordpress ? JSON.stringify(Object.keys(a[0].wordpress)) : ''); return parseWpSites(j); } };
 
   return P;
 }

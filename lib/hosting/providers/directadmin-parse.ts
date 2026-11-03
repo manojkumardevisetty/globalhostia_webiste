@@ -161,9 +161,20 @@ export function parseProtected(j: any, home: string) {
 /** GET /api/wordpress/locations : installed sites only. */
 export function parseWpSites(j: any) {
   const arr: any[] = Array.isArray(j) ? j : Array.isArray(j?.locations) ? j.locations : Array.isArray(j?.data) ? j.data : [];
-  return arr.filter((x) => x && (x.wordpress || x.version || x.installed === true || x.wpVersion)).map((x) => ({
-    url: String(x.url || x.siteURL || (x.domain ? `https://${x.domain}${x.webPath || x.path || ''}` : '')),
-    path: String(x.filesystemPath || x.fsPath || x.path || ''),
-    version: String(x.wordpress?.version || x.wpVersion || x.version || '') || undefined,
-  }));
+  // field names vary across DirectAdmin builds: try the known ones, then any URL / home path found in the object
+  const scan = (o: any, re: RegExp, d = 0): string => {
+    if (!o || typeof o !== 'object' || d > 3) return '';
+    for (const v of Object.values(o)) { if (typeof v === 'string' && re.test(v)) return v; }
+    for (const v of Object.values(o)) { const r = scan(v, re, d + 1); if (r) return r; }
+    return '';
+  };
+  return arr.filter((x) => x && (x.wordpress || x.version || x.installed === true || x.wpVersion)).map((x) => {
+    const w = x.wordpress && typeof x.wordpress === 'object' ? x.wordpress : {};
+    const dom = x.domain || x.domainName || w.domain;
+    const web = x.webPath ?? x.webpath ?? x.web_path ?? w.webPath ?? '';
+    const url = x.url || x.siteURL || x.siteUrl || x.siteurl || x.homeURL || w.siteURL || w.siteUrl || w.siteurl || w.homeURL || w.home
+      || (dom ? `https://${dom}${web && web !== '/' ? web : ''}` : '') || scan(x, /^https?:\/\//i);
+    const path = x.filesystemPath || x.fsPath || x.filePath || x.fullPath || x.directory || x.dir || w.path || x.path || scan(x, /^\/home\//);
+    return { url: String(url || ''), path: String(path || ''), version: String(w.version || x.wpVersion || x.version || '') || undefined };
+  });
 }
