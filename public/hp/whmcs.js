@@ -915,19 +915,20 @@
     aliases: 'M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1', redirects: 'M4 12h14M13 6l6 6-6 6',
     php: 'M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14', forwarders: 'M4 6h11M4 12h7M4 18h11M15 9l4 3-4 3', autoresponders: 'M9 7L4 12l5 5M4 12h11a5 5 0 015 5v2',
     spam: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l6 0', ftp: 'M4 8h16v12H4zM8 4h8M12 11v6M9 14l3 3 3-3', protect: 'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4M12 15v2',
-    cron: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2', wordpress: 'M12 3a9 9 0 100 18 9 9 0 000-18zM6 8l3.5 10L12 11l2.5 7L18 8', rename: 'M9 4h6M9 20h6M12 4v16M4 9l-2 3 2 3M20 9l2 3-2 3', ext: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6', gauge: 'M4 18a8 8 0 1116 0M12 18l4-6'
+    cron: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2', wordpress: 'M12 3a9 9 0 100 18 9 9 0 000-18zM6 8l3.5 10L12 11l2.5 7L18 8', rename: 'M9 4h6M9 20h6M12 4v16M4 9l-2 3 2 3M20 9l2 3-2 3', ext: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6', gauge: 'M4 18a8 8 0 1116 0M12 18l4-6',
+    health: 'M3 12h4l2-5 4 10 2-5h6', copy: 'M9 9h11v11H9zM5 15V4h11'
   };
   function ic(n, sz) { return '<svg viewBox="0 0 24 24" width="' + (sz || 16) + '" height="' + (sz || 16) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' + I[n] + '"/></svg>'; }
   // [group label, [[view, label, capability section, sub-cap]]]
   var NAV = [
-    ['', [['overview', 'Overview', 'overview']]],
+    ['', [['overview', 'Overview', 'overview'], ['health', 'Site health', 'health']]],
     ['Domains', [['dns', 'DNS', 'dns'], ['subdomains', 'Subdomains', 'subdomains'], ['aliases', 'Aliases', 'aliases'], ['redirects', 'Redirects', 'redirects'], ['ssl', 'SSL', 'ssl'], ['php', 'PHP version', 'php']]],
     ['Email', [['email', 'Mailboxes', 'email', 'list'], ['forwarders', 'Forwarders', 'email', 'forwarders'], ['autoresponders', 'Autoresponders', 'autoresponders'], ['spam', 'Spam filter', 'spam']]],
     ['Files', [['files', 'File manager', 'files'], ['ftp', 'FTP accounts', 'ftp'], ['protect', 'Protected folders', 'protect']]],
     ['Data', [['databases', 'Databases', 'databases']]],
     ['Advanced', [['cron', 'Cron jobs', 'cron'], ['backups', 'Backups', 'backups'], ['wordpress', 'WordPress', 'wordpress']]]
   ];
-  var DOMAIN_VIEWS = { dns: 1, subdomains: 1, aliases: 1, redirects: 1, php: 1, email: 1, forwarders: 1, autoresponders: 1, spam: 1, ftp: 1, protect: 1 };
+  var DOMAIN_VIEWS = { health: 1, dns: 1, subdomains: 1, aliases: 1, redirects: 1, php: 1, email: 1, forwarders: 1, autoresponders: 1, spam: 1, ftp: 1, protect: 1 };
   var bytes = function (n) { n = +n || 0; return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : n < 1073741824 ? (n / 1048576).toFixed(1) + ' MB' : (n / 1073741824).toFixed(2) + ' GB'; };
   var when = function (s) { if (!s) return ''; var d = new Date(s); return isNaN(d) ? esc(s) : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }); };
   function genPass() {
@@ -938,6 +939,65 @@
     for (var j = out.length - 1; j > 0; j--) { var k = r[j] % (j + 1), t = out[j]; out[j] = out[k]; out[k] = t; }
     return out.join('');
   }
+
+  /* tiny QR encoder (byte mode, error correction M, versions 1-20; after Nayuki's reference implementation, MIT) -> SVG */
+  var QR = (function () {
+    var ECC = [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26];
+    var BLK = [-1, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5, 8, 9, 9, 10, 10, 11, 13, 14, 16];
+    function rawMods(v) { var r = (16 * v + 128) * v + 64; if (v >= 2) { var na = Math.floor(v / 7) + 2; r -= (25 * na - 10) * na - 55; if (v >= 7) r -= 36; } return r; }
+    function dataCw(v) { return Math.floor(rawMods(v) / 8) - ECC[v] * BLK[v]; }
+    function mul(x, y) { var z = 0; for (var i = 7; i >= 0; i--) { z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; } return z & 255; }
+    function divisor(deg) { var r = [], i, j, root = 1; for (i = 0; i < deg - 1; i++) r.push(0); r.push(1); for (i = 0; i < deg; i++) { for (j = 0; j < r.length; j++) { r[j] = mul(r[j], root); if (j + 1 < r.length) r[j] ^= r[j + 1]; } root = mul(root, 2); } return r; }
+    function rem(data, div) { var r = div.map(function () { return 0; }); data.forEach(function (b) { var f = b ^ r.shift(); r.push(0); div.forEach(function (c, i) { r[i] ^= mul(c, f); }); }); return r; }
+    function alignPos(v) { if (v === 1) return []; var n = Math.floor(v / 7) + 2, step = Math.ceil((v * 4 + 4) / (n * 2 - 2)) * 2, r = [6]; for (var pos = v * 4 + 10; r.length < n; pos -= step) r.splice(1, 0, pos); return r; }
+    function maskBit(k, x, y) { return [(x + y) % 2, y % 2, x % 3, (x + y) % 3, (Math.floor(x / 3) + Math.floor(y / 2)) % 2, x * y % 2 + x * y % 3, (x * y % 2 + x * y % 3) % 2, ((x + y) % 2 + x * y % 3) % 2][k] === 0; }
+    function encode(text) {
+      var bytes = [].slice.call(new TextEncoder().encode(text)), v, bits = [], i;
+      for (v = 1; v <= 20; v++) if (4 + (v < 10 ? 8 : 16) + bytes.length * 8 <= dataCw(v) * 8) break;
+      if (v > 20) return null;
+      var push = function (val, n) { for (var j = n - 1; j >= 0; j--) bits.push((val >>> j) & 1); };
+      push(4, 4); push(bytes.length, v < 10 ? 8 : 16); bytes.forEach(function (b) { push(b, 8); });
+      var cap = dataCw(v) * 8; push(0, Math.min(4, cap - bits.length)); push(0, (8 - bits.length % 8) % 8);
+      for (var pad = 0xEC; bits.length < cap; pad ^= 0xEC ^ 0x11) push(pad, 8);
+      var data = []; for (i = 0; i < bits.length; i += 8) { var b8 = 0; for (var j = 0; j < 8; j++) b8 = (b8 << 1) | bits[i + j]; data.push(b8); }
+      var nb = BLK[v], ecl = ECC[v], raw = Math.floor(rawMods(v) / 8), nShort = nb - raw % nb, shortLen = Math.floor(raw / nb), dv = divisor(ecl), blocks = [], k = 0;
+      for (i = 0; i < nb; i++) { var dat = data.slice(k, k + shortLen - ecl + (i < nShort ? 0 : 1)); k += dat.length; var e = rem(dat, dv); if (i < nShort) dat.push(0); blocks.push(dat.concat(e)); }
+      var cw = []; for (i = 0; i < blocks[0].length; i++) blocks.forEach(function (bl, jj) { if (i !== shortLen - ecl || jj >= nShort) cw.push(bl[i]); });
+      var size = v * 4 + 17, m = [], fn = [], y, x;
+      for (y = 0; y < size; y++) { m.push(new Array(size).fill(false)); fn.push(new Array(size).fill(false)); }
+      var set = function (xx, yy, d) { m[yy][xx] = d; fn[yy][xx] = true; };
+      for (i = 0; i < size; i++) { set(6, i, i % 2 === 0); set(i, 6, i % 2 === 0); }
+      [[3, 3], [size - 4, 3], [3, size - 4]].forEach(function (c) { for (var dy = -4; dy <= 4; dy++) for (var dx = -4; dx <= 4; dx++) { var d = Math.max(Math.abs(dx), Math.abs(dy)), xx = c[0] + dx, yy = c[1] + dy; if (xx >= 0 && xx < size && yy >= 0 && yy < size) set(xx, yy, d !== 2 && d !== 4); } });
+      var al = alignPos(v), na = al.length;
+      for (i = 0; i < na; i++) for (j = 0; j < na; j++) { if ((i === 0 && j === 0) || (i === 0 && j === na - 1) || (i === na - 1 && j === 0)) continue; for (var ay = -2; ay <= 2; ay++) for (var ax = -2; ax <= 2; ax++) set(al[i] + ax, al[j] + ay, Math.max(Math.abs(ax), Math.abs(ay)) !== 1); }
+      var bit = function (n, b) { return ((n >>> b) & 1) !== 0; };
+      var format = function (mask) {
+        var d = (0 << 3) | mask, r = d; for (var q = 0; q < 10; q++) r = (r << 1) ^ ((r >>> 9) * 0x537); var fb = ((d << 10) | r) ^ 0x5412;
+        for (q = 0; q <= 5; q++) set(8, q, bit(fb, q)); set(8, 7, bit(fb, 6)); set(8, 8, bit(fb, 7)); set(7, 8, bit(fb, 8)); for (q = 9; q < 15; q++) set(14 - q, 8, bit(fb, q));
+        for (q = 0; q < 8; q++) set(size - 1 - q, 8, bit(fb, q)); for (q = 8; q < 15; q++) set(8, size - 15 + q, bit(fb, q)); set(8, size - 8, true);
+      };
+      format(0);
+      if (v >= 7) { var vr = v; for (i = 0; i < 12; i++) vr = (vr << 1) ^ ((vr >>> 11) * 0x1F25); var vb = (v << 12) | vr; for (i = 0; i < 18; i++) { var t = bit(vb, i), a = size - 11 + i % 3, b2 = Math.floor(i / 3); set(a, b2, t); set(b2, a, t); } }
+      var n = 0;
+      for (var right = size - 1; right >= 1; right -= 2) { if (right === 6) right = 5; for (var vert = 0; vert < size; vert++) for (j = 0; j < 2; j++) { x = right - j; y = ((right + 1) & 2) === 0 ? size - 1 - vert : vert; if (!fn[y][x] && n < cw.length * 8) { m[y][x] = bit(cw[n >>> 3], 7 - (n & 7)); n++; } } }
+      var flip = function (k2) { for (y = 0; y < size; y++) for (x = 0; x < size; x++) if (!fn[y][x] && maskBit(k2, x, y)) m[y][x] = !m[y][x]; };
+      var penalty = function () { // runs of 5+ and 2x2 blocks plus dark/light balance (finder-like rule left out: any mask decodes)
+        var p = 0, dark = 0;
+        for (y = 0; y < size; y++) { var rc = 1, cc = 1; for (x = 0; x < size; x++) { if (m[y][x]) dark++; if (x) { if (m[y][x] === m[y][x - 1]) { rc++; if (rc === 5) p += 3; else if (rc > 5) p++; } else rc = 1; if (m[x][y] === m[x - 1][y]) { cc++; if (cc === 5) p += 3; else if (cc > 5) p++; } else cc = 1; } if (x && y && m[y][x] === m[y][x - 1] && m[y][x] === m[y - 1][x] && m[y][x] === m[y - 1][x - 1]) p += 3; } }
+        return p + Math.floor(Math.abs(dark * 20 - size * size * 10) / (size * size)) * 10;
+      };
+      var best = 0, bestP = Infinity;
+      for (var k3 = 0; k3 < 8; k3++) { flip(k3); format(k3); var pp = penalty(); if (pp < bestP) { bestP = pp; best = k3; } flip(k3); }
+      flip(best); format(best);
+      return m;
+    }
+    return function (text) {
+      var m = encode(text); if (!m) return '';
+      var s = m.length, q = 4, d = '';
+      for (var y = 0; y < s; y++) for (var x = 0; x < s; x++) if (m[y][x]) d += 'M' + (x + q) + ' ' + (y + q) + 'h1v1h-1z';
+      return '<svg class="ghh-qr" viewBox="0 0 ' + (s + 2 * q) + ' ' + (s + 2 * q) + '" role="img" aria-label="QR code with the mail settings" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#16212b"/></svg>';
+    };
+  })();
 
   function mount(G) {
     if (document.querySelector('.ghh')) return;
@@ -1087,9 +1147,222 @@
       $('[data-dom]').hidden = !DOMAIN_VIEWS[tab] || S.session.domains.length < 2;
       try { sessionStorage.setItem('gh-hosting-tab-' + G.sid, tab); } catch (e) {} // no URL hash: the theme's own tabs read it and blank the page
       bindAll = function () {};
-      ({ overview: overview, dns: dns, subdomains: subdomains, aliases: aliases, redirects: redirects, php: php, email: email, forwarders: email, autoresponders: autoresponders, spam: spam,
+      ({ overview: overview, health: health, dns: dns, subdomains: subdomains, aliases: aliases, redirects: redirects, php: php, email: email, forwarders: email, autoresponders: autoresponders, spam: spam,
         files: files, ftp: ftp, protect: protect, databases: databases, cron: cron, ssl: ssl, backups: backups, wordpress: wordpress })[tab]();
       if (focus) body.focus({ preventScroll: true });
+    }
+
+
+    /* ------------------------------------------------------------ copy buttons (any [data-copy] in the panel) */
+    function copyBtn(text, label) { return '<button type="button" class="ghh-copy" data-copy="' + esc(text) + '" aria-label="Copy ' + esc(label || text) + '">' + ic('copy', 14) + '<span>Copy</span></button>'; }
+    root.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('[data-copy]'); if (!b || !root.contains(b)) return;
+      var t = b.getAttribute('data-copy'), done = function () { b.classList.add('is-done'); b.querySelector('span').textContent = 'Copied'; setTimeout(function () { b.classList.remove('is-done'); b.querySelector('span').textContent = 'Copy'; }, 1600); };
+      var legacy = function () { var ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:-1000px;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (er) { toast('Copy failed. Select the text and copy it by hand.', 'err'); } ta.remove(); };
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done, legacy); else legacy();
+    });
+    function downloadBlob(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+    function openConsole() {
+      var b = [].slice.call(document.querySelectorAll('.gh-console-btn, a, button, input[type=submit]')).filter(function (x) { return !root.contains(x) && /open advanced console|log ?in to (directadmin|cpanel|plesk)/i.test(x.value || x.textContent || ''); })[0];
+      if (b) { b.scrollIntoView({ block: 'center', behavior: 'smooth' }); b.classList.add('gh-pulse'); setTimeout(function () { b.classList.remove('gh-pulse'); }, 2400); toast('Use "Open advanced console" to open the full control panel.'); }
+      else toast('Open the advanced console from the service page to change this setting.', 'err');
+    }
+
+    /* ------------------------------------------------------------ Site health */
+    var HEX = function (st) { return '<span class="ghh-hx ghh-hx--' + st + '" aria-hidden="true">' + (st === 'ok' ? '<i></i>' : '!') + '</span>'; };
+    var ST_LABEL = { ok: 'OK', warn: 'Needs attention', fail: 'Problem' };
+    function ring(score, sz) {
+      sz = sz || 112; var r = sz / 2 - 8, c = 2 * Math.PI * r, col = score >= 85 ? 'ok' : score >= 60 ? 'warn' : 'fail';
+      return '<span class="ghh-ring ghh-ring--' + col + '" style="width:' + sz + 'px;height:' + sz + 'px" role="img" aria-label="Health score ' + score + ' out of 100"><svg viewBox="0 0 ' + sz + ' ' + sz + '" aria-hidden="true"><circle cx="' + sz / 2 + '" cy="' + sz / 2 + '" r="' + r + '" class="ghh-ring__bg"/><circle cx="' + sz / 2 + '" cy="' + sz / 2 + '" r="' + r + '" class="ghh-ring__fg" stroke-dasharray="' + (c * score / 100).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 ' + sz / 2 + ' ' + sz / 2 + ')"/></svg><b>' + score + '</b></span>';
+    }
+    function healthSkel() { return '<div class="ghh-hsum ghh-hsum--skel" aria-busy="true" aria-label="Running checks"><span class="ghh-ring ghh-ring--skel"></span><div><i></i><i></i></div></div>' + skel(5); }
+    S.health = {};
+    function health() {
+      var d = S.domain, many = (S.session.domains || []).length > 1;
+      if (S.openConnect) { var cd = S.openConnect; S.openConnect = null; return connectWizard(cd); }
+      body.innerHTML = bar('Site health', 'Live checks of <b>' + esc(d) + '</b>: DNS, website, SSL, email and storage. Results are kept for 5 minutes.', (many ? '<button type="button" class="ghh-btn" data-all>' + ic('dns') + ' Check all domains</button>' : '') + '<button type="button" class="ghh-btn ghh-btn--pri" data-re>' + ic('refresh') + ' Re-check</button>') + domChips(d, 'Domain') + '<div data-list>' + healthSkel() + '</div>';
+      var list = body.querySelector('[data-list]'), rep = null;
+      bindChips(body, function (x) { setDomain(x); show('health'); });
+      var load = function (fresh) {
+        list.innerHTML = healthSkel();
+        api('health', fresh ? { domain: d, fresh: 1 } : { domain: d }).then(function (r) { rep = r; S.health[d] = r; render(); }, function (e) { fail(e, list); retryOn(list, function () { load(); }); });
+      };
+      var render = function () {
+        var n = rep.issues, fails = 0; rep.sections.forEach(function (s) { s.items.forEach(function (i) { if (i.status === 'fail') fails++; }); });
+        var head = n ? n + (n === 1 ? ' thing needs' : ' things need') + ' attention' : 'Everything looks good';
+        var txt = n ? (fails ? fails + ' problem' + (fails === 1 ? '' : 's') + ' to fix first. Use the Fix buttons where shown, the rest needs a change at your domain or in your site.' : 'No hard problems, a few improvements are recommended.') : esc(d) + ' is online, secure and set up for email.';
+        list.innerHTML = '<div class="ghh-hsum">' + ring(rep.score) + '<div><h4>' + esc(head) + '</h4><p>' + txt + '</p><span class="ghh-muted">Checked ' + when(rep.checkedAt) + '</span></div></div>' +
+          rep.sections.map(function (s) {
+            return '<section class="ghh-hsec" aria-label="' + esc(s.title) + '"><h4 class="ghh-hsec__h">' + esc(s.title) + '<span>' + s.items.filter(function (i) { return i.status !== 'ok'; }).length + ' of ' + s.items.length + ' need attention</span></h4><ul class="ghh-hlist">' + s.items.map(function (it) {
+              var fx = it.fix ? '<button type="button" class="ghh-btn ghh-btn--sm' + (it.status === 'fail' ? ' ghh-btn--pri' : '') + '" data-fix="' + esc(it.id) + '">' + (it.fix.kind === 'tab' || it.fix.kind === 'console' ? ic('ext', 13) + ' ' : it.fix.kind === 'connect' ? ic('aliases', 13) + ' ' : '') + esc(it.fix.label) + '</button>' : '';
+              var man = it.manual ? '<div class="ghh-rec"><span class="ghh-type ghh-type--txt">' + esc(it.manual.type) + '</span><code>' + esc(it.manual.name === '@' ? d : it.manual.name + '.' + d) + '</code><code class="ghh-rec__v">' + esc(it.manual.value) + '</code>' + copyBtn(it.manual.value, it.manual.name + ' value') + '<small>Add this record where your DNS is hosted.</small></div>' : '';
+              return '<li class="ghh-hrow ghh-hrow--' + it.status + '" data-id="' + esc(it.id) + '">' + HEX(it.status) + '<div class="ghh-hrow__tx"><b>' + esc(it.title) + '<span class="ghh-sr"> (' + ST_LABEL[it.status] + ')</span></b><p>' + esc(it.detail) + '</p>' + man + '</div><div class="ghh-act ghh-hrow__act" data-fixcell>' + fx + '</div></li>';
+            }).join('') + '</ul></section>';
+          }).join('');
+        bindAll();
+      };
+      bindAll = function () {
+        [].forEach.call(list.querySelectorAll('[data-fix]'), function (b) {
+          b.onclick = function () {
+            var id = b.getAttribute('data-fix'), it = null; rep.sections.forEach(function (s) { s.items.forEach(function (i) { if (i.id === id) it = i; }); });
+            if (!it) return; var f = it.fix, cell = b.closest('[data-fixcell]');
+            if (f.kind === 'tab') return show(f.tab, true);
+            if (f.kind === 'console') return openConsole();
+            if (f.kind === 'connect') return connectWizard(d);
+            if (f.kind === 'dns') return confirmIn(cell, 'Add TXT ' + (f.record.name === '@' ? d : f.record.name + '.' + d) + '?', 'Add record', function (back) {
+              api('dns', null, { json: { op: 'add', domain: d, record: f.record } }).then(function (r) { toast(r.message); load(true); }, function (e) { fail(e); back(); });
+            });
+            if (f.kind === 'ssl') return confirmIn(cell, 'Request a free Let\'s Encrypt certificate for ' + d + ' and www?', f.label, function (back) {
+              api('ssl', null, { json: { op: 'issue', domain: d, www: true } }).then(function (r) { toast(r.message); back(); setTimeout(function () { if (S.tab === 'health' && S.domain === d) load(true); }, 9000); }, function (e) { fail(e); back(); });
+            });
+          };
+        });
+      };
+      body.querySelector('[data-re]').onclick = function () { load(true); };
+      var all = body.querySelector('[data-all]');
+      if (all) all.onclick = function () {
+        busy(all, true); list.innerHTML = healthSkel();
+        api('health', { all: 1 }).then(function (r) {
+          busy(all, false);
+          r.results.forEach(function (x) { S.health[x.domain] = x; });
+          list.innerHTML = '<h4 class="ghh-h4" style="margin-top:0!important">All domains</h4><div class="ghh-hall">' + r.results.map(function (x) {
+            return '<button type="button" class="ghh-hall__it" data-pick="' + esc(x.domain) + '">' + ring(x.score, 56) + '<span><b>' + esc(x.domain) + '</b><small>' + (x.issues ? x.issues + ' to look at' : 'All good') + (x.connected ? '' : ' · not connected') + '</small></span>' + ic('redirects', 14) + '</button>';
+          }).join('') + '</div>' + (r.more ? '<p class="ghh-note">' + r.more + ' more domain(s) not shown; pick them from the Domain list.</p>' : '');
+          [].forEach.call(list.querySelectorAll('[data-pick]'), function (b) { b.onclick = function () { setDomain(b.getAttribute('data-pick')); show('health'); }; });
+        }, function (e) { busy(all, false); fail(e, list); retryOn(list, function () { load(); }); });
+      };
+      load();
+    }
+
+    /* ------------------------------------------------------------ Connect my domain */
+    var connectTimer = null;
+    function connectWizard(d) {
+      if (connectTimer) { clearInterval(connectTimer); connectTimer = null; }
+      setDomain(d); S.tab = 'health';
+      body.innerHTML = '<button type="button" class="ghh-link" data-back>' + ic('up', 14) + ' Back to site health</button>' + bar('Connect ' + d, 'Point <b>' + esc(d) + '</b> at this hosting so your website and email work here. Choose one of the two ways below.', '') + '<div data-list>' + skel(4) + '</div>';
+      body.querySelector('[data-back]').onclick = function () { stop(); show('health'); };
+      var list = body.querySelector('[data-list]'), st = null, started = Date.now(), live, mailOn = false;
+      var stop = function () { if (connectTimer) { clearInterval(connectTimer); connectTimer = null; } };
+      var steps = function (arr) { return '<ol class="ghh-steps">' + arr.map(function (s) { return '<li>' + esc(s).replace(/the server IP/g, '<b>' + esc(st.serverIp || 'the server IP') + '</b>').replace(/(two GlobalHostia nameservers)/g, '<b>$1</b>') + '</li>'; }).join('') + '</ol>'; };
+      var rec = function (type, name, value, extra) { return '<tr><td data-l="Type"><span class="ghh-type ghh-type--' + type.toLowerCase() + '">' + type + '</span></td><td data-l="Name"><code>' + esc(name) + '</code></td><td data-l="Value"><code>' + esc(value) + '</code>' + (extra ? ' <span class="ghh-pill ghh-pill--muted">' + esc(extra) + '</span>' : '') + '</td><td class="ghh-act">' + copyBtn(value, type + ' ' + name) + '</td></tr>'; };
+      var records = function () {
+        var ip = st.serverIp || '';
+        return '<div class="ghh-tw ghh-tw--recs"><table class="ghh-t"><thead><tr><th scope="col">Type</th><th scope="col">Name</th><th scope="col">Value</th><th scope="col"><span class="ghh-sr">Copy</span></th></tr></thead><tbody>' +
+          rec('A', '@', ip) + rec('CNAME', 'www', d) +
+          (mailOn ? rec('A', 'mail', ip) + rec('MX', '@', 'mail.' + d, 'priority 10') + rec('TXT', '@', 'v=spf1 a mx ip4:' + ip + ' ~all') : '') + '</tbody></table></div>';
+      };
+      var progress = function () {
+        return '<ul class="ghh-live__steps">' + st.steps.map(function (s) { return '<li class="' + (s.ok ? 'is-ok' : '') + '">' + HEX(s.ok ? 'ok' : 'warn') + '<span><b>' + esc(s.label) + '<span class="ghh-sr"> (' + (s.ok ? 'done' : 'waiting') + ')</span></b><small>' + esc(s.detail) + '</small></span></li>'; }).join('') + '</ul>';
+      };
+      var render = function () {
+        var p = st.provider, reg = st.registrarProvider, nsProv = reg && p.id === 'cloudflare' ? reg : p;
+        var who = p.id === 'generic' ? 'DNS for ' + esc(d) + ' is hosted at <b>' + esc((st.current.ns[0] || 'an unknown provider').replace(/^[^.]+\./, '')) + '</b>' : 'DNS for ' + esc(d) + ' is hosted at <b>' + esc(p.name) + '</b>';
+        var done = st.connected;
+        list.innerHTML =
+          '<div class="ghh-cxinfo">' + ic('dns', 16) + '<span>' + who + (st.registrar ? '. Registrar: <b>' + esc(st.registrar) + '</b>' : '') + '. Server IP: <b>' + esc(st.serverIp || 'unknown') + '</b>' + (st.serverIp ? ' ' + copyBtn(st.serverIp, 'server IP') : '') + '</span></div>' +
+          (done ? '<div class="ghh-cxok" role="status"><span class="ghh-state__hex">' + ic('shield', 22) + '</span><div><h4>' + esc(d) + ' is connected</h4><p>' + (st.steps[3].ok ? 'Your site is live here with HTTPS.' : 'The domain points here. Issue a free SSL certificate so visitors get the padlock.') + ' Some visitors may still see the old site for a while until their internet provider refreshes its DNS cache.</p>' +
+            (!st.steps[3].ok && can('ssl', 'issue') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-ssl>' + ic('shield', 15) + ' Issue free SSL</button>' : '') + '</div></div>' : '') +
+          '<div class="ghh-cx">' +
+          '<article class="ghh-cx__opt ghh-cx__opt--rec"><header><span class="ghh-pill ghh-pill--ok"><i class="ghh-hexdot"></i>Recommended</span><h4>Use GlobalHostia nameservers</h4><p>We manage all DNS for you: website, email, SSL and the fixes in Site health work automatically.</p></header>' +
+          '<ul class="ghh-nslist">' + st.nameservers.map(function (n) { return '<li><code>' + esc(n) + '</code>' + copyBtn(n) + '</li>'; }).join('') + '</ul>' +
+          steps(nsProv.ns) + (nsProv.url ? '<a class="ghh-btn ghh-btn--sm" href="' + esc(nsProv.url) + '" target="_blank" rel="noopener">' + ic('ext', 13) + ' Open ' + esc(nsProv.name) + '</a>' : '') +
+          '<p class="ghh-note">Takes effect in 1 to 4 hours as a rule, occasionally up to 24 hours. Any records you created at the old provider are not copied: email elsewhere (e.g. Google Workspace) needs its MX records added again in the DNS tab.</p></article>' +
+          '<article class="ghh-cx__opt"><header><span class="ghh-pill ghh-pill--muted">Keep current DNS</span><h4>Add records at ' + esc(p.id === 'generic' ? 'your DNS provider' : p.name) + '</h4><p>Your DNS stays where it is; only the website (and optionally email) moves here.</p></header>' +
+          '<div data-recs>' + records() + '</div><label class="ghh-check ghh-cx__mail"><input type="checkbox" data-mail' + (mailOn ? ' checked' : '') + '> I also want email for ' + esc(d) + ' here</label>' +
+          steps(p.dns) + (p.url ? '<a class="ghh-btn ghh-btn--sm" href="' + esc(p.url) + '" target="_blank" rel="noopener">' + ic('ext', 13) + ' Open ' + esc(p.name) + '</a>' : '') +
+          '<p class="ghh-note">Record changes usually show within minutes to an hour, depending on how long the old record was cached (its TTL), and up to 24 hours at the most.</p></article></div>' +
+          '<section class="ghh-live" aria-live="polite"><header><h4>Live check</h4><span class="ghh-muted" data-when>Checked ' + when(st.checkedAt) + (live ? ' · checking again every 30 s' : '') + '</span><button type="button" class="ghh-btn ghh-btn--sm" data-now>' + ic('refresh', 14) + ' Check now</button></header>' + progress() + '</section>';
+        list.querySelector('[data-mail]').onchange = function (e) { mailOn = e.target.checked; list.querySelector('[data-recs]').innerHTML = records(); };
+        list.querySelector('[data-now]').onclick = function () { check(this); };
+        var sb = list.querySelector('[data-ssl]');
+        if (sb) sb.onclick = function () { busy(sb, true); api('ssl', null, { json: { op: 'issue', domain: d, www: true } }).then(function (r) { busy(sb, false); toast(r.message); }, function (e) { busy(sb, false); fail(e); }); };
+      };
+      var check = function (btn) {
+        if (btn) busy(btn, true);
+        api('connect', { domain: d }).then(function (r) {
+          var first = !st; st = r;
+          if (first) render(); else { var ls = list.querySelector('.ghh-live'); if (ls && !!list.querySelector('.ghh-cxok') === r.connected) { ls.querySelector('.ghh-live__steps').outerHTML = progress(); ls.querySelector('[data-when]').textContent = 'Checked ' + when(r.checkedAt).replace(/<[^>]+>/g, '') + (live ? ' · checking again every 30 s' : ''); } else render(); }
+          if (r.connected && r.steps[3].ok) stop();
+          if (btn && document.body.contains(btn)) busy(btn, false);
+        }, function (e) { if (btn && document.body.contains(btn)) busy(btn, false); if (!st) { fail(e, list); retryOn(list, function () { check(); }); } else if (btn) fail(e); });
+      };
+      live = true;
+      connectTimer = setInterval(function () {
+        if (S.tab !== 'health' || !body.contains(list) || Date.now() - started > 10 * 60000) { live = false; stop(); var w = list.querySelector('[data-when]'); if (w) w.textContent = w.textContent.replace(' · checking again every 30 s', ''); return; }
+        check();
+      }, 30000);
+      check();
+    }
+    function openConnect(d) { S.openConnect = d; show('health', true); }
+
+    /* ------------------------------------------------------------ Overview extras: health card + unconnected domains */
+    function overviewExtras(slot) {
+      var d = S.domain;
+      slot.innerHTML = '<div class="ghh-ovx"><button type="button" class="ghh-hcard is-loading" data-go-health>' + '<span class="ghh-ring ghh-ring--skel" style="width:56px;height:56px"></span><span><b>Site health</b><small>Checking ' + esc(d) + '…</small></span>' + ic('redirects', 14) + '</button><div data-unc></div></div>';
+      var card = slot.querySelector('[data-go-health]');
+      card.onclick = function () { show('health', true); };
+      var paint = function (r) {
+        card.classList.remove('is-loading');
+        if (!r || typeof r.score !== 'number') { card.querySelector('small').textContent = 'Open Site health to run the checks'; return; }
+        card.innerHTML = ring(r.score, 56) + '<span><b>Health: ' + (r.issues ? r.issues + ' issue' + (r.issues === 1 ? '' : 's') : 'all good') + '</b><small>' + esc(r.domain) + ' · open Site health</small></span>' + ic('redirects', 14);
+        card.setAttribute('aria-label', 'Site health for ' + r.domain + ': score ' + r.score + ', ' + (r.issues ? r.issues + ' issues' : 'all good') + '. Open Site health');
+      };
+      if (S.health[d]) paint(S.health[d]);
+      else api('health', { domain: d }).then(function (r) { S.health[d] = r; paint(r); }, function () { card.classList.remove('is-loading'); card.querySelector('small').textContent = 'Open Site health to run the checks'; });
+      api('connect', { op: 'scan' }).then(function (r) {
+        if (!r.domains || !r.domains.length) return;
+        var box = slot.querySelector('[data-unc]');
+        box.innerHTML = '<div class="ghh-alert ghh-alert--soft ghh-unc">' + ic('alert', 18) + '<div><b>' + (r.domains.length === 1 ? '1 domain is' : r.domains.length + ' domains are') + ' not connected to this hosting yet</b><span>Their website does not open from this server. Connect them in a few steps.</span><ul>' +
+          r.domains.map(function (x) { return '<li><code>' + esc(x.domain) + '</code><button type="button" class="ghh-btn ghh-btn--sm ghh-btn--pri" data-connect="' + esc(x.domain) + '">' + ic('aliases', 13) + ' Connect</button></li>'; }).join('') + '</ul></div></div>';
+        [].forEach.call(box.querySelectorAll('[data-connect]'), function (b) { b.onclick = function () { openConnect(b.getAttribute('data-connect')); }; });
+      }, function () {});
+    }
+
+    /* ------------------------------------------------------------ Email setup helper */
+    function mailSettingsCard(slot, d) {
+      api('mailsetup', { domain: d }).then(function (s) {
+        if (!s || !s.incoming) { slot.innerHTML = ''; return; }
+        var row = function (lbl, val, extra, copy) { return '<div><dt>' + esc(lbl) + '</dt><dd><code>' + esc(val) + '</code>' + (extra ? ' <span class="ghh-pill ghh-pill--muted">' + esc(extra) + '</span>' : '') + (copy ? copyBtn(val, lbl) : '') + '</dd></div>'; };
+        slot.innerHTML = '<details class="ghh-ms"' + (S.msOpen ? ' open' : '') + '><summary><span class="ghh-ficon ghh-ficon--db">' + ic('email', 16) + '</span><span><b>Email settings</b><small>For Outlook, Apple Mail, Gmail and other apps</small></span>' + ic('chevron', 16) + '</summary>' +
+          '<div class="ghh-ms__grid"><dl><h5>Incoming (IMAP)</h5>' + row('Server', s.incoming.imap.host, '', true) + row('Port', String(s.incoming.imap.port), 'SSL/TLS') + '</dl>' +
+          '<dl><h5>Incoming (POP3)</h5>' + row('Server', s.incoming.pop3.host, '', true) + row('Port', String(s.incoming.pop3.port), 'SSL/TLS') + '</dl>' +
+          '<dl><h5>Outgoing (SMTP)</h5>' + row('Server', s.outgoing.host, '', true) + row('Port', String(s.outgoing.port), 'SSL/TLS') + row('or port', String(s.outgoing.alt.port), 'STARTTLS') + '</dl>' +
+          '<dl><h5>Sign in</h5><div><dt>Username</dt><dd>Your full email address</dd></div><div><dt>Password</dt><dd>The mailbox password</dd></div><div><dt>Webmail</dt><dd><a href="' + esc(s.webmail) + '" target="_blank" rel="noopener">' + esc(s.webmail.replace(/^https:\/\//, '')) + ' ' + ic('ext', 12) + '</a>' + copyBtn(s.webmail, 'webmail address') + '</dd></div></dl></div>' +
+          (s.altHost ? '<p class="ghh-note">If your mail app warns about the certificate for ' + esc(s.incoming.imap.host) + ', use <code>' + esc(s.altHost) + '</code> as the incoming and outgoing server instead.</p>' : '') + '</details>';
+        slot.querySelector('details').ontoggle = function () { S.msOpen = this.open; };
+      }, function () { slot.innerHTML = ''; });
+    }
+    var DEVICES = [['apple', 'iPhone / Mac'], ['android', 'Android / Gmail'], ['outlook', 'Outlook'], ['thunderbird', 'Thunderbird']];
+    function deviceSetup(slot, d, m) {
+      slot.innerHTML = '<div class="ghh-form ghh-dev">' + skel(2) + '</div>';
+      api('mailsetup', { domain: d, user: m.user }).then(function (s) {
+        if (!s || !s.incoming) { slot.innerHTML = ''; return toast('Mail settings are not available right now.', 'err'); }
+        var tab = S.devTab || 'apple';
+        var steps = function (a) { return '<ol class="ghh-steps">' + a.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol>'; };
+        var I1 = esc(s.incoming.imap.host), O1 = esc(s.outgoing.host), U = esc(s.username);
+        var pane = {
+          apple: '<div class="ghh-dev__cols"><div><p>Download a profile that sets up <b>' + U + '</b> in Apple Mail. It does not contain your password: your iPhone or Mac asks for it while installing.</p><button type="button" class="ghh-btn ghh-btn--pri" data-prof>' + ic('down') + ' Download profile</button></div><div><h5>iPhone / iPad</h5>' + steps(['Open this page on the iPhone in Safari and tap <b>Download profile</b> (or AirDrop the file to it).', 'Open <b>Settings</b> and tap <b>Profile Downloaded</b> near the top.', 'Tap <b>Install</b>, enter your passcode, then the mailbox password when asked.']) + '<h5>Mac</h5>' + steps(['Double-click the downloaded file.', 'Open <b>System Settings</b>, then <b>Privacy &amp; Security</b>, <b>Profiles</b> (or search "Profiles").', 'Double-click the profile, click <b>Install</b> and enter the mailbox password.']) + '</div></div>',
+          android: '<div class="ghh-dev__cols"><div>' + steps(['Open the <b>Gmail</b> app, tap your picture, then <b>Add another account</b>, <b>Other</b>.', 'Enter <b>' + U + '</b> and tap <b>Manual setup</b>, then <b>Personal (IMAP)</b>.', 'Enter the mailbox password.', 'Incoming server: <b>' + I1 + '</b>, port <b>993</b>, security <b>SSL/TLS</b>.', 'Outgoing server: <b>' + O1 + '</b>, port <b>465</b>, security <b>SSL/TLS</b>. Keep "Require sign-in" on.', 'Tap Next and choose how often to sync.']) + '</div><figure class="ghh-qrbox">' + QR(s.qrText) + '<figcaption>Scan with your phone camera to see these settings on the phone.</figcaption></figure></div>',
+          outlook: steps(['Open Outlook. In classic Outlook choose <b>File</b>, <b>Add account</b>; in new Outlook choose <b>Settings</b>, <b>Accounts</b>, <b>Add account</b>.', 'Enter <b>' + U + '</b>, open <b>Advanced options</b> and tick <b>Let me set up my account manually</b> (new Outlook: choose <b>IMAP</b> when asked).', 'Choose <b>IMAP</b>. Incoming mail: <b>' + I1 + '</b>, port <b>993</b>, encryption <b>SSL/TLS</b>.', 'Outgoing mail: <b>' + O1 + '</b>, port <b>465</b>, encryption <b>SSL/TLS</b>.', 'Enter the mailbox password and click <b>Connect</b>.', 'Outlook for Mac: <b>Outlook</b>, <b>Settings</b>, <b>Accounts</b>, <b>+</b>, <b>New account</b>, then the same servers.']),
+          thunderbird: '<p>Thunderbird sets itself up: choose <b>Account Settings</b>, <b>Account Actions</b>, <b>Add Mail Account</b>, enter your name, <b>' + U + '</b> and the mailbox password, and click <b>Continue</b>. It finds the servers on its own.</p>' + '<p class="ghh-note">If it asks you to confirm, pick IMAP <b>' + I1 + '</b> port 993 SSL/TLS and SMTP <b>' + O1 + '</b> port 465 SSL/TLS, with the full address as the username.</p>',
+        };
+        slot.innerHTML = '<div class="ghh-form ghh-dev"><div class="ghh-form__head"><h4>' + ic('email', 16) + ' Set up ' + U + ' on a device</h4><button type="button" class="ghh-icon" data-close aria-label="Close">' + ic('x') + '</button></div>' +
+          '<div class="ghh-seg" role="tablist" aria-label="Device">' + DEVICES.map(function (x) { return '<button type="button" role="tab" id="ghh-dt-' + x[0] + '" aria-controls="ghh-dp" aria-selected="' + (x[0] === tab) + '" tabindex="' + (x[0] === tab ? 0 : -1) + '" data-dev="' + x[0] + '">' + esc(x[1]) + '</button>'; }).join('') + '</div>' +
+          '<div class="ghh-dev__pane" id="ghh-dp" role="tabpanel" aria-labelledby="ghh-dt-' + tab + '">' + pane[tab] + '</div></div>';
+        var box = slot.querySelector('.ghh-dev');
+        box.querySelector('[data-close]').onclick = function () { slot.innerHTML = ''; };
+        box.onkeydown = function (e) { if (e.key === 'Escape') slot.innerHTML = ''; };
+        var tl = box.querySelector('[role=tablist]');
+        tl.onclick = function (e) { var b = e.target.closest('[data-dev]'); if (b) { S.devTab = b.getAttribute('data-dev'); deviceSetupRender(); } };
+        tl.onkeydown = function (e) { var bs = [].slice.call(tl.children), i = bs.indexOf(document.activeElement); if (i < 0) return; var n = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : null; if (n === null) return; e.preventDefault(); n = (n + bs.length) % bs.length; S.devTab = bs[n].getAttribute('data-dev'); deviceSetupRender(); var nb = slot.querySelector('[data-dev="' + S.devTab + '"]'); if (nb) nb.focus(); };
+        var deviceSetupRender = function () { var t = S.devTab; [].forEach.call(tl.children, function (b) { var on = b.getAttribute('data-dev') === t; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; }); var p = box.querySelector('[role=tabpanel]'); p.setAttribute('aria-labelledby', 'ghh-dt-' + t); p.innerHTML = pane[t]; bindProf(); };
+        var bindProf = function () {
+          var pb = box.querySelector('[data-prof]'); if (!pb) return;
+          pb.onclick = function () { busy(pb, true); api('mailsetup', { domain: d, user: m.user, format: 'mobileconfig' }, { raw: true }).then(function (r) { return r.blob(); }).then(function (b) { busy(pb, false); downloadBlob(b, m.user + '@' + d + '.mobileconfig'); toast('Profile downloaded'); }, function (e) { busy(pb, false); fail(e); }); };
+        };
+        bindProf();
+        slot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }, function (e) { slot.innerHTML = ''; fail(e); });
     }
 
     /* ------------------------------------------------------------ DNS */
@@ -1193,8 +1466,9 @@
     function email() {
       var d = S.domain, fw = S.tab === 'forwarders';
       body.innerHTML = fw ? bar('Forwarders', 'Send mail for an address on <b>' + esc(d) + '</b> on to another inbox.', '<button type="button" class="ghh-btn ghh-btn--pri" data-addf>' + ic('plus') + ' New forwarder</button>') + domChips(d, 'Domain') + '<div data-fslot></div><div data-flist>' + skel(2) + '</div>'
-        : bar('Mailboxes', 'Email accounts on <b>' + esc(d) + '</b>.', can('email', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add>' + ic('plus') + ' New mailbox</button>' : '') + domChips(d, 'Domain') + '<div data-slot></div><div data-list>' + skel(3) + '</div>';
+        : bar('Mailboxes', 'Email accounts on <b>' + esc(d) + '</b>.', can('email', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add>' + ic('plus') + ' New mailbox</button>' : '') + domChips(d, 'Domain') + '<div data-ms></div><div data-slot></div><div data-list>' + skel(3) + '</div>';
       var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), boxes = [], fwds = [];
+      if (body.querySelector('[data-ms]')) mailSettingsCard(body.querySelector('[data-ms]'), d);
       var flist = body.querySelector('[data-flist]'), fslot = body.querySelector('[data-fslot]');
       bindChips(body, function (x) { setDomain(x); show(S.tab); });
       var load = function () {
@@ -1214,7 +1488,7 @@
           var pct = m.quotaMb ? Math.min(100, Math.round(m.usedMb / m.quotaMb * 100)) : 0;
           return '<tr><td data-l="Address"><b class="ghh-strong">' + esc(m.email) + '</b>' + (m.suspended ? ' <span class="ghh-pill ghh-pill--warn">Suspended</span>' : '') + '</td>' +
             '<td data-l="Usage"><div class="ghh-use"><div class="ghh-meter' + (pct > 85 ? ' is-high' : '') + '" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="Mailbox usage"><i style="width:' + (m.quotaMb ? pct : 4) + '%"></i></div><span>' + esc(m.usedMb) + ' MB of ' + (m.quotaMb ? esc(m.quotaMb) + ' MB' : 'unlimited') + '</span></div></td>' +
-            '<td class="ghh-act" data-i="' + i + '">' + (can('email', 'password') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-pw>' + ic('key', 14) + ' Password</button>' : '') + (can('email', 'quota') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-q>Quota</button>' : '') + (can('email', 'delete') ? '<button type="button" class="ghh-icon ghh-icon--danger" data-del aria-label="Delete ' + esc(m.email) + '">' + ic('trash') + '</button>' : '') + '</td></tr>';
+            '<td class="ghh-act" data-i="' + i + '"><button type="button" class="ghh-btn ghh-btn--sm" data-setup>' + ic('down', 14) + ' Set up on device</button>' + (can('email', 'password') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-pw>' + ic('key', 14) + ' Password</button>' : '') + (can('email', 'quota') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-q>Quota</button>' : '') + (can('email', 'delete') ? '<button type="button" class="ghh-icon ghh-icon--danger" data-del aria-label="Delete ' + esc(m.email) + '">' + ic('trash') + '</button>' : '') + '</td></tr>';
         }).join('') + '</tbody></table></div>';
         bindAll();
       };
@@ -1232,7 +1506,8 @@
       };
       bindAll = function () {
         [].forEach.call(list.querySelectorAll('[data-i]'), function (cell) {
-          var m = boxes[+cell.getAttribute('data-i')], pw = cell.querySelector('[data-pw]'), q = cell.querySelector('[data-q]'), del = cell.querySelector('[data-del]');
+          var m = boxes[+cell.getAttribute('data-i')], pw = cell.querySelector('[data-pw]'), q = cell.querySelector('[data-q]'), del = cell.querySelector('[data-del]'), su = cell.querySelector('[data-setup]');
+          if (su) su.onclick = function () { deviceSetup(slot, d, m); };
           if (pw) pw.onclick = function () { formPanel(slot, 'New password for ' + m.email, fld('password', 'New password', { type: 'password', required: true }), 'Change password', function (v) { return api('email', null, { json: { op: 'password', domain: d, user: m.user, password: v.password } }).then(function (r) { toast(r.message); }); }); };
           if (q) q.onclick = function () { formPanel(slot, 'Quota for ' + m.email, fld('quota', 'Quota', { type: 'number', min: 0, value: m.quotaMb, suffix: 'MB', hint: '0 = unlimited' }), 'Save quota', function (v) { return api('email', null, { json: { op: 'quota', domain: d, user: m.user, quota: +v.quota || 0 } }).then(function (r) { toast(r.message); load(); }); }); };
           if (del) del.onclick = function () { confirmIn(cell, 'Delete ' + m.email + ' and all its mail?', 'Delete', function (back) { api('email', null, { json: { op: 'delete', domain: d, user: m.user } }).then(function (r) { toast(r.message); load(); }, function (e) { fail(e); back(); }); }); };
@@ -1420,11 +1695,12 @@
           };
           var quick = [['email', 'Create a mailbox'], ['dns', 'Edit DNS records'], ['files', 'Open file manager'], ['backups', 'Make a backup']].filter(function (q) { return root.querySelector('[data-tab=' + q[0] + ']'); });
           list.innerHTML = (r.suspended ? '<div class="ghh-alert" role="alert">' + ic('alert', 18) + '<span>This hosting account is suspended. Contact support to restore it.</span></div>' : '') +
-            '<dl class="ghh-meta">' + meta.map(function (m) { return '<div><dt>' + esc(m[0]) + '</dt><dd>' + esc(m[1]) + '</dd></div>'; }).join('') + '</dl>' +
+            '<dl class="ghh-meta">' + meta.map(function (m) { return '<div><dt>' + esc(m[0]) + '</dt><dd>' + esc(m[1]) + '</dd></div>'; }).join('') + '</dl><div data-ovx></div>' +
             (big.length ? '<div class="ghh-stats ghh-stats--lg">' + big.map(function (x) { return card(x, true); }).join('') + '</div>' : '') +
             (small.length ? '<div class="ghh-stats">' + small.map(function (x) { return card(x); }).join('') + '</div>' : '') +
             (quick.length ? '<h4 class="ghh-h4">Quick actions</h4><div class="ghh-quick">' + quick.map(function (q) { return '<button type="button" class="ghh-quick__it" data-go-tab="' + q[0] + '"><span class="ghh-ficon ghh-ficon--db">' + ic(q[0], 16) + '</span>' + esc(q[1]) + '<i aria-hidden="true">' + ic('redirects', 14) + '</i></button>'; }).join('') + '</div>' : '');
           [].forEach.call(list.querySelectorAll('[data-go-tab]'), function (b) { b.onclick = function () { show(b.getAttribute('data-go-tab'), true); }; b.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); b.onclick(); } }; });
+          if (root.querySelector('[data-tab=health]')) overviewExtras(list.querySelector('[data-ovx]'));
         }, function (e) { fail(e, list); retryOn(list, load); });
       };
       body.querySelector('[data-re]').onclick = load;

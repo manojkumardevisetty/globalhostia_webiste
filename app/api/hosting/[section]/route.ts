@@ -5,6 +5,11 @@
 // Every value is validated (lib/hosting/validate.ts); every write is audit-logged without secrets or file contents.
 import { auditHosting, cors, errorResponse, hostingCtx, HttpError, ownedDomains, type Ctx } from '@/lib/hosting/context';
 import { probeSsl } from '@/lib/hosting/ssl-probe';
+import { limiter } from '@/lib/agents/http';
+import { ourNameservers } from '@/lib/hosting/dns-plan';
+import { evaluate } from '@/lib/hosting/health';
+import { cachedHealth, connectStatus, gatherHealth, pool, scanDomains, serverIpFor, type ProbeEnv } from '@/lib/hosting/health-probe';
+import { mailSettings, mobileconfig, settingsText } from '@/lib/hosting/mailsetup';
 import { PANEL_LABEL, type Section } from '@/lib/hosting/types';
 import {
   cronCommand, cronField, CRON_FIELDS, ftpUser, httpUrl, httpUser, isoDate, messageText, realm, redirectType, spamSettings, subLabel, urlPath, domainName,
@@ -15,10 +20,28 @@ import {
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-const SECTIONS = ['session', 'overview', 'dns', 'subdomains', 'aliases', 'redirects', 'php', 'email', 'autoresponders', 'spam', 'files', 'ftp', 'protect', 'databases', 'cron', 'ssl', 'backups', 'wordpress'] as const;
+const SECTIONS = ['session', 'overview', 'dns', 'subdomains', 'aliases', 'redirects', 'php', 'email', 'autoresponders', 'spam', 'files', 'ftp', 'protect', 'databases', 'cron', 'ssl', 'backups', 'wordpress', 'health', 'connect', 'mailsetup'] as const;
 type S = (typeof SECTIONS)[number];
 
 const ok = (req: Request, data: unknown, status = 200) => Response.json(data, { status, headers: cors(req) });
+
+// Site health / connect wizard: live probes are limited per client (cached answers are free).
+const healthLimit = limiter(10, 60_000);
+const connectLimit = limiter(20, 60_000);
+const HEALTH_ALL_MAX = 18; // 6 at a time, about 8 s each, inside maxDuration
+const usageMemo = new Map<string, { v: any; until: number }>();
+const hasCap = (ctx: Ctx, sec: Section, sub: string) => (ctx.p.caps[sec] || []).includes(sub);
+async function probeEnv(ctx: Ctx): Promise<ProbeEnv> {
+  const key = `${ctx.acct.server.id}|${ctx.acct.username}`;
+  let u = usageMemo.get(key);
+  if ((!u || u.until < Date.now()) && ctx.p.usage && hasCap(ctx, 'overview', 'usage')) {
+    try { u = { v: await ctx.p.usage(), until: Date.now() + 60_000 }; if (usageMemo.size > 2000) usageMemo.clear(); usageMemo.set(key, u); } catch { /* storage rows are optional */ }
+  }
+  const usage = u?.v;
+  const serverIp = await serverIpFor(key, ctx.acct.server.url, async () => usage?.ip || undefined);
+  return { serverId: ctx.acct.server.id, serverIp, ourNs: ourNameservers([ctx.acct.server]), usage: usage?.items };
+}
+const rateOr429 = (lim: (k: string) => number, ctx: Ctx) => { const w = lim(`c${ctx.claims.cid}`); if (w) throw new HttpError(429, `Too many checks. Try again in ${w}s.`, 'rate_limited'); };
 
 function need(ctx: Ctx, section: Section, sub: string) {
   if (!ctx.acct.server || !(ctx.p.caps[section] || []).includes(sub)) throw new HttpError(501, 'This action is not available for your hosting panel.', 'unsupported');
@@ -47,6 +70,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ section:
         const caps = { ...p.caps };
         if (p.detect) { try { Object.assign(caps, await p.detect()); } catch { /* keep static caps */ } }
         for (const k of Object.keys(caps) as Section[]) if (!caps[k]?.length) delete caps[k];
+        Object.assign(caps, { health: ['check'], connect: ['check'] }); // panel-independent (public DNS / HTTPS probes)
         return ok(req, { panel: p.panel, panelLabel: PANEL_LABEL[p.panel], username: ctx.acct.username, domain: ctx.acct.domain, server: ctx.acct.server.name, caps, domains,
           limits: { editBytes: MAX_EDIT_BYTES, transferBytes: MAX_TRANSFER_BYTES } });
       }
@@ -134,6 +158,37 @@ export async function GET(req: Request, { params }: { params: Promise<{ section:
         need(ctx, 'ssl', 'status');
         const domains = (await ownedDomains(ctx)).slice(0, 15);
         return ok(req, { canIssue: (p.caps.ssl || []).includes('issue'), status: await Promise.all(domains.map((d) => probeSsl(d))) });
+      }
+      case 'health': {
+        const env = await probeEnv(ctx);
+        const caps = { dnsAdd: hasCap(ctx, 'dns', 'add'), sslIssue: hasCap(ctx, 'ssl', 'issue'), redirects: hasCap(ctx, 'redirects', 'add') };
+        const owned = await ownedDomains(ctx), all = q.get('all') === '1', fresh = q.get('fresh') === '1';
+        const list = all ? owned.slice(0, HEALTH_ALL_MAX) : [ownedDomain(q.get('domain'), owned)];
+        if (fresh || list.some((d) => !cachedHealth(env, d))) rateOr429(healthLimit, ctx);
+        const reports = (await pool(list, 6, (d) => gatherHealth(env, d, fresh))).map((f) => evaluate(f, caps));
+        return ok(req, all ? { results: reports, more: Math.max(0, owned.length - list.length) } : reports[0]);
+      }
+      case 'connect': {
+        const env = await probeEnv(ctx);
+        const owned = await ownedDomains(ctx);
+        if (op === 'scan') return ok(req, { serverIp: env.serverIp || null, domains: (await scanDomains(env, owned)).filter((x) => !x.connected) });
+        const domain = ownedDomain(q.get('domain'), owned);
+        rateOr429(connectLimit, ctx);
+        return ok(req, await connectStatus(env, domain));
+      }
+      case 'mailsetup': {
+        if (!(p.caps.email || []).length) throw new HttpError(501, 'Email is not available for your hosting panel.', 'unsupported');
+        const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
+        const user = q.get('user') ? mailUser(q.get('user')) : '';
+        if (user && hasCap(ctx, 'email', 'list') && !(await p.email!.list(domain)).some((m) => m.user === user)) throw new InputError('That mailbox does not exist');
+        const st = mailSettings(domain, new URL(ctx.acct.server.url).hostname, user ? `${user}@${domain}` : undefined);
+        if (q.get('format') === 'mobileconfig') {
+          if (!user) throw new InputError('Choose a mailbox');
+          await auditHosting(ctx, 'mailsetup.profile', { domain, user });
+          return new Response(mobileconfig(st), { headers: { ...cors(req), 'content-type': 'application/x-apple-aspen-config; charset=utf-8',
+            'content-disposition': `attachment; filename="${user}@${domain}.mobileconfig"` } });
+        }
+        return ok(req, { ...st, qrText: settingsText(st) });
       }
       case 'backups': {
         need(ctx, 'backups', 'list');
