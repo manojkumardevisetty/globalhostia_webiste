@@ -804,3 +804,11 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 /* GlobalHostia signature mark (brand hexagon) for "available" lines, replacing the generic tick */
 .gh-avail small::before { content: ""; display: inline-block; width: 11px; height: 12px; margin-right: 8px; vertical-align: -1px; background: linear-gradient(135deg, #c5386f 0%, #e0517f 55%, #fdd700 100%); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
 .gh-hexmark { display: inline-block; width: 11px; height: 12px; margin-right: 8px; vertical-align: -1px; background: linear-gradient(135deg, #c5386f, #fdd700); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+/* compact search banner once results are on screen */
+.gh-hero-compact { padding-top: 28px !important; padding-bottom: 32px !important; min-height: 0 !important; margin-bottom: 0 !important; }
+.gh-hero-compact h1, .gh-hero-compact h2 { font-size: 28px !important; margin: 0 0 6px !important; }
+.gh-hero-compact h1 + p, .gh-hero-compact h2 + p { margin: 0 0 14px !important; font-size: 14px !important; }
+.gh-hero-compact ~ *, .gh-hero-compact + * { margin-top: 0 !important; }
+#DomainSearchResults, .domain-checker-result-headline { margin-top: 18px !important; padding-top: 0 !important; }
+.gh-tk { margin-top: 0; }
+@media (max-width: 760px) { .gh-hero-compact { padding-top: 18px !important; padding-bottom: 22px !important; } .gh-hero-compact h1, .gh-hero-compact h2 { font-size: 22px !important; } }
