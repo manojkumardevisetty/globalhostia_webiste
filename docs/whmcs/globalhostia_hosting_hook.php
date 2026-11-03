@@ -83,3 +83,21 @@ add_hook('ClientAreaFooterOutput', 1, function ($vars) {
     $data = ['token' => $payload . '.' . $sig, 'sid' => $serviceId, 'panel' => $module];
     return '<script>window.GH_HOSTING=' . json_encode($data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) . ';</script>';
 });
+
+/**
+ * Client-area language for public/hp/whmcs.js (English / Arabic skin and Manage hosting panel).
+ * Prints window.GH_LANG (the WHMCS language name, e.g. "arabic") in <head> on every client-area page; for Arabic it also
+ * sets <html lang="ar" dir="rtl"> right away so the page does not flash left-to-right before whmcs.js runs.
+ * Needs "Allow clients to choose language" (Setup > General Settings > Localisation) for the English / العربية switch.
+ */
+add_hook('ClientAreaHeadOutput', 1, function ($vars) {
+    $lang = strtolower((string) ($vars['language'] ?? ($_SESSION['Language'] ?? '')));
+    if ($lang === '' || !preg_match('/^[a-z_-]{2,30}$/', $lang)) {
+        return '';
+    }
+    $out = '<script>window.GH_LANG=' . json_encode($lang) . ';';
+    if ($lang === 'arabic') {
+        $out .= 'document.documentElement.setAttribute("lang","ar");document.documentElement.setAttribute("dir","rtl");';
+    }
+    return $out . '</script>';
+});

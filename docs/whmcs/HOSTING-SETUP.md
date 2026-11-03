@@ -197,3 +197,21 @@ from the control panel; the site then appears in the WordPress tab.
 
 The panel hides tabs and buttons a server type does not support. The provider interface (`lib/hosting/types.ts`)
 has room for a future VPS adapter (power, reboot, reinstall, console) for modules such as SBVPS.
+
+## Arabic (العربية) and right-to-left
+
+`public/hp/whmcs.js` follows WHMCS's language. When the client area is Arabic it loads `/hp/whmcs-i18n.js` (the Arabic
+dictionary), sets `<html lang="ar" dir="rtl">`, loads IBM Plex Sans Arabic from Google Fonts and shows the Manage hosting
+panel and the skin's own strings in Arabic (numbers and dates in `ar-AE` with Latin digits). An "English / العربية"
+entry is added to the account menu and the footer; it uses WHMCS's own `?language=arabic|english`.
+
+Owner steps:
+1. WHMCS Admin → Setup → General Settings → Localisation: tick **Allow clients to choose language** (and make sure the
+   `arabic` language is available; WHMCS ships `lang/arabic.php`).
+2. Re-upload `docs/whmcs/globalhostia_hosting_hook.php` (it now also prints `window.GH_LANG` on every client-area page,
+   so the skin knows the language even without `?language=` in the URL).
+3. Server-generated text (site-health check details, registrar step-by-step guides, some error messages) is still
+   English; check titles, fix buttons and toasts are translated in the browser.
+
+Command palette: on the service page, Ctrl+K (⌘K on a Mac) or the search button in the panel header searches sections,
+domains, mailboxes, databases, FTP accounts, subdomains and DNS records of the selected domain, plus actions.

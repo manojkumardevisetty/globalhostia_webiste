@@ -922,7 +922,7 @@ img.gh-avatar { border-radius: 50% !important; object-fit: cover; background: #f
 .ghh-t tbody tr:hover { background: #fcfcfd; }
 .ghh-t .ghh-wrap { max-width: 420px; }
 .ghh-act { text-align: right; white-space: nowrap; }
-.ghh-t td[data-l=Size], .ghh-t td[data-l=TTL] { white-space: nowrap; }
+.ghh-t td.ghh-nw { white-space: nowrap; }
 .ghh-act > * + * { margin-left: 4px; }
 .ghh-strong { font-weight: 600; color: var(--gh-deep); overflow-wrap: anywhere; }
 .ghh-type { display: inline-block; min-width: 54px; padding: 3px 9px; border-radius: 8px; font: 700 12px/1.4 Manrope, Inter, sans-serif; text-align: center; background: #fbe8ef; color: var(--gh-brand-d); }
@@ -1286,3 +1286,149 @@ button.ghh-fname { cursor: pointer; } button.ghh-fname:hover { color: var(--gh-b
   .ghh-seg button { flex: 1 1 40%; }
 }
 @media (max-width: 640px) { .ghh-tw--recs .ghh-t tbody tr { padding: 4px 12px; } .ghh-tw--recs .ghh-t td { padding: 6px 0; } .ghh-tw--recs .ghh-t td.ghh-act { padding: 2px 0 6px; border-bottom: 0; } .ghh-tw--recs .ghh-t td:first-child { padding-top: 8px; } }
+
+/* ---------------- command palette (Ctrl/⌘+K, header search button) ---------------- */
+.ghh__head .ghh-kbtn { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 8px 0 12px; border: 1px solid var(--gh-line); border-radius: 12px; background: #fff; color: var(--gh-muted); font: 500 13.5px Inter, system-ui, sans-serif; cursor: pointer; transition: border-color .15s, color .15s, box-shadow .15s; }
+.ghh-kbtn:hover { border-color: #e7b3c7; color: var(--gh-ink); box-shadow: 0 0 0 3px rgba(197,56,111,.1); }
+.ghh-kbtn svg { color: var(--gh-brand); }
+.ghh-kbtn kbd, .ghh-pal kbd { display: inline-block; min-width: 22px; padding: 2px 6px; border: 1px solid var(--gh-line); border-bottom-width: 2px; border-radius: 6px; background: var(--gh-tint); color: var(--gh-muted); font: 600 11px/1.4 Inter, system-ui, sans-serif; text-align: center; box-shadow: none; direction: ltr; }
+.ghh-pal { position: fixed; inset: 0; z-index: 10060; display: flex; align-items: flex-start; justify-content: center; padding: 10vh 16px 16px; }
+.ghh-pal[hidden] { display: none !important; }
+.ghh-pal__scrim { position: absolute; inset: 0; background: rgba(22,33,43,.48); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: ghh-fade .15s ease-out; }
+@keyframes ghh-fade { from { opacity: 0; } }
+.ghh-pal__box { position: relative; display: flex; flex-direction: column; width: min(640px, 100%); max-height: min(560px, 80vh); background: #fff; border: 1px solid var(--gh-line); border-radius: 20px; box-shadow: 0 30px 80px -24px rgba(22,33,43,.55); overflow: hidden; animation: ghh-in .18s cubic-bezier(.2,.7,.2,1); }
+.ghh-pal__bar { flex: none; display: flex; align-items: center; gap: 10px; padding: 12px 12px 12px 16px; border-bottom: 1px solid var(--gh-line); }
+.ghh-pal__bar > svg { flex: none; color: var(--gh-brand); }
+.ghh-pal__bar input { flex: 1; min-width: 0; height: 40px; border: 0 !important; outline: none; background: none; box-shadow: none !important; padding: 0; font: 500 16px Inter, system-ui, sans-serif; color: var(--gh-deep); }
+.ghh-pal__bar input::placeholder { color: #8a96a3; }
+.ghh-pal__x { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px; border: 1px solid var(--gh-line); border-radius: 9px; background: #fff; color: var(--gh-muted); font: 600 11.5px Inter, sans-serif; cursor: pointer; }
+.ghh-pal__x:hover { border-color: #e7b3c7; color: var(--gh-ink); }
+.ghh-pal__x svg { display: none; }
+.ghh-pal__list { flex: 1; overflow: auto; padding: 6px 8px 10px; overscroll-behavior: contain; }
+.ghh-pal__h { padding: 10px 10px 4px; font: 700 11px/1.4 Manrope, Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #8a96a3; }
+.ghh-pal__it { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; cursor: pointer; color: var(--gh-ink); }
+.ghh-pal__it > svg { flex: none; color: var(--gh-brand); opacity: 0; transition: opacity .1s; }
+.ghh-pal__it.is-act { background: #fbeaf0; box-shadow: inset 3px 0 0 var(--gh-brand); }
+.ghh-pal__it.is-act > svg { opacity: 1; }
+.ghh-pal__ic { flex: none; display: inline-grid; place-items: center; width: 32px; height: 34px; color: var(--gh-brand); background: #fbe8ef; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.ghh-pal__it.is-act .ghh-pal__ic { background: linear-gradient(135deg, #c5386f, #e0517f); color: #fff; }
+.ghh-pal__tx { flex: 1; min-width: 0; display: grid; }
+.ghh-pal__tx b { font: 600 14px/1.35 Inter, system-ui, sans-serif; color: var(--gh-deep); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ghh-pal__tx small { font-size: 12.5px; color: var(--gh-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ghh-pal__tx [dir=ltr] { text-align: start; unicode-bidi: plaintext; }
+.ghh-pal__empty, .ghh-pal__more { margin: 0; padding: 22px 12px; text-align: center; color: var(--gh-muted); font-size: 14px; }
+.ghh-pal__more { padding: 8px 12px; font-size: 12.5px; }
+.ghh-pal__foot { flex: none; display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 9px 16px; border-top: 1px solid var(--gh-line); background: var(--gh-tint); color: var(--gh-muted); font-size: 12px; }
+.ghh-pal__foot span { display: inline-flex; align-items: center; gap: 4px; }
+html.ghh-pal-on { overflow: hidden; }
+.ghh-hl { animation: ghh-hl 2.4s ease; }
+@keyframes ghh-hl { 0%, 60% { background: #fff1c2; box-shadow: inset 0 0 0 2px #fdd700; } }
+@media (max-width: 900px) { .ghh__head .ghh__dom { order: 3; } }
+.ghh-pal__bar input:focus, .ghh-pal__bar input:focus-visible { outline: none !important; box-shadow: none !important; }
+.ghh-pal__bar:focus-within { box-shadow: inset 0 -2px 0 var(--gh-brand); }
+@media (max-width: 640px) {
+  .ghh__head .ghh-kbtn { width: 40px; padding: 0; justify-content: center; }
+  .ghh-kbtn__t, .ghh-kbtn kbd { display: none !important; }
+  /* phones: a full-screen sheet */
+  .ghh-pal { padding: 0; align-items: stretch; }
+  .ghh-pal__box { width: 100%; max-height: none; height: 100%; border: 0; border-radius: 0; }
+  .ghh-pal__bar { padding: 10px 10px 10px 14px; }
+  .ghh-pal__x { width: 40px; height: 40px; justify-content: center; padding: 0; }
+  .ghh-pal__x svg { display: block; } .ghh-pal__esc { display: none; }
+  .ghh-pal__foot { display: none; }
+  .ghh-pal__it { padding: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .ghh-pal__scrim, .ghh-pal__box, .ghh-hl { animation: none !important; } }
+
+/* ---------------- language switch (account menu + footer) ---------------- */
+.gh-lang-item { display: flex; align-items: center; gap: 2px; padding: 0 0 0 12px; border-top: 1px solid var(--gh-line); margin-top: 4px; }
+.gh-lang-item__l { display: inline-flex; color: var(--gh-brand); }
+.gh-lang-item .gh-lang-link { flex: 1; font-weight: 600 !important; }
+.gh-lang-link[lang=ar], .gh-foot__lang[lang=ar] { font-family: "IBM Plex Sans Arabic", "Noto Kufi Arabic", "Segoe UI", Tahoma, sans-serif !important; }
+.gh-foot__lang { font-weight: 600; color: #fdd700 !important; }
+
+/* ---------------- Arabic: font and right-to-left layout ---------------- */
+html.gh-ar body, html.gh-ar .coodiv-clouds-theme, html.gh-ar input, html.gh-ar select, html.gh-ar textarea, html.gh-ar button, html.gh-ar .btn { font-family: Inter, "IBM Plex Sans Arabic", system-ui, "Segoe UI", Tahoma, sans-serif !important; }
+html.gh-ar h1, html.gh-ar h2, html.gh-ar h3, html.gh-ar h4, html.gh-ar h5, html.gh-ar h6, html.gh-ar .coodiv-text-1, html.gh-ar .coodiv-text-2, html.gh-ar .coodiv-text-3, html.gh-ar .coodiv-text-4, html.gh-ar .coodiv-text-5, html.gh-ar .coodiv-text-6 { font-family: Manrope, "IBM Plex Sans Arabic", system-ui, sans-serif !important; letter-spacing: 0 !important; }
+/* Arabic letters join: no letter-spacing or upper-casing tricks */
+html.gh-ar [class^="gh-"], html.gh-ar [class*=" gh-"], .ghh[dir=rtl], .ghh[dir=rtl] * { letter-spacing: 0 !important; }
+html.gh-ar .ghh, html.gh-ar .ghh *:not(code):not(textarea):not(kbd), html.gh-ar [class^="gh-"]:not(code), html.gh-ar [class*=" gh-"]:not(code) { font-family: Inter, "IBM Plex Sans Arabic", system-ui, "Segoe UI", Tahoma, sans-serif !important; }
+html.gh-ar .ghh :is(h2, h3, h4, h5, .ghh-stat b, .ghh-ring b, .ghh-type, .ghh-choice b, .ghh-hall__it b, .ghh-hcard b, .ghh-ms summary b, .ghh-nav__h, .ghh-hrow__tx > b, .ghh-pal__h, .ghh-steps li::before), html.gh-ar :is(.gh-sec-head h2, .gh-tk__dom, .gh-foot__q, .gh-foot__groups b) { font-family: Manrope, "IBM Plex Sans Arabic", system-ui, sans-serif !important; }
+.ghh[dir=rtl] { text-align: right; line-height: 1.6; }
+.ghh[dir=rtl] code, .ghh[dir=rtl] .ghh-strong, .ghh[dir=rtl] .ghh-cron, .ghh[dir=rtl] .ghh__sub bdi { direction: ltr; unicode-bidi: isolate; }
+.ghh[dir=rtl] .ghh-flip { transform: scaleX(-1); }
+.ghh[dir=rtl] .ghh-in--ltr { direction: ltr; }
+.ghh[dir=rtl] .ghh-in--ltr input { text-align: left; }
+.ghh[dir=rtl] input[dir=ltr]::placeholder, .ghh[dir=rtl] textarea[dir=ltr]::placeholder { text-align: left; }
+.ghh[dir=rtl] .ghh-t th { text-align: right; }
+.ghh[dir=rtl] .ghh-act { text-align: left; }
+.ghh[dir=rtl] .ghh-act > * + * { margin-left: 0; margin-right: 4px; }
+.ghh[dir=rtl] .ghh-fname, .ghh[dir=rtl] .ghh-quick__it, .ghh[dir=rtl] .ghh-hall__it, .ghh[dir=rtl] .ghh-hcard, .ghh[dir=rtl] .ghh-confirm span { text-align: right; }
+.ghh[dir=rtl] .ghh-ssl dd { text-align: left; }
+.ghh[dir=rtl] .ghh-card header .ghh-act, .ghh[dir=rtl] .ghh-quick__it i, .ghh[dir=rtl] .ghh-live header .ghh-btn { margin-left: 0; margin-right: auto; }
+.ghh[dir=rtl] .ghh-form__foot [data-sz] { margin-right: 0; margin-left: auto; }
+.ghh[dir=rtl] .ghh-confirm { padding: 6px 12px 6px 6px; }
+.ghh[dir=rtl] .ghh-chip { padding: 3px 10px 3px 4px; }
+.ghh[dir=rtl] .ghh-chips > span { margin-right: 0; margin-left: 2px; }
+.ghh[dir=rtl] .ghh-copy { margin-left: 0; margin-right: 6px; }
+.ghh[dir=rtl] .ghh-ms__grid dd .ghh-copy { margin-right: 4px; }
+.ghh[dir=rtl] .ghh-hall__it, .ghh[dir=rtl] .ghh-hcard { padding: 10px 10px 10px 14px; }
+.ghh[dir=rtl] .ghh-unc li { padding: 4px 12px 4px 4px; }
+.ghh[dir=rtl] .ghh-nslist li { padding: 8px 12px 8px 8px; }
+.ghh[dir=rtl] .ghh-steps li { padding-left: 0; padding-right: 32px; }
+.ghh[dir=rtl] .ghh-steps li::before { left: auto; right: 0; }
+.ghh[dir=rtl] .ghh-stat__of { text-align: left; }
+.ghh[dir=rtl] .ghh-stat--go::after { content: "\2190"; right: auto; left: 14px; }
+.ghh[dir=rtl] .ghh-switch__t::after { left: auto; right: 3px; }
+.ghh[dir=rtl] .ghh-switch input:checked + .ghh-switch__t::after { transform: translateX(-18px); }
+.ghh[dir=rtl] .ghh-dd__btn { padding: 0 14px 0 12px; }
+.ghh[dir=rtl] .ghh-dd__list { right: auto; left: 0; }
+.ghh[dir=rtl] .ghh-dd__list li { padding: 9px 30px 9px 12px; text-align: right; }
+.ghh[dir=rtl] .ghh-dd__list li[aria-selected="true"]::before { left: auto; right: 11px; }
+.ghh[dir=rtl] .ghh-crumbs { direction: ltr; justify-content: flex-start; }
+.ghh[dir=rtl] .ghh__toasts { right: auto; left: 20px; }
+.ghh[dir=rtl] .ghh-toast { padding: 12px 14px 12px 10px; }
+.ghh[dir=rtl] .ghh-pal__bar { padding: 12px 16px 12px 12px; }
+.ghh[dir=rtl] .ghh-pal__it.is-act { box-shadow: inset -3px 0 0 var(--gh-brand); }
+.ghh[dir=rtl] .ghh-pal__h, .ghh[dir=rtl] .ghh-pal__tx { text-align: right; }
+.ghh[dir=rtl] .ghh-kbtn { padding: 0 12px 0 8px; }
+@media (min-width: 1024px) {
+  .ghh[dir=rtl] .ghh__nav { border-right: 0; border-left: 1px solid var(--gh-line); border-radius: 0 0 20px 0; }
+  .ghh[dir=rtl] .ghh-nav__it[aria-current=page] { box-shadow: inset -3px 0 0 var(--gh-brand), 0 1px 2px rgba(22,33,43,.06), 0 8px 18px -14px rgba(22,33,43,.35); }
+}
+@media (max-width: 640px) {
+  .ghh[dir=rtl] .ghh-t td { text-align: left; }
+  .ghh[dir=rtl] .ghh-t td[data-l]::before { text-align: right; }
+  .ghh[dir=rtl] .ghh-t td code { text-align: left; }
+  .ghh[dir=rtl] .ghh-t td:first-child, .ghh[dir=rtl] .ghh-t td:first-child code { text-align: right; }
+  .ghh[dir=rtl] .ghh-hrow__act { text-align: right; padding-left: 0; padding-right: 38px; }
+  .ghh[dir=rtl] .ghh__toasts { left: 16px; }
+  .ghh[dir=rtl] .ghh-pal__bar { padding: 10px 14px 10px 10px; }
+}
+/* client-area skin pieces in right-to-left pages */
+html[dir=rtl] .gh-plist, html[dir=rtl] .gh-catbanner, html[dir=rtl] .gh-cycle, html[dir=rtl] .gh-tk, html[dir=rtl] .gh-offers, html[dir=rtl] .gh-offers *, html[dir=rtl] .domain-productconfigiration-options-item, html[dir=rtl] .domain-productconfigiration-options-item .domain-productconfigiration-options-text, html[dir=rtl] #main-body form label, html[dir=rtl] .contact-form label, html[dir=rtl] form .control-label { text-align: right !important; }
+html[dir=rtl] .gh-promo::after, html[dir=rtl] .gh2-bundle::after { right: auto; left: -40px; }
+html[dir=rtl] .gh-sec-head h2::after { left: auto; right: 0; }
+html[dir=rtl] .gh-cat i { right: auto; left: 20px; transform: translateX(6px); }
+html[dir=rtl] .gh-cat:hover i { transform: none; }
+html[dir=rtl] .gh-cycle em { right: auto; left: 12px; }
+html[dir=rtl] .gh-cycle span small { margin-left: 0; margin-right: 2px; }
+html[dir=rtl] .gh-hub__ic { padding-left: 0; padding-right: 10px; }
+html[dir=rtl] .gh-cfg-feats li, html[dir=rtl] .gh-cfg-trust li { padding-left: 0; padding-right: 24px; }
+html[dir=rtl] .gh-cfg-feats li::before, html[dir=rtl] .gh-cfg-trust li::before { left: auto; right: 0; }
+html[dir=rtl] #products.gh-cards .emyui-ews-plans-features li { padding-left: 0; padding-right: 22px; }
+html[dir=rtl] #products.gh-cards .emyui-ews-plans-features li::before { left: auto; right: 2px; }
+html[dir=rtl] .gh-co__trust li::before, html[dir=rtl] .gh-tk__ticks li::before, html[dir=rtl] .gh-avail small::before, html[dir=rtl] .gh-hexmark, html[dir=rtl] .domain-lookup-primary-results .alert p::before { margin-right: 0; margin-left: 8px; }
+html[dir=rtl] .gh-rec-tag { left: auto; right: 16px; }
+html[dir=rtl] .gh-cmp-wrap { padding-left: 0; padding-right: 14px; }
+html[dir=rtl] .domain-suggestion .actions { margin-left: 0 !important; margin-right: auto !important; padding-left: 0; padding-right: 16px; }
+html[dir=rtl] #primaryIndividualResult.domain-available { border-left: 1px solid var(--gh-line) !important; border-right: 5px solid #1c9a5b !important; }
+html[dir=rtl] .domain-unavailable, html[dir=rtl] #primaryLookupResult .alert-danger { border-left: 1px solid var(--gh-line) !important; border-right: 5px solid var(--gh-brand) !important; }
+html[dir=rtl] .item-in-cart .col-sm-7 { padding-left: 15px !important; padding-right: 58px !important; }
+html[dir=rtl] .item-in-cart .col-sm-7::before { left: auto; right: 0; }
+html[dir=rtl] .gh-tk__dom, html[dir=rtl] .gh-tk__altdom { direction: ltr; justify-content: flex-end; }
+html[dir=rtl] .gh-foot__legal { margin-right: 0; margin-left: 76px; }
+html[dir=rtl] .gh-photo-link { text-align: right; }
+html[dir=rtl] .gh-lang-item { padding: 0 12px 0 0; }
+html[dir=rtl] .gh-catnav__btn i, html[dir=rtl] .gh-mega__all, html[dir=rtl] .gh-taken-link { unicode-bidi: plaintext; }
+@media (max-width: 575px) { html[dir=rtl] .item-in-cart .item-price { text-align: right; padding-left: 15px !important; padding-right: 58px !important; } }
