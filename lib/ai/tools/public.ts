@@ -116,7 +116,8 @@ export const publicTools: AiTool<ShopCtx>[] = [
       if (!r.recommendations.length) return { text: r.note || 'No plan matched. Ask what matters most or offer browse_category.' };
       const prods = r.recommendations.map((x) => d.products.find((p) => p.slug === x.slug)!).filter(Boolean);
       const cyc = str(a.billing_cycle, 20) || undefined;
-      const cards = prods.slice(0, 2).map((p, i) => planCard(p, i ? 'Alternative' : 'Best pick', r.recommendations[i].why.join(', ') || (i ? 'Another good option' : 'Closest match to your needs'), cyc));
+      const why = (w: string[]) => w.map((x) => x.replace(/^matches ".*" plans$/, 'Built for what you described').replace(/^closest available: .* plan$/, 'Closest plan we offer for this').replace('lowest price of these picks', 'lowest price of these options')).join(', ');
+      const cards = prods.slice(0, 2).map((p, i) => planCard(p, i ? 'Alternative' : 'Best pick', why(r.recommendations[i].why) || (i ? 'Another good option' : 'Closest match to your needs'), cyc));
       return { text: `Shown to the visitor as cards (best pick first). Prices in ${d.currency}:\n${prods.map(brief).join('\n')}`, ui: [{ type: 'plans', items: cards }] };
     },
   },

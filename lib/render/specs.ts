@@ -11,6 +11,15 @@ const RULES: [string, RegExp][] = [
   ['websites', /(unlimited|\d+)\s*websites?/i],
   ['email', /(unlimited|\d+)\s*email/i],
   ['location', /\b(UAE|Dubai|USA|United States|Singapore|India|Germany|UK|Netherlands|Brazil|South Africa|Russia|Algeria)\b/i],
+  // business services (SSL, email, backups, website security): comparison rows on /business-services and /ssl-certificate
+  ['validation', /\b(domain|organi[sz]ation|extended)[ -]validat\w*|\b(?:DV|OV|EV) (?:SSL|certificate|validation)\b/i],
+  ['coverage', /\bwildcard\b|\bmulti-?domain\b|\b\d+\s*(?:SANs?|hostnames?)\b|\b\d+\s*domains?\s*(?:secured|covered)\b|\bsecures? (?:www and non-www|one domain|\d+ domains?)\b/i],
+  ['warranty', /\$\s?[\d,]+(?:\.\d+)?\s*(?:warranty|USD warranty)|warranty of \$\s?[\d,]+/i],
+  ['issuance', /\bissued? (?:in|within) [\w -]{1,24}/i],
+  ['mailboxes', /\b(?:unlimited|\d+)\s*(?:mailbox(?:es)?|email (?:users|seats))\b/i],
+  ['mailbox_storage', /\b\d+\s*[GT]B\s*(?:mailbox|email|mail)\s*storage\b|\b\d+\s*[GT]B\s*per\s*(?:mailbox|user)\b/i],
+  ['retention', /\b\d+[- ]?(?:day|month|year)s?\s*(?:backup\s*)?(?:retention|history|archive|of backups)\b|\bretention[:\s]+\d+\s*(?:days?|months?|years?)\b/i],
+  ['scanning', /\b(?:daily|weekly|monthly|continuous)\s*(?:malware\s*)?scan(?:s|ning)?\b/i],
 ];
 
 export function deriveSpecs(features: string[], attributes: Record<string, string> = {}): Specs {
@@ -21,10 +30,23 @@ export function deriveSpecs(features: string[], attributes: Record<string, strin
     if (out[key]) continue;
     for (const f of text) { const m = f.match(re); if (m) { out[key] = key === 'location' ? m[1] : f.trim(); break; } }
   }
+  if (!attributes?.mailboxes && out.mailboxes && out.mailboxes === out.email) delete out.mailboxes; // same feature line twice
   return out;
 }
 
 export const SPEC_LABEL: Record<string, string> = {
   cpu: 'Processor', ram: 'Memory', storage: 'Storage', bandwidth: 'Bandwidth', ips: 'IP addresses',
   websites: 'Websites', email: 'Email accounts', location: 'Location', os: 'Operating system',
+  validation: 'Validation', coverage: 'Domains covered', warranty: 'Warranty', issuance: 'Issuance',
+  mailboxes: 'Mailboxes', mailbox_storage: 'Storage per mailbox', retention: 'Backup retention', scanning: 'Malware scanning',
+  pages: 'Pages', sites: 'Websites covered',
+};
+
+/** Attribute keys by product type, for the admin (Admin → Business services) and the comparison tables. */
+export const TYPE_ATTRIBUTES: Record<string, string[]> = {
+  ssl: ['validation', 'coverage', 'warranty', 'issuance'],
+  email: ['mailboxes', 'mailbox_storage'],
+  backup: ['storage', 'retention', 'sites'],
+  security: ['scanning', 'sites'],
+  builder: ['pages', 'storage'],
 };

@@ -4,7 +4,7 @@ import { ALIAS_REDIRECTS } from './lib/aliases.mjs';
 // scripts/build-assets.mjs (run by `npm run build`) writes minified copies next to public/hp/*.js|css.
 // When they exist, shell.ts asset() links them (HP_MIN) and the URLs WHMCS loads cross-origin are rewritten to them.
 const HP_MIN = fs.existsSync(new URL('./public/hp/theme.min.js', import.meta.url)) ? '1' : '';
-const CROSS_ORIGIN_ASSETS = ['whmcs.js', 'whmcs-i18n.js', 'whmcs.css', 'promo.js', 'promo.css', 'track.js'];
+const CROSS_ORIGIN_ASSETS = ['whmcs.js', 'whmcs-i18n.js', 'whmcs.css', 'promo.js', 'promo.css', 'track.js', 'ai-assist.js', 'ai-assist.css'];
 
 // Report-only CSP: the sources the site actually uses (theme, trackers in /hp/track.js, Google Fonts on the
 // admin and legacy theme, WHMCS forms). Violations are reported by the browser console only; nothing is blocked.

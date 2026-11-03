@@ -126,12 +126,14 @@ export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains'
  * Always rendered by the Hostpen theme (like THEME_ONLY). The page module returns null for an unknown slug → 404.
  */
 const DYNAMIC_PREFIX: Record<string, string> = {
-  domains: 'tld', locations: 'location', 'hosting-for': 'usecase', category: 'category',
+  domains: 'tld', locations: 'location', 'hosting-for': 'usecase', category: 'category', 'business-services': 'store',
   'web-hosting': 'location', vps: 'location', 'dedicated-servers': 'location', 'windows-rdp': 'location', 'linux-rdp': 'location',
 };
 export function dynamicRoute(segs: string[]): RouteDef | null {
   const s = segs.map((x) => x.toLowerCase());
   if (s.length === 1 && s[0] === 'hosting-for') return { kind: 'usecase', title: '', description: '' };
+  // Business services shop: hub and category pages (lib/theme/pages/store.ts, config in Admin → Business services)
+  if (s.length === 1 && s[0] === 'business-services') return { kind: 'store', title: '', description: '' };
   if (s.length !== 2 || !DYNAMIC_PREFIX[s[0]] || !/^[a-z0-9][a-z0-9-]{0,62}$/.test(s[1])) return null;
   return { kind: DYNAMIC_PREFIX[s[0]], title: '', description: '' };
 }

@@ -22,7 +22,7 @@ const id = () => Date.now().toString(36) + randomBytes(8).toString('hex');
 
 const FINGERPRINT = (() => {
   const h = createHash('sha256');
-  const files = ['scripts/db-setup.mjs', 'scripts/blog-seed.mjs', 'scripts/landing-seed.mjs', 'lib/enrich-core.mjs', 'lib/aliases.mjs', 'drizzle/meta/_journal.json',
+  const files = ['scripts/db-setup.mjs', 'scripts/blog-seed.mjs', 'scripts/landing-seed.mjs', 'scripts/store-seed.mjs', 'lib/enrich-core.mjs', 'lib/aliases.mjs', 'drizzle/meta/_journal.json',
     ...fs.readdirSync('drizzle').filter((f) => f.endsWith('.sql')).sort().map((f) => `drizzle/${f}`)];
   for (const f of files) { h.update(f); try { h.update(fs.readFileSync(f)); } catch { h.update('-'); } }
   return h.digest('hex').slice(0, 24);
@@ -430,6 +430,27 @@ try {
         id text primary key, domain text not null unique, whmcs_domain_id integer, client_id integer not null,
         server_id text not null, da_user text not null, created_at timestamptz not null default now())`;
       await tx`create index if not exists dns_zones_client_idx on dns_zones (client_id)`;
+    },
+    // 23. Business services shop (/business-services): section + category rows and settings.business_services, only where
+    // missing (existing categories such as ssl-certificates are never changed). The shop stays unpublished until the owner
+    // switches it on in Admin → Business services. New rows are not added to site_links.seen, so they never surface in the
+    // automatic menus or /category pages; the shop has its own pages and menu entry.
+    '023-business-services': async (tx) => {
+      const { STORE_SECTIONS, STORE_ENTRIES, storeConfigSeed } = await import('./store-seed.mjs');
+      const sectionIds = {};
+      let order = 200;
+      for (const s of STORE_SECTIONS) {
+        await tx`insert into categories (id, slug, name, description, seo_title, seo_description, sort_order) values (${id()}, ${s.slug}, ${s.name}, ${s.description}, ${s.seoTitle}, ${s.seoDescription}, ${order++})
+          on conflict (slug) do nothing`;
+        const [row] = await tx`select id from categories where slug = ${s.slug}`;
+        sectionIds[s.slug] = row.id;
+      }
+      for (const e of STORE_ENTRIES) {
+        await tx`insert into categories (id, slug, name, description, seo_title, seo_description, parent_id, sort_order)
+          values (${id()}, ${e.slug}, ${e.name}, ${e.description}, ${e.seoTitle}, ${e.seoDescription}, ${sectionIds[e.section] || null}, ${order++})
+          on conflict (slug) do nothing`;
+      }
+      await tx`insert into settings (key, value) values ('business_services', ${JSON.stringify(storeConfigSeed())}::jsonb) on conflict (key) do nothing`;
     },
     // 30. AI assistant (lib/ai/*): usage/cost log and support-ticket automation decisions. Settings live in settings.ai_settings.
     '030-ai': async (tx) => {

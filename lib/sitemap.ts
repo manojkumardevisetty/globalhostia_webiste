@@ -10,6 +10,7 @@ import { SITEMAP_EXCLUDE, NOINDEX_SLUGS } from './seo';
 import { ROUTES, THEME_ONLY } from './theme/routes';
 import { getCatalog, productsFor, type Catalog } from './theme/data';
 import { pseoPaths } from './theme/pseo';
+import { storePaths } from './store/view';
 import { ALIAS_SLUGS } from './aliases.mjs';
 
 export type SitemapEntry = { loc: string; lastmod: string };
@@ -97,6 +98,8 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
   // programmatic SEO pages (domains A–Z, locations, use cases): derived from the cached catalog
   const pseo = cat ? pseoPaths(cat) : [];
   for (const p of pseo) if (!have.has(p.slice(1))) add(p, p.startsWith('/domains/') ? maxDate(tldMod, catalogMod) : catalogMod);
+  // Business services shop: only while published, and only pages with something to order or quote (lib/store/view.ts)
+  for (const p of cat ? storePaths(cat) : []) if (!have.has(p.slice(1))) add(p, maxDate(catalogMod, s.business_services_at) || catalogMod);
   return out;
 }
 

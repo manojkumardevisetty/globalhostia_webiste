@@ -9,6 +9,7 @@ import { categoryHrefIn } from '../theme/pseo';
 import { CYCLE_LABEL, CYCLE_MONTHS } from '../pricing';
 import { CURRENCY_LABEL } from '../currency';
 import { DEFAULT_EMAIL, DEFAULT_PHONE } from '../seo';
+import { storeView } from '../store/view';
 
 export const BRAND = 'GlobalHostia';
 export const CYCLE_ORDER = ['monthly', 'quarterly', 'semiannually', 'annually', 'biennially', 'triennially', 'onetime', 'free'] as const;
@@ -24,13 +25,24 @@ export type AgentProduct = {
   availability: 'in_stock' | 'out_of_stock' | 'preorder' | 'price_on_request';
   configurable: boolean; url: string; categoryUrl: string | null; orderUrl: string;
 };
-export type AgentCategory = { slug: string; name: string; summary: string; url: string | null; productCount: number; from: { price: number; cycle: string; perMonth: number | null; currency: string } | null; parent: string | null };
+export type AgentCategory = { slug: string; name: string; summary: string; url: string | null; productCount: number; from: { price: number; cycle: string; perMonth: number | null; currency: string } | null; parent: string | null;
+  /** Business services shop section slug when the published shop lists this category */
+  section?: string | null };
+/** Business services shop entry (Admin → Business services), including done-for-you services sold by quote only. */
+export type AgentService = {
+  slug: string; name: string; section: string; sectionName: string; summary: string; url: string;
+  /** plans: orderable now (see products with category.slug = slug); quote: request a quote; coming_soon: contact sales */
+  availability: 'plans' | 'quote' | 'coming_soon';
+  productCount: number; from: { price: number; cycle: string; currency: string } | null; quoteUrl: string | null;
+};
 export type AgentTld = { tld: string; currency: string; register: number | null; transfer: number | null; renew: number | null; promo: string; registerUrl: string };
 
 export type AgentData = {
   cat: Catalog; site: string; currency: string; currencies: string[]; defaultCurrency: string;
   company: string; phone: string; email: string; locations: string[];
   categories: AgentCategory[]; products: AgentProduct[];
+  /** published Business services shop entries (empty while the shop is unpublished) */
+  services?: AgentService[];
 };
 
 export const siteOf = (cat: Catalog) => String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
@@ -117,11 +129,23 @@ export async function agentData(currency?: string | null): Promise<AgentData> {
     };
   }).filter((c) => c.productCount > 0);
   const locations = [...new Set(products.map((p) => p.location).filter(Boolean) as string[])].sort();
+  const shop = storeView(cat);
+  const services: AgentService[] = shop.live ? shop.items.map((i) => {
+    const low = products.filter((p) => p.category?.slug === i.cat.slug && p.from).sort((a, b) => (a.from!.perMonth ?? a.from!.price) - (b.from!.perMonth ?? b.from!.price))[0];
+    return {
+      slug: i.cat.slug, name: i.name, section: i.entry.section, sectionName: shop.sections.find((x) => x.slug === i.entry.section)?.name || '',
+      summary: i.entry.blurb || i.description, url: site + i.href,
+      availability: i.status === 'live' ? 'plans' : i.status === 'quote' ? 'quote' : 'coming_soon',
+      productCount: i.priced.length, from: low?.from ? { price: low.from.price, cycle: low.from.cycle, currency: cur } : null,
+      quoteUrl: i.external || i.status === 'live' && i.entry.kind !== 'service' ? null : `${site}${i.href}#quote`,
+    };
+  }) : [];
+  for (const c of categories) { const sv = services.find((x) => x.slug === c.slug); if (sv) c.section = sv.section; }
   return {
     cat, site, currency: cur, currencies, defaultCurrency: def,
     company: 'GlobalHostia',
     phone: String(cat.settings.phone || DEFAULT_PHONE).trim(), email: String(cat.settings.email || DEFAULT_EMAIL).trim(),
-    locations, categories, products,
+    locations, categories, products, services,
   };
 }
 

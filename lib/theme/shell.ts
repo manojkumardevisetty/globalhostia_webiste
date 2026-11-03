@@ -42,6 +42,14 @@ export const FONT_PRELOADS = ['inter-latin-400-normal', 'manrope-latin-800-norma
 /** WebMCP (in-browser agents): load the tool registrations only where the browser exposes modelContext; nothing loads elsewhere. */
 const WEBMCP_LOADER = `<script>if(document.modelContext||navigator.modelContext){var w=document.createElement("script");w.src="${asset('/hp/webmcp.js')}";w.defer=true;document.head.appendChild(w)}</script>`;
 const safeKey = (k: string) => k.replace(/[^a-z0-9_-]/gi, '');
+/** Website AI assistant (public/hp/ai-chat.js, lib/ai/*): CSS + JS load only after the page has loaded and the browser is
+ *  idle, so they never compete with first paint. Switched off in Admin > AI assistant (settings.ai_chat_public.enabled). */
+function aiChatLoader(s: Record<string, any>, currency: string) {
+  const pub = s.ai_chat_public && typeof s.ai_chat_public === 'object' ? s.ai_chat_public : {};
+  if (pub.enabled === false) return '';
+  const cfg = JSON.stringify({ cur: currency }).replace(/</g, '\\u003c');
+  return `<script>window.GH_AI=${cfg};addEventListener("load",function(){var go=function(){var l=document.createElement("link");l.rel="stylesheet";l.href="${asset('/hp/ai-chat.css')}";document.head.appendChild(l);var j=document.createElement("script");j.src="${asset('/hp/ai-chat.js')}";j.defer=true;document.head.appendChild(j)};"requestIdleCallback"in window?requestIdleCallback(go,{timeout:5000}):setTimeout(go,3000)})</script>`;
+}
 /** Logo: 2x WebP (scripts/build-assets.mjs) with the original PNG as fallback. */
 const logo = (tone: 'black' | 'white', w: number, h: number, lazy = false) =>
   `<picture><source type="image/webp" srcset="/hp/img/opt/logo-main-${tone}-356.webp"><img src="/image/logo-main-${tone}.png" alt="Globalhostia" width="${w}" height="${h}"${lazy ? ' loading="lazy"' : ''}></picture>`;
@@ -214,6 +222,7 @@ ${waFloat(s, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.path)}
 ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=original')}"><i aria-hidden="true"></i>Theme preview · switch back to the current site</a>` : ''}
 <script src="${asset('/hp/theme.js')}" defer></script>
 ${WEBMCP_LOADER}
+${aiChatLoader(s, cat.currency)}
 <script src="${asset('/hp/track.js')}" defer></script>
 ${hasPromo(promo) ? `${promoDataScript(promo)}<script src="${asset('/hp/promo.js')}" defer></script>` : ''}
 ${js.map((k) => `<script src="${asset(`/hp/pages/${k}.js`)}" defer></script>`).join('\n')}

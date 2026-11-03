@@ -7,6 +7,7 @@ import { whmcsConfigured } from '@/lib/whmcs';
 import { fullTicket, plainText, supportSettings, supportStatuses } from '@/lib/support-notify';
 import { replyTicket, setTicketStatus } from '../actions';
 import { ticketTone, priorityTone } from '../tones';
+import TicketAiCard from '../../assistant/TicketAiCard';
 
 export const metadata = { title: 'Ticket' };
 export const dynamic = 'force-dynamic';
@@ -71,6 +72,8 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
           );
         })}
       </ol>
+
+      <TicketAiCard id={id} />
 
       <Card title="Reply" className="mt-6">
         {!cfg.adminUsername && <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Set your WHMCS admin username on the <Link className="font-semibold underline" href="/admin/support">Support page</Link> before replying.</p>}

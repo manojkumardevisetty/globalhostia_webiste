@@ -8,6 +8,7 @@ import { deriveSpecs, fromPrice, expandCategories, type Catalog, type TProduct, 
 import { available } from './ui';
 import { CLAIMED, TYPE_PAGE, routeForCategory, type TldBlurb } from './sitelinks';
 import { ROUTES } from './routes';
+import { storeHref } from '../store/view';
 
 /* ------------------------------------------------------------------ helpers */
 export const siteOf = (cat: Catalog) => String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
@@ -545,6 +546,9 @@ export const PSEO_REDIRECTS: Record<string, string> = {
  */
 export function coveredBy(cat: Catalog, slug: string): string | null {
   if (CLAIMED.has(slug)) return routeForCategory(slug);
+  // categories the published Business services shop lists live at /business-services/<slug> (lib/store/view.ts)
+  const shop = storeHref(cat, slug);
+  if (shop) return shop;
   const c = cat.categories.find((x) => x.slug === slug);
   const own = cat.products.filter((p) => p.categorySlug === slug);
   if (!c || !own.length) return null;

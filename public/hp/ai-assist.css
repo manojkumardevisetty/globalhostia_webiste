@@ -1,0 +1,39 @@
+/* GlobalHostia customer assistant widget (public/hp/ai-assist.js). Inline block; fills its container. */
+.ghas{--s-brand:#c5386f;--s-brand-d:#a6225f;--s-ink:#16212b;--s-text:#23313d;--s-muted:#5a6774;--s-line:#e6e9ee;--s-bg:#f6f7f9;
+  display:flex;flex-direction:column;min-height:380px;height:100%;background:#fff;border:1px solid var(--s-line);border-radius:18px;overflow:hidden;
+  font:15px/1.5 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--s-text)}
+.ghas *{box-sizing:border-box}
+.ghas button,.ghas input,.ghas textarea{font:inherit;color:inherit}
+.ghas-head{display:flex;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--s-line)}
+.ghas-hex{display:inline-grid;width:34px;height:34px;flex:none}.ghas-hex svg{width:100%;height:100%}
+.ghas-head b{display:block;font:800 15px/1.2 "Manrope",system-ui,sans-serif;color:var(--s-ink)}
+.ghas-head small{font-size:12.5px;color:var(--s-muted)}
+.ghas-log{flex:1;overflow-y:auto;padding:14px;background:var(--s-bg)}
+.ghas-msg{display:flex;margin:0 0 10px}.ghas-msg--me{justify-content:flex-end}
+.ghas-bub{max-width:88%;padding:9px 12px;border-radius:14px;background:#fff;border:1px solid var(--s-line);overflow-wrap:anywhere}
+.ghas-msg--me .ghas-bub{background:var(--s-ink);border-color:var(--s-ink);color:#fff}
+.ghas-bub p{margin:0 0 .5em}.ghas-bub p:last-child{margin:0}.ghas-bub ul{margin:.2em 0 .5em;padding-inline-start:1.2em}
+.ghas-bub a{color:var(--s-brand);font-weight:600}.ghas-bub code{padding:1px 5px;border-radius:6px;background:var(--s-bg);font-size:.9em;overflow-wrap:anywhere}
+.ghas-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ghas-chip{min-height:36px;padding:6px 12px;border:1px solid var(--s-line);border-radius:999px;background:#fff;font-weight:600;font-size:13.5px;cursor:pointer}
+.ghas-chip:hover{border-color:var(--s-brand);color:var(--s-brand-d)}
+.ghas-card{margin:0 0 12px;padding:14px;border:1px solid var(--s-brand);border-radius:14px;background:#fff;box-shadow:0 0 0 1px var(--s-brand) inset}
+.ghas-card.is-done{border-color:var(--s-line);box-shadow:none}
+.ghas-card h5{margin:0 0 4px;font:800 15px/1.25 "Manrope",system-ui,sans-serif;color:var(--s-ink)}
+.ghas-card p{margin:0 0 8px;font-size:13.5px}
+.ghas-card dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0 0 10px;font-size:13.5px}
+.ghas-card dt{color:var(--s-muted)}.ghas-card dd{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;overflow-wrap:anywhere}
+.ghas-fields label{display:grid;gap:4px;margin:0 0 8px;font-size:13px;font-weight:600}
+.ghas-fields input{min-height:40px;padding:8px 11px;border:1px solid var(--s-line);border-radius:10px}
+.ghas-fields input:focus,.ghas-input:focus{outline:none;border-color:var(--s-brand);box-shadow:0 0 0 3px rgba(197,56,111,.15)}
+.ghas-row{display:flex;gap:8px;flex-wrap:wrap}
+.ghas-btn{min-height:38px;padding:0 14px;border:0;border-radius:10px;background:var(--s-brand);color:#fff;font-weight:700;cursor:pointer}
+.ghas-btn:hover{background:var(--s-brand-d)}.ghas-btn:disabled{opacity:.55;cursor:default}
+.ghas-btn--ghost{background:#fff;color:var(--s-ink);border:1px solid var(--s-line)}.ghas-btn--ghost:hover{background:var(--s-bg)}
+.ghas-status{min-height:1em;color:var(--s-muted)}
+.ghas-form{display:flex;gap:8px;align-items:flex-end;padding:10px;border-top:1px solid var(--s-line)}
+.ghas-input{flex:1;min-height:42px;max-height:120px;padding:10px 12px;border:1px solid var(--s-line);border-radius:12px;background:var(--s-bg);resize:none}
+.ghas-send{display:inline-grid;place-items:center;width:42px;height:42px;border:0;border-radius:12px;background:var(--s-brand);color:#fff;cursor:pointer}
+.ghas-send svg{width:20px;height:20px}.ghas-send:disabled{background:#c9cfd6}
+.ghas button:focus-visible{outline:3px solid var(--s-ink);outline-offset:2px}
+@media (max-width:640px){.ghas-input{font-size:16px}}

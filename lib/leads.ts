@@ -12,8 +12,8 @@ export const UTM_COOKIE = 'gh_utm';
 
 export const clean = (v: unknown, max: number) => String(v ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
 export const EMAIL = /^[^\s@<>()[\]\\,;:"]{1,64}@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i;
-/** popup | footer | plan-finder | landing:<slug> */
-export const SOURCE = /^(popup|footer|plan-finder|landing:[a-z0-9-]{1,60})$/;
+/** popup | footer | plan-finder | landing:<slug> | quote:<slug> (Business services quote requests, /api/store/quote) */
+export const SOURCE = /^(popup|footer|plan-finder|landing:[a-z0-9-]{1,60}|quote:[a-z0-9-]{1,80})$/;
 
 /** "+971 50-000 0000" → "+971500000000"; '' when empty; null when invalid. */
 export function normPhone(v: unknown): string | null {
@@ -48,6 +48,7 @@ export const waChat = (phone: string, text = '') => (phone ? `https://wa.me/${ph
 /** Human label for a source value. */
 export function sourceLabel(s: string) {
   if (s.startsWith('landing:')) return `Landing page /lp/${s.slice(8)}`;
+  if (s.startsWith('quote:')) return `Quote request: ${s.slice(6)}`;
   return ({ popup: 'Pop-up', footer: 'Footer form', 'plan-finder': 'Plan finder' } as Record<string, string>)[s] || s || '—';
 }
 

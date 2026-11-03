@@ -23,7 +23,7 @@ export function leadWhere(f: LeadFilter): SQL | undefined {
   const c: (SQL | undefined)[] = [rangeWhere(f)];
   if (f.q) { const like = `%${f.q.replace(/[%_\\]/g, '\\$&')}%`; c.push(or(ilike(L.email, like), ilike(L.name, like), ilike(L.phone, like), ilike(L.interest, like), ilike(L.notes, like))); }
   if (f.status) c.push(eq(L.status, f.status));
-  if (f.source) c.push(f.source === 'landing:*' ? sql`${L.source} like 'landing:%'` : eq(L.source, f.source));
+  if (f.source) c.push(f.source === 'landing:*' ? sql`${L.source} like 'landing:%'` : f.source === 'quote:*' ? sql`${L.source} like 'quote:%'` : eq(L.source, f.source));
   if (f.utm) c.push(f.utm === '(none)' ? eq(L.utmSource, '') : eq(L.utmSource, f.utm));
   if (f.medium) c.push(f.medium === '(none)' ? eq(L.utmMedium, '') : eq(L.utmMedium, f.medium));
   if (f.campaign) c.push(f.campaign === '(none)' ? eq(L.utmCampaign, '') : eq(L.utmCampaign, f.campaign));

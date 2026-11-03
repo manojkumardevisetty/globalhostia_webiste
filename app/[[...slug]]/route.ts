@@ -13,6 +13,8 @@ import { verifySession, COOKIE } from '@/lib/auth';
 import { pageMarkdown, mdPath } from '@/lib/agents/markdown';
 import { GET as aiPage } from '../ai/route';
 import { onDeploy } from '@/lib/indexnow';
+import { ALIAS_PATHS, HUB_PATH } from '@/lib/store/config';
+import { storeRedirect } from '@/lib/store/view';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +79,14 @@ async function render(req: NextRequest, ctx: { params: Promise<{ slug?: string[]
   // /category/<slug> of a category another page already sells → that page (lib/theme/pseo.ts coveredBy)
   if (segs.length === 2 && segs[0].toLowerCase() === 'category') {
     const to = await getCatalog().then((cat) => categoryRedirect(cat, segs[1].toLowerCase())).catch(() => '');
+    if (to) return NextResponse.redirect(new URL(to, req.url), 301);
+  }
+  // Business services shop: /store → /business-services; /business-services/<slug> of a section, or of a category a
+  // hand-written page sells (SSL, business email), → that section on the hub or that page (lib/store/view.ts)
+  const s0 = segs[0]?.toLowerCase();
+  if (s0 && segs.length <= 2 && ALIAS_PATHS.includes('/' + s0)) return NextResponse.redirect(new URL(HUB_PATH + (segs[1] ? '/' + segs[1].toLowerCase() : ''), req.url), 301);
+  if (s0 === 'business-services' && segs.length === 2) {
+    const to = await getCatalog().then((cat) => storeRedirect(cat, segs[1].toLowerCase())).catch(() => '');
     if (to) return NextResponse.redirect(new URL(to, req.url), 301);
   }
   if (/\.html?$/i.test(path)) return NextResponse.redirect(new URL(path.replace(/\/?index\.html?$/i, '/').replace(/\.html?$/i, ''), req.url), 301);

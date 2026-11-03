@@ -8,6 +8,8 @@ import { available, fromText } from './ui';
 import { productsFor, categoryProducts, minFrom, pricedTlds, whmcsLinks, currencyPrefix, type Catalog } from './data';
 import { CLAIMED, TYPE_ICON, TYPE_MENU, categoryHref, prettyName, FOOTER_EXTRA_DEFAULTS } from './sitelinks';
 import { coveredBy } from './pseo';
+import { storeView } from '../store/view';
+import { HUB_PATH, sectionAnchor } from '../store/config';
 
 export type MenuItem = { label: string; href: string; icon: string; desc?: string; cats?: string[]; soon?: boolean;
   /** set on items added automatically from a category (getMenu) */
@@ -186,6 +188,17 @@ export function getMenu(cat: Catalog): ThemeMenu[] {
       const g = m.groups.find((gr) => gr.items.some((i) => i.cats?.some((s) => cat.categories.find((c) => c.slug === s)?.type === fam))) || m.groups[m.groups.length - 1];
       if (g) g.items.push(item); else m.groups.push({ title: 'More', items: [item] });
     }
+  }
+  // Business services shop (Admin → Business services): when published, a group in the Business tools menu with the hub and
+  // its sections; label and on/off are shop settings. Skipped when the menu already links the hub (custom menus).
+  const shop = storeView(cat);
+  if (shop.live && shop.cfg.inNav && !menus.some((m) => m.groups.some((g) => g.items.some((i) => String(i.href).split('#')[0] === HUB_PATH)))) {
+    const m = menus.find((x) => x.id === 'business') || menus.find((x) => !/support/i.test(x.id)) || menus[0];
+    const secs = shop.sections.filter((x) => x.items.length || x.bundles.length);
+    if (m) m.groups.push({ title: shop.cfg.menuLabel, items: [
+      { label: `All ${shop.cfg.menuLabel.toLowerCase()}`, href: HUB_PATH, icon: 'store', desc: clip(shop.cfg.lead || 'Security, email, website tools and setup services.') },
+      ...secs.slice(0, 5).map((x) => ({ label: x.name, href: sectionAnchor(x.slug), icon: x.icon, desc: clip(x.description) })),
+    ] });
   }
   // a saved custom menu predates the domain broker page: add it to the Domains menu unless it's already linked anywhere
   if (valid(raw) && !menus.some((m) => m.groups.some((g) => g.items.some((i) => String(i.href).startsWith('/domain-broker'))))) {

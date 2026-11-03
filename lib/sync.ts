@@ -9,6 +9,7 @@ import { parseWhmcsPricing, features } from './pricing';
 import { getSettings, setSetting } from './settings';
 import { enrichment } from './enrich-core.mjs';
 import legacyDetails from '../legacy/product-details.json';
+import { parseStoreConfig, matchEntry, storeSlugs } from './store/config';
 
 const slugify = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'product';
 const groupSlugFromUrl = (u?: string) => u?.match(/\/store\/([\w-]+)\//)?.[1];
@@ -43,13 +44,24 @@ export async function syncProducts(trigger = 'manual') {
     const oldPrices = new Map<string, string>();
     for (const r of await db.select().from(schema.productPrices)) oldPrices.set(r.productId, (oldPrices.get(r.productId) || '') + '|' + priceKey(r));
     const slugs = new Set(existing.map((p) => p.slug));
+    // Business services shop (Admin → Business services): a WHMCS group whose store slug matches a shop category's group
+    // names (MarketConnect "sitelock" → Website Security …) goes to that category instead of a new one. A category already
+    // linked to another gid (admin remap) is left alone.
+    const shop = parseStoreConfig(s.business_services);
+    const shopSlugs = storeSlugs(shop);
+    const shopCategory = (gslug: string | undefined, gid: number) => {
+      const e = gslug ? matchEntry(shop, { slug: gslug }) : null;
+      const c = e ? bySlug.get(e.slug) : undefined;
+      return c && (c.whmcsGroupId == null || c.whmcsGroupId === gid) ? c : undefined;
+    };
 
     for (const wp of list) {
       try {
         const pid = Number(wp.pid), gid = Number(wp.gid);
         // category: match by store URL group slug, then by remembered WHMCS gid, else create
         const gslug = groupSlugFromUrl(wp.product_url);
-        let cat = (gslug && bySlug.get(gslug)) || byGid.get(gid);
+        const owned = byGid.get(gid);
+        let cat = (owned && shopSlugs.has(owned.slug) ? owned : undefined) || (gslug && bySlug.get(gslug)) || owned || shopCategory(gslug, gid);
         if (!cat) {
           const slug = gslug || `whmcs-group-${gid}`;
           [cat] = await db.insert(schema.categories).values({ slug, name: slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()), whmcsGroupId: gid })
