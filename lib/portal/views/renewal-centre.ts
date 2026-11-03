@@ -103,6 +103,7 @@ export function renewalCentreView(o: {
     ${stat('/account/invoices?status=Unpaid', t('Unpaid invoices'), 'card', o.unpaid.ok ? money(unpaidTotal, unpaidCur) : '—', o.unpaid.ok ? tn(unpaid.length, '{n} invoice', '{n} invoices') : t('Could not check'), unpaid.length > 0)}
   </div>`;
 
+  // the one "pay everything" button lives in the page header (frame headAction); the band below only explains it
   const payAll = unpaid.length ? ssoButton(o.csrf, 'masspay', undefined, t('Pay all unpaid invoices'), { variant: 'brand', ic: 'card' }) : '';
 
   const alerts: string[] = [];
@@ -110,8 +111,7 @@ export function renewalCentreView(o: {
   if (!o.unpaid.ok) alerts.push(`<div class="ac-alert ac-alert--warn" role="status">${icon('alert')}<span>${esc(t("We couldn't check for unpaid invoices, so open invoices may not be shown."))} <a href="/account/invoices?status=Unpaid">${esc(t('Open billing'))}</a></span></div>`);
   if (unpaid.length) {
     alerts.push(`<div class="ac-rn__due ac-rw__due${unpaid.some((i) => /\d/.test(String(i.duedate)) && Date.parse(String(i.duedate).slice(0, 10)) < Date.now() - 86400000) ? ' is-overdue' : ''}">
-      <div><small class="ac-k">${esc(t('Unpaid invoices'))}</small><b class="num">${esc(money(unpaidTotal, unpaidCur))}</b><small>${esc(tn(unpaid.length, '{n} invoice', '{n} invoices'))} · ${esc(t('paid together in one secure checkout'))}</small></div>
-      ${payAll}</div>`);
+      <div><small class="ac-k">${esc(t('Unpaid invoices'))}</small><b class="num">${esc(money(unpaidTotal, unpaidCur))}</b><small>${esc(tn(unpaid.length, '{n} invoice', '{n} invoices'))} · ${esc(t('paid together in one secure checkout'))}</small></div></div>`);
   }
 
   const shown = groups.filter((g) => g.rows.length);

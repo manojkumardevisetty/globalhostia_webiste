@@ -86,7 +86,7 @@ export function loginView(s: LoginState) {
       <p class="au-sub">${esc(t('Use the email address and password on your Globalhostia account.'))}</p>
       ${alert ? `<div class="ac-gap">${alert}</div>` : ''}
       ${signInForm({ email: s.email, next: s.next, autofocusPw: !!s.email && !!s.error, invalid: s.error === 'invalid' || s.error === 'noclient' })}
-      <div class="au-links"><a href="/account/forgot">${esc(t('Forgot your password?'))}</a><a href="/sign-up">${esc(t('Create an account'))}</a></div>
+      <div class="au-links"><a href="/sign-up">${esc(t('Create an account'))}</a></div>
       <p class="au-secure">${icon('lock')}<span>${t('You stay signed in for up to 8 hours on this device. Use <b>Sign out</b> in the account menu on shared computers.')}</span></p>`,
   });
 }

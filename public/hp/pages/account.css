@@ -339,7 +339,7 @@ select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
   .ac-grid,.ac-grid--detail{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:960px){
-  .ac{display:block;padding:16px 16px 144px}
+  .ac{display:block;padding:16px 16px 40px}
   .ac-side{display:none}
   .ac-tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;z-index:45;left:0;right:0;bottom:0;background:rgba(255,255,255,.97);border-top:1px solid var(--line);padding:4px 4px calc(4px + env(safe-area-inset-bottom));backdrop-filter:blur(8px)}
   .ac-tabbar a{display:grid;justify-items:center;gap:3px;min-height:54px;padding:7px 2px 4px;border-radius:var(--r-sm);font-size:11.5px;font-weight:600;color:var(--muted)}
@@ -349,8 +349,10 @@ select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
   .ac-page:not(.ac-page--guest) .hp-footer{padding-bottom:72px}
   .ac-hero .hp-container{grid-template-columns:minmax(0,1fr)!important}
   .ac-hero__a{justify-content:flex-start}
-  .ac-stats.hp-stats--4{grid-template-columns:1fr 1fr}
 }
+/* four compact tiles in a row down to tablet width (theme switches to 2x2 at 960px) */
+@media (min-width:721px){ .ac-stats.hp-stats--4{grid-template-columns:repeat(4,minmax(0,1fr))} }
+@media (max-width:720px){ .ac-stats.hp-stats--4{grid-template-columns:1fr 1fr} }
 @media (max-width:640px){
   .ac-hero{padding:16px 0 20px}
   .ac-hero .hp-container{gap:14px}
@@ -583,6 +585,8 @@ select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 .ac-dns__n small{font-size:12px;color:var(--muted);overflow-wrap:anywhere;font-weight:400}
 /* the value column takes the remaining width and long unbroken values (DKIM keys) wrap inside it */
 .ac-dns__v{min-width:0;width:100%;max-width:0}
+.ac-dns__rec>th{min-width:160px}
+.ac-dns__rec>td:nth-child(4),.ac-dns__rec>td:nth-child(5),.ac-dns__t thead th{white-space:nowrap}
 .ac-dns__v .ac-mono{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;max-width:52ch;font-size:13.5px;line-height:1.45;word-break:break-all}
 .ac-dns__v .ac-copy{margin-top:6px}
 .ac-dns__meta{display:block;margin-top:3px;font-size:12px;color:var(--muted)}
@@ -641,6 +645,11 @@ select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 .ac-dns__extf{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line)}
 .ac-dns__extf>p{flex:1;min-width:220px;font-size:14px;color:var(--muted)}
 @container (max-width:900px){
+  /* tablet table: icon-only row buttons (labels stay for screen readers) so the value column keeps its width */
+  .ac-dns__rec>th{min-width:128px}
+  .ac-dns__act .ac-dns__ib{width:40px;min-height:40px;padding:0;justify-content:center}
+  .ac-dns__act .ac-dns__ib>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  .ac-dns__t th,.ac-dns__t td{padding-left:12px;padding-right:12px}
   .ac-dns__tpl{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ac-dns__grid{grid-template-columns:110px minmax(0,1fr) 130px}
   .ac-dns__grid .ac-dns__fv{grid-column:1/-1;grid-row:2}
@@ -665,8 +674,11 @@ select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
   .ac-dns__rec>td:nth-child(4)::before,.ac-dns__rec>td:nth-child(5)::before{content:attr(data-l);color:var(--muted)}
   .ac-dns__rec>td:nth-child(4):has(.ac-muted){display:none}
   .ac-dns__rec>.ac-dns__act{grid-area:ac;display:flex;gap:8px;text-align:left;margin-top:6px}
-  .ac-dns__act .ac-dns__ib{flex:1;justify-content:center;min-height:42px;margin:0!important}
+  .ac-dns__act .ac-dns__ib{flex:1;width:auto;justify-content:center;min-height:44px;padding:0 10px;margin:0!important}
+  .ac-dns__act .ac-dns__ib>span{position:static;width:auto;height:auto;overflow:visible;clip:auto}
   .ac-dns__n{max-width:none}
+  .ac-dns__rec>th{min-width:0}
+  .ac-dns__v{max-width:none}
   .ac-dns__v .ac-mono{max-width:none}
   .ac-dns__panel>td{display:block;padding:14px 16px 16px!important}
   .ac-dns__foot,.ac-dns__none{padding-left:16px;padding-right:16px}
@@ -696,7 +708,8 @@ select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 /* ------------------------------------------------ renewal centre (/account/renewals) */
 .ac-rw{display:grid;gap:18px}
 .ac-rw>.ac-alert{margin:0}
-.ac-rw__due{margin:0;background:#fff}
+.ac-rw__due{margin:0;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.ac-rw__due.is-overdue{border-color:#f6cdc8}
 .ac-rwg .ac-card__head{min-height:60px}
 .ac-rwg__t{display:flex;align-items:center;gap:12px;min-width:0}
 .ac-rwg__all{width:18px;height:18px;margin:0;accent-color:var(--brand)}
@@ -1143,10 +1156,14 @@ html.ghas-lock .ac-ask,html.ghas-on .ac-ask{display:none}
   /* above the bottom tab bar */
   .ac-ask{bottom:calc(76px + env(safe-area-inset-bottom));inset-inline-end:14px}
 }
-@media (max-width:640px){
+@media (max-width:960px){
+  /* phones and tablets: icon only, so the button never sits over a row of content */
   .ac-ask{min-height:48px;padding:0 6px;width:48px;justify-content:center}
   [dir=rtl] .ac-ask{padding:0 6px}
   .ac-ask span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* the footer's last lines scroll clear of the tab bar and the floating buttons above it */
+  .ac-page:not(.ac-page--guest) .hp-footer{padding-bottom:calc(140px + env(safe-area-inset-bottom))}
+  .ac-page:has(.ac-ask:not([hidden])) .hp-footer{padding-bottom:calc(196px + env(safe-area-inset-bottom))}
 }
 @media (prefers-reduced-motion:reduce){.ac-ask{animation:none!important;transition:none}}
 
