@@ -34,6 +34,7 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   tld: () => import('./pages/tld'),
   location: () => import('./pages/location'),
   usecase: () => import('./pages/usecase'),
+  broker: () => import('./pages/broker'),
 };
 
 /** Returns themed HTML, or null when this URL isn't part of the theme (caller falls back to the original theme). */

@@ -133,9 +133,11 @@ export async function callTool(name: string, a: Args, ip: string, domainLimit: (
       const r = await checkDomain(domain, str(a, 'currency', 3));
       if (!r.ok) { const { ok: _o, status: _s, ...body } = r; return { ...textOf(r.message, body), isError: true }; }
       const { ok: _o, ...body } = r;
+      const broker = r.available ? '' : `${(await dataFor(a)).site}/domain-broker?domain=${encodeURIComponent(r.domain)}`;
       return textOf(r.available
         ? `${r.domain} is available. Registration ${r.register !== null ? `${r.register.toFixed(2)} ${r.currency} for the first year` : 'price shown in cart'}${r.renew !== null ? `, renews at ${r.renew.toFixed(2)} ${r.currency}/year` : ''}. Add to cart: ${r.addToCartUrl}`
-        : `${r.domain} is already registered.`, body);
+        : `${r.domain} is already registered. Taken? Request our broker: ${broker}`,
+        r.available ? body : { ...body, request_domain_broker: broker });
     }
     case 'get_order_link': {
       const slug = str(a, 'slug', 121, true)!.toLowerCase();

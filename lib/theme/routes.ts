@@ -103,6 +103,9 @@ export const ROUTES: Record<string, RouteDef> = {
   'plan-finder': { kind: 'planfinder', title: 'Plan finder: which hosting do I need?', description: 'Answer four quick questions and get a hosting, VPS or server recommendation from our live catalog, with real prices and two alternatives.' },
   'free-migration': { kind: 'migration', title: 'Free website migration', description: 'Moving from another host? Our engineers copy your website, databases and email to Globalhostia for free, with no downtime. Request a migration in two minutes.' },
   'ae-domains': { kind: 'aedomains', title: '.ae Domains: register your UAE domain', description: 'Register a .ae domain for your UAE business. Live .ae price, eligibility requirements and help with the paperwork from a Dubai-based team.' },
+  'domain-broker': { kind: 'broker', title: 'Domain broker service', description: 'The domain you want is taken? A dedicated broker contacts the owner anonymously, negotiates within your budget and secures the transfer through escrow.',
+    seoTitle: 'Domain Broker Service: Buy a Taken Domain',
+    meta: 'Buy a taken or premium domain: anonymous owner outreach, negotiation within your budget and escrow transfer. A fixed fee to start and a commission only if the deal closes.' },
   'data-centers': { kind: 'datacenters', title: 'Data centers and network locations', description: 'Where our hosting, VPS and dedicated servers run, and a live test of the round-trip time from your browser to our network.' },
   'web-hosting-dubai': { kind: 'uae', title: 'Web Hosting in Dubai', description: 'Web hosting from a Dubai-based company: NVMe plans with free SSL, prices in AED, a price-locked renewal and support by WhatsApp and ticket around the clock.', categories: H },
   'vps-uae': { kind: 'uae', title: 'VPS Hosting UAE', description: 'Linux and Windows VPS for UAE businesses: dedicated vCPU and RAM, NVMe storage, root access and engineers on WhatsApp 24/7. Live prices in AED or USD.', categories: ['hostiavps', 'high-performance-vps'] },
@@ -114,7 +117,7 @@ export const ROUTES: Record<string, RouteDef> = {
 };
 
 /** Pages that only exist in the Hostpen theme: always rendered by it, whatever the site theme (like /blog). */
-export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS]);
+export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-broker']);
 
 /**
  * Programmatic SEO pages (lib/theme/pseo.ts): /domains/<tld>, /locations/<loc>, /<type>/<loc>, /hosting-for[/<usecase>].

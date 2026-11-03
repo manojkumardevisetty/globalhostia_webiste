@@ -53,6 +53,13 @@ export function trustStrip(s: Partial<Settings>, o: { tone?: 'tint' | 'light' | 
   return `<section class="hp-trustbar hp-trustbar--${o.tone || 'tint'}" aria-label="Why customers choose Globalhostia"${o.id ? ` id="${esc(o.id)}"` : ''}><div class="hp-container"><ul style="--n:${on.length}">${items}</ul></div></section>`;
 }
 
+/** Small "Domain taken? Our broker can get it" card linking to /domain-broker (domain search sections). Fee from settings. */
+export function brokerCard(s: Partial<Settings>, o: { domain?: string; dark?: boolean } = {}) {
+  const fee = Number.isFinite(parseFloat(String(s.broker_fee_usd))) ? parseFloat(String(s.broker_fee_usd)) : 79;
+  const href = `/domain-broker${o.domain ? `?domain=${encodeURIComponent(o.domain)}` : ''}`;
+  return `<aside class="hp-brokercard${o.dark ? ' hp-brokercard--dark' : ''}" aria-label="Domain broker service"><span class="hp-brokercard__i">${icon('key')}</span><div class="hp-brokercard__t"><b>Domain taken? Our broker can try to buy it.</b><span>We contact the owner anonymously and negotiate within your budget. $${fee} to start, commission only if the deal closes.</span></div><a class="hp-brokercard__a" href="${esc(href)}">Want this domain? Ask our broker${icon('arrow')}</a></aside>`;
+}
+
 /** Digits-only WhatsApp number (settings.whatsapp, else the phone). */
 export const waNumber = (s: Partial<Settings>) => String(s.whatsapp || s.phone || '').replace(/[^\d]/g, '');
 export const waLink = (s: Partial<Settings>, text: string) => { const n = waNumber(s); return n ? `https://wa.me/${n}?text=${encodeURIComponent(text)}` : ''; };

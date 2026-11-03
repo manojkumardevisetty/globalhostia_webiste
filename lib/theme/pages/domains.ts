@@ -5,7 +5,7 @@ import { esc } from '../../render/util';
 import { money } from '../../pricing';
 import { getCatalog, pricedTlds, currencyPrefix, domainCartUrl, type TTld } from '../data';
 import { page } from '../shell';
-import { trustStrip } from '../growth';
+import { trustStrip, brokerCard } from '../growth';
 import {
   breadcrumbs, breadcrumbJsonLd, domainSearch, sectionHead, splitHead, featureGrid, faq, faqJsonLd, ctaBand, ld, icon, link, trustRow,
 } from '../ui';
@@ -61,6 +61,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
         typing: ['yourbrand.com', 'freshbakery.shop', 'launchpad.io', 'studio.live', 'greenleaf.org', 'nextidea.ai'],
         note: `First-year prices in ${currency}. Pick an extension, or type the full name like yourbrand.net.` })}</div>
       ${trustRow(['DNS management included', 'Renewal price shown upfront', 'Manage everything in one client area'])}
+      <div class="dom-broker" style="max-width:880px;margin:0 auto;text-align:left">${brokerCard(cat.settings, { dark: true, domain: /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(q.trim()) ? q.trim().toLowerCase() : '' })}</div>
     </div>
   </div>
 </section>`;

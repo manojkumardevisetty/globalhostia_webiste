@@ -111,7 +111,9 @@ const portal = {
   GetTicket: (p) => { const t = tickets[Number(p.ticketid)] || err('Ticket ID Not Found'); return { ...ticketSummary(t), ticketid: t.ticketid, replies: { reply: t.replies } }; },
   GetSupportDepartments: () => ({ totalresults: departments.length, departments: { department: departments } }),
   OpenTicket: (p) => {
-    const id = nextTicket++, c = clients[Number(p.clientid)] || err('Client ID Not Found');
+    // guest tickets (website forms send name + email, no clientid)
+    const guest = !p.clientid && p.email ? { id: 0, firstname: p.name || 'Guest', lastname: '' } : null;
+    const id = nextTicket++, c = guest || clients[Number(p.clientid)] || err('Client ID Not Found');
     const d = departments.find((x) => x.id === Number(p.deptid)) || err('Department ID not found');
     tickets[id] = { ticketid: id, id, tid: 'GHX-' + id, deptid: d.id, deptname: d.name, userid: c.id, date: now(), subject: p.subject, status: 'Open', priority: p.priority, lastreply: now(),
       replies: [{ replyid: 0, userid: c.id, name: `${c.firstname} ${c.lastname}`, date: now(), message: p.message, admin: '' }] };
@@ -157,7 +159,11 @@ const handlers = {
   GetStats: () => ({ income_today: '$120.00', income_thismonth: '$4,210.00', orders_pending: 3, orders_today_total: 5, tickets_open: 2, tickets_awaitingreply: 1 }),
   GetOrders: () => ({ totalresults: 1, orders: { order: [{ id: 501, ordernum: '8812', date: '2026-10-30 10:00:00', name: 'Test Client', amount: '5.99', paymentmethod: 'stripe', paymentstatus: 'Paid', status: 'Pending', userid: 7 }] } }),
   GetPromotions: () => ({ promotions: { promotion: [{ id: 1, code: 'WELCOME10', type: 'Percentage', value: '10.00', uses: 4, maxuses: 0, expirationdate: '0000-00-00' }] } }),
-  AddProduct: () => ({ pid: 999 }),
+  AddProduct: (p) => {
+    const pid = 999 + products.filter((x) => x.pid >= 999).length;
+    if (p.name) products.push({ pid, gid: Number(p.gid) || 0, type: p.type || 'other', name: p.name, description: p.description || '', module: '', paytype: p.paytype || 'onetime', hidden: 1, pricing: {} });
+    return { pid };
+  },
   ...portal,
 };
 

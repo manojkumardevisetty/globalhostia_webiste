@@ -4,7 +4,7 @@ import { esc } from '../../render/util';
 import { money } from '../../pricing';
 import { getCatalog, productsFor, minFrom, pricedTlds, currencyPrefix, deriveSpecs, type TProduct, type FromPrice } from '../data';
 import { page } from '../shell';
-import { trustStrip } from '../growth';
+import { trustStrip, brokerCard } from '../growth';
 import { getLatestPosts, postPath, fmtPostDate } from '../../blog';
 import { postCard } from './blog';
 import {
@@ -87,7 +87,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   ]);
 
   /* ---------------- domain search ---------------- */
-  const domain = `<section class="hp-domain" aria-labelledby="domain-q-h"><div class="hp-container">${domainSearch({ tlds, base, moreHref: '/domains-registration', prefix })}</div></section>`;
+  const domain = `<section class="hp-domain" aria-labelledby="domain-q-h"><div class="hp-container">${domainSearch({ tlds, base, moreHref: '/domains-registration', prefix })}${brokerCard(cat.settings)}</div></section>`;
 
   /* ---------------- plans ---------------- */
   const vpsByOs = new Map<string, TProduct[]>();

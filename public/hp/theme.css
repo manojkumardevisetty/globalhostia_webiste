@@ -807,3 +807,21 @@ html,body{overflow-x:clip}
 @media (max-width:600px){.hp-util .hp-u-left .num,.hp-util .hp-u-lbl{display:none}.hp-util a,.hp-util .hp-u-item{gap:6px;padding:0 4px}.hp-util .hp-container{gap:8px}}
 /* very tall blocks (e.g. 700-row price table) must never stay hidden waiting for a reveal */
 .hp-mo .dom-grid[data-reveal],.hp-mo .dom-table-wrap [data-reveal]{opacity:1;transform:none}
+
+/* Domain broker card (lib/theme/growth.ts brokerCard) */
+.hp-brokercard{display:flex;align-items:center;gap:14px 18px;margin-top:16px;padding:16px 20px;border-radius:var(--r);background:#fff;border:1px solid var(--line);box-shadow:0 12px 30px -24px rgba(22,33,43,.4)}
+.hp-brokercard__i{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--brand-tint);color:var(--brand-d)}
+.hp-brokercard__t{flex:1 1 auto;min-width:0}
+.hp-brokercard__t b{display:block;font:700 15.5px/1.3 var(--head);color:var(--ink)}
+.hp-brokercard__t span{display:block;margin-top:2px;font-size:14px;color:var(--muted)}
+.hp-brokercard__a{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--brand);color:var(--brand-d);font:700 14.5px/1 var(--body);text-decoration:none;transition:background-color .15s,color .15s}
+.hp-brokercard__a:hover{background:var(--brand);color:#fff}
+.hp-brokercard__a .hp-ico{width:16px;height:16px}
+.hp-brokercard--dark{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16);box-shadow:none}
+.hp-brokercard--dark .hp-brokercard__i{background:rgba(253,215,0,.14);color:var(--gold)}
+.hp-brokercard--dark .hp-brokercard__t b{color:#fff}
+.hp-brokercard--dark .hp-brokercard__t span{color:var(--on-dark-mute)}
+.hp-brokercard--dark .hp-brokercard__a{border-color:rgba(255,255,255,.5);color:#fff}
+.hp-brokercard--dark .hp-brokercard__a:hover{background:#fff;color:var(--ink)}
+@media (max-width:720px){.hp-brokercard{flex-wrap:wrap}.hp-brokercard__t{flex-basis:calc(100% - 60px)}.hp-brokercard__a{width:100%;justify-content:center}}
+@media (prefers-reduced-motion:reduce){.hp-brokercard__a{transition:none}}

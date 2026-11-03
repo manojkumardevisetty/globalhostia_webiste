@@ -14,7 +14,7 @@ export default async function Domains({ searchParams }: { searchParams: Promise<
   const rows = await db.select().from(schema.tlds).where(sp.q ? ilike(schema.tlds.tld, `%${sp.q}%`) : undefined).orderBy(desc(schema.tlds.featured), asc(schema.tlds.sortOrder), asc(schema.tlds.tld));
   return (
     <>
-      <PageHeader title="Domains & TLDs" desc="Prices come from WHMCS (GetTLDPricing). Control which extensions are shown, featured or promoted." actions={<form action={runSync}><input type="hidden" name="kind" value="tlds" /><button className="btn btn-primary">Sync TLD prices</button></form>} />
+      <PageHeader title="Domains & TLDs" desc="Prices come from WHMCS (GetTLDPricing). Control which extensions are shown, featured or promoted." actions={<><a href="/admin/domains/broker" className="btn btn-secondary">Broker requests</a><form action={runSync}><input type="hidden" name="kind" value="tlds" /><button className="btn btn-primary">Sync TLD prices</button></form></>} />
       <Flash sp={sp} />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

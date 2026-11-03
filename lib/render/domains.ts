@@ -54,7 +54,8 @@ export async function domainResults(q: string, tlds: Tld[], suggest: string[], i
         ${tl.promo ? `<span class="gh-tag">${esc(tl.promo)}</span>` : ''}</div>
       <div class="text-right">${c.ok ? `<span class="coodiv-text-8 font-weight-bold mr-4">${price}</span><small class="d-none d-md-inline mr-4 text-muted">${renew}</small>
         <a class="btn btn-primary btn-sm" href="${esc(domainCartUrl(c.name))}">Add to cart</a>`
-        : !c.err ? `<a class="btn btn-outline-secondary btn-sm" href="${esc(domainCartUrl(c.name, 'transfer'))}">Transfer</a>` : ''}</div></div>`;
+        : !c.err ? `<a class="btn btn-outline-secondary btn-sm" href="${esc(domainCartUrl(c.name, 'transfer'))}">Transfer</a>
+        <a class="btn btn-link btn-sm" href="/domain-broker?domain=${esc(encodeURIComponent(c.name))}" title="Domain taken? Our brokers can get it">Want this domain? Our broker can try to buy it &rarr;</a>` : ''}</div></div>`;
   });
   return wrap(`<h3 class="coodiv-text-6 font-weight-bold mb-6">Results for “${esc(n.sld + (n.tld || ''))}”</h3>${rows.join('')}`);
 }

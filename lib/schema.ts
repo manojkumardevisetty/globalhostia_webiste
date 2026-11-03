@@ -305,3 +305,34 @@ export const landingPages = pgTable('landing_pages', {
 
 export type Lead = typeof leads.$inferSelect;
 export type LandingPage = typeof landingPages.$inferSelect;
+
+// Domain Broker Service requests (/domain-broker → /api/broker-request). Created by db-setup patch '018-broker'.
+export const brokerRequests = pgTable('broker_requests', {
+  id: id(),
+  ref: text('ref').notNull().unique(),
+  domain: text('domain').notNull(),
+  budgetMin: numeric('budget_min', { precision: 14, scale: 2 }),
+  budgetMax: numeric('budget_max', { precision: 14, scale: 2 }),
+  currency: text('currency').notNull().default('USD'),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone').notNull().default(''),
+  notes: text('notes').notNull().default(''),
+  use: text('use').notNull().default(''),
+  status: text('status').notNull().default('new'),
+  assigned: text('assigned').notNull().default(''),
+  ownerContactedAt: timestamp('owner_contacted_at', { withTimezone: true }),
+  agreedPrice: numeric('agreed_price', { precision: 14, scale: 2 }),
+  commission: numeric('commission', { precision: 14, scale: 2 }),
+  outcomeNotes: text('outcome_notes').notNull().default(''),
+  ticketId: text('ticket_id').notNull().default(''),
+  ticketNum: text('ticket_num').notNull().default(''),
+  utmSource: text('utm_source').notNull().default(''),
+  utmMedium: text('utm_medium').notNull().default(''),
+  utmCampaign: text('utm_campaign').notNull().default(''),
+  referrer: text('referrer').notNull().default(''),
+  ipHash: text('ip_hash').notNull().default(''),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [index('broker_status_idx').on(t.status, t.createdAt)]);
+export type BrokerRequest = typeof brokerRequests.$inferSelect;

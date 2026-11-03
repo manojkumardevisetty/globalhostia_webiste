@@ -378,6 +378,19 @@ try {
             ${JSON.stringify(lp.faq)}::jsonb, ${lp.ctaLabel}, 'DRAFT') on conflict (slug) do nothing`;
       }
     },
+    // 18. Domain Broker Service: request pipeline table + fee settings (owner's pricing; pid filled by ensureBrokerProduct).
+    '018-broker': async (tx) => {
+      await tx`create table if not exists broker_requests (
+        id text primary key, ref text not null unique, domain text not null, budget_min numeric(14,2), budget_max numeric(14,2),
+        currency text not null default 'USD', name text not null, email text not null, phone text not null default '', notes text not null default '',
+        use text not null default '', status text not null default 'new', assigned text not null default '', owner_contacted_at timestamptz,
+        agreed_price numeric(14,2), commission numeric(14,2), outcome_notes text not null default '', ticket_id text not null default '',
+        ticket_num text not null default '', utm_source text not null default '', utm_medium text not null default '', utm_campaign text not null default '',
+        referrer text not null default '', ip_hash text not null default '', created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      await tx`create index if not exists broker_status_idx on broker_requests (status, created_at)`;
+      for (const [k, v] of Object.entries({ broker_fee_usd: 79, broker_commission_pct: 15, broker_min_commission_usd: 100, broker_whmcs_pid: '', broker_department_id: '' }))
+        await tx`insert into settings (key,value) values (${k},${JSON.stringify(v)}::jsonb) on conflict (key) do nothing`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;
