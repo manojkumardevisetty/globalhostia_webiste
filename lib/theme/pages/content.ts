@@ -357,7 +357,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const L = whmcsLinks(cat.base);
   const slug = ctx.slug;
   const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
-  const company = String(s.company || 'GlobalHostia');
+  const company = 'GlobalHostia';
   const legal = slug === 'privacy-policy' || slug === 'terms-conditions';
   const status = slug === 'status-page' || slug === 'incident-history' || slug === 'incident-post';
   const help = slug === 'help-center' || slug === 'all-topics';

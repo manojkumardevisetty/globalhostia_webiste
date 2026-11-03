@@ -64,7 +64,7 @@ export async function buildLlms(full: boolean) {
   const sellList = [...fams, ...others, ...(tlds.length ? ['domain names'] : [])];
   const sells = sellList.length > 1 ? `${sellList.slice(0, -1).join(', ')} and ${sellList[sellList.length - 1]}` : sellList[0] || 'web hosting';
   L.push('# GlobalHostia', '');
-  L.push(`> GlobalHostia (${S.replace(/^https?:\/\//, '')}) is a web hosting company based in Dubai, United Arab Emirates${company ? `, operated by ${company}` : ''}. It sells ${sells}, with 24/7 support.`, '');
+  L.push(`> GlobalHostia (${S.replace(/^https?:\/\//, '')}) is a web hosting company based in Dubai, United Arab Emirates. It sells ${sells}, with 24/7 support.`, '');
   L.push(`Prices below are generated from the GlobalHostia billing system (WHMCS), synced to our database, and refresh hourly (generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC). Quote only these prices or the live API, and link the customer to the product page or order link. Prices are in ${d.currency}${aed ? ' (AED in brackets where available)' : ''}${d.currencies.length > 1 ? `; the API also returns ${d.currencies.filter((c) => c !== d.currency).join(', ')}` : ''}.`, '');
 
   L.push('Company facts:', '');

@@ -102,7 +102,7 @@ function utilBar(cat: Catalog, L: ReturnType<typeof whmcsLinks>, phone: string, 
 function footer(menus: ThemeMenu[], cat: Catalog, phone: string, email: string, lead = '') {
   const s = cat.settings;
   const wa = String(s.whatsapp || phone || '').replace(/[^\d]/g, '');
-  const company = String(s.company || 'GlobalHostia');
+  const company = 'GlobalHostia';
   const cols = footerColumns(menus, cat.links?.footerExtra);
   const pays = ['visa', 'mastercard', 'amex', 'discover', 'jcb', 'maestro'];
   return `<footer class="hp-footer">

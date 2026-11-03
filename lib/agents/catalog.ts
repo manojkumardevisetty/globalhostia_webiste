@@ -119,7 +119,7 @@ export async function agentData(currency?: string | null): Promise<AgentData> {
   const locations = [...new Set(products.map((p) => p.location).filter(Boolean) as string[])].sort();
   return {
     cat, site, currency: cur, currencies, defaultCurrency: def,
-    company: String(cat.settings.company || '').trim(),
+    company: 'GlobalHostia',
     phone: String(cat.settings.phone || DEFAULT_PHONE).trim(), email: String(cat.settings.email || DEFAULT_EMAIL).trim(),
     locations, categories, products,
   };

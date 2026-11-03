@@ -54,7 +54,7 @@ export async function renderPage(slug: string, opts: { preview: boolean; query: 
   const { page, secs, blocks, cats, prods, tlds } = data;
   const base = (s.whmcs_base_url || process.env.WHMCS_BASE_URL || 'https://globalhostia.com/secure').replace(/\/$/, '');
   const vars: Record<string, string> = {
-    site_name: s.site_name, phone: s.phone, email: s.email, company: s.company, year: String(new Date().getFullYear()),
+    site_name: s.site_name, phone: s.phone, email: s.email, company: 'GlobalHostia', year: String(new Date().getFullYear()),
     whmcs_url: base, cart_url: `${base}/cart.php`, login_url: `${base}/clientarea.php`, register_url: `${base}/register.php`,
   };
   const pctx = { currency: s.currency || 'USD', defaultCycle: s.default_cycle || 'auto', orderLabel: s.order_button_label || 'Order Now', cartBase: base };
@@ -113,7 +113,7 @@ export function siteVars(s: Settings) {
   const base = (s.whmcs_base_url || process.env.WHMCS_BASE_URL || 'https://globalhostia.com/secure').replace(/\/$/, '');
   return {
     base,
-    vars: { site_name: s.site_name, phone: s.phone, email: s.email, company: s.company, year: String(new Date().getFullYear()),
+    vars: { site_name: s.site_name, phone: s.phone, email: s.email, company: 'GlobalHostia', year: String(new Date().getFullYear()),
       whmcs_url: base, cart_url: `${base}/cart.php`, login_url: `${base}/clientarea.php`, register_url: `${base}/register.php` } as Record<string, string>,
   };
 }

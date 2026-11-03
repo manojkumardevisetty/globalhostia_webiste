@@ -119,7 +119,7 @@ export function siteJsonLd(s: Partial<Settings>, whmcsBase: string) {
   const base = String(whmcsBase || '').replace(/\/$/, '');
   const org = {
     '@type': 'Organization', '@id': `${site}/#organization`, name, ...(alt && alt !== name ? { alternateName: alt } : {}),
-    url: `${site}/`, ...(s.company ? { legalName: String(s.company) } : {}),
+    url: `${site}/`, 
     logo: { '@type': 'ImageObject', url: `${site}/icon-512.png`, width: 512, height: 512 },
     image: `${site}/og/default.png`,
     email, telephone: phone,

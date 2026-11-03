@@ -208,7 +208,7 @@ export function globalFooter(): string {
 </p>
 <p style="margin:0 0 6px;">Support: <a href="mailto:${BRAND.support}" style="color:${C.ink};text-decoration:none;">${BRAND.support}</a> &nbsp;&middot;&nbsp; ${BRAND.phone}</p>
 <p style="margin:0 0 6px;">Web hosting &middot; VPS &amp; dedicated servers &middot; Domains &middot; SSL &middot; Business email</p>
-<p style="margin:0;">&copy; ${BRAND.name} &middot; a brand of ${BRAND.company} &middot; ${BRAND.city}.<br>You received this email because of an account or order with ${BRAND.name}.</p>
+<p style="margin:0;">&copy; ${BRAND.name} &middot; ${BRAND.city}.<br>You received this email because of an account or order with ${BRAND.name}.</p>
 </td></tr>
 </table>
 <!--[if mso]></td></tr></table><![endif]-->

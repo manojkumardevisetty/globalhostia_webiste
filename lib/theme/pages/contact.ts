@@ -16,7 +16,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const phone = String(s.phone || ''), email = String(s.email || '');
   const waNum = String(s.whatsapp || phone || '').replace(/[^\d]/g, '');
   const wa = (text: string) => (waNum ? `https://wa.me/${waNum}?text=${encodeURIComponent(text)}` : '');
-  const company = String(s.company || 'GlobalHostia');
+  const company = 'GlobalHostia';
   const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
   const crumbs = [{ label: 'Home', href: '/' }, { label: 'Contact us' }];
 
@@ -81,7 +81,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     <figure class="ct-office__img" data-reveal>${picture({ src: '/hp/img/contact-team.jpg', sizes: '(max-width: 900px) calc(100vw - 32px), 600px' })}</figure>
     <div class="ct-office__txt" data-reveal>
       <h2 class="hp-hline" id="ct-office-h">Our office in Dubai</h2>
-      <p class="hp-lead">Globalhostia is operated by ${esc(company)}, based in Dubai, United Arab Emirates. Our team looks after customers and servers around the world from here.</p>
+      <p class="hp-lead">GlobalHostia is based in Dubai, United Arab Emirates. Our team looks after customers and servers around the world from here.</p>
       <dl class="ct-facts">
         <div><dt>${icon('pin')}Office</dt><dd>Dubai, UAE</dd></div>
         <div><dt>${icon('award')}Company</dt><dd>${esc(company)}</dd></div>
@@ -100,7 +100,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     { q: 'What is the fastest way to get technical help?', a: 'Open a support ticket from your client area. The engineer sees your services and account straight away, and you can follow every reply in one place. For urgent issues you can also call us.' },
     { q: 'Can I get a quote for a custom server or a large project?', a: 'Yes. Contact sales by WhatsApp, email or phone with what you need, such as the workload, traffic and preferred location, and we will recommend a configuration with its price.' },
     { q: 'Do I need an account to contact you?', a: 'No. Anyone can call, email or message us on WhatsApp. To open a ticket about an existing service, sign in first so we can find it quickly.' },
-    { q: 'Where is Globalhostia based?', a: `Globalhostia is operated by ${company} in Dubai, United Arab Emirates.` },
+    { q: 'Where is Globalhostia based?', a: 'GlobalHostia is based in Dubai, United Arab Emirates.' },
     { q: 'How do I ask about an invoice or a refund?', a: 'Sign in to your client area to view invoices, or open a ticket for the billing team with the invoice number so we can check it.' },
   ];
   const faqHtml = `<section class="hp-section" aria-labelledby="ct-faq-h"><div class="hp-container ct-faq">
@@ -112,7 +112,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     primary: { label: 'Compare hosting plans', href: '/web-hosting' }, secondary: { label: 'Open a ticket', href: L.ticket } });
 
   const contactLd = ld({ '@context': 'https://schema.org', '@type': 'ContactPage', name: 'Contact Globalhostia', url: `${site}/contact`,
-    mainEntity: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`, legalName: company, address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' },
+    mainEntity: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`, address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' },
       contactPoint: ['sales', 'technical support', 'billing support'].map((t) => ({ '@type': 'ContactPoint', contactType: t, ...(phone ? { telephone: phone } : {}), ...(email ? { email } : {}), availableLanguage: ['English'] })) } });
 
   return page({

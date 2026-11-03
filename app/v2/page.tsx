@@ -212,7 +212,7 @@ export default async function V2Home() {
           ))}
         </div>
         <div className="border-t border-line">
-          <p className="mx-auto max-w-[1240px] px-5 py-6 text-sm text-ink-2 sm:px-8">© {new Date().getFullYear()} GlobalHostia, operated by {s.company}. All rights reserved.</p>
+          <p className="mx-auto max-w-[1240px] px-5 py-6 text-sm text-ink-2 sm:px-8">© {new Date().getFullYear()} GlobalHostia. All rights reserved.</p>
         </div>
       </footer>
     </div>

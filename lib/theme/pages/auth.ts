@@ -30,7 +30,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const s = cat.settings;
   const mode = (['sign-in', 'sign-up', 'forget-password'].includes(ctx.slug) ? ctx.slug : 'sign-in') as Mode;
   const host = cat.base.replace(/^https?:\/\//, '');
-  const company = String(s.company || 'GlobalHostia');
+  const company = 'GlobalHostia';
   const phone = String(s.phone || ''), email = String(s.email || '');
   const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
   const crumbs = [{ label: 'Home', href: '/' }, { label: ctx.route.title }];
