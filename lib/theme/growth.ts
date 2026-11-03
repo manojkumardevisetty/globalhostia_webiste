@@ -13,7 +13,7 @@ export const TRUST_DEFAULTS: TrustPoint[] = [
   { id: 'money-back', text: '30-day money-back on shared hosting', on: true, icon: 'refresh' },
   { id: 'migration', text: 'Free website migration', on: true, icon: 'move', href: '/free-migration' },
   { id: 'support', text: '24/7 engineers by ticket & WhatsApp', on: true, icon: 'headset' },
-  { id: 'payments', text: 'Pay by card or crypto', on: true, icon: 'card' },
+  { id: 'payments', text: 'Pay by card or crypto', on: false, icon: 'card' },
 ];
 
 function parse(raw: unknown): unknown {
