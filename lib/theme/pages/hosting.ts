@@ -3,6 +3,7 @@
 // then a "Which plan fits?" finder that reads plan capacities from the synced features.
 import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
+import { picture } from '../img';
 import { money } from '../../pricing';
 import { getCatalog, productsFor, minFrom, fromPrice, orderUrl, deriveSpecs, currencyPrefix, type TProduct } from '../data';
 import { page } from '../shell';
@@ -209,7 +210,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     <div class="ho-mig__intro" data-reveal>
       <h2 id="mig-h" class="hp-hline hp-h2">Moving from another host? We do the heavy lifting.</h2>
       <p class="hp-lead">Migration is free with every hosting plan. Your current site stays online the whole time, and you only switch once the copy is checked.</p>
-      <figure class="ho-mig__img"><img src="/hp/img/hosting-migrate.jpg" alt="Two developers reviewing a website on their monitors" width="1200" height="800" loading="lazy" decoding="async"></figure>
+      <figure class="ho-mig__img">${picture({ src: '/hp/img/hosting-migrate.jpg', alt: 'Two developers reviewing a website on their monitors', sizes: '(max-width: 900px) calc(100vw - 32px), 600px' })}</figure>
     </div>
     <ol class="ho-tl" data-ho-tl>${steps.map((s, i) => `<li class="ho-tl__step" data-reveal style="--i:${i}"><span class="ho-tl__n num" aria-hidden="true">${i + 1}</span><div><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p></div></li>`).join('')}</ol>
   </div></section>`;

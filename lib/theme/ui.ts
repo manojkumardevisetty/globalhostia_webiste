@@ -6,6 +6,7 @@ import { deriveSpecs, SPEC_LABEL } from '../render/specs';
 import { CYCLE_MONTHS, money } from '../pricing';
 import { cycles, orderUrl, fromPrice, type TTld } from './data';
 import type { RProduct } from '../render/products';
+import { picture, HERO_BG_SIZES } from './img';
 
 /* ------------------------------------------------------------------ icons */
 // Lucide-style 24px stroke icons, emitted once as a sprite by the shell; icon() references them.
@@ -149,7 +150,7 @@ export function pageHero(o: {
 }) {
   const solo = !o.visualHtml;
   return `<section class="hp-hero hp-hero--page${solo ? ' is-solo' : ''}"${o.network === false ? '' : ' data-network'}${o.id ? ` id="${esc(o.id)}"` : ''}>
-  ${o.image ? `<img class="hp-hero__bg" src="${esc(o.image)}" alt="" fetchpriority="high" decoding="async">` : ''}<div class="hp-hero__hex" aria-hidden="true"></div>
+  ${o.image ? picture({ src: o.image, className: 'hp-hero__bg', priority: true, sizes: HERO_BG_SIZES }) : ''}<div class="hp-hero__hex" aria-hidden="true"></div>
   <div class="hp-container">
     <div class="hp-hero__copy">
       ${o.crumbs?.length ? breadcrumbs(o.crumbs) : ''}
@@ -296,7 +297,7 @@ function planCard(p: RProduct, i: number, hl: boolean, ctx: PriceCtx, views: Vie
   return `<article class="hp-plan${hl ? ' is-hl' : ''}" data-reveal style="--i:${i % 4}">${badge ? `<span class="hp-badge${soft ? ' hp-badge--soft' : ''}">${esc(badge)}</span>` : ''}
   <div class="hp-plan__top"><h3>${esc(p.name)}</h3><p class="hp-plan__sub">${esc(sub)}</p>${pv.html}</div>
   <div class="hp-plan__body">${featureList(p.features)}</div>
-  <div class="hp-plan__foot"><a class="hp-btn hp-btn--${hl ? 'brand' : 'ghost'}" href="${esc(pv.href)}"${pv.attrs} aria-label="${esc(`${label}: ${p.name}`)}">${esc(label)}</a>${o.details === false ? '' : `<a class="hp-link" href="/p/${esc(p.slug)}">View details</a>`}</div>
+  <div class="hp-plan__foot"><a class="hp-btn hp-btn--${hl ? 'brand' : 'ghost'}" href="${esc(pv.href)}"${pv.attrs} aria-label="${esc(`${label}: ${p.name}`)}">${esc(label)}</a>${o.details === false ? '' : `<a class="hp-link" href="/p/${esc(p.slug)}" aria-label="${esc(`View details: ${p.name}`)}">View details</a>`}</div>
 </article>`;
 }
 
@@ -309,7 +310,7 @@ function featuredCard(p: RProduct, ctx: PriceCtx, views: Views, def: string | un
   return `<article class="hp-pfeature" data-reveal>
   <div class="hp-pfeature__main">${p.badge ? `<span class="hp-badge">${esc(p.badge)}</span>` : ''}<h3>${esc(p.name)}</h3>${p.tagline ? `<p class="hp-plan__sub">${esc(p.tagline)}</p>` : ''}
     ${pv.html}
-    <div class="hp-actions"><a class="hp-btn hp-btn--light" href="${esc(pv.href)}"${pv.attrs}>${esc(unpriced ? 'See price and order' : o.orderLabel || 'Order now')}</a>${o.details === false ? '' : `<a class="hp-btn hp-btn--outline" href="/p/${esc(p.slug)}">View details</a>`}</div>
+    <div class="hp-actions"><a class="hp-btn hp-btn--light" href="${esc(pv.href)}"${pv.attrs}>${esc(unpriced ? 'See price and order' : o.orderLabel || 'Order now')}</a>${o.details === false ? '' : `<a class="hp-btn hp-btn--outline" href="/p/${esc(p.slug)}" aria-label="${esc(`View details: ${p.name}`)}">View details</a>`}</div>
   </div>
   <div class="hp-pfeature__side">
     ${rows.length ? `<dl class="hp-specs">${rows.map(([k, v]) => `<div><dt>${esc(SPEC_LABEL[k])}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
@@ -556,7 +557,7 @@ export function testimonials(o: { score?: string; label?: string; reviews: { quo
   const star = '<svg aria-hidden="true"><use href="#i-star"/></svg>';
   return `${o.score ? `<div class="hp-rating"><div class="hp-rating__score num">${esc(o.score)}<small>/5</small></div><div><div class="hp-stars" aria-hidden="true">${star.repeat(5)}</div><strong>${esc(o.label || 'Excellent')}</strong><p>Average customer rating</p></div></div>` : ''}
   <div class="hp-tst" data-carousel aria-roledescription="carousel" aria-label="Customer reviews">${o.reviews.map((r, i) =>
-    `<div class="hp-tst__item${i ? '' : ' is-on'}" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${o.reviews.length}">${r.sample !== false ? '<span class="hp-sample">Sample review, to be replaced with a verified customer review</span>' : ''}<blockquote>${esc(r.quote)}</blockquote><div class="hp-who">${r.avatar ? `<img src="${esc(r.avatar)}" alt="" width="44" height="44" loading="lazy">` : ''}<div><b>${esc(r.who)}</b>${r.meta ? `<span>${esc(r.meta)}</span>` : ''}</div></div></div>`).join('')}
+    `<div class="hp-tst__item${i ? '' : ' is-on'}" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${o.reviews.length}">${r.sample !== false ? '<span class="hp-sample">Sample review, to be replaced with a verified customer review</span>' : ''}<blockquote>${esc(r.quote)}</blockquote><div class="hp-who">${r.avatar ? `${picture({ src: r.avatar, width: 44, height: 44, sizes: '44px' })}` : ''}<div><b>${esc(r.who)}</b>${r.meta ? `<span>${esc(r.meta)}</span>` : ''}</div></div></div>`).join('')}
     ${o.reviews.length > 1 ? `<div class="hp-tst__nav"><button type="button" data-step="-1" aria-label="Previous review">${icon('left')}</button><button type="button" data-step="1" aria-label="Next review">${icon('right')}</button></div>` : ''}
   </div>`;
 }
@@ -566,7 +567,7 @@ export const colHead = (t: string) => `<h2 class="hp-col-h"><i aria-hidden="true
 
 /** Article teaser rows (help center). */
 export const articleList = (items: { title: string; meta?: string; href: string; image?: string }[]) =>
-  items.map((a) => `<a class="hp-art" href="${esc(a.href)}">${a.image ? `<img src="${esc(a.image)}" alt="" width="104" height="78" loading="lazy">` : '<span></span>'}<div><h3>${esc(a.title)}</h3>${a.meta ? `<p>${esc(a.meta)}</p>` : ''}</div></a>`).join('');
+  items.map((a) => `<a class="hp-art" href="${esc(a.href)}">${a.image ? `${picture({ src: a.image, width: 104, height: 78, sizes: '104px' })}` : '<span></span>'}<div><h3>${esc(a.title)}</h3>${a.meta ? `<p>${esc(a.meta)}</p>` : ''}</div></a>`).join('');
 
 /** "Prices shown live" note row under pricing. */
 export const plansNote = (currency = 'USD', rightHtml = '') =>
@@ -576,6 +577,7 @@ export const plansNote = (currency = 'USD', rightHtml = '') =>
 export const section = (inner: string, o: { id?: string; cls?: string; label?: string; labelledby?: string; dark?: boolean; tint?: boolean } = {}) =>
   `<section class="hp-section${o.dark ? ' hp-section--dark hp-on-dark' : ''}${o.tint ? ' hp-section--tint' : ''}${o.cls ? ' ' + esc(o.cls) : ''}"${o.id ? ` id="${esc(o.id)}"` : ''}${o.labelledby ? ` aria-labelledby="${esc(o.labelledby)}"` : o.label ? ` aria-label="${esc(o.label)}"` : ''}><div class="hp-container">${inner}</div></section>`;
 
+/** image: decorative backdrop (alt="", role=presentation). Only slide 0 loads with the page; theme.js loads the others when shown. */
 export type Slide = { kicker: string; title: string; text: string; image: string; imageW?: number; imageH?: number; ctas: Cta[]; fromHtml?: string; dot?: string };
 /** Homepage hero carousel: full-bleed image slides with a white card, progress dots, network canvas.
  *  The first slide's title is the page <h1>; others are <h2>. */
@@ -583,7 +585,7 @@ export function heroSlider(slides: Slide[], o: { label?: string; interval?: numb
   return `<section class="hp-hero" data-hero-slider data-network${o.interval ? ` data-interval="${o.interval}"` : ''} aria-roledescription="carousel" aria-label="${esc(o.label || 'Featured products')}">
   <div class="hp-hero__hex" aria-hidden="true"></div>
   ${slides.map((s, i) => `<div class="hp-slide${i ? '' : ' is-active'}" id="hp-slide-${i}" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${slides.length}">
-    <img class="hp-slide__img" src="${esc(s.image)}" alt="" width="${s.imageW || 1920}" height="${s.imageH || 1280}"${i ? ' loading="lazy"' : ' fetchpriority="high"'} decoding="async">
+    ${picture({ src: s.image, className: 'hp-slide__img', width: s.imageW, height: s.imageH, priority: !i, deferred: !!i })}
     <div class="hp-container hp-slide__inner"><div class="hp-hcard">
       <span class="hp-kicker"><i aria-hidden="true"></i>${esc(s.kicker)}</span>
       <${i ? 'h2' : 'h1'} data-words>${esc(s.title)}</${i ? 'h2' : 'h1'}>

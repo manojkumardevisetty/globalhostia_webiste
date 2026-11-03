@@ -2,6 +2,7 @@
 // "how reselling works" flow with animated connectors, a revenue calculator (no invented costs), plans or waitlist.
 import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
+import { picture } from '../img';
 import { money } from '../../pricing';
 import { getCatalog, productsFor, minFrom, currencyPrefix, whmcsLinks } from '../data';
 import { page } from '../shell';
@@ -98,7 +99,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const feats = `<section class="hp-section hp-section--tint" aria-labelledby="feat-h"><div class="hp-container">
     ${splitHead({ id: 'feat-h', title: 'Run a hosting business without running servers', lead: 'You handle sales and your clients. We look after hardware, networks, security patches and backups.' })}
     <div class="rs-feat">
-      <figure class="rs-feat__img" data-reveal><img src="/hp/img/reseller-agency.jpg" alt="A web agency team working together on laptops" width="1200" height="804" loading="lazy" decoding="async"></figure>
+      <figure class="rs-feat__img" data-reveal>${picture({ src: '/hp/img/reseller-agency.jpg', alt: 'A web agency team working together on laptops', sizes: '(max-width: 900px) calc(100vw - 32px), 600px' })}</figure>
       ${featureGrid([
         { icon: 'tag', title: 'White label', text: 'Your company name on the panel and your own nameservers. We stay invisible to your clients.' },
         { icon: 'grid', title: 'Separate cPanel per client', text: 'Each client gets their own control panel, files and email, isolated from the others.' },

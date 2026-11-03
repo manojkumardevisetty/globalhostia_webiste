@@ -7,12 +7,13 @@
 /* server chip */
 .pd-chip{position:absolute;inset:6% 6% 10%;width:88%;height:84%}
 .pd-trace{fill:none;stroke:rgba(255,255,255,.16);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.pd-pulse{fill:none;stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:14 400;stroke-dashoffset:0;opacity:.9}
+.pd-pulse{fill:none;stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.35}
 .pd-pins rect{fill:#8a98a6}
 .pd-core{fill:rgba(197,56,111,.28);stroke:rgba(225,76,127,.7);stroke-width:1.2}
-.hp-mo .pd-pulse{animation:pd-flow 2.8s linear infinite;animation-delay:var(--d,0s)}
+.hp-mo .pd-pulse{opacity:0;animation:pd-flow 2.8s ease-in-out infinite;animation-delay:var(--d,0s)}
 .hp-mo .pd-core{animation:pd-glow 3.2s ease-in-out infinite}
-@keyframes pd-flow{from{stroke-dashoffset:0}to{stroke-dashoffset:-414}}
+/* traces light up in turn: opacity only (stroke-dashoffset cannot run on the compositor) */
+@keyframes pd-flow{0%,100%{opacity:0}30%{opacity:.9}65%{opacity:0}}
 @keyframes pd-glow{0%,100%{opacity:.55}50%{opacity:1}}
 .pd-tag{position:absolute;display:flex;align-items:center;gap:10px;max-width:56%;padding:10px 14px 10px 10px;border-radius:12px;background:rgba(22,33,43,.82);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(6px);box-shadow:0 18px 40px -20px rgba(0,0,0,.6)}
 .pd-tag small{display:block;font:600 11.5px/1.2 var(--body);color:var(--on-dark-mute)}

@@ -39,7 +39,17 @@
     if(hasIO) new IntersectionObserver(function(es){inview=es[es.length-1].isIntersecting;upd()}).observe(el);
     D.addEventListener("visibilitychange",upd);
   }
-  HP.loop=loop; HP.once=once; HP.pauseOff=pauseOff;
+  // run fn when the main thread is idle (after first paint), at the latest after t ms
+  var ric = W.requestIdleCallback ? function(fn,t){ W.requestIdleCallback(fn,{timeout:t||2000}) } : function(fn){ setTimeout(fn,200) };
+  function idle(fn,t){ ric(function(){ try{fn()}catch(e){ if(W.console) console.error(e) } },t) }
+  // idle, but only after the load event (decorative work that must not compete with the page's own requests)
+  function afterLoad(fn){ if(D.readyState==="complete") idle(fn); else W.addEventListener("load",function(){idle(fn)}) }
+  // fn once el comes within ~1 screen of the viewport (set-up work for below-the-fold widgets)
+  function near(el,fn){
+    if(!hasIO){idle(fn);return}
+    var o=new IntersectionObserver(function(es){ if(es[es.length-1].isIntersecting){o.disconnect();fn()} },{rootMargin:"600px 0px"}); o.observe(el);
+  }
+  HP.loop=loop; HP.once=once; HP.pauseOff=pauseOff; HP.idle=idle; HP.near=near; HP.afterLoad=afterLoad;
 
   /* ---------- preview: keep ?theme=hostpen while browsing ---------- */
   (function(){
@@ -67,7 +77,7 @@
   var header=$(".hp-header");
   if(header){
     var onScroll=function(){header.classList.toggle("is-scrolled",W.scrollY>40)};
-    W.addEventListener("scroll",onScroll,{passive:true}); onScroll();
+    W.addEventListener("scroll",onScroll,{passive:true}); raf(onScroll);
   }
 
   /* ---------- WhatsApp float: step aside while it sits over a button, link or field ---------- */
@@ -82,7 +92,7 @@
       wa.classList.toggle("is-dodge",hit);
     };
     var reqDodge=function(){ if(!waT){waT=true; requestAnimationFrame(dodge)} };
-    W.addEventListener("scroll",reqDodge,{passive:true}); W.addEventListener("resize",reqDodge); setTimeout(dodge,300);
+    W.addEventListener("scroll",reqDodge,{passive:true}); W.addEventListener("resize",reqDodge); afterLoad(dodge);
   }
 
   /* ---------- mega menus (hover intent, click, keyboard) ---------- */
@@ -212,7 +222,11 @@
     var btns=$$('[role="tab"],[role="radio"]',box), ind=$(".hp-tabs__ind, .hp-seg__thumb",box);
     var isTab=btns.length && btns[0].getAttribute("role")==="tab", attr=isTab?"aria-selected":"aria-checked";
     var scopeSel=box.getAttribute("data-scope"), scope=scopeSel?$(scopeSel):box.parentNode;
-    function place(b){ if(!ind||!b||!b.offsetWidth) return; ind.style.width=b.offsetWidth+"px"; ind.style.transform="translateX("+b.offsetLeft+"px)" }
+    // width snaps, only transform animates (composited). Until the first placement CSS paints the selected button itself (.hp-tabs:not(.is-ready))
+    function place(b){
+      if(!ind||!b||!b.offsetWidth) return; ind.style.width=b.offsetWidth+"px"; ind.style.transform="translateX("+b.offsetLeft+"px)";
+      if(!box.classList.contains("is-ready")) raf(function(){ box.classList.add("is-ready") });
+    }
     function select(b,focus,init){
       btns.forEach(function(x){
         var on=x===b; x.setAttribute(attr,on); x.tabIndex=on?0:-1;
@@ -250,7 +264,8 @@
     box._hpSync=function(){var c=btns.filter(function(x){return x.getAttribute(attr)==="true"})[0]; place(c)};
   }
   function resyncAll(){ $$("[data-tabs]").forEach(function(b){ if(b._hpSync) b._hpSync() }) }
-  $$("[data-tabs]").forEach(tabs);
+  // the server renders the selected tab/pane, so measuring the indicators (a forced layout) can wait for idle time
+  idle(function(){ $$("[data-tabs]").forEach(function(b){ if(!b._hpSync) tabs(b) }) },1500);
   W.addEventListener("resize",resyncAll,{passive:true});
   if(D.fonts&&D.fonts.ready) D.fonts.ready.then(resyncAll);
   W.addEventListener("load",resyncAll);
@@ -296,8 +311,7 @@
   })});
 
   /* ---------- typing placeholder: input[data-typing="a|b|c"] ---------- */
-  $$("input[data-typing]").forEach(function(q){
-    if(reduce) return;
+  if(!reduce) afterLoad(function(){ $$("input[data-typing]").forEach(function(q){
     var EX=q.getAttribute("data-typing").split("|").filter(Boolean); if(!EX.length) return;
     var basePh=q.placeholder, prefix=q.getAttribute("data-typing-prefix")||"Try ", wi=0, ci=0, dir=1, tm=0, inview=false;
     function can(){ return inview && !D.hidden && D.activeElement!==q && !q.value }
@@ -314,10 +328,10 @@
     q.addEventListener("input",function(){ q.value?stop():go() });
     D.addEventListener("visibilitychange",function(){ D.hidden?stop():go() });
     if(hasIO) new IntersectionObserver(function(es){inview=es[es.length-1].isIntersecting; inview?go():stop()}).observe(q); else {inview=true;go()}
-  });
+  }) });
 
   /* ---------- filterable product list: [data-plist] ---------- */
-  $$("[data-plist]").forEach(function(box){
+  $$("[data-plist]").forEach(function(box){ near(box,function(){
     var rows=$$(".hp-prow[data-name]",box), search=$("[data-plist-search]",box), sort=$("[data-plist-sort]",box), filters=$$("[data-plist-filter]",box),
         count=$("[data-plist-count]",box), body=$("[data-plist-body]",box), empty=$("[data-plist-empty]",box), more=$("[data-plist-more]",box),
         page=+box.getAttribute("data-page")||0, shown=page;
@@ -342,10 +356,10 @@
     [search,sort].concat(filters).forEach(function(c){ if(c) c.addEventListener(c===search?"input":"change",function(){shown=page;apply()}) });
     if(more) $("button",more).addEventListener("click",function(){shown+=page;apply()});
     apply();
-  });
+  }) });
 
-  /* ---------- scroll progress + hero parallax ---------- */
-  (function(){
+  /* ---------- scroll progress + hero parallax (measures the page: idle time) ---------- */
+  idle(function(){
     var bar=$(".hp-progress"), hero=$("[data-hero-slider]"), heroImgs=hero?$$(".hp-slide__img",hero):[], heroCards=hero?$$(".hp-hcard",hero):[];
     var maxS=1, heroH=hero?hero.offsetHeight:0, ticking=false;
     function measure(){ maxS=Math.max(1,root.scrollHeight-W.innerHeight); heroH=hero?hero.offsetHeight:0 }
@@ -364,7 +378,7 @@
     W.addEventListener("load",function(){measure();req()});
     if("ResizeObserver" in W) new ResizeObserver(function(){measure();req()}).observe(D.body);
     measure(); frame();
-  })();
+  });
 
   /* ---------- headline word reveal: [data-words] ---------- */
   $$("[data-words]").forEach(function(h){
@@ -380,15 +394,26 @@
     if(!slides.length) return;
     hero.style.setProperty("--dur",DUR+"ms");
     if(reduce) hero.classList.add("is-static");
+    // slides after the first ship data-srcset/data-src (lib/theme/img.ts): nothing is fetched until the slide is shown or its dot is pointed at
+    function hydrate(s){
+      if(!s||s._hpImg) return; s._hpImg=1;
+      $$("source[data-srcset]",s).forEach(function(x){x.srcset=x.getAttribute("data-srcset");x.removeAttribute("data-srcset")});
+      $$("img[data-src]",s).forEach(function(i){i.src=i.getAttribute("data-src");i.removeAttribute("data-src")});
+    }
     function go(n){
       n=(n+slides.length)%slides.length;
+      var prev=slides[cur]; hydrate(slides[n]);
       slides.forEach(function(s,i){var on=i===n;s.classList.toggle("is-active",on);s.setAttribute("aria-hidden",!on);if(on)s.removeAttribute("inert");else s.setAttribute("inert","")});
+      // keep the outgoing slide visible while it fades (visibility itself is never transitioned)
+      slides[n].classList.remove("is-leaving");
+      if(prev&&prev!==slides[n]){ prev.classList.add("is-leaving"); clearTimeout(prev._hpT); prev._hpT=setTimeout(function(){prev.classList.remove("is-leaving")},950) }
       dots.forEach(function(d,i){d.setAttribute("aria-current",i===n);d.classList.toggle("is-done",i<n)});
       var f=dots[n]&&$(".hp-hdot__fill",dots[n]); if(f){f.style.animation="none"; void f.offsetWidth; f.style.animation=""}
       cur=n;
     }
     dots.forEach(function(d,i){
       d.addEventListener("click",function(){go(i)});
+      ["pointerenter","focus","touchstart"].forEach(function(ev){ d.addEventListener(ev,function(){hydrate(slides[i])},{passive:true}) });
       var f=$(".hp-hdot__fill",d); if(f) f.addEventListener("animationend",function(){ if(!reduce && d.getAttribute("aria-current")==="true") go(cur+1) });
     });
     go(0);
@@ -403,12 +428,12 @@
       if(tx===null) return; var dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
       if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)) go(cur+(dx<0?1:-1)); tx=null;
     },{passive:true});
-    W.addEventListener("load",function(){$$(".hp-slide__img[loading=lazy]",hero).forEach(function(i){i.loading="eager"})});
     if(!reduce){ hero.classList.add("is-wpre"); raf(function(){raf(function(){hero.classList.remove("is-wpre")})}) }
   });
 
   /* ---------- hero network canvas: [data-network] ---------- */
-  $$("[data-network]").forEach(function(host){
+  // decorative: starts after the load event, in idle time
+  $$("[data-network]").forEach(function(host){ afterLoad(function(){
     var c=D.createElement("canvas"); c.className="hp-net"; c.setAttribute("aria-hidden","true");
     var hex=$(".hp-hero__hex",host); host.insertBefore(c, hex?hex.nextSibling:host.firstChild);
     var ctx=c.getContext("2d"); if(!ctx) return;
@@ -444,11 +469,12 @@
     size();
     if("ResizeObserver" in W) new ResizeObserver(size).observe(host); else W.addEventListener("resize",size);
     raf(function(){c.classList.add("is-on")});
-    if(!reduce) loop(host,function(dt){draw(dt)});
-  });
+    // animated only on large screens with a mouse; phones and tablets keep the still frame (main thread, battery)
+    if(!reduce && finePtr && W.matchMedia("(min-width: 1024px)").matches) loop(host,function(dt){draw(dt)});
+  }) });
 
   /* ---------- datacenter map: [data-dcmap] (data-dcs='[["USA",39,-77],..]' data-hq='["Dubai",25.2,55.3]') ---------- */
-  $$("[data-dcmap]").forEach(function(stage){
+  $$("[data-dcmap]").forEach(function(stage){ near(stage,function(){
     var cv=$("canvas",stage)||stage.appendChild(D.createElement("canvas")); cv.setAttribute("aria-hidden","true");
     var ctx=cv.getContext("2d"); if(!ctx) return;
     var HEX="00001000007ff800000000ff80000000000389f01fe000000017fffefe0083fffed60c3f80007f87ffffffffff03fffffc0c1c0400ef7ffffffffffe07fffff020080003dfffffffffff180001fff83a000000cfffffffffe04000007ffe3f0000001fffffffff80c000007fffbf800013ffffffffffe08000001ffffc00000fffffffffffe00000001ffffc00000ffd7fffffffc00000001ffff0000009383fffffff000000001fffe0000070133ffffffe000000001fffc000002007ffffffe2000000000fffc000003e00fffffff00000000003ff8000007f90fffffff00000000001f00000007ffff7fffff00000000000e0000001fffef83ffff0000000000060000001ffff7f1fbf80000000000072000001ffff3e071e00000000000006000001ffffb8060f00000000000001000001ffffc0040700000000000000100001ffffc80001000000000000003f0000fffff00000040000000000003fc00001fff00000200000000000003fe00001ffc00004600000000000007ff00001ffc00002600000000000007ffe0000ff800000003000000000003fff0000ff800000001800000000003fff00007f800000000000000000001ffe0000ff800000008000000000000ffe0000ff90000007d0000000000007fc0000ff10000007f8000000000007f800007f1000003ffc000000000007f000007e0000003ffe000000000007e000003c0000003ffe00000000000fe000003c0000001cfe00000000000f80000000000000003c00000000000f80000000000000001800000000000e00000000000000000000000000000c00000000000000000000000000001c00000000000000000000000000001800000000000000000000000000000800000000000000000000", COLS=120, ROWS=43, bits=[];
@@ -514,7 +540,7 @@
       once(stage,function(){ start=performance.now() },"0px 0px -15% 0px");
       loop(stage,function(dt,t){ draw(t,false) });
     }
-  });
+  }) });
 
   /* ---------- pointer: plan tilt + sheen, magnetic CTAs ---------- */
   if(finePtr && !reduce){
@@ -551,7 +577,8 @@
 
   /* ---------- page hooks ---------- */
   observeReveal(D);
-  var q=HP._q||[]; HP._q=null; HP.on=function(fn){ try{fn(HP)}catch(e){ if(W.console) console.error(e) } };
+  // page modules (/hp/pages/*.js) set up their widgets in idle time, after the shared above-the-fold work
+  var q=HP._q||[]; HP._q=null; HP.on=function(fn){ idle(function(){ fn(HP) },1200) };
   q.forEach(HP.on);
 })();
 
@@ -559,9 +586,16 @@
 document.addEventListener('click', function (e) { document.querySelectorAll('details.hp-cur[open]').forEach(function (d) { if (!d.contains(e.target)) d.removeAttribute('open'); }); });
 
 /* signed-in customers: swap "Client login / Sign up" for their account */
+// Only when the gh_in=1 flag cookie (set at portal sign-in, cleared at sign-out) exists; idle time, 3s timeout, silent.
 (function () {
-  try {
-    fetch('/account/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (m) {
+  if (!/(?:^|;\s*)gh_in=1(?:;|$)/.test(document.cookie)) return;
+  var ric = window.requestIdleCallback || function (f) { return setTimeout(f, 300); };
+  ric(function () { try {
+    var ac = typeof AbortController === 'function' ? new AbortController() : null;
+    var t = ac ? setTimeout(function () { ac.abort(); }, 3000) : 0;
+    fetch('/account/me', { credentials: 'same-origin', signal: ac ? ac.signal : undefined }).then(function (r) { return r.ok ? r.json() : null; }).then(function (m) {
+      clearTimeout(t);
+      if (m && m.in === false) document.cookie = 'gh_in=; Max-Age=0; Path=/; Secure; SameSite=Lax';
       if (!m || !m.in) return;
       document.querySelectorAll('a[href="/account"], a[href="/account/login"]').forEach(function (a) {
         if (/client login/i.test(a.textContent)) { a.lastChild && (a.lastChild.textContent = ' My account'); if (!a.querySelector('svg')) a.textContent = 'My account'; }
@@ -570,5 +604,5 @@ document.addEventListener('click', function (e) { document.querySelectorAll('det
         if (/^\s*sign up\s*$/i.test(a.textContent)) { a.textContent = 'Hi, ' + m.name; a.setAttribute('href', '/account'); }
       });
     }).catch(function () {});
-  } catch (e) {}
+  } catch (e) {} }, { timeout: 4000 });
 })();

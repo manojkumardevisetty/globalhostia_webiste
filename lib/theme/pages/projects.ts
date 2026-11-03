@@ -2,6 +2,7 @@
 // features by job (plan / collaborate / track), plans + comparison, setup steps with team photo, FAQ.
 import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
+import { picture } from '../img';
 import { getCatalog, productsFor, fromPrice, orderUrl, type TProduct, type Catalog } from '../data';
 import { page } from '../shell';
 import {
@@ -133,7 +134,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     ['Start managing', 'Create projects, boards and Gantt timelines, and keep every task and deadline on track.'],
   ];
   const how = `<section class="hp-section hp-section--dark hp-on-dark" id="how" aria-labelledby="how-h"><div class="hp-container pm-how">
-    <div class="pm-how__img" data-reveal><img src="/hp/img/projects-team.jpg" alt="A team planning work together around laptops" width="1051" height="701" loading="lazy" decoding="async">
+    <div class="pm-how__img" data-reveal>${picture({ src: '/hp/img/projects-team.jpg', alt: 'A team planning work together around laptops', sizes: '(max-width: 900px) calc(100vw - 32px), 600px' })}
       <div class="pm-how__badge">${icon('shield')}<span><b>Your data, your control</b>Open source core. Export your projects whenever you like.</span></div></div>
     <div>
       <h2 id="how-h" class="hp-hline hp-h2">Up and running in four steps</h2>

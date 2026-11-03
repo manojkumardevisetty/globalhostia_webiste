@@ -1,7 +1,7 @@
 // Ad landing pages /lp/<slug> (Admin → Marketing → Landing pages). Distraction-free document: minimal header
 // (logo + WhatsApp), hero with the live price from the DB, one call to action (the WHMCS order link with the
 // visitor's currency, or a domain search for TLD pages), real catalog facts only (no reviews), optional lead form,
-// trust strip, FAQ and a sticky mobile CTA. Styles: /hp/pages/lp.css (+ theme.css tokens, /hp/lead.css).
+// trust strip, FAQ and a sticky mobile CTA. Styles: /hp/pages/lp.css (+ theme.css: tokens and the lead form).
 import 'server-only';
 import { eq } from 'drizzle-orm';
 import { db, schema } from '../../db';
@@ -11,13 +11,11 @@ import { getCatalog, productsFor, productBySlug, categoryBySlug, fromPrice, orde
 import { icon, iconSprite, featureList, ld, faqJsonLd, available } from '../ui';
 import { trustStrip, waLink } from '../growth';
 import { leadForm } from '../lead';
-import { withCurrency } from '../shell';
+import { withCurrency, asset, FONT_PRELOADS } from '../shell';
 import { trackingHead, consentLink } from '../../tracking';
 import { ROBOTS_INDEX, ROBOTS_NOINDEX, ICON_LINKS, seoTitle, seoDescription, verificationMeta } from '../../seo';
 import type { LandingPage } from '../../schema';
 
-const ASSET_V = (process.env.VERCEL_GIT_COMMIT_SHA || 'dev').slice(0, 8);
-const asset = (p: string) => `${p}?v=${ASSET_V}`;
 const UNIT: Record<string, string> = { monthly: '/ month', quarterly: '/ quarter', semiannually: '/ 6 months', annually: '/ year', biennially: '/ 2 years', triennially: '/ 3 years', onetime: 'one-time' };
 
 export type Resolved =
@@ -191,10 +189,8 @@ ${verificationMeta(s)}
 ${trackingHead(s.tracking)}
 <meta name="theme-color" content="#16212b">
 ${ICON_LINKS}
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+${FONT_PRELOADS}
 <link rel="stylesheet" href="${asset('/hp/theme.css')}">
-<link rel="stylesheet" href="${asset('/hp/lead.css')}">
 <link rel="stylesheet" href="${asset('/hp/pages/lp.css')}">
 ${productLd}
 ${faqs.length ? faqJsonLd(faqs) : ''}

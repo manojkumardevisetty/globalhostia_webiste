@@ -3,6 +3,7 @@
 // business-email plans (or a sales CTA plus the real mailbox allowances of our hosting plans), setup steps, FAQ.
 import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
+import { picture } from '../img';
 import { getCatalog, productsFor, minFrom, pricedTlds, currencyPrefix, type TProduct } from '../data';
 import { page } from '../shell';
 import {
@@ -128,7 +129,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     <div class="em-setup__intro">
       <h2 id="setup-h" class="hp-hline hp-h2">Set up in an afternoon</h2>
       <p class="hp-lead">Most businesses send their first email from the new address the same day. If you already have mail elsewhere, we can help you move old messages across.</p>
-      <figure class="em-setup__img"><img src="/hp/img/email-office.jpg" alt="A smiling team member working at her desk in a bright office" width="1200" height="800" loading="lazy" decoding="async"></figure>
+      <figure class="em-setup__img">${picture({ src: '/hp/img/email-office.jpg', alt: 'A smiling team member working at her desk in a bright office', sizes: '(max-width: 900px) calc(100vw - 32px), 600px' })}</figure>
     </div>
     <ol class="em-steps">${steps.map((s, i) => `<li data-reveal style="--i:${i}"><span class="em-steps__ic">${icon(s.ic)}<i class="num">${i + 1}</i></span><div><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p></div></li>`).join('')}</ol>
   </div></section>`;

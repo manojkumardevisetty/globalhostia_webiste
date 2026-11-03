@@ -1,6 +1,6 @@
 // Reusable lead-capture form (email + optional WhatsApp number). Posts to /api/lead; /hp/track.js submits it with
 // fetch (inline errors, generate_lead event), and without JavaScript it is a normal form post that redirects back.
-// Styles: /hp/lead.css (loaded by the shell and the landing pages).
+// Styles: the @lead block of /hp/theme.css (copied to /hp/lead.css for the WHMCS client area).
 import { esc } from '../render/util';
 import { icon } from './ui';
 

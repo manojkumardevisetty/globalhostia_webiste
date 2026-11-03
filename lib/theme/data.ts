@@ -71,7 +71,11 @@ const loadCatalog = unstable_cache(async () => {
 
 /** Settings + visible categories + published, non-retired products (with prices) + visible TLDs. Cached (tag `site`). */
 export async function getCatalog(): Promise<Catalog> {
-  const [settings, data, currencyIds] = await Promise.all([getSettings(), loadCatalog(), loadCurrencyIds()]);
+  const [settings, data] = await Promise.all([getSettings(), loadCatalog()]);
+  // WHMCS currency ids are stored by the TLD sync (settings.whmcs_currency_ids): pages and the agent
+  // endpoints (llms.txt, catalog, MCP) never wait on a live WHMCS call
+  const stored = settings.whmcs_currency_ids;
+  const currencyIds = stored && typeof stored === 'object' && Object.keys(stored).length ? stored as Record<string, number> : await loadCurrencyIds();
   const def = settings.currency || 'USD';
   let currency = def;
   try {
@@ -82,10 +86,19 @@ export async function getCatalog(): Promise<Catalog> {
   return { settings, currency, currencyIds, base: whmcsBase(settings), links: siteLinks(settings), ...data };
 }
 
-const loadCurrencyIds = unstable_cache(async () => {
-  try { const { getCurrencies } = await import('../whmcs'); return Object.fromEntries((await getCurrencies()).map((c) => [c.code, Number(c.id)])) as Record<string, number>; }
-  catch { return {} as Record<string, number>; }
+// Fallback until the first TLD sync has stored the ids: live WHMCS, at most 2.5s; a failure is not cached.
+const liveCurrencyIds = unstable_cache(async () => {
+  const { getCurrencies } = await import('../whmcs');
+  const ids = Object.fromEntries((await getCurrencies()).map((c) => [c.code, Number(c.id)])) as Record<string, number>;
+  if (!Object.keys(ids).length) throw new Error('no currencies');
+  return ids;
 }, ['whmcs-currency-ids'], { tags: ['site'], revalidate: 86400 });
+async function loadCurrencyIds(): Promise<Record<string, number>> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([liveCurrencyIds(), new Promise<never>((_, rej) => { timer = setTimeout(() => rej(new Error('timeout')), 2500); })]);
+  } catch { return {}; } finally { clearTimeout(timer); }
+}
 
 /** Currencies that actually have synced product prices. */
 export function availableCurrencies(products: Pick<RProduct, 'prices'>[]) {

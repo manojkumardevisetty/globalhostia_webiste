@@ -9,6 +9,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
 import { db, schema } from '../../db';
 import { esc, tokens } from '../../render/util';
+import { picture, HERO_BG_SIZES } from '../img';
 import { getCatalog, whmcsLinks, productsFor, deriveSpecs, minFrom, pricedTlds, fmt, type Catalog } from '../data';
 import { page } from '../shell';
 import {
@@ -310,7 +311,7 @@ function renderSecs(secs: Sec[], o: { topics?: boolean; kb?: string } = {}): str
       const flip = side++ % 2 === 1;
       return `<section class="hp-section cn-sec${tint ? ' hp-section--tint' : ''}"${id ? ` aria-labelledby="${id}"` : ' aria-label="About"'}><div class="hp-container cn-split${flip ? ' is-flip' : ''}">
         <div class="cn-split__txt" data-reveal>${s.title ? `<h2 class="hp-hline" id="${id}">${esc(s.title)}</h2>` : ''}<div class="hp-prose cn-prose">${body}</div></div>
-        <figure class="cn-split__img" data-reveal><img src="${esc(s.img.src)}" alt="${esc(s.img.alt)}" loading="lazy" decoding="async"></figure>
+        <figure class="cn-split__img" data-reveal>${picture({ src: s.img.src, alt: s.img.alt, sizes: '(max-width: 900px) calc(100vw - 32px), 600px' })}</figure>
       </div></section>`;
     }
     return `<section class="hp-section cn-sec cn-sec--prose${tint ? ' hp-section--tint' : ''}"${id ? ` aria-labelledby="${id}"` : ' aria-label="Overview"'}><div class="hp-container cn-two">
@@ -555,7 +556,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   return page({
     ctx, catalog: cat, path: `/${slug}`, title: ctx.route.title, description: ctx.route.description,
-    css, js, jsonLd: lds, preload: heroImage ? [heroImage] : undefined,
+    css, js, jsonLd: lds, preload: heroImage ? [{ src: heroImage, sizes: HERO_BG_SIZES }] : undefined,
     body: parts.join('\n'),
   });
 }

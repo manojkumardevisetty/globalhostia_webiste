@@ -2,6 +2,7 @@
 // (register / renew / transfer), animated transfer-in flow, what's included, FAQ.
 import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
+import { picture, HERO_BG_SIZES } from '../img';
 import { money } from '../../pricing';
 import { getCatalog, pricedTlds, currencyPrefix, domainCartUrl, type TTld } from '../data';
 import { page } from '../shell';
@@ -49,7 +50,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   /* ---------------- hero ---------------- */
   const drift = tlds.slice(0, 12).map((t, i) => `<span class="dom-float" style="--x:${[6, 84, 14, 74, 3, 90, 22, 66, 9, 79, 30, 58][i]}%;--y:${[18, 14, 70, 72, 44, 46, 88, 90, 92, 30, 8, 6][i]}%;--d:${16 + (i % 5) * 3}s;--dl:${-i * 1.7}s">${esc(t.tld)}</span>`).join('');
   const hero = `<section class="hp-hero hp-hero--page is-solo dom-hero" data-network aria-labelledby="dom-h1">
-  <img class="hp-hero__bg" src="/hp/img/hero-domains.jpg" alt="" fetchpriority="high" decoding="async">
+  ${picture({ src: '/hp/img/hero-domains.jpg', className: 'hp-hero__bg', priority: true, sizes: HERO_BG_SIZES })}
   <div class="hp-hero__hex" aria-hidden="true"></div>
   <div class="dom-drift" aria-hidden="true" data-pause>${drift}</div>
   <div class="hp-container">
@@ -81,7 +82,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
       <td data-label="First year"><b class="num">${esc(m(t.register))}</b></td>
       <td data-label="Renews at"><span class="num">${t.renew !== null ? `${esc(m(t.renew))}<span class="dom-per"> / year</span>` : '<span class="hp-muted">Shown at checkout</span>'}</span></td>
       <td data-label="Transfer"><span class="num">${t.transfer !== null ? esc(m(t.transfer)) : '<span class="hp-muted">Not available</span>'}</span></td>
-      <td class="dom-act"><a class="hp-btn hp-btn--ghost" href="${esc(domainCartUrl(base))}" data-dom-tld="${esc(t.tld)}" aria-label="${esc(`Search for a ${t.tld} domain`)}">${icon('search')}Search ${esc(t.tld)}</a></td>
+      <td class="dom-act"><a class="hp-btn hp-btn--ghost" href="${esc(domainCartUrl(base))}" data-dom-tld="${esc(t.tld)}" aria-label="${esc(`Search ${t.tld} domains`)}">${icon('search')}Search ${esc(t.tld)}</a></td>
     </tr>`;
   }).join('');
   const grid = tlds.length ? `<section class="hp-section" id="pricing" aria-labelledby="pricing-h"><div class="hp-container">
@@ -174,7 +175,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   return page({
     ctx, catalog: cat, path: `/${ctx.slug}`, title: ctx.route.title, description: ctx.route.description, css: ['domains'], js: ['domains'],
-    preload: ['/hp/img/hero-domains.jpg'],
+    preload: [{ src: '/hp/img/hero-domains.jpg', sizes: HERO_BG_SIZES }],
     jsonLd: [breadcrumbJsonLd(crumbs.map((c) => ({ ...c, href: c.href || `/${ctx.slug}` })), site), faqJsonLd(faqs), offers].filter(Boolean),
     body: [hero, trustStrip(cat.settings), grid, transfer, included, faqSec, cta].join('\n'),
   });

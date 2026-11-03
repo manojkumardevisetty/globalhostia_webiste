@@ -2,6 +2,7 @@
 // with an illustrative speed gauge; then install steps, staging/updates/backups explained, real plans.
 import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
+import { picture } from '../img';
 import { money } from '../../pricing';
 import { getCatalog, productsFor, minFrom, currencyPrefix } from '../data';
 import { page } from '../shell';
@@ -97,7 +98,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   /* ---------------- built for blogs and stores ---------------- */
   const fit = `<section class="hp-section" aria-labelledby="fit-h"><div class="hp-container wpx-fit">
-    <figure class="wpx-fit__img" data-reveal><img src="/hp/img/wordpress-store.jpg" alt="A shop owner serving customers behind the counter" width="600" height="400" loading="lazy" decoding="async"></figure>
+    <figure class="wpx-fit__img" data-reveal>${picture({ src: '/hp/img/wordpress-store.jpg', alt: 'A shop owner serving customers behind the counter', sizes: '(max-width: 900px) calc(100vw - 32px), 600px' })}</figure>
     <div>
       ${sectionHead({ id: 'fit-h', title: woo ? 'Built for the checkout moment' : 'Built for blogs, portfolios and shops', align: 'left' })}
       ${featureGrid([

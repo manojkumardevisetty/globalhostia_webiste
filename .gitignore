@@ -5,3 +5,6 @@ node_modules
 *.tsbuildinfo
 next-env.d.ts
 .claude/
+# minified theme assets, written by scripts/build-assets.mjs at build time
+public/hp/**/*.min.js
+public/hp/**/*.min.css

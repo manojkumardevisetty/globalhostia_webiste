@@ -33,8 +33,10 @@
 .hp-mo .rs-acc.is-out{border-style:dashed;background:var(--tint)}
 .hp-mo .rs-acc.is-out>*{opacity:0;transform:translateY(-6px)}
 .hp-mo .rs-acc.is-out .rs-acc__u i{transform:scaleX(0)}
-.hp-mo .rs-acc.is-new{animation:rs-flash 1.4s var(--ease)}
-@keyframes rs-flash{0%{box-shadow:0 0 0 0 rgba(58,123,191,.45)}100%{box-shadow:0 0 0 10px rgba(58,123,191,0)}}
+/* ring on a pseudo-element so only transform/opacity animate */
+.rs-acc.is-new{position:relative}
+.hp-mo .rs-acc.is-new::after{content:"";position:absolute;inset:-1px;border-radius:inherit;box-shadow:0 0 0 6px rgba(58,123,191,.45);pointer-events:none;opacity:0;animation:rs-flash 1.4s var(--ease)}
+@keyframes rs-flash{0%{opacity:1;transform:scale(.98)}100%{opacity:0;transform:scale(1.03)}}
 
 /* ---------- flow ---------- */
 .rs-flow{display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr) 72px minmax(0,1fr);align-items:start}

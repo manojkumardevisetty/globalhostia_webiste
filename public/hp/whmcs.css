@@ -2,7 +2,8 @@
    Loaded from WHMCS templates/emyui-aws-pro/css/custom.css with:
      @import url("https://globalhostiawebiste.vercel.app/hp/whmcs.css");
    Only overrides colours, type, shape and spacing — no markup changes, safe to remove at any time. */
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap");
+/* self-hosted Inter + Manrope (relative to this file, so it follows whichever host serves the skin; /hp/* sends CORS headers) */
+@import url("fonts/fonts.css");
 
 :root {
   --gh-ink: #23313d; --gh-deep: #16212b; --gh-muted: #5a6774; --gh-line: #e6e9ee; --gh-tint: #f6f7f9;

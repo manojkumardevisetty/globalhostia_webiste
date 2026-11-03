@@ -201,7 +201,8 @@ export default async function render(ctx: PageCtx): Promise<string> {
   // Organization + WebSite JSON-LD is emitted site-wide by the shell (lib/seo.ts).
   return page({
     ctx, catalog: cat, path: '/', title: ctx.route.title, description: ctx.route.description,
-    preload: ['/hp/img/hero-hosting.jpg'], css: posts.length ? ['blog'] : undefined,
+    // the blog strip's card styles live in theme.css, so no page stylesheet is needed here
+    preload: ['/hp/img/hero-hosting.jpg'],
     body: [hero, domain, trustStrip(cat.settings), plans, infra, features, cta, trio, blog, logosStrip()].join('\n'),
   });
 }

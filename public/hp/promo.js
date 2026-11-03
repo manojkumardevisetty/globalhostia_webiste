@@ -93,7 +93,8 @@
      On the website /hp/track.js handles the submit (validation, generate_lead event); elsewhere a minimal fallback does. */
   var leadN = 0;
   function leadForm(p, onDone) {
-    if (!document.querySelector('link[href*="/hp/lead.css"]')) document.head.appendChild(el('link', '', { rel: 'stylesheet', href: origin + '/hp/lead.css' + (ver ? '?v=' + encodeURIComponent(ver) : '') }));
+    // the website's theme.css already contains these styles; WHMCS pages load /hp/lead.css
+    if (!document.querySelector('link[href*="/hp/lead."],link[href*="/hp/theme."]')) document.head.appendChild(el('link', '', { rel: 'stylesheet', href: origin + '/hp/lead.css' + (ver ? '?v=' + encodeURIComponent(ver) : '') }));
     var id = 'ghpl' + (++leadN), wrap = el('div', 'gh-lead gh-lead--light ghp-lead');
     var f = el('form', 'gh-lead__f', { action: origin + '/api/lead', method: 'post', novalidate: '', 'data-gh-lead': '', 'aria-label': 'Sign up for offers' });
     f.innerHTML = '<input type="hidden" name="source" value="popup"><input type="hidden" name="t" value=""><input type="hidden" name="page" value="">' +

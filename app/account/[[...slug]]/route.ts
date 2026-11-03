@@ -35,6 +35,11 @@ const go = (req: NextRequest, to: string) => {
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) r.headers.set(k, v);
   return r;
 };
+/** Non-HttpOnly "signed in" hint for /hp/theme.js: it calls /account/me only when gh_in=1 exists (no request for guests). */
+const FLAG = 'gh_in';
+const flagOpts = { httpOnly: false, secure: true, sameSite: 'lax' as const, path: '/', maxAge: cookieOpts.maxAge };
+const setFlag = (res: NextResponse, on: boolean) => { res.cookies.set(FLAG, on ? '1' : '', on ? flagOpts : { ...flagOpts, maxAge: 0 }); return res; };
+
 const idOf = (s?: string) => (s && /^\d{1,10}$/.test(s) ? Number(s) : null);
 const safeNext = (n: unknown) => (typeof n === 'string' && /^\/account(\/[A-Za-z0-9/_-]*)?(\?[A-Za-z0-9=&_-]*)?$/.test(n) ? n : '');
 const EMAIL = /^[^\s@<>"]{1,64}@[^\s@<>"]{1,253}\.[a-z]{2,63}$/i;
@@ -47,6 +52,14 @@ const viewerOf = (s: ClientSession): Viewer => ({ name: s.name, email: s.email, 
 
 /* =========================================================== GET */
 export async function GET(req: NextRequest, ctx: Ctx) {
+  const res = await handleGet(req, ctx);
+  // keep the hint in sync for sessions that predate it (or that expired)
+  const signedIn = !!(await readClient(req));
+  if (signedIn !== (req.cookies.get(FLAG)?.value === '1')) setFlag(res, signedIn);
+  return res;
+}
+
+async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { slug: segs = [] } = await ctx.params;
   const path = '/account' + (segs.length ? '/' + segs.join('/') : '');
   const q = req.nextUrl.searchParams;
@@ -225,7 +238,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     await auditClient('client_login', email, ip, { clientId: client.id });
     const res = go(req, next);
     res.cookies.set(CLIENT_COOKIE, token, cookieOpts);
-    return res;
+    return setFlag(res, true);
   }
 
   /* ---- forgot password: always the same neutral answer ---- */
@@ -255,7 +268,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     await auditClient('client_logout', sess.email, ip);
     const res = go(req, '/account/login?out=1');
     res.cookies.set(CLIENT_COOKIE, '', { ...cookieOpts, maxAge: 0 });
-    return res;
+    return setFlag(res, false);
   }
 
   /* ---- secure hand-off to the full client area (allow-listed destinations only) ---- */
@@ -301,7 +314,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       await auditClient('client_sso', sess.email, ip, { to, id });
       const r = NextResponse.redirect(url, 303);
       r.headers.set('cache-control', 'private, no-store');
-      return r;
+      return setFlag(r, true);
     } catch { return fail(); }
   }
 
@@ -382,7 +395,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       const { token } = await signClient({ clientId: cid, userId: sess.userId, email: sess.email, name, cur: sess.cur });
       res.cookies.set(CLIENT_COOKIE, token, cookieOpts);
     }
-    return res;
+    return setFlag(res, true);
   }
 
   return html('Not found', 404);

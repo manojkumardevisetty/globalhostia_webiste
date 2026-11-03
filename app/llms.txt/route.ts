@@ -1,4 +1,4 @@
-// /llms.txt — generated from the live catalog (cached 1h, tag 'site').
+// /llms.txt — generated from the catalog in the database (cached 1h, tag 'site'; no WHMCS call).
 import { unstable_cache } from 'next/cache';
 import { buildLlms } from '@/lib/agents/llms';
 
@@ -8,6 +8,6 @@ const cached = unstable_cache(() => buildLlms(false), ['llms-txt', process.env.V
 
 export async function GET() {
   return new Response(await cached(), {
-    headers: { 'content-type': 'text/plain; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=600, s-maxage=3600, stale-while-revalidate=86400' },
+    headers: { 'content-type': 'text/plain; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
   });
 }

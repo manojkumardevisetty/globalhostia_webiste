@@ -2,6 +2,7 @@
 // with real channels from settings (phone, email, WhatsApp), WHMCS ticket links, office, network map, FAQ.
 import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
+import { picture } from '../img';
 import { getCatalog, whmcsLinks } from '../data';
 import { page } from '../shell';
 import { pageHero, sectionHead, splitHead, dcMap, faq, faqJsonLd, ctaBand, breadcrumbJsonLd, icon, hexIcon, ld, type IconName } from '../ui';
@@ -77,7 +78,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   /* ticket tips + office */
   const office = `<section class="hp-section hp-section--tint" aria-labelledby="ct-office-h"><div class="hp-container ct-office">
-    <figure class="ct-office__img" data-reveal><img src="/hp/img/contact-team.jpg" alt="" width="1051" height="701" loading="lazy" decoding="async"></figure>
+    <figure class="ct-office__img" data-reveal>${picture({ src: '/hp/img/contact-team.jpg', sizes: '(max-width: 900px) calc(100vw - 32px), 600px' })}</figure>
     <div class="ct-office__txt" data-reveal>
       <h2 class="hp-hline" id="ct-office-h">Our office in Dubai</h2>
       <p class="hp-lead">Globalhostia is operated by ${esc(company)}, based in Dubai, United Arab Emirates. Our team looks after customers and servers around the world from here.</p>

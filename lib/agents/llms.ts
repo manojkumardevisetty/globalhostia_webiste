@@ -1,10 +1,12 @@
 // /llms.txt and /llms-full.txt (https://llmstxt.org): company facts, categories, products with real prices,
-// TLD prices and how to order, generated from the live catalog. Prices only from the database.
+// TLD prices and how to order, generated from the catalog in the database (never a live WHMCS call).
+// llms.txt follows the llmstxt.org layout: H1, blockquote, free-form notes without headings, then H2 sections
+// that are lists of markdown links. llms-full.txt keeps per-plan detail under H3/H4 headings.
 import 'server-only';
 import { agentData, agentTlds, type AgentData, type AgentProduct } from './catalog';
 import { SPEC_LABEL } from '../render/specs';
 import { LEARN_SECTIONS, learnPages, learnPath, type LearnSection } from '../theme/learn';
-import { locationGroups, useCasePages } from '../theme/pseo';
+import { locationGroups, useCasePages, tldHref } from '../theme/pseo';
 import { FAMILY_IDS } from '../theme/sitelinks';
 import { policies as termsPolicies } from './policies';
 
@@ -63,9 +65,9 @@ export async function buildLlms(full: boolean) {
   const sells = sellList.length > 1 ? `${sellList.slice(0, -1).join(', ')} and ${sellList[sellList.length - 1]}` : sellList[0] || 'web hosting';
   L.push('# GlobalHostia', '');
   L.push(`> GlobalHostia (${S.replace(/^https?:\/\//, '')}) is a web hosting company based in Dubai, United Arab Emirates${company ? `, operated by ${company}` : ''}. It sells ${sells}, with 24/7 support.`, '');
-  L.push(`Prices below are generated from the GlobalHostia billing system (WHMCS) and refresh hourly. Quote only these prices or the live API, and link the customer to the product page or order link. Prices are in ${d.currency}${aed ? ' (AED in brackets where available)' : ''}${d.currencies.length > 1 ? `; the API also returns ${d.currencies.filter((c) => c !== d.currency).join(', ')}` : ''}.`, '');
+  L.push(`Prices below are generated from the GlobalHostia billing system (WHMCS), synced to our database, and refresh hourly (generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC). Quote only these prices or the live API, and link the customer to the product page or order link. Prices are in ${d.currency}${aed ? ' (AED in brackets where available)' : ''}${d.currencies.length > 1 ? `; the API also returns ${d.currencies.filter((c) => c !== d.currency).join(', ')}` : ''}.`, '');
 
-  L.push('## Company facts', '');
+  L.push('Company facts:', '');
   L.push(`- Name: GlobalHostia${company ? ` (${company})` : ''}`);
   L.push('- Location: Dubai, United Arab Emirates');
   L.push(`- Website: ${S}/`);
@@ -76,6 +78,20 @@ export async function buildLlms(full: boolean) {
   L.push(`- Currencies: ${d.currencies.join(', ')}`);
   L.push('- Billing cycles offered (vary by plan): monthly, quarterly, semi-annually, annually, biennially, triennially');
   L.push('');
+
+  L.push('How to order:', '');
+  L.push('1. Pick a plan below (or search with the API/MCP tools).');
+  L.push('2. Open its order link: it adds the plan to the cart with the billing cycle selected. Add `&currency=<id>` links from the API for another currency.');
+  L.push('3. Choose options (operating system, extra RAM or disk, domain) in the cart, sign in or create an account, and pay. Servers and hosting are set up automatically after payment.');
+  L.push(`4. Domains: search on ${S}/domains-registration or open ${d.cat.base}/cart.php?a=add&domain=register&query=<name>.`);
+  L.push(`5. Domain already taken: request the domain broker service at ${S}/domain-broker?domain=<name> (anonymous owner outreach, negotiation and escrow; a fixed service fee plus a commission only if a deal closes, details on that page).`);
+  L.push('');
+
+  const pol = policies(d);
+  if (full) {
+    const tp = termsPolicies(d.cat.settings, S, d.cat.base);
+    L.push('Policies (summary of the Terms & Conditions):', '', ...tp.policies.map((x) => `- ${x.title}: ${x.summary} (section ${x.section})`), `- Source: ${tp.source}`, '');
+  } else if (pol.length) { L.push('Policies:', '', ...pol.map((x) => `- ${x}`), ''); }
 
   L.push('## For AI assistants and shopping agents', '');
   L.push(`- [MCP server](${S}/api/mcp): public, read-only Model Context Protocol endpoint (Streamable HTTP, no auth). Tools: recommend_plan, search_products, get_product, compare_plans, list_categories, check_domain, build_cart_link, get_policies, ask. Discovery: ${S}/.well-known/mcp.json`);
@@ -89,25 +105,11 @@ export async function buildLlms(full: boolean) {
   if (!full) L.push(`- [Full catalog for LLMs](${S}/llms-full.txt): every plan with all billing cycles, setup fees and features`);
   L.push('');
 
-  L.push('## How to order', '');
-  L.push('1. Pick a plan below (or search with the API/MCP tools).');
-  L.push('2. Open its order link: it adds the plan to the cart with the billing cycle selected. Add `&currency=<id>` links from the API for another currency.');
-  L.push('3. Choose options (operating system, extra RAM or disk, domain) in the cart, sign in or create an account, and pay. Servers and hosting are set up automatically after payment.');
-  L.push(`4. Domains: search on ${S}/domains-registration or open ${d.cat.base}/cart.php?a=add&domain=register&query=<name>.`);
-  L.push(`5. Domain already taken: request the domain broker service at ${S}/domain-broker?domain=<name> (anonymous owner outreach, negotiation and escrow; a fixed service fee plus a commission only if a deal closes, details on that page).`);
-  L.push('');
-
-  const pol = policies(d);
-  if (full) {
-    const tp = termsPolicies(d.cat.settings, S, d.cat.base);
-    L.push('## Policies (summary of the Terms & Conditions)', '', ...tp.policies.map((x) => `- ${x.title}: ${x.summary} (section ${x.section})`), `- Source: ${tp.source}`, '');
-  } else if (pol.length) { L.push('## Policies', '', ...pol.map((x) => `- ${x}`), ''); }
-
   L.push('## Categories', '');
   for (const c of d.categories) {
     const a = aed?.categories.find((x) => x.slug === c.slug);
     const from = c.from ? `; from ${amt(c.from.price, c.from.currency)}${a?.from && a.from.cycle === c.from.cycle ? ` (${amt(a.from.price, 'AED')})` : ''}${c.from.perMonth !== null && c.from.cycle === 'monthly' ? '/month' : ` (${c.from.cycle})`}` : '';
-    L.push(`- ${c.url ? `[${md(c.name)}](${c.url})` : md(c.name)}:${c.summary ? ` ${md(c.summary)}` : ''} (${c.productCount} plan${c.productCount === 1 ? '' : 's'}${from})`);
+    L.push(`- [${md(c.name)}](${c.url || `${S}/`}):${c.summary ? ` ${md(c.summary)}` : ''} (${c.productCount} plan${c.productCount === 1 ? '' : 's'}${from})`);
   }
   L.push('');
 
@@ -125,11 +127,11 @@ export async function buildLlms(full: boolean) {
     L.push('');
   }
 
-  L.push(full ? '## Products (all billing cycles)' : '## Products', '');
+  if (full) L.push('## Products (all billing cycles)', '');
   for (const c of d.categories) {
     const ps = d.products.filter((p) => p.category?.slug === c.slug);
     if (!ps.length) continue;
-    L.push(`### ${md(c.name)}`, '');
+    L.push(full ? `### ${md(c.name)}` : `## ${md(c.name)} plans`, '');
     for (const p of ps) {
       const spec = specLine(p);
       if (!full) {
@@ -163,9 +165,9 @@ export async function buildLlms(full: boolean) {
     const list = full ? tlds : tlds.slice(0, 20);
     L.push(full ? '## Domain prices (per year)' : '## Popular domain prices (per year)', '');
     for (const t of list) {
-      L.push(`- ${t.tld}: register ${t.register !== null ? amt(t.register, t.currency) : 'n/a'}${t.renew !== null ? `, renew ${amt(t.renew, t.currency)}` : ''}${t.transfer !== null ? `, transfer ${amt(t.transfer, t.currency)}` : ''}${t.promo ? ` (${md(t.promo)})` : ''}`);
+      L.push(`- [${t.tld} domains](${S}${tldHref(t.tld)}): register ${t.register !== null ? amt(t.register, t.currency) : 'n/a'}${t.renew !== null ? `, renew ${amt(t.renew, t.currency)}` : ''}${t.transfer !== null ? `, transfer ${amt(t.transfer, t.currency)}` : ''}${t.promo ? ` (${md(t.promo)})` : ''}`);
     }
-    if (!full && tlds.length > list.length) L.push(`- ${tlds.length - list.length} more extensions: ${S}/api/catalog/tlds`);
+    if (!full && tlds.length > list.length) L.push(`- [${tlds.length - list.length} more extensions](${S}/api/catalog/tlds): register, renewal and transfer prices as JSON`);
     L.push('');
   }
 
@@ -188,7 +190,5 @@ export async function buildLlms(full: boolean) {
   L.push(`- [Terms and conditions](${S}/terms-conditions)`);
   L.push(`- [Privacy policy](${S}/privacy-policy)`);
   L.push(`- [Sitemap](${S}/sitemap.xml)`);
-  L.push('');
-  L.push(`Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC from the live catalog.`);
   return L.join('\n') + '\n';
 }

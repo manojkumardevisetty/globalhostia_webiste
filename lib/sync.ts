@@ -6,7 +6,7 @@ import { revalidateTag } from 'next/cache';
 import { db, schema } from './db';
 import { getProducts, getCurrencies, getTldPricing, type WhmcsProduct } from './whmcs';
 import { parseWhmcsPricing, features } from './pricing';
-import { getSettings } from './settings';
+import { getSettings, setSetting } from './settings';
 import { enrichment } from './enrich-core.mjs';
 import legacyDetails from '../legacy/product-details.json';
 
@@ -124,7 +124,9 @@ export async function syncTlds(trigger = 'manual') {
   try {
     const s = await getSettings();
     const currencies = await getCurrencies().catch(() => []);
-    const cur = currencies.find((c) => c.code === s.currency) || currencies.find((c) => Number(c.default) === 1);
+    // stored for getCatalog() (cart links with &currency=<id>), so requests never call WHMCS for them
+    if (currencies.length) await setSetting('whmcs_currency_ids', Object.fromEntries(currencies.map((c) => [c.code, Number(c.id)])));
+    const cur =currencies.find((c) => c.code === s.currency) || currencies.find((c) => Number(c.default) === 1);
     const { pricing, currency } = await getTldPricing(cur ? Number(cur.id) : undefined);
     const entries = Object.entries(pricing);
     stats.fetched = entries.length;

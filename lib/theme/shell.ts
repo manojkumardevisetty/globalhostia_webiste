@@ -8,6 +8,7 @@ import { mdPath } from '../agents/markdown';
 import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
+import { preloadImage } from './img';
 import { activeFor, barHtml, promoDataScript, hasPromo } from '../promo';
 import { waFloat } from './growth';
 import { leadForm } from './lead';
@@ -16,7 +17,9 @@ import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoD
 
 export type PageOpts = {
   title: string; description: string; path: string; body: string; ctx: PageCtx;
-  css?: string[]; js?: string[]; jsonLd?: string | string[]; bodyClass?: string; ogImage?: string; preload?: string[];
+  css?: string[]; js?: string[]; jsonLd?: string | string[]; bodyClass?: string; ogImage?: string;
+  /** LCP image(s): a URL (full-width, sizes 100vw) or { src, sizes } matching the page's <picture> */
+  preload?: (string | { src: string; sizes: string })[];
   catalog?: Catalog; noindex?: boolean;
   /** absolute canonical URL override (defaults to site_url + path) */
   canonical?: string;
@@ -29,10 +32,19 @@ export type PageOpts = {
 };
 
 const ASSET_V = (process.env.VERCEL_GIT_COMMIT_SHA || 'dev').slice(0, 8);
-const asset = (p: string) => `${p}?v=${ASSET_V}`;
+/** HP_MIN is set by next.config.mjs when scripts/build-assets.mjs wrote the minified copies (*.min.js|css). */
+const MIN = process.env.HP_MIN === '1';
+/** Versioned URL of a theme asset; the minified copy in production builds. */
+export const asset = (p: string) => `${MIN && /^\/hp\/.*\.(js|css)$/.test(p) ? p.replace(/\.(js|css)$/, '.min.$1') : p}?v=${ASSET_V}`;
+/** Self-hosted fonts (public/hp/fonts, @font-face in theme.css): preload the two used above the fold. */
+export const FONT_PRELOADS = ['inter-latin-400-normal', 'manrope-latin-800-normal']
+  .map((f) => `<link rel="preload" as="font" type="font/woff2" href="/hp/fonts/${f}.woff2" crossorigin>`).join('');
 /** WebMCP (in-browser agents): load the tool registrations only where the browser exposes modelContext; nothing loads elsewhere. */
 const WEBMCP_LOADER = `<script>if(document.modelContext||navigator.modelContext){var w=document.createElement("script");w.src="${asset('/hp/webmcp.js')}";w.defer=true;document.head.appendChild(w)}</script>`;
 const safeKey = (k: string) => k.replace(/[^a-z0-9_-]/gi, '');
+/** Logo: 2x WebP (scripts/build-assets.mjs) with the original PNG as fallback. */
+const logo = (tone: 'black' | 'white', w: number, h: number, lazy = false) =>
+  `<picture><source type="image/webp" srcset="/hp/img/opt/logo-main-${tone}-356.webp"><img src="/image/logo-main-${tone}.png" alt="Globalhostia" width="${w}" height="${h}"${lazy ? ' loading="lazy"' : ''}></picture>`;
 const telHref = (p: string) => 'tel:' + String(p).replace(/[^\d+]/g, '');
 
 function megaPanel(m: ThemeMenu) {
@@ -46,7 +58,7 @@ function megaPanel(m: ThemeMenu) {
 function header(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>) {
   return `<header class="hp-header">
   <div class="hp-container hp-header__inner">
-    <a class="hp-brand" href="/" aria-label="Globalhostia home"><img src="/image/logo-main-black.png" alt="Globalhostia" width="178" height="34"></a>
+    <a class="hp-brand" href="/" aria-label="Globalhostia home">${logo('black', 178, 34)}</a>
     <nav class="hp-nav" aria-label="Main">${menus.map((m) => `<button type="button" class="hp-nav__btn" aria-expanded="false" aria-controls="m-${esc(m.id)}" data-menu="m-${esc(m.id)}">${esc(m.label)}${icon('chev')}</button>`).join('')}</nav>
     <div class="hp-header__actions">
       <a class="hp-btn hp-btn--ghost" href="/account">Client login</a>
@@ -62,7 +74,7 @@ function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: str
   return `<div class="hp-drawer" id="hp-drawer" aria-hidden="true" inert>
   <div class="hp-drawer__scrim" data-close></div>
   <div class="hp-drawer__sheet" role="dialog" aria-modal="true" aria-label="Menu">
-    <div class="hp-drawer__head"><img src="/image/logo-main-black.png" alt="Globalhostia" width="147" height="28"><button type="button" data-close aria-label="Close menu">${icon('close')}</button></div>
+    <div class="hp-drawer__head">${logo('black', 147, 28, true)}<button type="button" data-close aria-label="Close menu">${icon('close')}</button></div>
     <nav class="hp-drawer__body" aria-label="Mobile">${menus.map((m, i) => `<button type="button" class="hp-dacc__btn" aria-expanded="false" aria-controls="hp-dp${i}">${esc(m.label)}${icon('chev')}</button><div class="hp-dacc__panel" id="hp-dp${i}"><ul>${m.groups.flatMap((g) => g.items).map((it) =>
       `<li><a href="${esc(it.href)}">${icon(it.icon)}${esc(it.label)}</a></li>`).join('')}</ul></div>`).join('')}</nav>
     <div class="hp-drawer__foot">
@@ -76,7 +88,7 @@ function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: str
 
 function utilBar(cat: Catalog, L: ReturnType<typeof whmcsLinks>, phone: string, email: string) {
   return `<div class="hp-util"><div class="hp-container">
-  <div class="hp-u-left">${phone ? `<a href="${esc(telHref(phone))}">${icon('phone')}<span class="num">${esc(phone)}</span></a>` : ''}${phone && email ? '<span class="hp-sep" aria-hidden="true"></span>' : ''}${email ? `<a href="mailto:${esc(email)}">${icon('mail')}${esc(email)}</a>` : ''}</div>
+  <div class="hp-u-left">${phone ? `<a href="${esc(telHref(phone))}" aria-label="Call us on ${esc(phone)}">${icon('phone')}<span class="num">${esc(phone)}</span></a>` : ''}${phone && email ? '<span class="hp-sep" aria-hidden="true"></span>' : ''}${email ? `<a href="mailto:${esc(email)}">${icon('mail')}${esc(email)}</a>` : ''}</div>
   <div class="hp-u-right">
     ${currencyPicker(cat)}
     <span class="hp-u-item">${icon('globe')}Language <b>English</b></span>
@@ -112,7 +124,7 @@ function footer(menus: ThemeMenu[], cat: Catalog, phone: string, email: string, 
   </div>
   <div class="hp-foot-bottom">
     <div class="hp-container">
-      <img src="/image/logo-main-white.png" alt="Globalhostia" width="157" height="30" loading="lazy">
+      ${logo('white', 157, 30, true)}
       <p class="hp-legal">© ${new Date().getFullYear()} ${esc(s.site_name || 'Globalhostia')} · ${esc(company)}, Dubai, UAE. <a href="/terms-conditions">Terms</a> · <a href="/privacy-policy">Privacy</a>${consentLink(s.tracking)}<br><span class="hp-live"><i aria-hidden="true"></i><b>Prices shown live from our billing system.</b></span></p>
       <a class="hp-totop" href="#main" aria-label="Back to top">${icon('up')}</a>
     </div>
@@ -165,7 +177,6 @@ export async function page(o: PageOpts): Promise<string> {
 <meta name="robots" content="${noindex ? ROBOTS_NOINDEX : ROBOTS_INDEX}">
 <link rel="canonical" href="${esc(canonical)}">
 ${noindex ? '' : `<link rel="alternate" type="text/markdown" href="${esc(site + mdPath(o.path || '/'))}">`}
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <meta property="og:type" content="${esc(o.ogType || 'website')}"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:locale" content="en_AE"><meta property="og:url" content="${esc(canonical)}"><meta property="og:title" content="${esc(fullTitle)}"><meta property="og:description" content="${esc(description)}">
 <meta property="og:image" content="${esc(og)}">${o.ogImage ? '' : '<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'}<meta property="og:image:alt" content="${esc(ogAlt)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(fullTitle)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(og)}"><meta name="twitter:image:alt" content="${esc(ogAlt)}">
@@ -174,11 +185,10 @@ ${verificationMeta(s)}
 ${trackingHead(s.tracking)}
 <meta name="theme-color" content="#16212b">
 ${ICON_LINKS}
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
-${(o.preload || []).map((p) => `<link rel="preload" as="image" href="${esc(p)}">`).join('')}
+${(o.preload || []).map((p) => (typeof p === 'string' ? preloadImage(p) : preloadImage(p.src, p.sizes))).join('')}
+${FONT_PRELOADS}
 <link rel="stylesheet" href="${asset('/hp/theme.css')}">
 ${hasPromo(promo) ? `<link rel="stylesheet" href="${asset('/hp/promo.css')}">` : ''}
-<link rel="stylesheet" href="${asset('/hp/lead.css')}">
 ${css.map((k) => `<link rel="stylesheet" href="${asset(`/hp/pages/${k}.css`)}">`).join('\n')}
 <script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("hp-mo")</script>
 ${siteJsonLd(s, cat.base)}
