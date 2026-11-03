@@ -204,8 +204,8 @@ export const priceText = (v: number, prefix = '$') => money(v, prefix);
 /** Currency picker in the utility bar: links set the gh_cur cookie via middleware (?currency=XXX). */
 function currencyPicker(cat: Catalog) {
   const list = availableCurrencies(cat.products);
-  if (list.length < 2) return `<span class="hp-u-item">${icon('coin')}Currency <b>${esc(cat.currency)}</b></span>`;
-  return `<details class="hp-cur"><summary class="hp-u-item">${icon('coin')}Currency <b>${esc(cat.currency)}</b></summary><ul class="hp-cur__menu">${list.map((c) =>
+  if (list.length < 2) return `<span class="hp-u-item">${icon('coin')}<span class="hp-u-lbl">Currency </span><b>${esc(cat.currency)}</b></span>`;
+  return `<details class="hp-cur"><summary class="hp-u-item">${icon('coin')}<span class="hp-u-lbl">Currency </span><b>${esc(cat.currency)}</b></summary><ul class="hp-cur__menu">${list.map((c) =>
     `<li><a href="?currency=${c}" rel="nofollow"${c === cat.currency ? ' aria-current="true"' : ''}><i class="hp-cur__sym">${esc(symbolOf(cat, c))}</i><b>${c}</b><span>${esc(CURRENCY_LABEL[c] || '')}</span></a></li>`).join('')}</ul></details>`;
 }
 

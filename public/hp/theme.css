@@ -801,3 +801,7 @@ body:has(.hp-preview-pill) .hp-wa{bottom:68px}
 }
 @media (prefers-reduced-motion:reduce){.hp-wa{transition:none}.hp-wa:hover{transform:none}}
 @media print{.hp-wa{display:none}}
+/* 2026-11-03 mobile utility bar: no horizontal overflow (phone icon-only, currency code only) */
+html,body{overflow-x:clip}
+.hp-util{overflow:hidden}
+@media (max-width:600px){.hp-util .hp-u-left .num,.hp-util .hp-u-lbl{display:none}.hp-util a,.hp-util .hp-u-item{gap:6px;padding:0 4px}.hp-util .hp-container{gap:8px}}
