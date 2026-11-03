@@ -774,6 +774,22 @@
       el.dataset.ghc = 1; el.textContent = '© ' + new Date().getFullYear() + ' GlobalHostia · Desert Tech Cloud Services LLC, Dubai. All rights reserved.';
     });
   }
+  // Gravatar avatars: our logo as the default instead of Gravatar's blue icon; a "Change photo" link in the account menu
+  function avatars() {
+    var def = encodeURIComponent('https://globalhostia.com/icon-192.png');
+    [].forEach.call(document.querySelectorAll('img[src*="gravatar.com/avatar/"]'), function (im) {
+      if (im.dataset.gha) return; im.dataset.gha = 1;
+      var base = im.getAttribute('src').split('?')[0];
+      im.src = base + '?s=160&d=' + def; im.classList.add('gh-avatar');
+    });
+    var menu = document.querySelector('.client-avatar') && [].find.call(document.querySelectorAll('.dropdown-menu'), function (m) { return /Logout/i.test(m.textContent) && /Account Details|Your Profile/i.test(m.textContent); });
+    if (menu && !menu.querySelector('.gh-photo-link')) {
+      var head = [].find.call(menu.querySelectorAll('*'), function (e) { return e.querySelector && e.querySelector('img.gh-avatar, .client-avatar img') && e.textContent.trim().length < 60; });
+      var a = document.createElement('a'); a.className = 'gh-photo-link'; a.href = 'https://gravatar.com/profile'; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = 'Change photo';
+      if (head) head.appendChild(a);
+    }
+  }
   function tldRows() {
     var tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n;
     while ((n = tw.nextNode())) {
@@ -824,7 +840,7 @@
     });
   }
 
-  ready(function () { try { footerCredit(); } catch (e) {} try { curLabel(); setTimeout(curLabel, 1500); textFixes(); setTimeout(textFixes, 1500); setTimeout(textFixes, 4000); tldRows(); setTimeout(tldRows, 2500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { compactHero(); setTimeout(compactHero, 800); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  ready(function () { try { footerCredit(); } catch (e) {} try { avatars(); setTimeout(avatars, 1200); } catch (e) {} try { curLabel(); setTimeout(curLabel, 1500); textFixes(); setTimeout(textFixes, 1500); setTimeout(textFixes, 4000); tldRows(); setTimeout(tldRows, 2500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { compactHero(); setTimeout(compactHero, 800); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
 
 // Support alerts: nudge the site to email the owner after a ticket is opened or replied to.
