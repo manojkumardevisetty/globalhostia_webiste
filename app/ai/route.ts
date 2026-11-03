@@ -51,6 +51,11 @@ export async function GET(req: NextRequest) {
       <li><a href="/openapi.json">/openapi.json</a>: OpenAPI 3.1 description</li>
       <li><a href="/feeds/products.xml">/feeds/products.xml</a> (Google Merchant format) and <a href="/feeds/products.json">/feeds/products.json</a> (JSON Feed)</li>
       <li><a href="/llms.txt">/llms.txt</a> and <a href="/llms-full.txt">/llms-full.txt</a>: the catalog summarised for language models</li>
+      <li><a href="/ask?query=wordpress%20hosting">/ask?query=</a>: NLWeb-style questions in plain language, ranked results with schema.org objects</li>
+      <li><a href="/.well-known/agent-card.json">/.well-known/agent-card.json</a>: A2A agent card (JSON-RPC agent at <code>/api/a2a</code>)</li>
+      <li><a href="/feeds/openai.jsonl">/feeds/openai.jsonl</a> (OpenAI product feed spec) and <a href="/feeds/index.json">/feeds/index.json</a> (every feed in every currency)</li>
+      <li>Any page as Markdown: add <code>.md</code> to the URL (<a href="/index.md">/index.md</a>) or send <code>Accept: text/markdown</code></li>
+      <li>In-browser agents: pages register WebMCP tools when the browser supports <code>document.modelContext</code></li>
     </ul>
   </div>`, { labelledby: 'devs' });
 

@@ -10,6 +10,8 @@ import { PSEO_REDIRECTS, categoryRedirect } from '@/lib/theme/pseo';
 import { getCatalog } from '@/lib/theme/data';
 import { getSettings } from '@/lib/settings';
 import { verifySession, COOKIE } from '@/lib/auth';
+import { pageMarkdown, mdPath } from '@/lib/agents/markdown';
+import { GET as aiPage } from '../ai/route';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,8 +25,37 @@ const html = (body: string, status = 200, cache = true) => new NextResponse(body
   headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache && status === 200 ? 'public, s-maxage=60, stale-while-revalidate=600' : 'private, no-store' },
 });
 
-export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: string[] }> }) {
+/** <page>.md: the same page as Markdown for AI agents (also reached with Accept: text/markdown via middleware). */
+async function markdown(req: NextRequest, segs: string[]): Promise<Response> {
+  const last = segs[segs.length - 1].replace(/\.md$/i, '');
+  const inner = last.toLowerCase() === 'index' && segs.length === 1 ? [] : [...segs.slice(0, -1), last];
+  const path = '/' + inner.join('/');
+  const u = new URL(path, req.url);
+  u.searchParams.set('_cur', req.nextUrl.searchParams.get('currency')?.toUpperCase() || 'USD');
+  const sub = new NextRequest(u, { headers: { accept: 'text/html' } });
+  const res: Response = inner.length === 1 && inner[0] === 'ai' ? await aiPage(sub) : await GET(sub, { params: Promise.resolve({ slug: inner }) });
+  if (res.status >= 300 && res.status < 400) {
+    const loc = res.headers.get('location');
+    const to = loc ? new URL(loc, req.url) : null;
+    if (to && to.origin === u.origin && !to.pathname.endsWith('.md')) { to.pathname = mdPath(to.pathname); to.searchParams.delete('_cur'); return NextResponse.redirect(to, res.status); }
+    return res;
+  }
+  if (res.status !== 200 || !(res.headers.get('content-type') || '').includes('text/html')) {
+    return new NextResponse('# Not found\n\nNo Markdown version of this page. See https://globalhostia.com/llms.txt\n', { status: 404, headers: { 'content-type': 'text/markdown; charset=utf-8', 'cache-control': 'no-store' } });
+  }
+  const s = await getSettings();
+  const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
+  const body = pageMarkdown(await res.text(), site + (path === '/' ? '/' : path), site);
+  return new NextResponse(body, { headers: {
+    'content-type': 'text/markdown; charset=utf-8', 'access-control-allow-origin': '*', vary: 'Accept',
+    'x-robots-tag': 'noindex', link: `<${site}${path === '/' ? '/' : path}>; rel="canonical"`,
+    'cache-control': 'public, s-maxage=300, stale-while-revalidate=3600',
+  } });
+}
+
+export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: string[] }> }): Promise<Response> {
   const { slug: segs = [] } = await ctx.params;
+  if (segs.length && /\.md$/i.test(segs[segs.length - 1]) && segs[segs.length - 1].length > 3) return markdown(req, segs);
   const path = '/' + segs.join('/');
   const r = (await redirectMap())[path.toLowerCase()];
   if (r) return NextResponse.redirect(new URL(r[0], req.url), r[1]);

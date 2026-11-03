@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySession, COOKIE } from './lib/auth';
 import { COUNTRY_CURRENCY, CUR_COOKIE, isCode } from './lib/currency';
+import { wantsMarkdown, mdPath } from './lib/agents/markdown';
 
 // Public pages: pick the visitor's currency (cookie → country) and pass it on as x-gh-cur.
 // The URL is rewritten with ?_cur=XXX so the CDN caches one copy per currency.
@@ -15,7 +16,14 @@ function currency(req: NextRequest) {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  if (pathname === '/ask') return NextResponse.next(); // NLWeb API: ?currency= is an API parameter, not the site picker
   if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/admin')) {
+    // AI agents asking for Markdown (Accept: text/markdown preferred over text/html) get <page>.md at the same URL
+    if (wantsMarkdown(req.headers.get('accept'))) {
+      const url = req.nextUrl.clone();
+      url.pathname = mdPath(pathname);
+      return NextResponse.rewrite(url);
+    }
     const { cur, set } = currency(req);
     const url = req.nextUrl.clone();
     url.searchParams.delete('currency');

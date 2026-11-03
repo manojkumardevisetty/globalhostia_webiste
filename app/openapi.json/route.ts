@@ -50,6 +50,18 @@ export async function GET() {
           },
         },
       },
+      '/ask': {
+        get: {
+          operationId: 'ask', summary: 'Ask a question (NLWeb)',
+          description: 'Natural-language question about plans, domains or policies. Returns ranked results, each with a schema.org object. Rules-based over the live catalog.',
+          parameters: [
+            { name: 'query', in: 'query', required: true, description: 'The question, e.g. "cheapest windows vps in usa".', schema: { type: 'string', minLength: 2, maxLength: 300 } },
+            { name: 'mode', in: 'query', required: false, schema: { type: 'string', enum: ['list', 'summarize'] } },
+            currency,
+          ],
+          responses: { 200: { description: 'Results', content: { 'application/json': { schema: { type: 'object', properties: { query_id: { type: 'string' }, results: { type: 'array', items: { type: 'object', properties: { url: { type: 'string' }, name: { type: 'string' }, site: { type: 'string' }, score: { type: 'number' }, description: { type: 'string' }, schema_object: { type: 'object' } } } } } } } } }, 429: { description: 'Rate limited', content: { 'application/json': { schema: err } } } },
+        },
+      },
       '/api/domain-check': {
         get: {
           operationId: 'checkDomain', summary: 'Check domain availability',

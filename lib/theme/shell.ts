@@ -4,6 +4,7 @@ import { money } from '../pricing';
 import type { PageCtx } from './index';
 import { getCatalog, whmcsLinks, availableCurrencies, productsFor, type Catalog } from './data';
 import { itemListLd, offerCatalogLd } from '../agents/ld';
+import { mdPath } from '../agents/markdown';
 import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
@@ -29,6 +30,8 @@ export type PageOpts = {
 
 const ASSET_V = (process.env.VERCEL_GIT_COMMIT_SHA || 'dev').slice(0, 8);
 const asset = (p: string) => `${p}?v=${ASSET_V}`;
+/** WebMCP (in-browser agents): load the tool registrations only where the browser exposes modelContext; nothing loads elsewhere. */
+const WEBMCP_LOADER = `<script>if(document.modelContext||navigator.modelContext){var w=document.createElement("script");w.src="${asset('/hp/webmcp.js')}";w.defer=true;document.head.appendChild(w)}</script>`;
 const safeKey = (k: string) => k.replace(/[^a-z0-9_-]/gi, '');
 const telHref = (p: string) => 'tel:' + String(p).replace(/[^\d+]/g, '');
 
@@ -161,6 +164,7 @@ export async function page(o: PageOpts): Promise<string> {
 <meta name="description" content="${esc(description)}">
 <meta name="robots" content="${noindex ? ROBOTS_NOINDEX : ROBOTS_INDEX}">
 <link rel="canonical" href="${esc(canonical)}">
+${noindex ? '' : `<link rel="alternate" type="text/markdown" href="${esc(site + mdPath(o.path || '/'))}">`}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <meta property="og:type" content="${esc(o.ogType || 'website')}"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:locale" content="en_AE"><meta property="og:url" content="${esc(canonical)}"><meta property="og:title" content="${esc(fullTitle)}"><meta property="og:description" content="${esc(description)}">
 <meta property="og:image" content="${esc(og)}">${o.ogImage ? '' : '<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'}<meta property="og:image:alt" content="${esc(ogAlt)}">
@@ -196,6 +200,7 @@ ${footer(menus, cat, phone, email, s.lead_footer === false || s.lead_footer === 
 ${waFloat(s, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.path)}
 ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=original')}"><i aria-hidden="true"></i>Theme preview · switch back to the current site</a>` : ''}
 <script src="${asset('/hp/theme.js')}" defer></script>
+${WEBMCP_LOADER}
 <script src="${asset('/hp/track.js')}" defer></script>
 ${hasPromo(promo) ? `${promoDataScript(promo)}<script src="${asset('/hp/promo.js')}" defer></script>` : ''}
 ${js.map((k) => `<script src="${asset(`/hp/pages/${k}.js`)}" defer></script>`).join('\n')}

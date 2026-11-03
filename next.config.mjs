@@ -24,7 +24,14 @@ export default {
   },
   // app/ ignores dot-folders, so /.well-known/mcp.json is served by a rewrite
   async rewrites() {
-    return [{ source: '/.well-known/mcp.json', destination: '/api/well-known/mcp' }];
+    return [
+      { source: '/.well-known/mcp.json', destination: '/api/well-known/mcp' },
+      // A2A agent card (v1.0 path, and the older agent.json path)
+      { source: '/.well-known/agent-card.json', destination: '/api/well-known/agent-card' },
+      { source: '/.well-known/agent.json', destination: '/api/well-known/agent-card' },
+      // MCP Registry HTTP domain verification (value set by the owner in Admin > AI & MCP)
+      { source: '/.well-known/mcp-registry-auth', destination: '/api/well-known/mcp-registry-auth' },
+    ];
   },
   async headers() {
     return [

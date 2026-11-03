@@ -6,6 +6,19 @@ import { SPEC_LABEL } from '../render/specs';
 import { LEARN_SECTIONS, learnPages, learnPath, type LearnSection } from '../theme/learn';
 import { locationGroups, useCasePages } from '../theme/pseo';
 import { FAMILY_IDS } from '../theme/sitelinks';
+import { policies as termsPolicies } from './policies';
+
+/** Extra agent endpoints listed in llms-full.txt (data only; the llms routes and their caching live elsewhere). */
+export function agentEndpoints(S: string) {
+  return [
+    `- [Ask endpoint (NLWeb)](${S}/ask?query=wordpress%20hosting): natural-language questions, ranked results with schema.org objects (GET ?query= or POST; mode=list|summarize; streaming=true for SSE)`,
+    `- [A2A agent card](${S}/.well-known/agent-card.json): Agent2Agent JSON-RPC agent at ${S}/api/a2a (SendMessage)`,
+    `- Markdown version of any page: add .md to the URL (home: ${S}/index.md) or send Accept: text/markdown`,
+    `- [ChatGPT / OpenAI product feed (JSONL)](${S}/feeds/openai.jsonl) and [all feeds per currency](${S}/feeds/index.json)`,
+    `- MCP Registry manifest: ${S}/server.json (name com.globalhostia/store)`,
+    '- In-browser agents: pages register WebMCP tools (search_plans, recommend_plan, check_domain, build_cart_link, get_policies) when the browser supports document.modelContext',
+  ];
+}
 
 const SPEC_ORDER = ['cpu', 'ram', 'storage', 'bandwidth', 'ips', 'websites', 'email', 'os'];
 const md = (s: string) => String(s || '').replace(/[\[\]]/g, '').replace(/\s+/g, ' ').trim();
@@ -65,7 +78,8 @@ export async function buildLlms(full: boolean) {
   L.push('');
 
   L.push('## For AI assistants and shopping agents', '');
-  L.push(`- [MCP server](${S}/api/mcp): public, read-only Model Context Protocol endpoint (Streamable HTTP, no auth). Tools: search_products, get_product, list_categories, check_domain, get_order_link. Discovery: ${S}/.well-known/mcp.json`);
+  L.push(`- [MCP server](${S}/api/mcp): public, read-only Model Context Protocol endpoint (Streamable HTTP, no auth). Tools: recommend_plan, search_products, get_product, compare_plans, list_categories, check_domain, build_cart_link, get_policies, ask. Discovery: ${S}/.well-known/mcp.json`);
+  if (full) L.push(...agentEndpoints(S));
   L.push(`- [How to connect your AI assistant](${S}/ai)`);
   L.push(`- [Catalog API](${S}/api/catalog): JSON of every category and product with specs and prices per billing cycle (?currency=USD&category=&q=)`);
   L.push(`- [TLD prices API](${S}/api/catalog/tlds): register, transfer and renewal prices`);
@@ -84,7 +98,10 @@ export async function buildLlms(full: boolean) {
   L.push('');
 
   const pol = policies(d);
-  if (pol.length) { L.push('## Policies', '', ...pol.map((x) => `- ${x}`), ''); }
+  if (full) {
+    const tp = termsPolicies(d.cat.settings, S, d.cat.base);
+    L.push('## Policies (summary of the Terms & Conditions)', '', ...tp.policies.map((x) => `- ${x.title}: ${x.summary} (section ${x.section})`), `- Source: ${tp.source}`, '');
+  } else if (pol.length) { L.push('## Policies', '', ...pol.map((x) => `- ${x}`), ''); }
 
   L.push('## Categories', '');
   for (const c of d.categories) {

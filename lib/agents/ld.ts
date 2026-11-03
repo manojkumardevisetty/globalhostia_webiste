@@ -1,6 +1,6 @@
 // Shared schema.org helpers: category ItemList and the home page OfferCatalog. Prices only from the catalog; no ratings or reviews.
 import { cycles, orderUrl, productsFor, categoryProducts, type Catalog, type TProduct } from '../theme/data';
-import { categoryPath } from './catalog';
+import { categoryPath, ISO_DURATION } from './catalog';
 import { isMachineName, prettyName } from '../theme/sitelinks';
 
 const siteOf = (cat: Catalog) => String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
@@ -16,7 +16,10 @@ function productNode(p: TProduct, cat: Catalog, site: string) {
     '@type': 'Product', name: p.name, url: `${site}/p/${p.slug}`, ...(p.tagline ? { description: p.tagline } : {}),
     brand: { '@type': 'Brand', name: 'GlobalHostia' },
     offers: { '@type': 'AggregateOffer', priceCurrency: cat.currency, lowPrice: Math.min(...prices).toFixed(2), highPrice: Math.max(...prices).toFixed(2), offerCount: cs.length,
-      availability: availability(p), url: orderUrl(p, cat.base, head.cycle), seller: { '@id': `${site}/#organization` } },
+      availability: availability(p), url: orderUrl(p, cat.base, head.cycle), seller: { '@id': `${site}/#organization` },
+      // one Offer per billing cycle with its subscription period, so agents can read monthly vs yearly prices
+      offers: cs.filter((c) => ISO_DURATION[c.cycle]).map((c) => ({ '@type': 'Offer', price: c.price.toFixed(2), priceCurrency: cat.currency, availability: availability(p), url: orderUrl(p, cat.base, c.cycle),
+        priceSpecification: { '@type': 'UnitPriceSpecification', price: c.price.toFixed(2), priceCurrency: cat.currency, billingDuration: ISO_DURATION[c.cycle], valueAddedTaxIncluded: false } })) },
   };
 }
 
