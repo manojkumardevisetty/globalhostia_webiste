@@ -65,7 +65,7 @@ function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: str
     <div class="hp-drawer__foot">
       <a class="hp-btn hp-btn--ghost" href="/account">Client login</a>
       <a class="hp-btn hp-btn--brand" href="${esc(L.register)}">Sign up</a>
-      <div class="hp-drawer__contact">${phone ? `<a href="${esc(telHref(phone))}">${icon('phone')}<span class="num">${esc(phone)}</span></a>` : ''}${email ? `<a href="mailto:${esc(email)}">${icon('mail')}${esc(email)}</a>` : ''}</div>
+      <div class="hp-drawer__contact">${phone ? `<a href="${esc(telHref(phone))}" aria-label="${esc(`Call us: ${phone}`)}">${icon('phone')}<span class="num">${esc(phone)}</span></a>` : ''}${email ? `<a href="mailto:${esc(email)}">${icon('mail')}${esc(email)}</a>` : ''}</div>
     </div>
   </div>
 </div>`;
