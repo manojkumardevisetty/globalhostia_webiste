@@ -1138,12 +1138,22 @@
     }
 
     /* ------------------------------------------------------------ Email */
+    // domain chips: every domain on the account, one tap to switch (keeps the header picker in sync)
+    function domChips(cur, label) {
+      var ds = (S.session && S.session.domains) || []; if (ds.length < 2) return '';
+      return '<div class="ghh-chips" role="group" aria-label="' + esc(label) + '"><span>' + esc(label) + '</span>' + ds.map(function (x) { return '<button type="button" data-dom="' + esc(x) + '"' + (x === cur ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + esc(x) + '</button>'; }).join('') + '</div>';
+    }
+    function bindChips(el, pick) {
+      [].forEach.call(el.querySelectorAll('[data-dom]'), function (b) { b.onclick = function () { pick(b.getAttribute('data-dom')); }; });
+    }
+    function setDomain(d) { S.domain = d; S.cache = {}; var sel = $('[data-domsel]'); if (sel) sel.value = d; }
     function email() {
       var d = S.domain, fw = S.tab === 'forwarders';
-      body.innerHTML = fw ? bar('Forwarders', 'Send mail for an address on <b>' + esc(d) + '</b> on to another inbox.', '<button type="button" class="ghh-btn ghh-btn--pri" data-addf>' + ic('plus') + ' New forwarder</button>') + '<div data-fslot></div><div data-flist>' + skel(2) + '</div>'
-        : bar('Mailboxes', 'Email accounts on <b>' + esc(d) + '</b>.', can('email', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add>' + ic('plus') + ' New mailbox</button>' : '') + '<div data-slot></div><div data-list>' + skel(3) + '</div>';
+      body.innerHTML = fw ? bar('Forwarders', 'Send mail for an address on <b>' + esc(d) + '</b> on to another inbox.', '<button type="button" class="ghh-btn ghh-btn--pri" data-addf>' + ic('plus') + ' New forwarder</button>') + domChips(d, 'Domain') + '<div data-fslot></div><div data-flist>' + skel(2) + '</div>'
+        : bar('Mailboxes', 'Email accounts on <b>' + esc(d) + '</b>.', can('email', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add>' + ic('plus') + ' New mailbox</button>' : '') + domChips(d, 'Domain') + '<div data-slot></div><div data-list>' + skel(3) + '</div>';
       var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), boxes = [], fwds = [];
       var flist = body.querySelector('[data-flist]'), fslot = body.querySelector('[data-fslot]');
+      bindChips(body, function (x) { setDomain(x); show(S.tab); });
       var load = function () {
         if (!list) { /* forwarders view */ }
         else if (!can('email', 'list')) { list.innerHTML = empty('email', 'Create and manage mailboxes', 'Your panel does not list mailboxes here; you can still create them, change passwords and quotas.'); }
@@ -1196,7 +1206,9 @@
     function files() {
       var lim = S.session.limits || { transferBytes: 4194304, editBytes: 1048576 };
       var acts = (can('files', 'upload') ? '<label class="ghh-btn ghh-btn--pri ghh-upload">' + ic('up') + ' Upload<input type="file" data-up multiple></label>' : '') + (can('files', 'mkdir') ? '<button type="button" class="ghh-btn" data-mk>' + ic('folder') + ' New folder</button>' : '');
-      body.innerHTML = bar('File manager', 'Browse and edit the files in your hosting account. Uploads up to ' + bytes(lim.transferBytes) + '; use FTP for larger files.', acts) + '<nav class="ghh-crumbs" aria-label="Folder path" data-crumbs></nav><div data-slot></div><div data-list>' + skel(6) + '</div>';
+      if (!S.pathSet) { S.pathSet = 1; if (S.domain) S.path = '/domains/' + S.domain + '/public_html'; }
+      var webs = ((S.session && S.session.domains) || []);
+      body.innerHTML = bar('File manager', 'Browse and edit the files in your hosting account. Uploads up to ' + bytes(lim.transferBytes) + '; use FTP for larger files.', acts) + (webs.length ? '<div class="ghh-chips" role="group" aria-label="Websites"><span>Websites</span>' + webs.map(function (x) { return '<button type="button" data-web="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '<button type="button" data-web="">All files</button></div>' : '') + '<nav class="ghh-crumbs" aria-label="Folder path" data-crumbs></nav><div data-slot></div><div data-list>' + skel(6) + '</div>';
       var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), ents = [];
       var crumbs = function () {
         var parts = S.path.split('/').filter(Boolean), acc = '';
@@ -1205,7 +1217,8 @@
       };
       var load = function () {
         crumbs(); slot.innerHTML = ''; list.innerHTML = skel(6);
-        api('files', { op: 'list', path: S.path }).then(function (r) { ents = r.entries; render(); }, function (e) { fail(e, list); retryOn(list, load); });
+        [].forEach.call(body.querySelectorAll('[data-web]'), function (b) { var w = b.getAttribute('data-web'), tgt = w ? '/domains/' + w + '/public_html' : '/'; b.classList.toggle('on', S.path === tgt || (w && S.path.indexOf('/domains/' + w + '/') === 0)); b.onclick = function () { if (w) setDomain(w); S.path = tgt; load(); }; });
+        api('files', { op: 'list', path: S.path }).then(function (r) { ents = S.path === '/' ? r.entries.filter(function (e) { return !/^\.(cagefs|cl\.|clwpos|jb-|php|softaculous|spamassassin|trash|cpanel|cache|config|local|npm|bash_|wp-cli)/.test(e.name); }) : r.entries; render(); }, function (e) { fail(e, list); retryOn(list, load); });
       };
       var render = function () {
         var up = S.path !== '/' ? '<tr class="ghh-up"><td colspan="4"><button type="button" class="ghh-link" data-parent>' + ic('up', 14) + ' Up one level</button></td></tr>' : '';

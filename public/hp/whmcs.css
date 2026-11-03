@@ -1137,3 +1137,10 @@ button.ghh-fname { cursor: pointer; } button.ghh-fname:hover { color: var(--gh-b
 .ghh-cronf small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 640px) { .ghh-cronf { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ghh-stats { grid-template-columns: 1fr 1fr; } .ghh-stat b { font-size: 18px; } .ghh-stat--lg b { font-size: 22px; } .ghh-stats--lg { grid-template-columns: 1fr; } }
 .ghh-upload { display: inline-flex !important; }
+/* domain / website chips (Mailboxes, Forwarders, File manager) */
+.ghh-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; }
+.ghh-chips > span { font: 700 12px Manrope, Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--gh-muted, #6b7785); margin-right: 2px; }
+.ghh-chips button { border: 1px solid var(--gh-line, #e3e7ec); background: #fff; color: var(--gh-ink, #16212b); border-radius: 999px; padding: 6px 13px; font: 600 13px Inter, sans-serif; cursor: pointer; transition: border-color .15s, background .15s; }
+.ghh-chips button:hover { border-color: var(--gh-brand, #c5386f); }
+.ghh-chips button.on { background: var(--gh-brand, #c5386f); border-color: var(--gh-brand, #c5386f); color: #fff; }
+@media (max-width: 640px) { .ghh-chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; } .ghh-chips button { flex: none; } }
