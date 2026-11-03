@@ -34,6 +34,9 @@ const services = {
     { id: 102, clientid: 1, pid: 2, name: 'Hostia Ultra', groupname: 'Shared Hosting', module: 'cpanel', serverid: 5, domain: 'demo-brand.com', dedicatedip: '', assignedips: '', username: 'demobran', password: 'NEVER-SHOW-THIS', regdate: day(-400), firstpaymentamount: '59.99', recurringamount: '59.99', billingcycle: 'Annually', nextduedate: day(140), status: 'Active', paymentmethodname: 'PayPal', configoptions: { configoption: [] },
       diskusage: 8400, disklimit: 10240, bwusage: 21000, bwlimit: 0, lastupdate: day(0) + ' 03:00:00' },
     { id: 104, clientid: 1, pid: 1, name: 'Hostia Lite', groupname: 'Shared Hosting', module: 'cpanel', serverid: 5, domain: 'demo-blog.com', username: 'demoblog', password: 'NEVER-SHOW-THIS', regdate: day(-20), firstpaymentamount: '2.99', recurringamount: '2.99', billingcycle: 'Monthly', nextduedate: day(10), status: 'Active', diskusage: 0, disklimit: 0, bwusage: 0, bwlimit: 0, lastupdate: '0000-00-00 00:00:00' },
+    // renewal centre fixtures: overdue active service without an invoice, suspended service, monthly email
+    { id: 105, clientid: 1, pid: 30, name: 'Business Email Pro', groupname: 'Email Hosting', module: 'cpanel', domain: 'mail.demo-brand.com', regdate: day(-95), recurringamount: '4.00', billingcycle: 'Monthly', nextduedate: day(-3), status: 'Active' },
+    { id: 106, clientid: 1, pid: 1, name: 'Hostia Lite', groupname: 'Shared Hosting', module: 'cpanel', domain: 'old-campaign.com', regdate: day(-500), recurringamount: '29.99', billingcycle: 'Annually', nextduedate: day(-141), status: 'Suspended' },
     { id: 103, clientid: 1, pid: 20, name: 'PositiveSSL DV', groupname: 'SSL Certificates', module: 'ssl', domain: 'shop.demo-brand.com', regdate: day(-700), firstpaymentamount: '9.23', recurringamount: '9.23', billingcycle: 'Annually', nextduedate: day(-30), status: 'Cancelled' },
   ],
   2: [{ id: 201, clientid: 2, pid: 1, name: 'Hostia Lite', groupname: 'Shared Hosting', module: 'cpanel', domain: 'other-site.com', username: 'other', password: 'x', regdate: day(-50), recurringamount: '2.99', billingcycle: 'Monthly', nextduedate: day(10), status: 'Active' }],
@@ -44,6 +47,8 @@ const domains = {
     { id: 301, userid: 1, domainname: 'demo-brand.com', regdate: day(-345), expirydate: day(20), nextduedate: day(20), recurringamount: '13.99', regperiod: 1, status: 'Active', donotrenew: false, idprotection: true, ns: ['ns1.globalhostia.com', 'ns2.globalhostia.com'] },
     { id: 302, userid: 1, domainname: 'demo.ae', regdate: day(-100), expirydate: day(265), nextduedate: day(265), recurringamount: '35.00', regperiod: 1, status: 'Active', donotrenew: true, idprotection: false, ns: ['ns1.globalhostia.com', 'ns2.globalhostia.com', 'ns3.globalhostia.com'] },
     { id: 304, userid: 1, domainname: 'demo-store.com', regdate: day(-30), expirydate: day(335), nextduedate: day(335), recurringamount: '13.99', regperiod: 1, status: 'Active', donotrenew: false, idprotection: false, ns: ['ada.ns.cloudflare.com', 'bob.ns.cloudflare.com'] },
+    { id: 305, userid: 1, domainname: 'demo-legacy.org', regdate: day(-368), expirydate: day(-3), nextduedate: day(-3), regperiod: 1, status: 'Grace', donotrenew: true, idprotection: false, ns: ['ns1.globalhostia.com', 'ns2.globalhostia.com'] },
+    { id: 306, userid: 1, domainname: 'demo-labs.io', regdate: day(-310), expirydate: day(55), nextduedate: day(55), recurringamount: '49.00', regperiod: 1, status: 'Active', donotrenew: false, idprotection: false, ns: ['ns1.globalhostia.com', 'ns2.globalhostia.com'] },
     { id: 303, userid: 1, domainname: 'demo-brand.net', regdate: day(-360), expirydate: day(5), nextduedate: day(5), recurringamount: '11.29', regperiod: 1, status: 'Active', donotrenew: false, idprotection: false, ns: ['ns1.globalhostia.com', 'ns2.globalhostia.com'] },
   ],
   2: [{ id: 401, userid: 2, domainname: 'other-site.com', expirydate: day(200), status: 'Active', ns: ['ns1.other.net', 'ns2.other.net'] }],
@@ -138,6 +143,11 @@ const portal = {
     if (ns.some((n) => n.includes('reject'))) err('Registrar Error: Nameserver not registered');
     d.ns = ns;
     return {};
+  },
+  UpdateClientDomain: (p) => {
+    const d = Object.values(domains).flat().find((x) => x.id === Number(p.domainid)) || err('Domain ID Not Found');
+    if (p.donotrenew !== undefined) d.donotrenew = p.donotrenew === '1' || p.donotrenew === 'true';
+    return { domainid: d.id };
   },
   UpdateClient: (p) => {
     const c = clients[Number(p.clientid)] || err('Client ID Not Found');

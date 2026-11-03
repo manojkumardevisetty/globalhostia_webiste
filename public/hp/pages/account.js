@@ -120,4 +120,42 @@
       });
     }
   }
+
+  // Renewal centre (/account/renewals): selection bar totals, per-group "select all", button counts.
+  var rw = D.querySelector("[data-rw]"), bar = rw && rw.querySelector("[data-rw-bar]");
+  if (rw && bar) {
+    var sumEl = bar.querySelector("[data-rw-sum]"), cur = (sumEl && sumEl.getAttribute("data-cur")) || "USD";
+    var fmt = function (n) { try { return new Intl.NumberFormat("en-US", { style: "currency", currency: cur }).format(n); } catch (e) { return n.toFixed(2) + " " + cur; } };
+    var boxes = $$(".ac-rwr input[type=checkbox]", rw);
+    var setBtn = function (sel, n) { var b = bar.querySelector(sel); if (!b) return; var s = b.querySelector("[data-n]"); if (s) s.textContent = n; b.disabled = !n; };
+    var sync = function () {
+      var n = 0, amt = 0, unpriced = 0, dom = 0, svc = 0;
+      boxes.forEach(function (c) {
+        if (!c.checked) return;
+        var row = c.closest(".ac-rwr"), a = row.getAttribute("data-amt"), inv = row.hasAttribute("data-inv");
+        n++;
+        if (a === "") unpriced++; else amt += parseFloat(a) || 0;
+        if (!inv && row.getAttribute("data-k") === "d") dom++;
+        if (!inv && row.getAttribute("data-k") === "s" && row.querySelector("[name=to][value=service_renew]")) svc++;
+      });
+      bar.querySelector("[data-rw-n]").textContent = n;
+      bar.querySelector("[data-rw-items]").textContent = n === 1 ? "item" : "items";
+      sumEl.textContent = fmt(Math.round(amt * 100) / 100);
+      var up = bar.querySelector("[data-rw-unpriced]");
+      if (up) { up.hidden = !unpriced; var us = up.querySelector("span"); if (us) us.textContent = unpriced; }
+      setBtn("[data-rw-dom]", dom); setBtn("[data-rw-svc]", svc);
+      $$(".ac-rwg", rw).forEach(function (g) {
+        var all = g.querySelector("[data-rw-all]"), cs = $$(".ac-rwr input[type=checkbox]", g), on = cs.filter(function (c) { return c.checked; }).length;
+        if (!all) return;
+        all.checked = on === cs.length && on > 0; all.indeterminate = on > 0 && on < cs.length;
+      });
+    };
+    boxes.forEach(function (c) { c.addEventListener("change", sync); });
+    $$("[data-rw-all]", rw).forEach(function (all) {
+      all.hidden = false;
+      all.addEventListener("click", function (e) { e.stopPropagation(); });
+      all.addEventListener("change", function () { $$(".ac-rwr input[type=checkbox]", all.closest(".ac-rwg")).forEach(function (c) { c.checked = all.checked; }); sync(); });
+    });
+    sync();
+  }
 })();

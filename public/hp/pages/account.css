@@ -646,3 +646,118 @@ select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 /* long values (emails, domains) wrap inside cards instead of overflowing */
 .ac-dl dd { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
 .ac-dl > div { min-width: 0; }
+
+/* ------------------------------------------------ dashboard: Amount due as a pay / renew action */
+.ac-stat-f{display:contents}
+.ac-stats button.hp-stat{display:block;width:100%;border:0;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.ac-stats .hp-stat:focus-visible{outline:2px solid var(--gold,#f0b429);outline-offset:-2px}
+.ac-stats .hp-stat .ac-stat-cta{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 12px;border-radius:999px;background:var(--brand);color:#fff;font:700 13px/1.2 var(--body);font-style:normal}
+.ac-stats .hp-stat .ac-stat-cta .hp-ico{width:14px;height:14px}
+.ac-stats .hp-stat:hover .ac-stat-cta{background:var(--brand-d)}
+.ac-rn__hd{display:inline-flex;align-items:center;gap:14px}
+@container (max-width:420px){ .ac-rn__hd .ac-rn__sum{display:none} }
+
+/* ------------------------------------------------ renewal centre (/account/renewals) */
+.ac-rw{display:grid;gap:18px}
+.ac-rw>.ac-alert{margin:0}
+.ac-rw__due{margin:0;background:#fff}
+.ac-rwg .ac-card__head{min-height:60px}
+.ac-rwg__t{display:flex;align-items:center;gap:12px;min-width:0}
+.ac-rwg__all{width:18px;height:18px;margin:0;accent-color:var(--brand)}
+.ac-rwg__sum{display:inline-flex;align-items:baseline;gap:8px;flex-wrap:wrap;justify-content:flex-end;font-size:13px;color:var(--muted)}
+.ac-rwg__sum b{font:800 17px/1 var(--head);color:var(--ink)}
+.ac-rwg--overdue{border-color:#f6cdc8;box-shadow:inset 4px 0 0 var(--ac-bad)}
+.ac-rwg--overdue .hp-col-h{color:var(--ac-bad)}
+.ac-rwg--overdue .ac-rwg__sum b{color:var(--ac-bad)}
+.ac-rwg--soon{box-shadow:inset 4px 0 0 var(--ac-warn)}
+details.ac-rwg>summary{cursor:pointer;list-style:none;border-bottom:0}
+details.ac-rwg>summary::-webkit-details-marker{display:none}
+details.ac-rwg>summary>.hp-ico{width:18px;height:18px;color:var(--muted);transition:transform .2s;flex:none}
+details.ac-rwg[open]>summary{border-bottom:1px solid var(--line)}
+details.ac-rwg[open]>summary>.hp-ico{transform:rotate(180deg)}
+details.ac-rwg>summary .ac-rwg__sum{margin-left:auto}
+.ac-rwlist{padding:4px 0}
+.ac-rwr{display:grid;grid-template-columns:22px 36px minmax(0,1fr) 128px 120px 168px 132px;align-items:center;gap:14px;padding:14px 22px;border-top:1px solid var(--line)}
+.ac-rwlist>.ac-rwr:first-child{border-top:0}
+.ac-rwr:target{background:#fffbea}
+.ac-rwr__cb{display:grid;place-items:center;width:22px;height:44px;cursor:pointer}
+.ac-rwr__cb input{width:18px;height:18px;margin:0;accent-color:var(--brand);cursor:pointer}
+.ac-rwr__main{min-width:0}
+.ac-rwr__main a{display:block;font-weight:600;overflow-wrap:anywhere}
+.ac-rwr__main a:hover{color:var(--brand-d);text-decoration:underline;text-underline-offset:3px}
+.ac-rwr__main small{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin-top:3px;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.ac-rwr__main .ac-pill{font-size:12px}
+.ac-rwr__date,.ac-rwr__amt{display:grid;gap:2px;font-size:14px}
+.ac-rwr__date small,.ac-rwr__amt small{font-size:12.5px;color:var(--muted)}
+.ac-rwr__amt{justify-items:end;text-align:right}
+.ac-rwr__amt b{font:700 15px/1.15 var(--head)}
+.ac-rwr__rel{font-weight:600}
+.ac-rwr__rel--bad{color:var(--ac-bad)!important}
+.ac-rwr__rel--warn{color:var(--ac-warn)!important}
+.ac-rwr__st{display:grid;gap:6px;justify-items:start}
+.ac-rwr__inv{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--ac-bad)}
+.ac-rwr__inv .hp-ico{width:14px;height:14px}
+.ac-rwr__act{display:flex;justify-content:flex-end}
+.ac-switch{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0;border:0;background:none;font:600 13px var(--body);color:var(--muted);cursor:pointer;white-space:nowrap}
+.ac-switch i{position:relative;width:34px;height:20px;border-radius:999px;background:#cfd5dc;transition:background-color .2s;flex:none}
+.ac-switch i::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
+.ac-switch.is-on{color:var(--ac-ok)}
+.ac-switch.is-on i{background:var(--ac-ok)}
+.ac-switch.is-on i::after{transform:translateX(14px)}
+.ac-switch:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:6px}
+.ac-switch.is-busy::after{display:none}
+/* sticky selection bar */
+.ac-rwbar{position:sticky;bottom:16px;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 16px;padding:14px 18px;border-radius:var(--r-lg);background:var(--deep-2,#17232d);color:#fff;box-shadow:0 12px 32px rgba(10,20,30,.28)}
+.ac-rwbar__f{display:none}
+.ac-rwbar__sum{margin:0;font-size:15px;color:var(--on-dark-mute,#c4cdd5)}
+.ac-rwbar__sum b{font:800 18px/1 var(--head);color:#fff}
+.ac-rwbar__sum small{margin-left:8px;font-size:12.5px}
+.ac-rwbar__a{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.ac-rwbar .hp-btn--ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.ac-rwbar .hp-btn--ghost:hover{background:rgba(255,255,255,.08)}
+.ac-rwbar .hp-btn--dark{background:#fff;color:var(--ink);border-color:#fff}
+.ac-rwbar__note{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--on-dark-mute,#c4cdd5)}
+@media (max-width:1180px){
+  .ac-rwr{grid-template-columns:22px 36px minmax(0,1fr) 120px 112px;grid-template-areas:"cb ic main date amt" "cb ic st st act"}
+  .ac-rwr__cb{grid-area:cb;align-self:start}.ac-rwr .ac-rn__ic{grid-area:ic;align-self:start}.ac-rwr__main{grid-area:main}
+  .ac-rwr__date{grid-area:date}.ac-rwr__amt{grid-area:amt}.ac-rwr__st{grid-area:st;grid-auto-flow:column;justify-content:start;align-items:center;gap:14px}.ac-rwr__act{grid-area:act}
+}
+@media (max-width:960px){
+  .ac-tabbar{grid-template-columns:repeat(6,1fr)}
+  .ac-rwbar{bottom:calc(70px + env(safe-area-inset-bottom))}
+}
+@media (max-width:640px){
+  .ac-rwg .ac-card__head{flex-wrap:wrap;padding:12px 16px;gap:6px 12px;min-height:0}
+  .ac-rwg .ac-card__head .hp-col-h{padding:4px 0}
+  .ac-rwr{padding:14px 16px;gap:10px 12px;grid-template-columns:22px 36px minmax(0,1fr);grid-template-areas:"cb ic main" "cb date date" "cb amt amt" "cb st st" "cb act act"}
+  .ac-rwr__date{grid-auto-flow:column;justify-content:start;align-items:baseline;gap:8px}
+  .ac-rwr__amt{justify-items:start;text-align:left;grid-auto-flow:column;justify-content:start;align-items:baseline;gap:8px}
+  .ac-rwr__st{grid-auto-flow:row;gap:6px}
+  .ac-rwr__act>*,.ac-rwr__act .ac-inline .hp-btn{width:100%}
+  .ac-rwbar{grid-template-columns:1fr;padding:12px 14px;gap:8px;border-radius:var(--r)}
+  .ac-rwbar__a{justify-content:stretch}
+  .ac-rwbar__a>.hp-btn{flex:1 1 100%}
+  .ac-rwbar__note{display:none}
+  .ac-tabbar a{font-size:10.5px}
+  .ac-stats .hp-stat .ac-stat-cta{font-size:12px;padding:4px 10px}
+}
+@media (prefers-reduced-motion:reduce){ details.ac-rwg>summary>.hp-ico,.ac-switch i,.ac-switch i::after{transition:none} }
+.ac-rwbar .hp-btn b{font-weight:inherit}
+.ac-rwg__cta{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;margin:14px 22px 6px;padding:14px 16px;border-radius:var(--r);background:var(--ac-bad-bg);border:1px solid #f6cdc8}
+.ac-rwg__cta p{flex:1;min-width:220px;display:flex;gap:10px;align-items:flex-start;margin:0;font-size:14.5px;line-height:1.45;color:#7a1a12}
+.ac-rwg__cta p .hp-ico{width:18px;height:18px;margin-top:2px;flex:none;color:var(--ac-bad)}
+@media (max-width:640px){
+  .ac-rwg__cta{margin:12px 12px 4px}
+  .ac-rwg__cta>.ac-inline,.ac-rwg__cta .hp-btn{width:100%}
+  .ac-rwlist{display:grid;gap:10px;padding:12px}
+  .ac-rwr{border:1px solid var(--line);border-radius:var(--r);background:#fff}
+  .ac-rwlist>.ac-rwr:first-child{border-top:1px solid var(--line)}
+}
+.ac-rwbar__lg{font-style:normal}
+@media (max-width:640px){
+  .ac-rwbar__lg{display:none}
+  .ac-rwbar__a{gap:8px}
+  .ac-rwbar__a>.hp-btn{flex:1 1 calc(50% - 4px);min-height:42px;padding:0 10px;font-size:13.5px}
+  .ac-rwbar__sum{font-size:14px}
+}
+@media (max-width:640px){ .ac-rwbar__a .hp-ico{display:none} .ac-rwbar__a>.hp-btn{white-space:nowrap} }

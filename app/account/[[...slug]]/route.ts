@@ -15,6 +15,9 @@ import { domainsView, domainDetailView, validateNameservers } from '@/lib/portal
 import { invoicesView, invoiceDetailView, INVOICE_FILTERS } from '@/lib/portal/views/invoices';
 import { ticketsView, newTicketView, ticketView, type TicketForm } from '@/lib/portal/views/support';
 import { profileView, validateProfile } from '@/lib/portal/views/profile';
+import { renewalCentreView } from '@/lib/portal/views/renewal-centre';
+import { buildRenewals, parseSelection } from '@/lib/portal/renewal-plan';
+import { limiter } from '@/lib/agents/http';
 import { card, empty, errorBox, esc, btn, ssoButton, pill } from '@/lib/portal/views/kit';
 import { DNS_OK, type DnsView, type DnsForm } from '@/lib/portal/views/dns';
 import { DnsError, dnsState, dnsWriteLimit, enableZone, resolveZone, zoneProvider, nsFor } from '@/lib/portal/dns';
@@ -49,6 +52,8 @@ const setFlag = (res: NextResponse, on: boolean) => { res.cookies.set(FLAG, on ?
 
 const idOf = (s?: string) => (s && /^\d{1,10}$/.test(s) ? Number(s) : null);
 const safeNext = (n: unknown) => (typeof n === 'string' && /^\/account(\/[A-Za-z0-9/_-]*)?(\?[A-Za-z0-9=&_-]*)?$/.test(n) ? n : '');
+/** Auto-renew switches: 20 changes per client per 10 minutes (per server instance). */
+const autoRenewLimit = limiter(20, 10 * 60_000);
 const EMAIL = /^[^\s@<>"]{1,64}@[^\s@<>"]{1,253}\.[a-z]{2,63}$/i;
 
 async function secureBase() {
@@ -161,6 +166,21 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     return domainPage(F, v.csrf, sess.cur, cid, d, {
       ok: DNS_OK[okKey] ? okKey : undefined, edit: q.get('edit') || undefined, del: q.get('del') || undefined, add: q.has('add'), tpl: q.get('tpl') || undefined,
     });
+  }
+
+  /* renewal centre */
+  if (a === 'renewals' && !b) {
+    const settle = async <T,>(p: Promise<T>) => { try { return { ok: true as const, v: await p }; } catch { return { ok: false as const }; } };
+    const [products, domains, unpaid] = await Promise.all([
+      settle(api.getClientsProducts(cid)), settle(api.getClientsDomains(cid)), settle(api.getInvoices(cid, 'Unpaid').then((r) => r.list)),
+    ]);
+    const inv = unpaid.ok && unpaid.v.length ? await api.unpaidRenewalInvoices(cid, unpaid.v).catch(() => undefined) : undefined;
+    // a domain without a recurring amount on record is priced from the current TLD renewal price (never estimated)
+    const needTld = domains.ok && buildRenewals([], domains.v).some((r) => r.amount === null);
+    const tld = needTld ? await api.tldRenewPrices(cid).catch(() => undefined) : undefined;
+    const view = renewalCentreView({ csrf: v.csrf, cur: sess.cur, products, domains, unpaid, inv, tld });
+    const status = !products.ok && !domains.ok ? 503 : 200;
+    return html(await F({ title: 'Renewals', sub: 'Everything on your account that renews, with dates and amounts from your billing records.', active: 'renewals', headAction: view.headAction, heroExtra: view.statsHtml, body: view.body }), status);
   }
 
   /* billing */
@@ -319,6 +339,29 @@ export async function POST(req: NextRequest, ctx: Ctx) {
         if (!d) return fail();
         const name = String(d.domainname || '').trim().toLowerCase();
         dest = { destination: 'sso:custom_redirect', path: /^(?=.{3,253}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(name) ? `index.php?rp=/cart/domain/renew/${name}` : 'cart.php?gid=renewals' };
+      } else if (to === 'service_renew') {
+        // one service: its unpaid invoice if there is one, else the client area's service renewal page (on-demand renewals)
+        if (!id || !(await api.getService(cid, id))) return fail();
+        dest = { destination: 'sso:custom_redirect', path: 'index.php?rp=/cart/service/renew' };
+      } else if (to === 'service_renewals' || to === 'domain_renew_selected') {
+        // selection from the renewal centre: every id must belong to this client
+        const sel = parseSelection(fd.getAll('sel'));
+        if (to === 'service_renewals') {
+          if (sel.services.length) {
+            const own = new Set((await api.getClientsProducts(cid)).map((p: any) => Number(p.id)));
+            if (sel.services.some((x) => !own.has(x))) return fail();
+          }
+          dest = { destination: 'sso:custom_redirect', path: 'index.php?rp=/cart/service/renew' };
+        } else {
+          if (!sel.domains.length) return go(req, '/account/renewals?err=nosel');
+          const mine = await api.getClientsDomains(cid);
+          const picked = sel.domains.map((x) => mine.find((d: any) => Number(d.id) === x));
+          if (picked.some((d) => !d)) return fail();
+          // WHMCS has no link that pre-fills several domains: one domain opens its own renewal, several open the renewals cart
+          const name = picked.length === 1 ? String(picked[0].domainname || '').trim().toLowerCase() : '';
+          dest = { destination: 'sso:custom_redirect', path: name && /^(?=.{3,253}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(name) ? `index.php?rp=/cart/domain/renew/${name}` : 'cart.php?gid=renewals' };
+        }
+        await auditClient('client_renew_selection', sess.email, ip, { to, domains: sel.domains, services: sel.services });
       } else if (['domain', 'domain_dns', 'domain_contacts'].includes(to)) {
         if (!id || !(await api.getDomain(cid, id))) return fail();
         dest = { destination: to === 'domain_dns' ? 'clientarea:domain_dns' : to === 'domain_contacts' ? 'clientarea:domain_contacts' : 'clientarea:domain_details', domain_id: id };
@@ -457,6 +500,31 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       return go(req, `${back}?ok=dns_template#dns`);
     }
     return again('Unknown action.', 'zone', 400);
+  }
+
+  /* ---- renewal centre: domain auto-renew switch ---- */
+  if (segs[0] === 'renewals' && segs.length === 1) {
+    if (str('op', 20) !== 'autorenew') return go(req, '/account/renewals');
+    const id = idOf(str('id', 12));
+    const on = str('on', 1) === '1';
+    const d = id ? await api.getDomain(cid, id).catch(() => null) : null;
+    if (!id || !d) return go(req, '/account/renewals?err=failed');
+    const anchor = `#rw-d-${id}`;
+    if (!/^(active|grace|redemption)$/i.test(String(d.status || ''))) return go(req, `/account/renewals?err=autorenew_state${anchor}`);
+    if (autoRenewLimit(`c${cid}`)) {
+      await auditClient('client_domain_autorenew_limited', sess.email, ip, { domainId: id });
+      return go(req, `/account/renewals?err=rate${anchor}`);
+    }
+    const detail = { domainId: id, domain: d.domainname, autoRenew: on };
+    try {
+      const ok = await api.setDomainAutoRenew(cid, id, on);
+      if (!ok) throw new Error('not applied');
+    } catch (e) {
+      await auditClient('client_domain_autorenew_failed', sess.email, ip, { ...detail, error: e instanceof Error ? e.message : String(e) });
+      return go(req, `/account/renewals?err=autorenew_failed${anchor}`);
+    }
+    await auditClient('client_domain_autorenew', sess.email, ip, detail);
+    return go(req, `/account/renewals?ok=${on ? 'autorenew_on' : 'autorenew_off'}${anchor}`);
   }
 
   /* ---- nameservers ---- */

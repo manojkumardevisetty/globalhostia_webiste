@@ -4,7 +4,7 @@ import { icon, hexIcon } from '../../theme/ui';
 
 export { esc, icon, hexIcon };
 
-export type Nav = 'dashboard' | 'services' | 'domains' | 'billing' | 'support' | 'profile';
+export type Nav = 'dashboard' | 'services' | 'domains' | 'renewals' | 'billing' | 'support' | 'profile';
 
 export const validDate = (s: unknown) => !!s && !/^0000/.test(String(s)) && !Number.isNaN(Date.parse(String(s).slice(0, 10)));
 export function fmtDate(s: unknown) {

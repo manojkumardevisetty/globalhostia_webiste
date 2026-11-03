@@ -12,6 +12,7 @@ const NAV: { key: Nav; label: string; short: string; href: string; ic: string }[
   { key: 'dashboard', label: 'Dashboard', short: 'Home', href: '/account', ic: 'grid' },
   { key: 'services', label: 'Products & Services', short: 'Products', href: '/account/services', ic: 'server' },
   { key: 'domains', label: 'Domains', short: 'Domains', href: '/account/domains', ic: 'globe' },
+  { key: 'renewals', label: 'Renewals', short: 'Renewals', href: '/account/renewals', ic: 'refresh' },
   { key: 'billing', label: 'Billing', short: 'Billing', href: '/account/invoices', ic: 'card' },
   { key: 'support', label: 'Support', short: 'Support', href: '/account/support', ic: 'headset' },
   { key: 'profile', label: 'Profile', short: 'Profile', href: '/account/profile', ic: 'user' },
@@ -29,6 +30,12 @@ const FLASH: Record<string, [string, 'ok' | 'err']> = {
   profile_saved: ['Profile saved.', 'ok'],
   csrf: ['Your session form expired. Please try again.', 'err'],
   sso: ['We could not open that page right now. Please try again in a moment.', 'err'],
+  autorenew_on: ['Auto-renew is on. The domain renews automatically before it expires.', 'ok'],
+  autorenew_off: ['Auto-renew is off. Renew the domain yourself before it expires to keep it.', 'ok'],
+  autorenew_failed: ['Auto-renew could not be changed right now. Please try again or contact support.', 'err'],
+  autorenew_state: ['Auto-renew can only be changed while the domain is active or in its grace period.', 'err'],
+  rate: ['Too many changes in a short time. Please wait a few minutes and try again.', 'err'],
+  nosel: ['Select at least one domain to renew.', 'err'],
   failed: ['That change could not be saved. Please try again or contact support.', 'err'],
 };
 

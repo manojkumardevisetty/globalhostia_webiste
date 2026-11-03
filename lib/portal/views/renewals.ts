@@ -109,7 +109,8 @@ export function renewalsCard(o: {
     : '';
 
   const totalAmt = items.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
-  const action = items.length && totalAmt > 0 ? `<span class="ac-rn__sum"><small>Next ${RENEW_WINDOW} days</small> <b class="num">${esc(money(totalAmt, o.cur))}</b></span>` : '';
+  const sum = items.length && totalAmt > 0 ? `<span class="ac-rn__sum"><small>Next ${RENEW_WINDOW} days</small> <b class="num">${esc(money(totalAmt, o.cur))}</b></span>` : '';
+  const action = `<span class="ac-rn__hd">${sum}<a class="ac-more" href="/account/renewals">View all${icon('right')}</a></span>`;
   return card('Next renewals', `${pay}${partial}${body}${foot}`, { ...opts, action });
 }
 

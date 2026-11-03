@@ -43,10 +43,17 @@ export function dashboardView(o: {
   const tickets = o.tickets.ok ? o.tickets.v : [];
   const dash = (ok: boolean, v: string) => (ok ? v : '—');
 
+  // Amount due lands where the customer can pay: unpaid invoices → pay all in one checkout (POST, single sign-on);
+  // overdue services without an invoice → one service: its renew-and-pay page; several: the renewal centre.
+  const overdueNoInv = overdue.filter((p) => !o.inv?.services.has(Number(p.id)));
+  const amountDuePost: { to: string; id?: number } | null = !o.unpaid.ok ? null
+    : unpaid.length ? (unpaid.length === 1 ? { to: 'invoice', id: Number(unpaid[0].id) } : { to: 'masspay' })
+    : overdueNoInv.length === 1 ? { to: 'service_renew', id: Number(overdueNoInv[0].id) } : null;
+  const amountDueHref = unpaid.length || !overdue.length ? '/account/invoices?status=Unpaid' : '/account/renewals#rw-overdue';
   const stats: [string, string, string, string, string?][] = [
     ['/account/services', 'Active services', dash(o.products.ok, String(active.length)), 'server', prods.length > active.length ? `${prods.length} in total` : ''],
     ['/account/domains', 'Domains', dash(o.domains.ok, String(doms.length)), 'globe', ''],
-    [unpaid.length || !overdue.length ? '/account/invoices?status=Unpaid' : '/account/services', 'Amount due', dash(o.unpaid.ok, money(owed, unpaid[0]?.currencycode || cur)), 'card', dueSub],
+    [amountDueHref, 'Amount due', dash(o.unpaid.ok, money(owed, unpaid[0]?.currencycode || cur)), 'card', dueSub],
     ['/account/support', 'Open tickets', dash(o.tickets.ok, String(tickets.length)), 'headset', ''],
   ];
   const attention = (unpaid.length ? 1 : 0) + overdue.length + doms.filter((d) => { const n = daysUntil(d.expirydate); return n !== null && n <= 30 && /active/i.test(d.status); }).length;
@@ -55,7 +62,16 @@ export function dashboardView(o: {
     : attention ? `You have ${attention} item${attention === 1 ? '' : 's'} that need${attention === 1 ? 's' : ''} attention.`
     : prods.length ? 'Everything is running. Nothing needs your attention today.' : 'Your account is ready. Add your first service to get started.';
 
-  const statsHtml = `<div class="hp-stats hp-stats--4 ac-stats">${stats.map(([h, l, v, ic, sub], i) => `<a class="hp-stat${l === 'Amount due' && (overdue.length || unpaid.length) ? ' is-alert' : ''}" href="${h}" data-reveal style="--i:${i}"><span class="ac-stats__l">${icon(ic)}${l}</span><b class="num"${/\d/.test(v) && v !== '0' ? ' data-count' : ''}>${esc(v)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</a>`).join('')}</div>`;
+  const statsHtml = `<div class="hp-stats hp-stats--4 ac-stats">${stats.map(([h, l, v, ic, sub], i) => {
+    const due = l === 'Amount due';
+    const cls = `hp-stat${due && (overdue.length || unpaid.length) ? ' is-alert' : ''}`;
+    const inner = `<span class="ac-stats__l">${icon(ic)}${l}</span><b class="num"${/\d/.test(v) && v !== '0' ? ' data-count' : ''}>${esc(v)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}`;
+    if (due && amountDuePost) {
+      const label = amountDuePost.to === 'service_renew' ? 'Renew and pay now' : unpaid.length > 1 ? 'Pay all due now' : 'Pay now';
+      return `<form method="post" action="/account/sso" class="ac-stat-f" data-reveal style="--i:${i}"><input type="hidden" name="csrf" value="${esc(o.csrf)}"><input type="hidden" name="to" value="${esc(amountDuePost.to)}">${amountDuePost.id ? `<input type="hidden" name="id" value="${esc(amountDuePost.id)}">` : ''}<button type="submit" class="${cls}">${inner}<em class="ac-stat-cta">${esc(label)}${icon('arrow')}</em></button></form>`;
+    }
+    return `<a class="${cls}" href="${h}" data-reveal style="--i:${i}">${inner}${due && overdue.length && !unpaid.length ? `<em class="ac-stat-cta">Renew and pay${icon('arrow')}</em>` : ''}</a>`;
+  }).join('')}</div>`;
 
   const order = (a: any, b: any) => Number(/active/i.test(b.status)) - Number(/active/i.test(a.status)) || String(a.nextduedate).localeCompare(String(b.nextduedate));
   const shown = [...prods].filter((p) => !/terminated|cancelled|fraud/i.test(p.status)).sort(order).slice(0, 6);

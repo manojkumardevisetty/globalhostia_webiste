@@ -2,9 +2,9 @@
 // list calls pass clientid/userid filters and every object fetched by id is re-checked for ownership.
 // `whmcs()` retries only read actions (Get*, DomainGetNameservers); the write/auth actions used here
 // (ValidateLogin, ResetPassword, CreateSsoToken, OpenTicket, AddTicketReply, UpdateClient,
-// DomainUpdateNameservers) are sent exactly once.
+// DomainUpdateNameservers, UpdateClientDomain) are sent exactly once.
 import 'server-only';
-import { whmcs, WhmcsError } from '../whmcs';
+import { whmcs, WhmcsError, getTldPricing } from '../whmcs';
 import { checkTicketsSoon } from '../support-notify';
 
 const arr = <T = any>(v: any): T[] => (Array.isArray(v) ? v : v ? [v] : []);
@@ -90,6 +90,28 @@ export async function domainUpdateNameservers(domainId: number, ns: string[]) {
   const p: Record<string, string | number> = { domainid: domainId };
   ns.slice(0, 5).forEach((n, i) => (p[`ns${i + 1}`] = n));
   await whmcs('DomainUpdateNameservers', p);
+}
+
+/**
+ * Domain auto-renew: UpdateClientDomain `donotrenew` (bool; 1 = do not renew). Sent once, then read back so a
+ * WHMCS that ignores the flag is reported as a failure instead of showing a switch that did nothing.
+ */
+export async function setDomainAutoRenew(clientId: number, domainId: number, on: boolean) {
+  if (!(await getDomain(clientId, domainId))) return false;
+  await whmcs('UpdateClientDomain', { domainid: domainId, donotrenew: on ? 0 : 1 });
+  const d = await getDomain(clientId, domainId);
+  const off = d && (d.donotrenew === true || d.donotrenew === 1 || d.donotrenew === '1' || d.donotrenew === 'true');
+  return !!d && (on ? !off : !!off);
+}
+
+/** Current TLD renewal prices in the client's currency ({ com: { "1": "13.99" } }); read-only. */
+export async function tldRenewPrices(clientId: number) {
+  const c = await getClientsDetails(clientId).catch(() => null);
+  const cur = Number(c?.currency) || undefined;
+  const { pricing } = await getTldPricing(cur);
+  const out: Record<string, Record<string, string>> = {};
+  for (const [tld, p] of Object.entries(pricing)) if (p.renew) out[tld.replace(/^\./, '').toLowerCase()] = p.renew;
+  return out;
 }
 
 /* ---------------- invoices ---------------- */
