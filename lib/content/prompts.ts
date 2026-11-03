@@ -278,7 +278,7 @@ const usageOf = (model: string, m: any, t0: number): CallUsage => ({
 /** Full draft for an idea: prompt → model → parsed draft → Markdown body. Throws a readable error on unusable output. */
 export async function draftArticle(client: ModelClient, model: string, args: Parameters<typeof draftPrompt>[0]) {
   const p = draftPrompt(args);
-  const out = await callJson(client, { model, system: p.system, user: p.user, schema: DRAFT_SCHEMA, maxTokens: 9000, timeoutMs: 240_000 });
+  const out = await callJson(client, { model, system: p.system, user: p.user, schema: DRAFT_SCHEMA, maxTokens: 9000, timeoutMs: 150_000 });
   const d = parseDraft(out.text);
   if (!d) throw new Error(out.stop === 'max_tokens' ? 'The draft was cut off (too long). Try again.' : 'The model did not return a usable draft. Try again.');
   return { draft: d, body: assembleMarkdown(d, 'en'), usage: out.usage };

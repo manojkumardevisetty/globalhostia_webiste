@@ -140,6 +140,17 @@ async function sendOwnerEmail(clientId: number, subject: string, html: string) {
   await whmcs('SendEmail', { id: clientId, customtype: 'general', customsubject: subject.replace(/[{}]/g, ''), custommessage: html });
 }
 
+/** Email the owner (same WHMCS client account as the ticket alerts) — used by other admin notifiers (content engine).
+ *  `html` must already be escaped; braces are neutralised here because WHMCS runs the body through Smarty. */
+export async function emailOwner(subject: string, html: string): Promise<{ ok: boolean; error?: string }> {
+  if (!whmcsConfigured()) return { ok: false, error: 'whmcs-not-configured' };
+  try {
+    const cfg = await supportSettings();
+    await sendOwnerEmail(cfg.clientId, subject, html.replace(/\{/g, '&#123;').replace(/\}/g, '&#125;'));
+    return { ok: true };
+  } catch (e: any) { return { ok: false, error: String(e?.message || e).slice(0, 200) }; }
+}
+
 async function notifyOne(t: TicketSummary, isNew: boolean, depts: Map<number, string>, cfg: SupportSettings) {
   let excerpt = '', department = depts.get(t.deptid) || '';
   let full: any = null;

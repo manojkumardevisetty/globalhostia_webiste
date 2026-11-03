@@ -3,8 +3,8 @@
 
 export type Surface = 'chat' | 'assist' | 'tickets' | 'admin';
 export const SURFACES: Surface[] = ['chat', 'assist', 'tickets', 'admin'];
-export const SURFACE_LABEL: Record<Surface | 'gate' | 'names', string> = {
-  chat: 'Website chat', assist: 'Customer assistant', tickets: 'Ticket automation', admin: 'Admin assistant', gate: 'Scope classifier', names: 'Domain ideas',
+export const SURFACE_LABEL: Record<Surface | 'gate' | 'names' | 'content', string> = {
+  chat: 'Website chat', assist: 'Customer assistant', tickets: 'Ticket automation', admin: 'Admin assistant', gate: 'Scope classifier', names: 'Domain ideas', content: 'Content engine',
 };
 
 export type ModelPrice = { in: number; out: number; cacheWrite: number; cacheRead: number; tierAbove?: number; tierMult?: number };

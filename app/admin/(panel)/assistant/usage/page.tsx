@@ -34,7 +34,7 @@ export default async function UsagePage() {
   const chats = bySurface.find((r) => r.surface === 'chat');
   const days = [...new Set(byDay.map((r) => r.day))].slice(0, 30);
   const max = Math.max(0.0001, ...days.map((d) => byDay.filter((r) => r.day === d).reduce((t, r) => t + r.usd, 0)));
-  const COLORS: Record<string, string> = { chat: '#c5386f', assist: '#473bf0', tickets: '#0f7a41', admin: '#16212b', gate: '#b54708', names: '#64748b' };
+  const COLORS: Record<string, string> = { chat: '#c5386f', assist: '#473bf0', tickets: '#0f7a41', admin: '#16212b', gate: '#b54708', names: '#64748b', content: '#0e7490' };
 
   return (
     <>
