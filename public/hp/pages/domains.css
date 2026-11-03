@@ -140,3 +140,5 @@
   .dom-float{animation:none!important}
 }
 
+.dom-more{display:flex;margin:16px auto 0;min-height:44px}
+.dom-more[hidden]{display:none}

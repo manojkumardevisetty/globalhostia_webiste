@@ -4,7 +4,9 @@
   function init(HP){
     var D=document;
     HP.$$("[data-dom-grid]").forEach(function(grid){
-      var body=HP.$("[data-dom-body]",grid), rows=HP.$$("tr",body), chips=HP.$$(".dom-chips button",grid), sort=HP.$("[data-dom-sort]",grid), live=HP.$("[data-dom-count]",grid), f="all";
+      var body=HP.$("[data-dom-body]",grid), rows=HP.$$("tr",body), chips=HP.$$(".dom-chips button",grid), sort=HP.$("[data-dom-sort]",grid), live=HP.$("[data-dom-count]",grid), f="all", STEP=24, lim=STEP, more=document.createElement("button");
+      more.type="button"; more.className="hp-btn hp-btn--ghost dom-more"; body.closest(".dom-table-wrap").after(more);
+      more.addEventListener("click",function(){ lim+=STEP; apply(false) });
       function apply(animate){
         var shown=rows.filter(function(r){ var ok=f==="all"||(" "+r.getAttribute("data-tags")+" ").indexOf(" "+f+" ")>-1; r.hidden=!ok; return ok });
         var s=sort?sort.value:"";
@@ -18,12 +20,14 @@
           var n=0;
           order.forEach(function(r){ if(r.hidden) return; r.classList.remove("is-enter"); void r.offsetWidth; r.style.setProperty("--n",n++); r.classList.add("is-enter") });
         }
+        var k=0; order.forEach(function(r){ if(r.hidden) return; if(++k>lim) r.hidden=true });
+        var left=shown.length-Math.min(lim,shown.length); more.hidden=left<=0; more.textContent="Show "+Math.min(STEP,left)+" more of "+left+" extensions";
         if(live) live.textContent=shown.length+(shown.length===1?" extension":" extensions")+" shown";
       }
       chips.forEach(function(c){ c.addEventListener("click",function(){
-        f=c.getAttribute("data-f"); chips.forEach(function(x){ x.setAttribute("aria-pressed",String(x===c)) }); apply(true);
+        f=c.getAttribute("data-f"); lim=STEP; chips.forEach(function(x){ x.setAttribute("aria-pressed",String(x===c)) }); apply(true);
       }) });
-      if(sort) sort.addEventListener("change",function(){apply(true)});
+      if(sort) sort.addEventListener("change",function(){lim=STEP; apply(true)});
       apply(false);
     });
 
