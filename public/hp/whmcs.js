@@ -878,3 +878,476 @@
     document.addEventListener('submit', function (e) { if (e.target && e.target.querySelector && e.target.querySelector('textarea')) ping(); }, true);
   } catch (e) {}
 })();
+
+// Manage hosting: tabbed DNS / Email / Files / Databases / SSL / Backups panel on the service details page.
+// Shown only when the WHMCS hook (docs/whmcs/globalhostia_hosting_hook.php) printed window.GH_HOSTING for an Active
+// DirectAdmin / cPanel / Plesk service owned by the signed-in client. Talks to ORIGIN/api/hosting/* with that token in
+// the Authorization header (no cookies). The panel's own "Login to DirectAdmin" button is left in place as a fallback.
+(function () {
+  'use strict';
+  var ORIGIN = (function () { try { return new URL(document.currentScript.src).origin; } catch (e) { return 'https://globalhostia.com'; } })();
+  var API = ORIGIN + '/api/hosting/';
+  function ready(f) { if (document.readyState !== 'loading') f(); else document.addEventListener('DOMContentLoaded', f); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var I = {
+    dns: 'M12 2a10 10 0 100 20 10 10 0 000-20zM2 12h20M12 2c2.8 3 4 6.5 4 10s-1.2 7-4 10c-2.8-3-4-6.5-4-10s1.2-7 4-10z',
+    email: 'M3 5h18v14H3zM3 6l9 7 9-7',
+    files: 'M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z',
+    databases: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+    ssl: 'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4',
+    backups: 'M3 12a9 9 0 109-9 9.7 9.7 0 00-6.7 2.8L3 8M3 3v5h5M12 7v5l3 3',
+    plus: 'M12 5v14M5 12h14', edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4', trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+    key: 'M15 7a4 4 0 11-3.9 5H3v3h3v3h3v-3h2.1A4 4 0 0115 7z', down: 'M12 4v12M6 10l6 6 6-6M4 20h16', up: 'M12 20V8M6 14l6-6 6 6M4 4h16',
+    folder: 'M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z', file: 'M6 3h8l4 4v14H6zM14 3v4h4',
+    refresh: 'M20 11a8 8 0 10-2.3 5.7M20 4v7h-7', fwd: 'M4 12h14M13 6l6 6-6 6', user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0',
+    shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', alert: 'M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z',
+    x: 'M6 6l12 12M18 6L6 18', rename: 'M9 4h6M9 20h6M12 4v16M4 9l-2 3 2 3M20 9l2 3-2 3', ext: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6', gauge: 'M4 18a8 8 0 1116 0M12 18l4-6'
+  };
+  function ic(n, sz) { return '<svg viewBox="0 0 24 24" width="' + (sz || 16) + '" height="' + (sz || 16) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' + I[n] + '"/></svg>'; }
+  var TABS = [['dns', 'DNS'], ['email', 'Email'], ['files', 'Files'], ['databases', 'Databases'], ['ssl', 'SSL'], ['backups', 'Backups']];
+  var bytes = function (n) { n = +n || 0; return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : n < 1073741824 ? (n / 1048576).toFixed(1) + ' MB' : (n / 1073741824).toFixed(2) + ' GB'; };
+  var when = function (s) { if (!s) return ''; var d = new Date(s); return isNaN(d) ? esc(s) : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }); };
+  function genPass() {
+    var a = 'abcdefghijkmnpqrstuvwxyz', A = 'ABCDEFGHJKLMNPQRSTUVWXYZ', d = '23456789', s = '!#%+=_-', all = a + A + d + s, out = [], r = new Uint32Array(16);
+    (window.crypto || window.msCrypto).getRandomValues(r);
+    out.push(a[r[0] % a.length], A[r[1] % A.length], d[r[2] % d.length], s[r[3] % s.length]);
+    for (var i = 4; i < 16; i++) out.push(all[r[i] % all.length]);
+    for (var j = out.length - 1; j > 0; j--) { var k = r[j] % (j + 1), t = out[j]; out[j] = out[k]; out[k] = t; }
+    return out.join('');
+  }
+
+  function mount(G) {
+    if (document.querySelector('.ghh')) return;
+    var anchor = null;
+    // after the card that holds the panel's own login button, else before the tabbed service details, else top of content
+    var btn = [].slice.call(document.querySelectorAll('a, button, input[type=submit]')).filter(function (b) { return /login to (directadmin|cpanel|plesk|control panel)|log in to (directadmin|cpanel|plesk)/i.test(b.textContent || b.value || ''); })[0];
+    if (btn) { anchor = btn.closest('.card, .panel, .module-client-area, .product-details, section') || btn.parentNode; }
+    var host = document.createElement('section');
+    host.className = 'ghh'; host.setAttribute('aria-labelledby', 'ghh-title');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(host, anchor.nextSibling);
+    else {
+      var t = document.querySelector('.product-details-tab-container, #tabOverview, .tab-content, .product-details, #main-body .container, #main-body, main');
+      if (!t) return;
+      if (t.matches('#main-body .container, #main-body, main')) t.insertBefore(host, t.firstChild); else t.parentNode.insertBefore(host, t);
+    }
+    app(host, G);
+  }
+
+  function app(root, G) {
+    var S = { tab: null, session: null, domain: '', path: '/', cache: {} };
+    root.innerHTML =
+      '<header class="ghh__head"><span class="ghh__mark" aria-hidden="true">' + ic('gauge', 20) + '</span><div class="ghh__ttl"><h2 id="ghh-title">Manage hosting</h2><p class="ghh__sub" data-sub>Connecting to your hosting account</p></div>' +
+      '<div class="ghh__dom" data-dom hidden><label for="ghh-dom">Domain</label><select id="ghh-dom" data-domsel></select></div></header>' +
+      '<div class="ghh__tabs" role="tablist" aria-label="Hosting tools" data-tabs></div>' +
+      '<div class="ghh__body" role="tabpanel" tabindex="-1" data-body aria-live="polite"></div>' +
+      '<div class="ghh__toasts" aria-live="polite" aria-atomic="false" data-toasts></div>';
+    var $ = function (s) { return root.querySelector(s); };
+    var body = $('[data-body]');
+    body.innerHTML = skel(4);
+
+    function api(section, q, opts) {
+      opts = opts || {};
+      var url = API + section + (q ? '?' + new URLSearchParams(q) : '');
+      var init = { method: opts.method || 'GET', headers: { authorization: 'Bearer ' + G.token }, credentials: 'omit', mode: 'cors', cache: 'no-store' };
+      if (opts.json) { init.method = 'POST'; init.headers['content-type'] = 'application/json'; init.body = JSON.stringify(opts.json); }
+      if (opts.form) { init.method = 'POST'; init.body = opts.form; }
+      return fetch(url, init).then(function (r) {
+        if (opts.raw && r.ok) return r;
+        return r.json().catch(function () { return { error: 'server', message: 'Unexpected answer from the server (' + r.status + ')' }; }).then(function (d) {
+          if (!r.ok) { var e = new Error(d.message || 'Request failed'); e.code = d.error; e.status = r.status; throw e; }
+          return d;
+        });
+      }, function () { var e = new Error('Network problem. Check your connection and try again.'); e.code = 'network'; throw e; });
+    }
+    function toast(msg, kind) {
+      var box = $('[data-toasts]'), el = document.createElement('div');
+      el.className = 'ghh-toast ghh-toast--' + (kind || 'ok'); el.setAttribute('role', kind === 'err' ? 'alert' : 'status');
+      el.innerHTML = '<span class="ghh-toast__mk" aria-hidden="true"></span><span>' + esc(msg) + '</span><button type="button" aria-label="Dismiss">' + ic('x', 14) + '</button>';
+      el.querySelector('button').onclick = function () { el.remove(); };
+      box.appendChild(el); setTimeout(function () { el.classList.add('is-out'); setTimeout(function () { el.remove(); }, 300); }, kind === 'err' ? 7000 : 4200);
+    }
+    function fail(e, where) {
+      if (e && e.code === 'expired') return expired();
+      if (where) where.innerHTML = errBox(e && e.message);
+      else toast(e && e.message || 'Something went wrong', 'err');
+    }
+    function expired() {
+      body.innerHTML = '<div class="ghh-state"><span class="ghh-state__hex">' + ic('refresh', 22) + '</span><h3>Your session timed out</h3><p>For your security the hosting tools sign out after 10 minutes. Reload the page to continue where you left off.</p><button type="button" class="ghh-btn ghh-btn--pri" data-reload>Reload page</button></div>';
+      body.querySelector('[data-reload]').onclick = function () { location.reload(); };
+    }
+    function errBox(m) { return '<div class="ghh-state ghh-state--err" role="alert"><span class="ghh-state__hex">' + ic('alert', 22) + '</span><h3>That did not work</h3><p>' + esc(m || 'Please try again in a moment.') + '</p><button type="button" class="ghh-btn" data-retry>' + ic('refresh') + ' Try again</button></div>'; }
+    function empty(icon, title, text, cta) { return '<div class="ghh-state"><span class="ghh-state__hex">' + ic(icon, 22) + '</span><h3>' + esc(title) + '</h3><p>' + esc(text) + '</p>' + (cta || '') + '</div>'; }
+    function skel(n) { var s = '<div class="ghh-skel" aria-busy="true" aria-label="Loading">'; for (var i = 0; i < n; i++) s += '<div class="ghh-skel__row"><i></i><i></i><i></i></div>'; return s + '</div>'; }
+    function can(sec, f) { var c = S.session && S.session.caps[sec]; return !!(c && c.indexOf(f) >= 0); }
+    function bar(title, sub, actions) { return '<div class="ghh-bar"><div><h3>' + esc(title) + '</h3>' + (sub ? '<p>' + sub + '</p>' : '') + '</div><div class="ghh-bar__act">' + (actions || '') + '</div></div>'; }
+    function busy(b, on) { if (!b) return; b.disabled = on; b.classList.toggle('is-busy', on); }
+    function retryOn(el, fn) { var r = el.querySelector('[data-retry]'); if (r) r.onclick = fn; }
+
+    /* inline confirm: replaces the action cell until confirmed or cancelled */
+    function confirmIn(cell, text, label, run, rebind) {
+      var keep = cell.innerHTML, re = function () { cell.innerHTML = keep; (rebind || bindAll)(); };
+      cell.innerHTML = '<div class="ghh-confirm" role="group" aria-label="Confirm"><span>' + esc(text) + '</span><button type="button" class="ghh-btn ghh-btn--sm" data-no>Cancel</button><button type="button" class="ghh-btn ghh-btn--sm ghh-btn--danger" data-yes>' + esc(label) + '</button></div>';
+      var no = cell.querySelector('[data-no]'), yes = cell.querySelector('[data-yes]');
+      yes.focus();
+      no.onclick = re;
+      yes.onclick = function () { busy(yes, true); no.disabled = true; run(re); };
+      cell.onkeydown = function (e) { if (e.key === 'Escape') no.click(); };
+    }
+    var bindAll = function () {};
+
+    /* inline form panel above a list */
+    function formPanel(slot, title, fields, submitLabel, onSubmit) {
+      slot.innerHTML = '<form class="ghh-form" novalidate><div class="ghh-form__head"><h4>' + esc(title) + '</h4><button type="button" class="ghh-icon" data-close aria-label="Close">' + ic('x') + '</button></div><div class="ghh-form__grid">' + fields + '</div>' +
+        '<p class="ghh-form__err" role="alert" hidden></p><div class="ghh-form__foot"><button type="button" class="ghh-btn" data-close>Cancel</button><button class="ghh-btn ghh-btn--pri" type="submit">' + esc(submitLabel) + '</button></div></form>';
+      var f = slot.querySelector('form'), err = f.querySelector('.ghh-form__err');
+      [].forEach.call(f.querySelectorAll('[data-close]'), function (b) { b.onclick = function () { slot.innerHTML = ''; }; });
+      [].forEach.call(f.querySelectorAll('[data-gen]'), function (b) { b.onclick = function () { var i = f.querySelector('[name="' + b.getAttribute('data-gen') + '"]'); i.value = genPass(); i.type = 'text'; i.select(); }; });
+      f.onkeydown = function (e) { if (e.key === 'Escape') slot.innerHTML = ''; };
+      f.onsubmit = function (e) {
+        e.preventDefault(); err.hidden = true;
+        var sb = f.querySelector('[type=submit]'); busy(sb, true);
+        var data = {}; [].forEach.call(f.elements, function (el) { if (el.name) data[el.name] = el.type === 'checkbox' ? el.checked : el.value; });
+        onSubmit(data).then(function () { slot.innerHTML = ''; }, function (e2) { busy(sb, false); if (e2 && e2.code === 'expired') return expired(); err.textContent = e2 && e2.message || 'Failed'; err.hidden = false; });
+      };
+      var first = f.querySelector('input:not([type=hidden]), select, textarea'); if (first) first.focus();
+      slot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    function fld(name, label, o) {
+      o = o || {};
+      var id = 'ghh-f-' + name + '-' + Math.random().toString(36).slice(2, 7);
+      var input = o.options ? '<select id="' + id + '" name="' + name + '">' + o.options.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (x[0] === o.value ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') + '</select>'
+        : o.area ? '<textarea id="' + id + '" name="' + name + '" rows="3"' + (o.required ? ' required' : '') + '>' + esc(o.value || '') + '</textarea>'
+        : '<input id="' + id + '" name="' + name + '" type="' + (o.type || 'text') + '" value="' + esc(o.value == null ? '' : o.value) + '"' + (o.placeholder ? ' placeholder="' + esc(o.placeholder) + '"' : '') + (o.required ? ' required' : '') + (o.min != null ? ' min="' + o.min + '"' : '') + ' autocomplete="' + (o.type === 'password' ? 'new-password' : 'off') + '" spellcheck="false">';
+      var addon = o.suffix ? '<span class="ghh-addon">' + esc(o.suffix) + '</span>' : o.prefix ? '<span class="ghh-addon ghh-addon--pre">' + esc(o.prefix) + '</span>' : '';
+      var gen = o.type === 'password' ? '<button type="button" class="ghh-btn ghh-btn--sm" data-gen="' + name + '">Generate</button>' : '';
+      return '<div class="ghh-fld' + (o.wide ? ' ghh-fld--wide' : '') + '" data-f="' + name + '"' + (o.hidden ? ' hidden' : '') + '><label for="' + id + '">' + esc(label) + '</label><div class="ghh-in' + (o.prefix ? ' has-pre' : '') + '">' + (o.prefix ? addon : '') + input + (o.suffix ? addon : '') + gen + '</div>' + (o.hint ? '<small>' + esc(o.hint) + '</small>' : '') + '</div>';
+    }
+
+    /* ------------------------------------------------------------ boot */
+    api('session').then(function (s) {
+      S.session = s;
+      S.domain = s.domains.indexOf(s.domain) >= 0 ? s.domain : s.domains[0] || '';
+      $('[data-sub]').innerHTML = esc(s.domain || s.username) + ' <span aria-hidden="true">·</span> ' + esc(s.panelLabel) + (s.server ? ' <span aria-hidden="true">·</span> ' + esc(s.server) : '');
+      var sel = $('[data-domsel]');
+      sel.innerHTML = s.domains.map(function (d) { return '<option' + (d === S.domain ? ' selected' : '') + '>' + esc(d) + '</option>'; }).join('');
+      sel.onchange = function () { S.domain = sel.value; S.cache = {}; show(S.tab); };
+      var tabs = TABS.filter(function (t) { return s.caps[t[0]] && s.caps[t[0]].length; });
+      var tl = $('[data-tabs]');
+      tl.innerHTML = tabs.map(function (t, i) { return '<button type="button" role="tab" id="ghh-tab-' + t[0] + '" aria-controls="ghh-panel" aria-selected="false" tabindex="-1" data-tab="' + t[0] + '">' + ic(t[0], 17) + '<span>' + t[1] + '</span></button>'; }).join('');
+      body.id = 'ghh-panel';
+      tl.onclick = function (e) { var b = e.target.closest('[data-tab]'); if (b) show(b.getAttribute('data-tab'), true); };
+      tl.onkeydown = function (e) {
+        var bs = [].slice.call(tl.querySelectorAll('[role=tab]')), i = bs.indexOf(document.activeElement);
+        if (i < 0) return;
+        var n = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? bs.length - 1 : null;
+        if (n === null) return; e.preventDefault(); n = (n + bs.length) % bs.length; bs[n].focus(); show(bs[n].getAttribute('data-tab'));
+      };
+      var want = (location.hash.match(/^#hosting-(\w+)/) || [])[1];
+      show(tabs.some(function (t) { return t[0] === want; }) ? want : tabs[0] ? tabs[0][0] : null);
+    }, function (e) {
+      if (e && e.code === 'expired') return expired();
+      body.innerHTML = errBox(e && e.message); retryOn(body, function () { root.remove(); mount(G); });
+    });
+
+    function show(tab, focus) {
+      if (!tab) { body.innerHTML = empty('shield', 'No tools available', 'This hosting panel does not offer any self-service tools here yet. Use the control panel button instead.'); return; }
+      S.tab = tab;
+      [].forEach.call(root.querySelectorAll('[role=tab]'), function (b) { var on = b.getAttribute('data-tab') === tab; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+      body.setAttribute('aria-labelledby', 'ghh-tab-' + tab);
+      $('[data-dom]').hidden = !(tab === 'dns' || tab === 'email') || S.session.domains.length < 2;
+      try { history.replaceState(null, '', '#hosting-' + tab); } catch (e) {}
+      ({ dns: dns, email: email, files: files, databases: databases, ssl: ssl, backups: backups })[tab]();
+      if (focus) { var b = root.querySelector('[data-tab="' + tab + '"]'); if (b) b.focus(); }
+    }
+
+    /* ------------------------------------------------------------ DNS */
+    function dns() {
+      var d = S.domain;
+      body.innerHTML = bar('DNS records', 'Records for <b>' + esc(d) + '</b>. Changes usually spread worldwide within an hour.', can('dns', 'add') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add>' + ic('plus') + ' Add record</button>' : '') + '<div data-slot></div><div data-list>' + skel(5) + '</div>';
+      var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), recs = [];
+      var load = function () {
+        list.innerHTML = skel(5);
+        api('dns', { domain: d }).then(function (r) { recs = r.records; render(); }, function (e) { fail(e, list); retryOn(list, load); });
+      };
+      var recForm = function (rec) {
+        var t = rec ? rec.type : 'A';
+        var flds = fld('type', 'Type', { options: [['A', 'A (IPv4 address)'], ['AAAA', 'AAAA (IPv6 address)'], ['CNAME', 'CNAME (alias)'], ['MX', 'MX (mail server)'], ['TXT', 'TXT (text, SPF, verification)'], ['SRV', 'SRV (service)']], value: t }) +
+          fld('name', 'Name', { value: rec ? rec.name : '', placeholder: '@ for ' + d, suffix: '.' + d, hint: 'Use @ for the domain itself, or e.g. www, mail, _sip._tcp' }) +
+          fld('value', 'Value', { value: rec ? rec.value : '', required: true, wide: true }) +
+          fld('priority', 'Priority', { type: 'number', min: 0, value: rec && rec.priority != null ? rec.priority : 10, hidden: true }) +
+          fld('weight', 'Weight', { type: 'number', min: 0, value: rec && rec.weight != null ? rec.weight : 0, hidden: true }) +
+          fld('port', 'Port', { type: 'number', min: 1, value: rec && rec.port != null ? rec.port : '', hidden: true }) +
+          fld('ttl', 'TTL (seconds)', { type: 'number', min: 60, value: rec ? rec.ttl : 3600 });
+        formPanel(slot, rec ? 'Edit ' + rec.type + ' record' : 'Add a DNS record', flds, rec ? 'Save record' : 'Add record', function (v) {
+          var payload = { op: rec ? 'edit' : 'add', domain: d, record: v }; if (rec) payload.id = rec.id;
+          return api('dns', null, { json: payload }).then(function (r) { toast(r.message); load(); });
+        });
+        var f = slot.querySelector('form'), ty = f.querySelector('[name=type]');
+        var hints = { A: '203.0.113.10', AAAA: '2001:db8::10', CNAME: 'target.example.com', MX: 'mail.' + d, TXT: 'v=spf1 include:_spf.example.com ~all', SRV: 'sip.' + d };
+        var sync = function () {
+          var x = ty.value;
+          f.querySelector('[data-f=priority]').hidden = !(x === 'MX' || x === 'SRV');
+          f.querySelector('[data-f=weight]').hidden = f.querySelector('[data-f=port]').hidden = x !== 'SRV';
+          var vl = f.querySelector('[data-f=value] label'); vl.textContent = { A: 'IPv4 address', AAAA: 'IPv6 address', CNAME: 'Points to', MX: 'Mail server', TXT: 'Text', SRV: 'Target host' }[x];
+          f.querySelector('[name=value]').placeholder = hints[x];
+        };
+        ty.onchange = sync; sync();
+      };
+      var render = function () {
+        if (!recs.length) { list.innerHTML = empty('dns', 'No records yet', 'Add an A record to point ' + d + ' at a server, or an MX record for email.', can('dns', 'add') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add2>' + ic('plus') + ' Add record</button>' : ''); var a2 = list.querySelector('[data-add2]'); if (a2) a2.onclick = function () { recForm(null); }; return; }
+        var order = { A: 1, AAAA: 2, CNAME: 3, MX: 4, TXT: 5, SRV: 6, NS: 7 };
+        recs.sort(function (a, b) { return (order[a.type] - order[b.type]) || a.name.localeCompare(b.name); });
+        list.innerHTML = '<div class="ghh-tw"><table class="ghh-t"><thead><tr><th scope="col">Type</th><th scope="col">Name</th><th scope="col">Value</th><th scope="col">TTL</th><th scope="col"><span class="ghh-sr">Actions</span></th></tr></thead><tbody>' +
+          recs.map(function (r, i) {
+            var val = (r.type === 'MX' ? '<span class="ghh-pill ghh-pill--muted">' + esc(r.priority) + '</span> ' : r.type === 'SRV' ? '<span class="ghh-pill ghh-pill--muted">' + esc(r.priority + ' ' + r.weight + ' ' + r.port) + '</span> ' : '') + '<code>' + esc(r.value) + '</code>';
+            return '<tr><td data-l="Type"><span class="ghh-type ghh-type--' + esc(r.type.toLowerCase()) + '">' + esc(r.type) + '</span></td><td data-l="Name"><code>' + esc(r.name === '@' ? d : r.name + '.' + d) + '</code></td><td data-l="Value" class="ghh-wrap">' + val + '</td><td data-l="TTL">' + esc(r.ttl) + '</td>' +
+              '<td class="ghh-act" data-i="' + i + '">' + (r.readonly ? '<span class="ghh-muted">Managed</span>' : (can('dns', 'edit') ? '<button type="button" class="ghh-icon" data-edit aria-label="Edit ' + esc(r.type + ' ' + r.name) + '">' + ic('edit') + '</button>' : '') + (can('dns', 'delete') ? '<button type="button" class="ghh-icon ghh-icon--danger" data-del aria-label="Delete ' + esc(r.type + ' ' + r.name) + '">' + ic('trash') + '</button>' : '')) + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+        bindAll();
+      };
+      bindAll = function () {
+        [].forEach.call(list.querySelectorAll('[data-edit]'), function (b) { b.onclick = function () { recForm(recs[+b.closest('[data-i]').getAttribute('data-i')]); }; });
+        [].forEach.call(list.querySelectorAll('[data-del]'), function (b) {
+          b.onclick = function () {
+            var cell = b.closest('[data-i]'), r = recs[+cell.getAttribute('data-i')];
+            confirmIn(cell, 'Delete this ' + r.type + ' record?', 'Delete', function (back) { api('dns', null, { json: { op: 'delete', domain: d, id: r.id } }).then(function (x) { toast(x.message); load(); }, function (e) { fail(e); back(); }); });
+          };
+        });
+      };
+      var add = body.querySelector('[data-add]'); if (add) add.onclick = function () { recForm(null); };
+      load();
+    }
+
+    /* ------------------------------------------------------------ Email */
+    function email() {
+      var d = S.domain;
+      body.innerHTML = bar('Email accounts', 'Mailboxes on <b>' + esc(d) + '</b>.', can('email', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add>' + ic('plus') + ' New mailbox</button>' : '') +
+        '<div data-slot></div><div data-list>' + skel(3) + '</div>' +
+        (can('email', 'forwarders') ? '<div class="ghh-sep"></div>' + bar('Forwarders', 'Send mail for an address on to another inbox.', '<button type="button" class="ghh-btn" data-addf>' + ic('fwd') + ' New forwarder</button>') + '<div data-fslot></div><div data-flist>' + skel(2) + '</div>' : '');
+      var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), boxes = [], fwds = [];
+      var flist = body.querySelector('[data-flist]'), fslot = body.querySelector('[data-fslot]');
+      var load = function () {
+        if (!can('email', 'list')) { list.innerHTML = empty('email', 'Create and manage mailboxes', 'Your panel does not list mailboxes here; you can still create them, change passwords and quotas.'); }
+        else api('email', { domain: d }).then(function (r) { boxes = r.mailboxes; render(); }, function (e) { fail(e, list); retryOn(list, load); });
+        if (flist) api('email', { domain: d, op: 'forwarders' }).then(function (r) { fwds = r.forwarders; renderF(); }, function (e) { fail(e, flist); retryOn(flist, load); });
+      };
+      var newBox = function () {
+        formPanel(slot, 'New mailbox', fld('user', 'Address', { required: true, suffix: '@' + d, placeholder: 'info' }) + fld('password', 'Password', { type: 'password', required: true, hint: '8+ characters with upper and lower case and a digit' }) + fld('quota', 'Quota', { type: 'number', min: 0, value: 1024, suffix: 'MB', hint: '0 = unlimited' }), 'Create mailbox', function (v) {
+          return api('email', null, { json: { op: 'create', domain: d, user: v.user, password: v.password, quota: +v.quota || 0 } }).then(function (r) { toast(r.message); load(); });
+        });
+      };
+      var render = function () {
+        if (!boxes.length) { list.innerHTML = empty('email', 'No mailboxes yet', 'Create an address like info@' + d + ' and read it in any mail app.', can('email', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add2>' + ic('plus') + ' New mailbox</button>' : ''); var a2 = list.querySelector('[data-add2]'); if (a2) a2.onclick = newBox; return; }
+        list.innerHTML = '<div class="ghh-tw"><table class="ghh-t"><thead><tr><th scope="col">Address</th><th scope="col">Usage</th><th scope="col"><span class="ghh-sr">Actions</span></th></tr></thead><tbody>' + boxes.map(function (m, i) {
+          var pct = m.quotaMb ? Math.min(100, Math.round(m.usedMb / m.quotaMb * 100)) : 0;
+          return '<tr><td data-l="Address"><b class="ghh-strong">' + esc(m.email) + '</b>' + (m.suspended ? ' <span class="ghh-pill ghh-pill--warn">Suspended</span>' : '') + '</td>' +
+            '<td data-l="Usage"><div class="ghh-use"><div class="ghh-meter' + (pct > 85 ? ' is-high' : '') + '" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="Mailbox usage"><i style="width:' + (m.quotaMb ? pct : 4) + '%"></i></div><span>' + esc(m.usedMb) + ' MB of ' + (m.quotaMb ? esc(m.quotaMb) + ' MB' : 'unlimited') + '</span></div></td>' +
+            '<td class="ghh-act" data-i="' + i + '">' + (can('email', 'password') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-pw>' + ic('key', 14) + ' Password</button>' : '') + (can('email', 'quota') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-q>Quota</button>' : '') + (can('email', 'delete') ? '<button type="button" class="ghh-icon ghh-icon--danger" data-del aria-label="Delete ' + esc(m.email) + '">' + ic('trash') + '</button>' : '') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+        bindAll();
+      };
+      var renderF = function () {
+        if (!fwds.length) { flist.innerHTML = '<p class="ghh-note">No forwarders on ' + esc(d) + '.</p>'; return; }
+        flist.innerHTML = '<ul class="ghh-fwd">' + fwds.map(function (f, i) {
+          return '<li><b>' + esc(f.email) + '</b><span class="ghh-arrow" aria-hidden="true">' + ic('fwd', 14) + '</span><span class="ghh-chips">' + f.to.map(function (t, j) { return '<span class="ghh-chip">' + esc(t) + '<button type="button" data-fi="' + i + '" data-fj="' + j + '" aria-label="Remove forwarding to ' + esc(t) + '">' + ic('x', 12) + '</button></span>'; }).join('') + '</span></li>';
+        }).join('') + '</ul>';
+        [].forEach.call(flist.querySelectorAll('[data-fi]'), function (b) {
+          b.onclick = function () {
+            var f = fwds[+b.getAttribute('data-fi')], to = f.to[+b.getAttribute('data-fj')], li = b.closest('li');
+            confirmIn(li, 'Stop forwarding ' + f.email + ' to ' + to + '?', 'Remove', function (back) { api('email', null, { json: { op: 'removeForwarder', domain: d, user: f.user, to: to } }).then(function (r) { toast(r.message); load(); }, function (e) { fail(e); back(); }); }, renderF);
+          };
+        });
+      };
+      bindAll = function () {
+        [].forEach.call(list.querySelectorAll('[data-i]'), function (cell) {
+          var m = boxes[+cell.getAttribute('data-i')], pw = cell.querySelector('[data-pw]'), q = cell.querySelector('[data-q]'), del = cell.querySelector('[data-del]');
+          if (pw) pw.onclick = function () { formPanel(slot, 'New password for ' + m.email, fld('password', 'New password', { type: 'password', required: true }), 'Change password', function (v) { return api('email', null, { json: { op: 'password', domain: d, user: m.user, password: v.password } }).then(function (r) { toast(r.message); }); }); };
+          if (q) q.onclick = function () { formPanel(slot, 'Quota for ' + m.email, fld('quota', 'Quota', { type: 'number', min: 0, value: m.quotaMb, suffix: 'MB', hint: '0 = unlimited' }), 'Save quota', function (v) { return api('email', null, { json: { op: 'quota', domain: d, user: m.user, quota: +v.quota || 0 } }).then(function (r) { toast(r.message); load(); }); }); };
+          if (del) del.onclick = function () { confirmIn(cell, 'Delete ' + m.email + ' and all its mail?', 'Delete', function (back) { api('email', null, { json: { op: 'delete', domain: d, user: m.user } }).then(function (r) { toast(r.message); load(); }, function (e) { fail(e); back(); }); }); };
+        });
+      };
+      var add = body.querySelector('[data-add]'); if (add) add.onclick = newBox;
+      var addf = body.querySelector('[data-addf]');
+      if (addf) addf.onclick = function () { formPanel(fslot, 'New forwarder', fld('user', 'Forward mail for', { required: true, suffix: '@' + d, placeholder: 'sales' }) + fld('to', 'To address', { type: 'email', required: true, placeholder: 'you@gmail.com' }), 'Add forwarder', function (v) { return api('email', null, { json: { op: 'addForwarder', domain: d, user: v.user, to: v.to } }).then(function (r) { toast(r.message); load(); }); }); };
+      load();
+    }
+
+    /* ------------------------------------------------------------ Files */
+    var EDIT = /\.(txt|html?|css|js|mjs|json|xml|php\d?|phtml|md|ini|conf|htaccess|env|ya?ml|csv|svg|py|rb|pl|sh|log|sql|tpl|twig|vue|ts|tsx|jsx)$|^\.(htaccess|user\.ini|htpasswd)$/i;
+    function files() {
+      var lim = S.session.limits || { transferBytes: 4194304, editBytes: 1048576 };
+      var acts = (can('files', 'upload') ? '<label class="ghh-btn ghh-btn--pri ghh-upload">' + ic('up') + ' Upload<input type="file" data-up multiple></label>' : '') + (can('files', 'mkdir') ? '<button type="button" class="ghh-btn" data-mk>' + ic('folder') + ' New folder</button>' : '');
+      body.innerHTML = bar('File manager', 'Browse and edit the files in your hosting account. Uploads up to ' + bytes(lim.transferBytes) + '; use FTP for larger files.', acts) + '<nav class="ghh-crumbs" aria-label="Folder path" data-crumbs></nav><div data-slot></div><div data-list>' + skel(6) + '</div>';
+      var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), ents = [];
+      var crumbs = function () {
+        var parts = S.path.split('/').filter(Boolean), acc = '';
+        body.querySelector('[data-crumbs]').innerHTML = '<button type="button" data-go="/">' + ic('folder', 14) + ' Home</button>' + parts.map(function (p, i) { acc += '/' + p; return '<span aria-hidden="true">/</span>' + (i === parts.length - 1 ? '<b aria-current="page">' + esc(p) + '</b>' : '<button type="button" data-go="' + esc(acc) + '">' + esc(p) + '</button>'); }).join('');
+        [].forEach.call(body.querySelectorAll('[data-go]'), function (b) { b.onclick = function () { S.path = b.getAttribute('data-go'); load(); }; });
+      };
+      var load = function () {
+        crumbs(); slot.innerHTML = ''; list.innerHTML = skel(6);
+        api('files', { op: 'list', path: S.path }).then(function (r) { ents = r.entries; render(); }, function (e) { fail(e, list); retryOn(list, load); });
+      };
+      var render = function () {
+        var up = S.path !== '/' ? '<tr class="ghh-up"><td colspan="4"><button type="button" class="ghh-link" data-parent>' + ic('up', 14) + ' Up one level</button></td></tr>' : '';
+        if (!ents.length) { list.innerHTML = (up ? '<div class="ghh-tw"><table class="ghh-t"><tbody>' + up + '</tbody></table></div>' : '') + empty('files', 'This folder is empty', 'Upload files or create a folder to get started.'); }
+        else list.innerHTML = '<div class="ghh-tw"><table class="ghh-t ghh-t--files"><thead><tr><th scope="col">Name</th><th scope="col">Size</th><th scope="col">Modified</th><th scope="col"><span class="ghh-sr">Actions</span></th></tr></thead><tbody>' + up +
+          ents.map(function (f, i) {
+            var isDir = f.type === 'dir' || f.type === 'link', canEdit = !isDir && EDIT.test(f.name) && f.size <= lim.editBytes && can('files', 'read');
+            return '<tr><td data-l="Name">' + (isDir ? '<button type="button" class="ghh-fname" data-open="' + i + '"><span class="ghh-ficon ghh-ficon--dir">' + ic('folder', 16) + '</span>' + esc(f.name) + '</button>' : '<span class="ghh-fname"><span class="ghh-ficon">' + ic('file', 16) + '</span>' + esc(f.name) + '</span>') + '</td>' +
+              '<td data-l="Size">' + (isDir ? '<span class="ghh-muted">' + (f.type === 'link' ? 'Link' : 'Folder') + '</span>' : bytes(f.size)) + '</td><td data-l="Modified">' + when(f.modified) + '</td>' +
+              '<td class="ghh-act" data-i="' + i + '">' + (canEdit && can('files', 'write') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-ed>' + ic('edit', 14) + ' Edit</button>' : '') + (!isDir && can('files', 'download') && f.size <= lim.transferBytes ? '<button type="button" class="ghh-icon" data-dl aria-label="Download ' + esc(f.name) + '">' + ic('down') + '</button>' : '') +
+              (can('files', 'rename') ? '<button type="button" class="ghh-icon" data-rn aria-label="Rename ' + esc(f.name) + '" title="Rename">' + ic('rename') + '</button>' : '') + (can('files', 'delete') ? '<button type="button" class="ghh-icon ghh-icon--danger" data-del aria-label="Delete ' + esc(f.name) + '">' + ic('trash') + '</button>' : '') + '</td></tr>';
+          }).join('') + '</tbody></table></div>';
+        var pb = list.querySelector('[data-parent]'); if (pb) pb.onclick = function () { S.path = S.path.replace(/\/[^\/]+$/, '') || '/'; load(); };
+        bindAll();
+      };
+      var full = function (n) { return (S.path === '/' ? '' : S.path) + '/' + n; };
+      var editor = function (f) {
+        slot.innerHTML = '<div class="ghh-editor">' + skel(3) + '</div>';
+        api('files', { op: 'read', path: full(f.name) }).then(function (r) {
+          slot.innerHTML = '<form class="ghh-editor"><div class="ghh-form__head"><h4>' + ic('file', 16) + ' ' + esc(full(f.name)) + '</h4><button type="button" class="ghh-icon" data-close aria-label="Close editor">' + ic('x') + '</button></div>' +
+            '<label class="ghh-sr" for="ghh-code">File contents</label><textarea id="ghh-code" spellcheck="false" wrap="off"></textarea><p class="ghh-form__err" role="alert" hidden></p>' +
+            '<div class="ghh-form__foot"><span class="ghh-muted" data-sz></span><button type="button" class="ghh-btn" data-close>Close</button><button type="submit" class="ghh-btn ghh-btn--pri">Save file</button></div></form>';
+          var fm = slot.querySelector('form'), ta = fm.querySelector('textarea'), dirty = false;
+          ta.value = r.content; fm.querySelector('[data-sz]').textContent = bytes(r.size);
+          ta.oninput = function () { dirty = true; };
+          ta.onkeydown = function (e) { if (e.key === 'Tab' && !e.shiftKey && !e.altKey) { e.preventDefault(); var s0 = ta.selectionStart; ta.setRangeText('  ', s0, ta.selectionEnd, 'end'); dirty = true; } if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); fm.requestSubmit ? fm.requestSubmit() : fm.onsubmit(e); } };
+          [].forEach.call(fm.querySelectorAll('[data-close]'), function (b) { b.onclick = function () { if (dirty && !b._sure) { b._sure = 1; b.textContent = 'Discard changes?'; return; } slot.innerHTML = ''; }; });
+          fm.onsubmit = function (e) {
+            e.preventDefault(); var sb = fm.querySelector('[type=submit]'), er = fm.querySelector('.ghh-form__err'); busy(sb, true); er.hidden = true;
+            api('files', null, { json: { op: 'write', path: full(f.name), content: ta.value } }).then(function (x) { busy(sb, false); dirty = false; toast(x.message); }, function (e2) { busy(sb, false); if (e2.code === 'expired') return expired(); er.textContent = e2.message; er.hidden = false; });
+          };
+          ta.focus(); slot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }, function (e) { slot.innerHTML = ''; fail(e); });
+      };
+      bindAll = function () {
+        [].forEach.call(list.querySelectorAll('[data-open]'), function (b) { b.onclick = function () { S.path = full(ents[+b.getAttribute('data-open')].name); load(); }; });
+        [].forEach.call(list.querySelectorAll('[data-i]'), function (cell) {
+          var f = ents[+cell.getAttribute('data-i')], q = function (s) { return cell.querySelector(s); };
+          if (q('[data-ed]')) q('[data-ed]').onclick = function () { editor(f); };
+          if (q('[data-dl]')) q('[data-dl]').onclick = function () {
+            var b = q('[data-dl]'); busy(b, true);
+            api('files', { op: 'download', path: full(f.name) }, { raw: true }).then(function (r) { return r.blob(); }).then(function (blob) {
+              busy(b, false); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = f.name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+            }, function (e) { busy(b, false); fail(e); });
+          };
+          if (q('[data-rn]')) q('[data-rn]').onclick = function () { formPanel(slot, 'Rename ' + f.name, fld('to', 'New name', { value: f.name, required: true }), 'Rename', function (v) { return api('files', null, { json: { op: 'rename', path: S.path, from: f.name, to: v.to } }).then(function (r) { toast(r.message); load(); }); }); };
+          if (q('[data-del]')) q('[data-del]').onclick = function () { confirmIn(cell, 'Delete ' + (f.type === 'dir' ? 'folder ' + f.name + ' and everything in it' : f.name) + '?', 'Delete', function (back) { api('files', null, { json: { op: 'delete', path: S.path, names: [f.name] } }).then(function (r) { toast(r.message); load(); }, function (e) { fail(e); back(); }); }); };
+        });
+      };
+      var mk = body.querySelector('[data-mk]');
+      if (mk) mk.onclick = function () { formPanel(slot, 'New folder in ' + S.path, fld('name', 'Folder name', { required: true }), 'Create folder', function (v) { return api('files', null, { json: { op: 'mkdir', path: S.path, name: v.name } }).then(function (r) { toast(r.message); load(); }); }); };
+      var upIn = body.querySelector('[data-up]');
+      if (upIn) upIn.onchange = function () {
+        var fl = [].slice.call(upIn.files || []); upIn.value = '';
+        var big = fl.filter(function (x) { return x.size > lim.transferBytes; });
+        if (big.length) toast(big.map(function (x) { return x.name; }).join(', ') + ': larger than ' + bytes(lim.transferBytes) + '. Use FTP for big files.', 'err');
+        fl = fl.filter(function (x) { return x.size <= lim.transferBytes; });
+        var lbl = body.querySelector('.ghh-upload'); lbl.classList.add('is-busy');
+        (function next() {
+          var x = fl.shift();
+          if (!x) { lbl.classList.remove('is-busy'); return load(); }
+          var fd = new FormData(); fd.append('op', 'upload'); fd.append('path', S.path); fd.append('file', x, x.name);
+          api('files', null, { form: fd }).then(function (r) { toast(r.message); next(); }, function (e) { fail(e); next(); });
+        })();
+      };
+      load();
+    }
+
+    /* ------------------------------------------------------------ Databases */
+    function databases() {
+      body.innerHTML = bar('MySQL databases', 'Databases for your websites and apps. Connect with host <code>localhost</code>.', can('databases', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add>' + ic('plus') + ' New database</button>' : '') + '<div data-slot></div><div data-list>' + skel(3) + '</div>';
+      var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), dbs = [], prefix = '';
+      var load = function () { list.innerHTML = skel(3); api('databases').then(function (r) { dbs = r.databases; prefix = r.prefix; render(); }, function (e) { fail(e, list); retryOn(list, load); }); };
+      var create = function () {
+        formPanel(slot, 'New database', fld('name', 'Database name', { required: true, prefix: prefix, placeholder: 'shop' }) + fld('user', 'Database user', { required: true, prefix: prefix, placeholder: 'shop' }) + fld('password', 'Password', { type: 'password', required: true, wide: true, hint: 'Save it now: it cannot be shown again.' }), 'Create database', function (v) {
+          return api('databases', null, { json: { op: 'create', name: v.name, user: v.user, password: v.password } }).then(function (r) { toast(r.message); load(); });
+        });
+      };
+      var render = function () {
+        if (!dbs.length) { list.innerHTML = empty('databases', 'No databases yet', 'WordPress and most web apps need one MySQL database and a user.', can('databases', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add2>' + ic('plus') + ' New database</button>' : ''); var a2 = list.querySelector('[data-add2]'); if (a2) a2.onclick = create; return; }
+        list.innerHTML = '<div class="ghh-cards">' + dbs.map(function (db, i) {
+          return '<article class="ghh-card" data-db="' + i + '"><header><span class="ghh-ficon ghh-ficon--db">' + ic('databases', 16) + '</span><h4>' + esc(db.name) + '</h4>' + (db.sizeMb != null ? '<span class="ghh-muted">' + esc(db.sizeMb) + ' MB</span>' : '') +
+            '<div class="ghh-act" data-dbact>' + (can('databases', 'delete') ? '<button type="button" class="ghh-icon ghh-icon--danger" data-deldb aria-label="Delete database ' + esc(db.name) + '">' + ic('trash') + '</button>' : '') + '</div></header>' +
+            '<ul class="ghh-users">' + (db.users.length ? db.users.map(function (u, j) {
+              return '<li data-u="' + j + '"><span>' + ic('user', 14) + ' <code>' + esc(u) + '</code></span><span class="ghh-act">' + (can('databases', 'password') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-upw>' + ic('key', 14) + ' Password</button>' : '') + (can('databases', 'users') ? '<button type="button" class="ghh-icon ghh-icon--danger" data-udel aria-label="Remove user ' + esc(u) + '">' + ic('x') + '</button>' : '') + '</span></li>';
+            }).join('') : '<li class="ghh-muted">No users can reach this database yet.</li>') + '</ul>' +
+            (can('databases', 'users') ? '<button type="button" class="ghh-link" data-uadd>' + ic('plus', 14) + ' Add user</button>' : '') + '</article>';
+        }).join('') + '</div>';
+        bindAll();
+      };
+      bindAll = function () {
+        [].forEach.call(list.querySelectorAll('[data-db]'), function (card) {
+          var db = dbs[+card.getAttribute('data-db')], q = function (s) { return card.querySelector(s); };
+          if (q('[data-deldb]')) q('[data-deldb]').onclick = function () { confirmIn(q('[data-dbact]'), 'Delete ' + db.name + ' and all its tables?', 'Delete', function (back) { api('databases', null, { json: { op: 'delete', name: db.name } }).then(function (r) { toast(r.message); load(); }, function (e) { fail(e); back(); }); }); };
+          if (q('[data-uadd]')) q('[data-uadd]').onclick = function () { formPanel(slot, 'Add a user to ' + db.name, fld('user', 'User name', { required: true, prefix: prefix }) + fld('password', 'Password', { type: 'password', required: true }), 'Add user', function (v) { return api('databases', null, { json: { op: 'addUser', db: db.name, user: v.user, password: v.password } }).then(function (r) { toast(r.message); load(); }); }); };
+          [].forEach.call(card.querySelectorAll('[data-u]'), function (li) {
+            var u = db.users[+li.getAttribute('data-u')], pw = li.querySelector('[data-upw]'), del = li.querySelector('[data-udel]');
+            if (pw) pw.onclick = function () { formPanel(slot, 'New password for ' + u, fld('password', 'New password', { type: 'password', required: true }), 'Change password', function (v) { return api('databases', null, { json: { op: 'password', db: db.name, user: u, password: v.password } }).then(function (r) { toast(r.message); }); }); };
+            if (del) del.onclick = function () { confirmIn(li, 'Remove ' + u + ' from ' + db.name + '?', 'Remove', function (back) { api('databases', null, { json: { op: 'removeUser', db: db.name, user: u } }).then(function (r) { toast(r.message); load(); }, function (e) { fail(e); back(); }); }); };
+          });
+        });
+      };
+      var add = body.querySelector('[data-add]'); if (add) add.onclick = create;
+      load();
+    }
+
+    /* ------------------------------------------------------------ SSL */
+    function ssl() {
+      body.innerHTML = bar('SSL certificates', 'Live HTTPS check of each domain on this account.', '<button type="button" class="ghh-btn" data-re>' + ic('refresh') + ' Check again</button>') + '<div data-list>' + skel(3) + '</div>';
+      var list = body.querySelector('[data-list]'), rows = [], canIssue = false;
+      var load = function () { list.innerHTML = skel(3); api('ssl').then(function (r) { rows = r.status; canIssue = r.canIssue; render(); }, function (e) { fail(e, list); retryOn(list, load); }); };
+      var render = function () {
+        if (!rows.length) { list.innerHTML = empty('ssl', 'No domains found', 'Add a domain to your hosting account first.'); return; }
+        list.innerHTML = '<div class="ghh-cards">' + rows.map(function (s, i) {
+          var ok = s.https && s.daysLeft > 14, warn = s.https && s.daysLeft <= 14;
+          var badge = ok ? '<span class="ghh-pill ghh-pill--ok"><i class="ghh-hexdot"></i>Secure</span>' : warn ? '<span class="ghh-pill ghh-pill--warn">Expires soon</span>' : '<span class="ghh-pill ghh-pill--bad">Not secure</span>';
+          return '<article class="ghh-card ghh-ssl" data-i="' + i + '"><header><span class="ghh-ficon ' + (ok ? 'ghh-ficon--ok' : 'ghh-ficon--bad') + '">' + ic('ssl', 16) + '</span><h4>' + esc(s.domain) + '</h4>' + badge + '</header>' +
+            '<dl>' + (s.issuer ? '<div><dt>Issuer</dt><dd>' + esc(s.issuer) + '</dd></div>' : '') + (s.validTo ? '<div><dt>Valid until</dt><dd>' + new Date(s.validTo).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) + (s.daysLeft != null ? ' <span class="ghh-muted">(' + esc(s.daysLeft) + ' days)</span>' : '') + '</dd></div>' : '') + (s.error ? '<div><dt>Status</dt><dd>' + esc(s.error) + '</dd></div>' : '') + '</dl>' +
+            (canIssue ? '<div class="ghh-ssl__go" data-go><label class="ghh-check"><input type="checkbox" data-www checked> Include www.' + esc(s.domain) + '</label><button type="button" class="ghh-btn ' + (ok ? '' : 'ghh-btn--pri') + '" data-issue>' + ic('shield', 15) + (s.https ? ' Renew now' : ' Issue free SSL') + '</button></div>' : '') + '</article>';
+        }).join('') + '</div>';
+        [].forEach.call(list.querySelectorAll('[data-issue]'), function (b) {
+          b.onclick = function () {
+            var card = b.closest('[data-i]'), s = rows[+card.getAttribute('data-i')];
+            busy(b, true);
+            api('ssl', null, { json: { op: 'issue', domain: s.domain, www: card.querySelector('[data-www]').checked } }).then(function (r) { busy(b, false); toast(r.message); setTimeout(load, 8000); }, function (e) { busy(b, false); fail(e); });
+          };
+        });
+      };
+      body.querySelector('[data-re]').onclick = load;
+      load();
+    }
+
+    /* ------------------------------------------------------------ Backups */
+    function backups() {
+      body.innerHTML = bar('Backups', 'Copies of your websites, email and databases stored in your account.', can('backups', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-new>' + ic('backups') + ' Create backup</button>' : '') + '<div data-list>' + skel(3) + '</div>';
+      var list = body.querySelector('[data-list]'), items = [];
+      var load = function () { list.innerHTML = skel(3); api('backups').then(function (r) { items = r.backups; render(); }, function (e) { fail(e, list); retryOn(list, load); }); };
+      var render = function () {
+        if (!items.length) { list.innerHTML = empty('backups', 'No backups yet', 'Create one before big changes such as a theme switch or plugin update.'); return; }
+        list.innerHTML = '<div class="ghh-tw"><table class="ghh-t"><thead><tr><th scope="col">Backup</th><th scope="col">Size</th><th scope="col">Created</th><th scope="col"><span class="ghh-sr">Actions</span></th></tr></thead><tbody>' + items.map(function (b, i) {
+          return '<tr><td data-l="Backup"><span class="ghh-fname"><span class="ghh-ficon">' + ic('backups', 16) + '</span><code>' + esc(b.name) + '</code></span></td><td data-l="Size">' + (b.size ? bytes(b.size) : '') + '</td><td data-l="Created">' + when(b.created) + '</td>' +
+            '<td class="ghh-act" data-i="' + i + '">' + (can('backups', 'restore') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-rs>Restore</button>' : '') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+        bindAll();
+      };
+      bindAll = function () {
+        [].forEach.call(list.querySelectorAll('[data-rs]'), function (b) {
+          b.onclick = function () { var cell = b.closest('[data-i]'), it = items[+cell.getAttribute('data-i')]; confirmIn(cell, 'Restore ' + it.name + '? Current files, email and databases are replaced.', 'Restore', function (back) { api('backups', null, { json: { op: 'restore', name: it.name } }).then(function (r) { toast(r.message); back(); }, function (e) { fail(e); back(); }); }); };
+        });
+      };
+      var nb = body.querySelector('[data-new]');
+      if (nb) nb.onclick = function () { busy(nb, true); api('backups', null, { json: { op: 'create' } }).then(function (r) { busy(nb, false); toast(r.message); setTimeout(load, 15000); }, function (e) { busy(nb, false); fail(e); }); };
+      load();
+    }
+  }
+
+  ready(function () {
+    try {
+      if (!/productdetails/.test(location.search) && !/\/services\/\d+/.test(location.pathname)) return;
+      var tries = 0;
+      (function wait() { if (window.GH_HOSTING && window.GH_HOSTING.token) mount(window.GH_HOSTING); else if (++tries < 10) setTimeout(wait, 300); })();
+    } catch (e) {}
+  });
+})();

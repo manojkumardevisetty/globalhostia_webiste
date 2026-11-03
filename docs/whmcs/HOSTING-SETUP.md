@@ -1,0 +1,160 @@
+# Manage hosting panel: setup
+
+Customers manage their hosting (DNS, email, files, databases, SSL, backups) from the service page in the
+client area (`my.globalhostia.com/clientarea.php?action=productdetails&id=N`) without logging in to the control panel.
+The "Login to DirectAdmin" button stays on the page as a fallback.
+
+```
+browser (my.globalhostia.com)                 globalhostia.com (Vercel)                       panel server
+  WHMCS hook prints window.GH_HOSTING  ──►  /api/hosting/*  ── token HMAC + expiry check
+  {token, sid, panel} (10 min)               ── WHMCS GetClientsProducts: owner? Active?
+  whmcs.js renders the panel                  ── pick server by WHMCS server ID / host / IP
+  Authorization: Bearer <token>               ── acts as that account only  ─────────────►  DirectAdmin / cPanel / Plesk
+                                              ── audit log (Admin → Activity Log)
+```
+
+Panel keys and the shared secret are stored only on globalhostia.com (AES-256-GCM encrypted in the database,
+key = `HOSTING_ENC_KEY` or `AUTH_SECRET`). They are never sent to a browser.
+
+## 1. Add your servers (globalhostia.com/admin/hosting)
+
+Open **Admin → Business → Hosting panels** (ADMIN or OWNER role). Add one entry per panel server. Each entry has its own key.
+
+| Field | What to enter |
+|---|---|
+| Name | Anything, e.g. `Sonic USA` |
+| Panel | DirectAdmin, cPanel / WHM or Plesk |
+| Panel URL | `https://<panel host name>:<port>`. The host name must have a valid TLS certificate (the API does not accept self-signed certificates, so do not use the bare IP unless it has a trusted certificate). |
+| API user | DirectAdmin: the admin or reseller that owns the accounts. cPanel: the WHM user that owns the token. Plesk: `admin`. |
+| Key | DirectAdmin Login Key / WHM API token / Plesk API key (see below). Stored encrypted; leave empty when editing to keep it. |
+| WHMCS server IDs | WHMCS → System Settings → Servers → edit a server: the `id=` in the address bar. |
+| Also match host names / IPs | Fallback matching against the service's server host name or IP from WHMCS. |
+
+Then press **Test connection** on each server.
+
+Current WHMCS servers (DirectAdmin module):
+
+| WHMCS server | IP | Add here? |
+|---|---|---|
+| Gloablhosita Sonic USA (default, DirectAdmin 1.713) | 216.158.237.114 | yes |
+| Globalhostia USA | 198.251.89.82 | yes (0 services today) |
+| globalhostia Singapore Hbr | 15.235.227.117 | yes |
+| resell.Server.broker.vps (module SBVPS) | | **no**: VPS reseller provisioning, not a hosting panel. Services on unmatched servers simply get no panel. |
+
+Optional single-server fallback via Vercel env (used only when the list above is empty): `DA_URL`, `DA_USER`,
+`DA_LOGIN_KEY`, `DA_WHMCS_SERVER_IDS` (comma list).
+
+## 2. Create the panel keys
+
+### DirectAdmin (Login Key)
+
+Log in to DirectAdmin **as the admin or reseller that owns the hosting accounts** (the same user you enter as API user),
+then **Login Keys → Create Key** (Evolution: *Account → Login Keys*):
+
+- Key name: `globalhostia-hosting`
+- Expiry: never, or a date you will remember to rotate
+- Uses: unlimited
+- Allow HTML / Clear key: off
+- **Commands: tick only these**
+
+```
+CMD_API_SHOW_USERS
+CMD_API_SHOW_DOMAINS
+CMD_API_DNS_CONTROL
+CMD_API_POP
+CMD_API_EMAIL_FORWARDERS
+CMD_API_FILE_MANAGER
+CMD_FILE_MANAGER
+CMD_API_DATABASES
+CMD_API_DB_USER
+CMD_API_SSL
+CMD_API_SITE_BACKUP
+```
+
+Never tick `ALL_USER`, `ALL_RESELLER`, `ALL_ADMIN`, `CMD_LOGIN_KEYS` or `CMD_API_LOGIN_KEYS` (those can read or change keys).
+`CMD_API_SHOW_USERS` is only used by the admin **Test connection** button.
+- Allowed IPs: Vercel uses changing IPs, so leave empty unless you route through a fixed egress.
+
+The API acts as the customer with DirectAdmin's documented login-as: Basic auth `admin|customer:<key>`
+(a reseller key can only act as that reseller's own users). If Test connection works but customer calls fail with
+"refused the API login", check that the key's command list contains the command named in the error and that the
+account belongs to the key's user.
+
+### cPanel / WHM (API token)
+
+WHM → **Development → Manage API Tokens → Generate Token** as root (or the reseller that owns the accounts).
+Give it the ACLs to list accounts and to call the cPanel API as the account users (on a reseller: *List Accounts* and
+*cPanel API as user*/"Use the cPanel API on behalf of my accounts"). Panel URL: `https://<host>:2087`.
+
+### Plesk (API key)
+
+On the server: `plesk bin secret_key --create -description "globalhostia-hosting"` (add `-ip-address <ip>` only if you have a fixed egress IP).
+Paste the printed key. Panel URL: `https://<host>:8443`, API user: `admin`.
+
+## 3. Shared secret for the WHMCS hook
+
+In **Admin → Hosting panels → WHMCS hook secret** press **Generate secret**, then **Reveal** and copy it.
+(Alternatively set `HOSTING_HMAC_SECRET` in Vercel; the env value wins and the admin buttons are disabled.)
+
+Rotating the secret breaks the panel until the hook file has the new value: update both together.
+
+## 4. Upload the WHMCS hook
+
+1. Open `docs/whmcs/globalhostia_hosting_hook.php`, replace `PASTE_THE_SECRET_FROM_GLOBALHOSTIA_ADMIN_HOSTING_HERE` with the secret.
+2. Upload it to the WHMCS server as `/includes/hooks/globalhostia_hosting_hook.php` (same folder as the existing hook that loads `whmcs.js`).
+3. Keep the file private (it can mint tokens for any client). Permissions 640, owned by the web user.
+4. Bump the `?v=YYYYMMDD` on the existing hook's `https://globalhostia.com/hp/whmcs.js?v=…` and `whmcs.css?v=…` URLs.
+   Versioned URLs are cached for a year, so without a new `v` browsers keep the old files.
+
+The hook only prints a token on the service details page, for the logged-in client's own **Active** service whose
+server module is `directadmin`, `cpanel` or `plesk`.
+
+If WHMCS sends a Content-Security-Policy, `connect-src` must include `https://globalhostia.com`.
+
+## 5. Test
+
+1. Admin → Hosting panels → **Test connection** shows "DirectAdmin answered in …ms (N users visible …)".
+2. Log in to the client area as a customer with an Active DirectAdmin service (or use *Login as Client* from WHMCS admin).
+3. Open the service: a **Manage hosting** card with tabs (DNS · Email · Files · Databases · SSL · Backups) appears under the service details.
+4. Try a harmless change: add a TXT record `_gh-test` = `hello`, then delete it.
+5. Admin → **Activity Log**: entries `hosting.dns.add` / `hosting.dns.delete` by `client#<id>`.
+6. In the browser dev tools, `window.GH_HOSTING.token` is the only credential on the page; after 10 minutes the panel asks to reload.
+
+Troubleshooting
+
+| Message in the panel | Meaning |
+|---|---|
+| Hosting management is not configured yet | No shared secret on globalhostia.com |
+| Not signed in | Token signature wrong: secret in the hook differs from the admin one |
+| Your session expired | Token older than 10 minutes; reload |
+| This service is not on a server that can be managed here | No server entry matches the service's WHMCS server ID / host / IP |
+| The hosting panel refused the API login | Wrong key, key expired, or command not in the key's list |
+| TLS certificate is not trusted | Use the panel's host name with a valid certificate in the Panel URL |
+
+## Limits and safety
+
+- Every request re-checks the token (HMAC-SHA256, max 15 min lifetime) and, at most once a minute per token,
+  WHMCS ownership + Active status. Domains must be in the account's own domain list; file paths are normalised,
+  `..` is refused, everything is relative to the account's home; database names must carry the account prefix.
+- CORS allows only `https://my.globalhostia.com` (override with `HOSTING_ALLOWED_ORIGINS`), no cookies.
+- Rate limits per client: 120 reads and 30 changes per minute, plus 300 requests per minute per IP.
+- Uploads and downloads up to 4 MB (Vercel request/response limit); the editor opens text files up to 1 MB.
+- Deleting `domains`, `public_html`, `imap`, `Maildir`, `mail`, `etc`, `backups`, `.ssh` from the home folder is blocked.
+- Every change (and failed attempt) is in the activity log with client, service, server and target, never passwords or file contents.
+
+## What each panel supports
+
+| | DirectAdmin | cPanel | Plesk |
+|---|---|---|---|
+| DNS list/add/edit/delete | yes | yes (UAPI DNS::parse_zone / mass_edit_zone) | yes (REST /dns/records) |
+| Email mailboxes, password, quota, forwarders | yes | yes (UAPI Email) | not offered |
+| Files browse/edit/rename/delete/new folder | yes | yes (UAPI Fileman + API 2 fileop/mkdir) | not offered |
+| File upload/download | yes | not offered | not offered |
+| Databases + users + password | yes | yes (UAPI Mysql) | yes (REST /databases, /dbusers) |
+| SSL status | live HTTPS check (all panels) | | |
+| Issue SSL | Let's Encrypt (CMD_API_SSL) | AutoSSL run | Let's Encrypt extension via CLI gateway |
+| Backups list/create | yes | yes (fullbackup_to_homedir) | not offered |
+| Backup restore | yes | not offered | not offered |
+
+The panel hides tabs and buttons a server type does not support. The provider interface (`lib/hosting/types.ts`)
+has room for a future VPS adapter (power, reboot, reinstall, console) for modules such as SBVPS.
