@@ -9,6 +9,7 @@ import { db, schema } from '../db';
 import { aiClient, aiSettings, budgetOk, logUsage } from '../ai/server';
 import { pingChanged } from '../indexnow';
 import { emailOwner } from '../support-notify';
+import { compareReminder } from '../compare/reminder';
 import type { Session } from '../auth';
 import {
   assertMove, closestExisting, makeSlug, metaDescription, metaTitle, monthKey, nextFreeSlot, overlapLevel, reconcileState, replaceSection, seasonalHints,
@@ -385,6 +386,8 @@ export async function runContentCron(o: { deadlineMs?: number } = {}): Promise<C
   const t0 = Date.now();
   const deadline = t0 + (o.deadlineMs ?? 170_000);
   const res: CronResult = { ok: true, drafted: [], failed: [], published: [], autoScheduled: [], autoApproved: [], notified: 0 };
+  // monthly "re-verify competitor facts" email (lib/compare/reminder.ts); runs even with the engine switched off
+  await compareReminder().catch(() => 0);
   const cs = await contentSettings();
   if (!cs.enabled) return { ...res, skipped: 'disabled' };
   await reconcile();

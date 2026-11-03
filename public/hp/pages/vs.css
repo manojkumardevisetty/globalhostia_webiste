@@ -1,0 +1,38 @@
+/* /compare/globalhostia-vs-<slug> (lib/theme/pages/vs.ts). Builds on uae.css + learn.css. Mobile first. */
+.vs-verdict{display:grid;gap:12px}
+.vs-verdict__i{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;padding:18px;border-radius:var(--r-lg);border:1px solid var(--line);background:#fff}
+.vs-verdict__i--us{border-color:var(--brand);box-shadow:inset 3px 0 0 var(--brand)}
+.vs-verdict h3{font:800 18px/1.3 var(--head)}
+.vs-verdict p{margin-top:4px;color:var(--muted);font-size:15px}
+.vs-verdict .ln-from{color:var(--ink);font-size:14.5px}
+.vs-tbl .hp-table{min-width:560px}
+.vs-tbl td{vertical-align:top;font-size:15px;overflow-wrap:anywhere}
+.vs-tbl td:nth-child(2){background:rgba(197,56,111,.03)}
+.vs-sub{display:block;margin-top:4px;font-size:12.5px;color:var(--muted)}
+.vs-ref{color:var(--brand-d);font-weight:600;text-decoration:none;white-space:nowrap}
+.vs-ref:hover{text-decoration:underline}
+.vs-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+.ln-prose>.vs-verdict,.ln-prose>.vs-actions,.ln-prose>.vs-src,.ln-prose>.vs-disc{margin-top:18px}
+.ln-prose>:first-child{margin-top:0}
+.vs-src{display:grid;gap:8px;counter-reset:src;max-width:none}
+.vs-src li{counter-increment:src;display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:8px;font-size:14.5px;scroll-margin-top:calc(var(--header-h) + 16px)}
+.vs-src li::before{content:"[" counter(src) "]";grid-row:span 2;color:var(--muted);font-weight:600}
+.vs-src a{color:var(--brand-d);overflow-wrap:anywhere}
+.vs-src span{font-size:13px;color:var(--muted)}
+.vs-src li:target{background:var(--brand-tint);border-radius:var(--r-sm)}
+.vs-disc{padding:14px 16px;border-radius:var(--r);background:var(--tint);font-size:13.5px;line-height:1.6;color:var(--muted);max-width:none}
+.vs-disc--hub{max-width:900px;margin:24px auto 0;text-align:center}
+@media (min-width:768px){
+  .vs-verdict{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* phones: each row becomes a label line plus two side-by-side cells, so both providers stay visible without scrolling */
+@media (max-width:639px){
+  .vs-tbl{overflow:visible}
+  .vs-tbl .hp-table{min-width:0;width:100%}
+  .vs-tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .vs-tbl tbody tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .vs-tbl th[scope=row]{grid-column:1/-1;padding-bottom:4px;border-bottom:0;background:var(--tint)}
+  .vs-tbl td{font-size:14px;padding-top:10px}
+  .vs-tbl td::before{content:attr(data-label);display:block;margin-bottom:4px;font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--muted)}
+  .vs-tbl td:nth-child(2)::before{color:var(--brand-d)}
+}

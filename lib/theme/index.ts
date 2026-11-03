@@ -31,6 +31,7 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   datacenters: () => import('./pages/datacenters'),
   uae: () => import('./pages/uae'),
   learn: () => import('./pages/learn'),
+  vs: () => import('./pages/vs'),
   tld: () => import('./pages/tld'),
   location: () => import('./pages/location'),
   usecase: () => import('./pages/usecase'),

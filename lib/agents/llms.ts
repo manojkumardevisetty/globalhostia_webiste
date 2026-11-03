@@ -9,6 +9,8 @@ import { LEARN_SECTIONS, learnPages, learnPath, type LearnSection } from '../the
 import { locationGroups, useCasePages, tldHref } from '../theme/pseo';
 import { FAMILY_IDS } from '../theme/sitelinks';
 import { policies as termsPolicies } from './policies';
+import { getSettings } from '../settings';
+import { visibleCompetitors, vsPath } from '../compare/competitors';
 
 /** Extra agent endpoints listed in llms-full.txt (data only; the llms routes and their caching live elsewhere). */
 export function agentEndpoints(S: string) {
@@ -176,6 +178,8 @@ export async function buildLlms(full: boolean) {
   for (const k of Object.keys(LEARN_SECTIONS) as LearnSection[]) {
     L.push(`## ${LEARN_SECTIONS[k].title}`, '', `- [${LEARN_SECTIONS[k].title}](${S}/${k}): ${md(LEARN_SECTIONS[k].description)}`);
     for (const p of learnPages(k)) L.push(`- [${md(p.title)}](${S}${learnPath(p)}): ${md(p.description)}`);
+    // GlobalHostia vs <host> (lib/compare/competitors.ts): only pages not hidden in admin
+    if (k === 'compare') for (const c of visibleCompetitors(await getSettings().catch(() => null))) L.push(`- [GlobalHostia vs ${md(c.name)}](${S}${vsPath(c.slug)}): ${md(c.blurb)} Facts about ${md(c.name)} are from its own website, each with a source and date.`);
     L.push('');
   }
 

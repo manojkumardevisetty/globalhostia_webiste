@@ -12,6 +12,7 @@ import { getCatalog, productsFor, type Catalog } from './theme/data';
 import { pseoPaths } from './theme/pseo';
 import { storePaths } from './store/view';
 import { ALIAS_SLUGS } from './aliases.mjs';
+import { isHiddenVs } from './compare/competitors';
 
 export type SitemapEntry = { loc: string; lastmod: string };
 
@@ -65,7 +66,7 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
   const seen = new Set<string>();
   const add = (path: string, lastmod: string) => {
     const loc = base + path;
-    if (seen.has(loc)) return;
+    if (seen.has(loc) || isHiddenVs(path, s)) return; // competitor pages hidden in admin answer 404
     seen.add(loc); out.push({ loc, lastmod });
   };
 

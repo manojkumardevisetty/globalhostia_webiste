@@ -4,6 +4,7 @@
 // specific without changing the visible copy. Keep meta 140-160 characters and only state what the page shows.
 // Legacy alias URLs (/aws-pro-*, /vps-2) are 301-redirected to their main page: see lib/aliases.mjs.
 import { LEARN_PAGES, LEARN_SECTIONS, LEARN_SLUGS, learnPath, type LearnSection } from './learn';
+import { COMPETITORS, VS_SLUGS, vsSlug } from '../compare/competitors';
 
 export type RouteDef = { kind: string; title: string; description: string; categories?: string[]; seoTitle?: string; meta?: string };
 
@@ -115,10 +116,16 @@ export const ROUTES: Record<string, RouteDef> = {
   // /compare and /guides indexes and pages (lib/theme/learn.ts, rendered by lib/theme/pages/learn.ts)
   ...Object.fromEntries((Object.keys(LEARN_SECTIONS) as LearnSection[]).map((k) => [k, { kind: 'learn', title: LEARN_SECTIONS[k].title, description: LEARN_SECTIONS[k].description, seoTitle: LEARN_SECTIONS[k].seoTitle, meta: LEARN_SECTIONS[k].meta }])),
   ...Object.fromEntries(LEARN_PAGES.map((p) => [learnPath(p).slice(1), { kind: 'learn', title: p.title, description: p.description, seoTitle: p.seoTitle, meta: p.meta }])),
+  // /compare/globalhostia-vs-<slug> (data: lib/compare/competitors.ts, page: lib/theme/pages/vs.ts; hidden ones answer 404)
+  ...Object.fromEntries(COMPETITORS.map((c) => [vsSlug(c.slug), { kind: 'vs', title: `GlobalHostia vs ${c.name}`,
+    description: `GlobalHostia and ${c.name} compared: entry shared hosting price and renewal, storage, backups, locations and support, with a source for every ${c.name} fact.`,
+    seoTitle: `GlobalHostia vs ${c.seoName || c.name}: Prices, Renewals & Features`,
+    meta: `GlobalHostia vs ${c.seoName || c.name}: entry hosting prices and renewals, storage, backups, data centres and support side by side, every fact sourced and dated.` }])),
 };
 
 /** Pages that only exist in the Hostpen theme: always rendered by it, whatever the site theme (like /blog). */
 export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-broker']);
+for (const v of VS_SLUGS) THEME_ONLY.add(v); // GlobalHostia vs <host> pages
 
 /**
  * Programmatic SEO pages (lib/theme/pseo.ts): /domains/<tld>, /locations/<loc>, /<type>/<loc>, /hosting-for[/<usecase>],

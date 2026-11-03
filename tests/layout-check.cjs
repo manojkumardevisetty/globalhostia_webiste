@@ -13,7 +13,7 @@ const ip = () => `10.${(Math.random() * 250) | 0}.${(Math.random() * 250) | 0}.$
 const PAGES = [
   ['home', '/'], ['web-hosting', '/web-hosting'], ['vps', '/vps-hosting'], ['dedicated', '/dedicated-servers'],
   ['ssl', '/ssl-certificate'], ['domains', '/domains-registration'], ['tld', '/domains/com'], ['product', '/p/hostia-ultra-usa'],
-  ['compare', '/compare'], ['plan-finder', '/plan-finder'], ['blog', '/blog'], ['contact', '/contact'], ['terms', '/terms-conditions'],
+  ['compare', '/compare'], ['vs-hostinger', '/compare/globalhostia-vs-hostinger'], ['vs-aeserver', '/compare/globalhostia-vs-aeserver'], ['plan-finder', '/plan-finder'], ['blog', '/blog'], ['contact', '/contact'], ['terms', '/terms-conditions'],
   ['connectors', '/connectors'], ['docs', '/docs/mcp'], ['email', '/google-workspace'], ['help', '/help-center'], ['store', '/business-services'],
   ['uae', '/web-hosting-dubai'], ['migration', '/free-migration'], ['404', '/no-such-page-xyz'],
   ['acc-login', '/account/login'],

@@ -2,7 +2,8 @@
 // Page list, titles and meta: lib/theme/learn.ts. Layout reuses the long-form guide pieces of the UAE pages
 // (uae.css: hero, sticky contents, article sections, comparison table, picks) plus learn.css for steps and cards.
 // Every price, spec and location comes from the live catalog (getCatalog), so it follows the visitor's currency.
-// Competitor brands are never named, and nothing here states a number the catalog does not hold.
+// Competitor brands are never named here, and nothing here states a number the catalog does not hold. The one exception
+// is the "GlobalHostia vs <host>" pages (lib/theme/pages/vs.ts), whose sourced, dated facts are listed on the /compare hub.
 import type { PageCtx } from '../index';
 import { esc } from '../../render/util';
 import { money, CYCLE_MONTHS } from '../../pricing';
@@ -13,6 +14,8 @@ import { trustStrip, trustOn, waLink } from '../growth';
 import { siteOf } from './vps';
 import { ROUTES } from '../routes';
 import { LEARN_SECTIONS, learnPage, learnPages, learnPath, type LearnPage, type LearnSection } from '../learn';
+import { vsCards } from './vs';
+import { visibleCompetitors, vsPath } from '../../compare/competitors';
 
 type QA = { q: string; a: string };
 type Step = { name: string; html: string };
@@ -685,19 +688,21 @@ async function renderIndex(ctx: PageCtx, cat: Catalog, section: LearnSection) {
   </div></section>`;
   const faqs: QA[] = section === 'compare' ? [
     { q: 'Are the prices on these comparisons up to date?', a: 'Yes. Every price is read from our billing system when the page loads, in the currency you choose at the top of the page.' },
-    { q: 'Do you compare yourselves with other hosting companies?', a: 'We compare what typical providers offer in general terms and never quote another company’s prices. Always check the terms of any plan you buy, including ours.' },
+    { q: 'Do you compare yourselves with other hosting companies?', a: visibleCompetitors(s).length ? 'Yes. Our GlobalHostia vs pages put our live plans next to other providers’ published plans, using only facts those providers publish on their own websites, each with a source link and the date we checked it. Prices change, so always check the terms of any plan you buy, including ours.' : 'We compare what typical providers offer in general terms. Always check the terms of any plan you buy, including ours.' },
     { q: 'I still cannot decide. What next?', a: 'Use the plan finder for a recommendation from our live plans, or message our engineers with what you want to run.' },
   ] : [
     { q: 'Can you do these steps for me?', a: 'Yes. Our engineers can move your website, point your domain, set up email or install WordPress and SSL for you. Open a ticket or message us.' },
     { q: 'Do these guides work with other hosts?', a: 'Most steps are standard and work anywhere. Where a step is specific to our control panel or client area, the guide says so.' },
     { q: 'Where do I find my nameservers and server IP?', a: 'In your hosting welcome email and in the client area under your service.' },
   ];
-  const body = [hero, cards, teaser, `<section class="hp-section ua-links-sec" aria-label="Related pages"><div class="hp-container">${linksRow([['Plan finder', '/plan-finder'], ['Free migration', '/free-migration'], ['Help center', '/help-center'], ['Blog', '/blog']])}</div></section>`,
+  const body = [hero, cards, section === 'compare' ? vsCards(cat) : '', teaser, `<section class="hp-section ua-links-sec" aria-label="Related pages"><div class="hp-container">${linksRow([['Plan finder', '/plan-finder'], ['Free migration', '/free-migration'], ['Help center', '/help-center'], ['Blog', '/blog']])}</div></section>`,
     faqBlock(`${sec.title}: questions`, faqs), cta(cat)].join('\n');
   const url = `${site}${path}`;
   const lds = [breadcrumbJsonLd(crumbs, site), faqJsonLd(faqs), ld({ '@context': 'https://schema.org', '@type': 'CollectionPage', name: sec.title, description: sec.meta, url, inLanguage: 'en',
-    mainEntity: { '@type': 'ItemList', itemListElement: items.map((p, i) => ({ '@type': 'ListItem', position: i + 1, name: p.title, url: `${site}${learnPath(p)}` })) } })];
-  return page({ ctx, catalog: cat, path, title: sec.title, description: sec.description, css: ['uae', 'learn'], jsonLd: lds, ogKicker: sec.kicker, body });
+    mainEntity: { '@type': 'ItemList', itemListElement: [...items.map((p) => ({ name: p.title, url: `${site}${learnPath(p)}` })),
+      ...(section === 'compare' ? visibleCompetitors(s).map((c) => ({ name: `GlobalHostia vs ${c.name}`, url: `${site}${vsPath(c.slug)}` })) : [])]
+      .map((x, i) => ({ '@type': 'ListItem', position: i + 1, ...x })) } })];
+  return page({ ctx, catalog: cat, path, title: sec.title, description: sec.description, css: section === 'compare' ? ['uae', 'learn', 'vs'] : ['uae', 'learn'], jsonLd: lds, ogKicker: sec.kicker, body });
 }
 
 export default async function render(ctx: PageCtx): Promise<string> {
