@@ -4,7 +4,8 @@
 import { NextResponse } from 'next/server';
 import { getCatalog, type TProduct } from '@/lib/theme/data';
 import { offerProduct } from '@/lib/theme/offers';
-import { TYPE_ICON, categoryHref } from '@/lib/theme/sitelinks';
+import { TYPE_ICON, CLAIMED, prettyName } from '@/lib/theme/sitelinks';
+import { categoryHrefIn } from '@/lib/theme/pseo';
 
 export const revalidate = 3600;
 
@@ -21,9 +22,10 @@ export async function GET() {
   const offer = (p: TProduct | null) => (p ? { slug: p.slug, name: p.name, pid: p.whmcsPid, category: p.categorySlug, prices: priceMap(p) } : null);
   const counts = new Map<string, number>();
   for (const p of cat.products) counts.set(p.categorySlug, (counts.get(p.categorySlug) || 0) + 1);
-  const categories = cat.categories.filter((c) => counts.get(c.slug)).map((c) => ({
-    slug: c.slug, name: c.name, desc: strip(c.seoDescription || c.description).slice(0, 140), type: c.type, icon: TYPE_ICON[c.type] || 'box',
-    products: counts.get(c.slug) || 0, page: categoryHref(c.slug),
+  // only categories the site itself shows: hand-written pages, or approved ones (no "Whmcs Group 1", no unreviewed)
+  const categories = cat.categories.filter((c) => counts.get(c.slug) && (CLAIMED.has(c.slug) || c.auto)).map((c) => ({
+    slug: c.slug, name: prettyName(c.name), desc: strip(c.seoDescription || c.description).slice(0, 140), type: c.type, icon: TYPE_ICON[c.type] || 'box',
+    products: counts.get(c.slug) || 0, page: categoryHrefIn(cat, c.slug),
   }));
   return NextResponse.json({
     offers: { ssl: offer(offerProduct(cat, 'ssl', cat.links.offers.ssl)), hosting: offer(offerProduct(cat, 'shared', cat.links.offers.hosting)) },

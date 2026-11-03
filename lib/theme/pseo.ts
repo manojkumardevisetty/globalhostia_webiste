@@ -4,9 +4,10 @@
 //   /hosting-for, /hosting-for/<usecase>       → pages/usecase.ts
 // This module decides which pages exist (shared by the page modules, the router and the sitemap), and holds the
 // curated, deliberately generic facts. Prices are never written here: they come from `tlds` / `product_prices`.
-import { deriveSpecs, fromPrice, type Catalog, type TProduct, type TTld } from './data';
+import { deriveSpecs, fromPrice, expandCategories, type Catalog, type TProduct, type TTld } from './data';
 import { available } from './ui';
-import { CLAIMED, type TldBlurb } from './sitelinks';
+import { CLAIMED, TYPE_PAGE, routeForCategory, type TldBlurb } from './sitelinks';
+import { ROUTES } from './routes';
 
 /* ------------------------------------------------------------------ helpers */
 export const siteOf = (cat: Catalog) => String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
@@ -537,9 +538,41 @@ export const PSEO_REDIRECTS: Record<string, string> = {
   ...Object.fromEntries(Object.entries(TYPE_LOC_EXISTING).map(([k, to]) => [k, to])),
 };
 
-/** Categories that get a generated /category/<slug> page: visible, with products, and no hand-written page. */
+/**
+ * The hand-written page that already sells a category's products, or null. Either every product is also in a
+ * category with a page (same WHMCS pid or name), or the category is approved and its family has a page that lists it
+ * (data.ts expandCategories). Such a category gets no menu entry of its own and /category/<slug> 301s there.
+ */
+export function coveredBy(cat: Catalog, slug: string): string | null {
+  if (CLAIMED.has(slug)) return routeForCategory(slug);
+  const c = cat.categories.find((x) => x.slug === slug);
+  const own = cat.products.filter((p) => p.categorySlug === slug);
+  if (!c || !own.length) return null;
+  const elsewhere = cat.products.filter((p) => p.categorySlug !== slug && CLAIMED.has(p.categorySlug));
+  const twin = (p: TProduct) => elsewhere.find((q) => (p.whmcsPid && q.whmcsPid === p.whmcsPid) || q.name.trim().toLowerCase() === p.name.trim().toLowerCase());
+  const twins = own.map(twin);
+  if (twins.every(Boolean)) return routeForCategory(twins[0]!.categorySlug);
+  if (!c.auto) return null;
+  const page = TYPE_PAGE[c.type];
+  const route = page && ROUTES[page.slice(1)];
+  if (route && expandCategories(cat, route.categories || []).includes(slug)) return page;
+  return null;
+}
+
+/** Categories that get a generated /category/<slug> page: approved, with products, no page that already sells them. */
 export function categoryPages(cat: Catalog) {
-  return cat.categories.filter((c) => !CLAIMED.has(c.slug) && cat.products.some((p) => p.categorySlug === c.slug));
+  return cat.categories.filter((c) => c.auto && !CLAIMED.has(c.slug) && cat.products.some((p) => p.categorySlug === c.slug) && !coveredBy(cat, c.slug));
+}
+
+/** Where a category is listed: its hand-written or covering page, its generated page, or null when it is not surfaced. */
+export function categoryHrefIn(cat: Catalog, slug: string): string | null {
+  return coveredBy(cat, slug) || (categoryPages(cat).some((c) => c.slug === slug) ? `/category/${slug}` : null);
+}
+
+/** 301 target for /category/<slug> when another page already sells the category ('' = render or 404). */
+export function categoryRedirect(cat: Catalog, slug: string): string {
+  const c = cat.categories.find((x) => x.slug === slug);
+  return c ? coveredBy(cat, slug) || '' : '';
 }
 
 /** Every programmatic URL path (for the sitemap and the crawl check). */

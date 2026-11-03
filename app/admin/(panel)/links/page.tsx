@@ -3,10 +3,10 @@ import { db, schema } from '@/lib/db';
 import { PageHeader, Flash, Card, Field, Badge, Stat } from '@/components/ui';
 import { getCatalog, pricedTlds, categoryProducts } from '@/lib/theme/data';
 import { getMenu, footerColumns, defaultMenu } from '@/lib/theme/menu';
-import { siteLinks, FAMILY_IDS, TYPE, TYPE_LABEL, TYPE_PAGE, inferFamily, CLAIMED, categoryHref, FOOTER_EXTRA_DEFAULTS, FINDER_FAMILIES } from '@/lib/theme/sitelinks';
-import { TLD_INFO, LOCS, USE_CASES, locationGroups, typeLocPages, tldPageList, useCasePages, categoryPages, pseoPaths, TLD_EXISTING, tldHref } from '@/lib/theme/pseo';
+import { siteLinks, FAMILY_IDS, TYPE, TYPE_LABEL, TYPE_PAGE, inferFamily, CLAIMED, FOOTER_EXTRA_DEFAULTS, FINDER_FAMILIES, isMachineName, prettyName } from '@/lib/theme/sitelinks';
+import { TLD_INFO, LOCS, USE_CASES, locationGroups, typeLocPages, tldPageList, useCasePages, categoryPages, pseoPaths, TLD_EXISTING, tldHref, coveredBy, categoryHrefIn } from '@/lib/theme/pseo';
 import { offerProduct } from '@/lib/theme/offers';
-import { saveSiteLinks } from './actions';
+import { saveSiteLinks, reviewCategory } from './actions';
 
 export const metadata = { title: 'Site links' };
 export const dynamic = 'force-dynamic';
@@ -39,6 +39,10 @@ export default async function SiteLinks({ searchParams }: { searchParams: Promis
   const priced = pricedTlds(cat);
   const footerText = (cfg.footerExtra || []).map((c) => [`## ${c.title}`, ...c.links.map((l) => `${l.label} | ${l.href}`)].join('\n')).join('\n\n');
   const tldText = Object.entries(cfg.tldBlurbs).map(([t, b]) => [t, b.forWho || '', (b.facts || []).join('; '), (b.related || []).join(', ')].join(' | ').replace(/( \| )+$/, '')).join('\n');
+  // categories waiting for the owner: visible, with products, no hand-written page, not yet switched on or off
+  const review = cat.categories.filter((c) => !CLAIMED.has(c.slug) && cat.products.some((p) => p.categorySlug === c.slug)
+    && (isMachineName(c.slug, c.name) || (cfg.show[c.slug] === undefined && !cfg.seen.includes(c.slug))));
+  const isNew = (slug: string) => cfg.show[slug] === undefined && !cfg.seen.includes(slug);
   const locText = Object.entries(cfg.locations).map(([k, l]) => [k, l.note || '', (l.near || []).join(', '), l.name || ''].join(' | ').replace(/( \| )+$/, '')).join('\n');
 
   return (
@@ -51,6 +55,21 @@ export default async function SiteLinks({ searchParams }: { searchParams: Promis
         <Stat label="Generated pages" value={paths.length} sub="in the sitemap" icon="globe" />
         <Stat label="Plan finder pool" value={finder.length} sub="published plans scored" icon="box" />
       </div>
+
+      {review.length > 0 && (
+        <Card title={`New categories: review (${review.length})`} className="mb-6">
+          <p className="mb-3 text-xs text-slate-500">These categories came from admin or WHMCS sync after automatic links shipped. They stay out of menus, family pages and the sitemap until you switch them on. Categories with a machine name (&ldquo;Whmcs Group 1&rdquo;) must be renamed first.</p>
+          <table className="table text-sm"><tbody>{review.map((c) => {
+            const machine = isMachineName(c.slug, c.name);
+            return (
+              <tr key={c.slug}><td><A href={`/admin/categories/${catId.get(c.slug)}`}>{c.name}</A><div className="text-xs text-slate-400">{c.slug} · {TYPE_LABEL[c.type]} · {cat.products.filter((p) => p.categorySlug === c.slug).length} plans</div></td>
+                <td className="text-xs">{machine ? <Badge tone="red">Rename it first</Badge> : <>Will show as <b>{prettyName(c.name)}</b>{c.type !== 'other' && TYPE_PAGE[c.type] ? <> on {TYPE_PAGE[c.type]}, its family page</> : <> at /category/{c.slug} and in the menu</>}</>}</td>
+                <td className="whitespace-nowrap text-right">{machine ? <A href={`/admin/categories/${catId.get(c.slug)}`}>Rename</A> : <>
+                  <form action={reviewCategory} className="inline"><input type="hidden" name="slug" value={c.slug} /><input type="hidden" name="show" value="1" /><button className="btn btn-primary">Show on site</button></form>{' '}
+                  <form action={reviewCategory} className="inline"><input type="hidden" name="slug" value={c.slug} /><input type="hidden" name="show" value="0" /><button className="btn btn-secondary">Keep hidden</button></form></>}</td></tr>);
+          })}</tbody></table>
+        </Card>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card title="Mega menu and mobile drawer" actions={<Src k={menuSrc} />}>
@@ -92,13 +111,15 @@ export default async function SiteLinks({ searchParams }: { searchParams: Promis
       <form action={saveSiteLinks} className="mt-6 space-y-6">
         <Card title="Category families" actions={<button className="btn btn-primary">Save site links</button>}>
           <p className="mb-3 text-xs text-slate-500">The family decides which menu, family pages (web hosting, VPS…), plan finder, location and use-case pages a category&apos;s products appear on. New categories get a family from their name; choose <b>Other</b> to keep one on its own page only.</p>
-          <div className="overflow-x-auto"><table className="table text-sm"><thead><tr><th>Category</th><th>Plans</th><th>Page</th><th>Family</th></tr></thead><tbody>{allCats.map((c) => {
+          <div className="overflow-x-auto"><table className="table text-sm"><thead><tr><th>Category</th><th>Plans</th><th>Page</th><th>Family</th><th>Show automatically</th></tr></thead><tbody>{allCats.map((c) => {
             const n = c.visible ? categoryProducts(cat, c.slug).length : 0;
             const guess = TYPE[c.slug] || inferFamily(c.slug, c.name);
             return (
               <tr key={c.id}><td><A href={`/admin/categories/${c.id}`}>{c.name}</A><div className="text-xs text-slate-400">{c.slug}{!c.visible && ' · hidden'}</div></td><td>{n}</td>
-                <td className="text-xs">{c.visible && n ? <A href={categoryHref(c.slug)}>{categoryHref(c.slug)}</A> : '—'} {CLAIMED.has(c.slug) ? <Badge>hand-written</Badge> : n ? <Badge tone="blue">generated</Badge> : null}</td>
-                <td><select name={`type_${c.slug}`} defaultValue={cfg.categoryTypes[c.slug] || ''} className="input w-48"><option value="">Automatic ({TYPE_LABEL[guess]})</option>{FAMILY_IDS.map((f) => <option key={f} value={f}>{TYPE_LABEL[f]}</option>)}</select></td></tr>);
+                <td className="text-xs">{(() => { const h = c.visible && n ? categoryHrefIn(cat, c.slug) : null; return h ? <A href={h}>{h}</A> : '—'; })()} {CLAIMED.has(c.slug) ? <Badge>hand-written</Badge> : c.visible && n && coveredBy(cat, c.slug) ? <Badge tone="yellow">on family page</Badge> : c.visible && n && categoryPages(cat).some((x) => x.slug === c.slug) ? <Badge tone="blue">generated</Badge> : null}</td>
+                <td><select name={`type_${c.slug}`} defaultValue={cfg.categoryTypes[c.slug] || ''} className="input w-48"><option value="">Automatic ({TYPE_LABEL[guess]})</option>{FAMILY_IDS.map((f) => <option key={f} value={f}>{TYPE_LABEL[f]}</option>)}</select></td>
+                <td>{CLAIMED.has(c.slug) ? <span className="text-xs text-slate-400">own page</span> : isMachineName(c.slug, c.name) ? <Badge tone="red">rename first</Badge> : isNew(c.slug) ? <span className="text-xs text-slate-400">{c.visible && n ? 'in review' : 'off (new)'}</span>
+                  : <><input type="hidden" name="show_slugs" value={c.slug} /><input type="checkbox" name={`show_${c.slug}`} defaultChecked={cfg.show[c.slug] ?? cfg.seen.includes(c.slug)} /></>}</td></tr>);
           })}</tbody></table></div>
         </Card>
 

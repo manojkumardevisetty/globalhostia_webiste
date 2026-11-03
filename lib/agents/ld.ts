@@ -1,5 +1,5 @@
 // Shared schema.org helpers: category ItemList and the home page OfferCatalog. Prices only from the catalog; no ratings or reviews.
-import { cycles, orderUrl, productsFor, type Catalog, type TProduct } from '../theme/data';
+import { cycles, orderUrl, productsFor, categoryProducts, type Catalog, type TProduct } from '../theme/data';
 import { categoryPath } from './catalog';
 
 const siteOf = (cat: Catalog) => String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
@@ -32,12 +32,12 @@ export function itemListLd(cat: Catalog, ps: TProduct[], name: string, url: stri
 export function offerCatalogLd(cat: Catalog) {
   const site = siteOf(cat);
   const subs = cat.categories.map((c) => {
-    const items = productsFor(cat, [c.slug]).map((p) => {
+    const items = categoryProducts(cat, c.slug).map((p) => {
       const n = productNode(p, cat, site);
       return n ? { '@type': 'Offer', itemOffered: { '@type': 'Product', name: n.name, url: n.url }, price: n.offers.lowPrice, priceCurrency: cat.currency, availability: n.offers.availability, url: n.url } : null;
     }).filter(Boolean);
     if (!items.length) return null;
-    const path = categoryPath(c.slug);
+    const path = categoryPath(c.slug, cat);
     return { '@type': 'OfferCatalog', name: c.name, ...(path ? { url: site + path } : {}), itemListElement: items };
   }).filter(Boolean);
   if (!subs.length) return '';

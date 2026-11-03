@@ -7,7 +7,8 @@ export function offerProduct(cat: Catalog, family: string, chosen: string): TPro
   const ok = (p?: TProduct) => !!p && !!p.whmcsPid;
   const pick = chosen ? cat.products.find((p) => p.slug === chosen) : undefined;
   if (ok(pick)) return pick!;
-  const ps = available(cat.products.filter((p) => p.type === family && ok(p)));
-  const per = (p: TProduct) => fromPrice(p, cat.currency)?.amount ?? 1e9;
+  // a zero or missing price is a placeholder (free/unconfigured in WHMCS), never an offer
+  const per = (p: TProduct) => fromPrice(p, cat.currency)?.amount ?? 0;
+  const ps = available(cat.products.filter((p) => p.type === family && ok(p) && per(p) > 0));
   return [...ps].sort((a, b) => per(a) - per(b))[0] || null;
 }

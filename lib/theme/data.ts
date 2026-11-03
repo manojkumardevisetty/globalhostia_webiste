@@ -8,14 +8,16 @@ import { getSettings, type Settings } from '../settings';
 import { cycles, orderUrl, type RProduct } from '../render/products';
 import { deriveSpecs, SPEC_LABEL } from '../render/specs';
 import { CYCLE_MONTHS, money } from '../pricing';
-import { siteLinks, familyFor, CLAIMED, TYPE, type SiteLinksConfig } from './sitelinks';
+import { siteLinks, familyFor, isApproved, CLAIMED, TYPE, type SiteLinksConfig } from './sitelinks';
 
 export { cycles, orderUrl, deriveSpecs, SPEC_LABEL, money };
 
 export type TProduct = RProduct & { sortOrder: number; categorySlug: string; whmcsType: string; payType: string; configOptions: import('../schema').ConfigOption[];
   /** product family of its category (sitelinks.ts familyFor): shared, vps, dedicated, rdp, ssl… */
   type: string };
-export type TCategory = { id: string; slug: string; name: string; description: string; layout: string; cardTemplate: string; sortOrder: number; parentId: string | null; seoTitle: string; seoDescription: string; type: string };
+export type TCategory = { id: string; slug: string; name: string; description: string; layout: string; cardTemplate: string; sortOrder: number; parentId: string | null; seoTitle: string; seoDescription: string; type: string;
+  /** may surface automatically (sitelinks.ts isApproved): menu, family pages, /category page */
+  auto: boolean };
 export type TTld = { tld: string; currency: string; register: number | null; transfer: number | null; renew: number | null; featured: boolean; promo: string; sortOrder: number };
 export type Catalog = { settings: Settings; currency: string; currencyIds?: Record<string, number>; base: string; categories: TCategory[]; products: TProduct[]; tlds: TTld[];
   /** slugs of categories the admin has hidden (they and their products are not in `categories` / `products`) */
@@ -56,7 +58,7 @@ const loadCatalog = unstable_cache(async () => {
     }));
 
   return {
-    categories: cats.map((c) => ({ id: c.id, slug: c.slug, name: c.name, description: c.description, layout: c.layout, cardTemplate: c.cardTemplate, sortOrder: c.sortOrder, parentId: c.parentId, seoTitle: c.seoTitle, seoDescription: c.seoDescription, type: typeOf(c) })),
+    categories: cats.map((c) => ({ id: c.id, slug: c.slug, name: c.name, description: c.description, layout: c.layout, cardTemplate: c.cardTemplate, sortOrder: c.sortOrder, parentId: c.parentId, seoTitle: c.seoTitle, seoDescription: c.seoDescription, type: typeOf(c), auto: isApproved(c.slug, c.name, links) })),
     hiddenCategories: allCats.filter((c) => !c.visible).map((c) => c.slug),
     products,
     tlds: [
@@ -124,14 +126,14 @@ export const fmt = (v: number, prefix = '$') => money(v, prefix);
 
 /**
  * Category slugs a page lists, grown automatically: subcategories of the listed ones, and categories that no
- * hand-written page claims (new in admin or from WHMCS) whose family matches a listed one. Set a category's family
- * to "Other" in Admin → Site links to keep it on its own page only.
+ * hand-written page claims (new in admin or from WHMCS) whose family matches a listed one, once approved
+ * (Admin → Site links: new categories wait for review; machine names like "Whmcs Group 1" never surface).
  */
 export function expandCategories(cat: Pick<Catalog, 'categories'>, slugs: string[]): string[] {
   const set = new Set(slugs);
   const types = new Set(slugs.map((s) => cat.categories.find((c) => c.slug === s)?.type || TYPE[s]).filter((t) => t && t !== 'other'));
   const ids = () => new Set(cat.categories.filter((c) => set.has(c.slug)).map((c) => c.id));
-  for (const c of cat.categories) if (!set.has(c.slug) && !CLAIMED.has(c.slug) && types.has(c.type)) set.add(c.slug);
+  for (const c of cat.categories) if (!set.has(c.slug) && !CLAIMED.has(c.slug) && c.auto && types.has(c.type)) set.add(c.slug);
   for (let i = 0; i < 3; i++) { const pid = ids(); for (const c of cat.categories) if (c.parentId && pid.has(c.parentId)) set.add(c.slug); }
   return [...set];
 }

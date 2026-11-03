@@ -1,11 +1,13 @@
 // Default mega-menu configuration. Featured panels are computed from live catalog prices.
 // Admins can override the whole menu with settings.theme_menu (JSON array of ThemeMenu, same shape).
 // Either way the menu follows the catalog (getMenu): links to hidden categories drop out, and categories that no
-// hand-written page covers (new in admin or synced from WHMCS) are added to the menu of their family, in admin order.
+// hand-written page covers (new in admin or synced from WHMCS) are added to the menu of their family, in admin order,
+// once approved (Admin → Site links). Categories another page already sells, or with machine names, are never added.
 import { money } from '../pricing';
 import { available, fromText } from './ui';
 import { productsFor, categoryProducts, minFrom, pricedTlds, whmcsLinks, currencyPrefix, type Catalog } from './data';
-import { CLAIMED, TYPE_ICON, TYPE_MENU, categoryHref, FOOTER_EXTRA_DEFAULTS } from './sitelinks';
+import { CLAIMED, TYPE_ICON, TYPE_MENU, categoryHref, prettyName, FOOTER_EXTRA_DEFAULTS } from './sitelinks';
+import { coveredBy } from './pseo';
 
 export type MenuItem = { label: string; href: string; icon: string; desc?: string; cats?: string[]; soon?: boolean;
   /** set on items added automatically from a category (getMenu) */
@@ -146,13 +148,13 @@ function valid(m: unknown): m is ThemeMenu[] {
 const strip = (h: string) => h.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
 const clip = (t: string, n = 64) => (t.length > n ? `${t.slice(0, n - 1).replace(/\s+\S*$/, '')}…` : t);
 
-/** Categories that should be in the menu but no item links to: visible, with products, no hand-written page. */
+/** Categories that should be in the menu but no item links to: approved, with products, not sold on another page. */
 export function autoMenuItems(cat: Catalog, menus: ThemeMenu[]): { menu: string; item: MenuItem }[] {
   const linked = new Set(menus.flatMap((m) => m.groups.flatMap((g) => g.items.flatMap((i) => [...(i.cats || []), i.href]))));
   const withProducts = new Set(cat.products.map((p) => p.categorySlug));
   const out: { menu: string; item: MenuItem }[] = [];
   for (const c of cat.categories) {
-    if (CLAIMED.has(c.slug) || !withProducts.has(c.slug)) continue;
+    if (!c.auto || CLAIMED.has(c.slug) || !withProducts.has(c.slug) || coveredBy(cat, c.slug)) continue;
     const href = categoryHref(c.slug);
     if (linked.has(c.slug) || linked.has(href)) continue;
     // a subcategory is listed on its parent's page; only add it when the parent is not in the menu itself
@@ -162,7 +164,7 @@ export function autoMenuItems(cat: Catalog, menus: ThemeMenu[]): { menu: string;
     const from = minFrom(available(ps), cat.currency);
     const cheapest = from && ps.find((p) => fromText(p, cat.currency));
     const desc = clip(strip(c.seoDescription || c.description)) || (cheapest ? `From ${fromText(cheapest, cat.currency)}` : `${ps.length} plan${ps.length === 1 ? '' : 's'}`);
-    out.push({ menu: TYPE_MENU[c.type] || 'business', item: { label: c.name, href, icon: TYPE_ICON[c.type] || 'box', desc, cats: [c.slug], auto: c.slug } });
+    out.push({ menu: TYPE_MENU[c.type] || 'business', item: { label: prettyName(c.name), href, icon: TYPE_ICON[c.type] || 'box', desc, cats: [c.slug], auto: c.slug } });
   }
   return out;
 }

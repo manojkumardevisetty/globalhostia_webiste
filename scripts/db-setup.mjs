@@ -396,6 +396,13 @@ try {
     '019-site-links-dyn': async (tx) => {
       await tx`insert into settings (key,value) values ('site_links', ${JSON.stringify({ autoMenu: true, categoryTypes: {}, tldBlurbs: {}, useCases: {}, locations: {}, footerExtra: null, offers: { ssl: '', hosting: '' } })}::jsonb) on conflict (key) do nothing`;
     },
+    // 20. Categories that exist now keep surfacing automatically; categories first seen after this (admin or WHMCS sync)
+    // wait in Admin → Site links → "New categories: review" until the owner switches them on.
+    '020-site-links-seen': async (tx) => {
+      await tx`insert into settings (key,value) values ('site_links', '{}'::jsonb) on conflict (key) do nothing`;
+      await tx`update settings set value = jsonb_set(case when jsonb_typeof(value) = 'object' then value else '{}'::jsonb end, '{seen}',
+        (select coalesce(jsonb_agg(slug order by slug), '[]'::jsonb) from categories)) where key = 'site_links'`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

@@ -79,6 +79,10 @@ export type SiteLinksConfig = {
   footerExtra: FooterColumn[] | null;
   /** product slugs offered in the WHMCS cart ("Complete your setup"); '' = automatic */
   offers: { ssl: string; hosting: string };
+  /** category slugs that existed when automatic surfacing shipped (DB patch 020): shown automatically unless switched off */
+  seen: string[];
+  /** category slug → shown automatically (menu, family pages, /category page) or not; set in Admin → Site links */
+  show: Record<string, boolean>;
 };
 
 const obj = (v: unknown) => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, any>) : {});
@@ -118,12 +122,43 @@ export function siteLinks(settings: Record<string, any> | null | undefined): Sit
       .filter((c: FooterColumn) => c.title && c.links.length).slice(0, 4)
     : null;
   const o = obj(r.offers);
-  return { categoryTypes, autoMenu: r.autoMenu !== false, tldBlurbs, useCases, locations, footerExtra, offers: { ssl: s(o.ssl, 80), hosting: s(o.hosting, 80) } };
+  const seen = Array.isArray(r.seen) ? r.seen.filter((x: unknown) => typeof x === 'string').slice(0, 2000) : [];
+  const show: Record<string, boolean> = {};
+  for (const [k, v] of Object.entries(obj(r.show))) if (typeof v === 'boolean') show[k] = v;
+  return { categoryTypes, autoMenu: r.autoMenu !== false, tldBlurbs, useCases, locations, footerExtra, offers: { ssl: s(o.ssl, 80), hosting: s(o.hosting, 80) }, seen, show };
 }
 
 /** Family of a category: admin choice, then the built-in map, then a guess from its slug and name. */
 export function familyFor(slug: string, name: string, cfg: Pick<SiteLinksConfig, 'categoryTypes'>): FamilyId {
   return (cfg.categoryTypes[slug] || TYPE[slug] || inferFamily(slug, name)) as FamilyId;
+}
+
+/* ------------------------------------------------------------------ automatic surfacing */
+/** Raw names from WHMCS sync ("Whmcs Group 1", "whmcs-group-3") or no real title: never surfaced until renamed in admin. */
+export function isMachineName(slug: string, name: string) {
+  const n = (name || '').trim();
+  // empty, "Whmcs Group 1", only digits/symbols, or the untouched name sync gives a "whmcs-group-<id>" slug
+  return !n || /^whmcs[- _]?group\b/i.test(n) || /^[\d\W_]+$/.test(n) || (/^whmcs-group-\d+$/i.test(slug) && n.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug.toLowerCase());
+}
+/**
+ * May this category surface automatically (menu, family pages, /category page, sitemap)? Not with a machine name.
+ * Otherwise the admin's switch, else on for categories that already existed when this shipped and off for new ones,
+ * which wait in Admin → Site links → "New categories: review".
+ */
+export function isApproved(slug: string, name: string, cfg: Pick<SiteLinksConfig, 'seen' | 'show'>) {
+  if (isMachineName(slug, name)) return false;
+  return cfg.show[slug] ?? cfg.seen.includes(slug);
+}
+
+const WORDS: Record<string, string> = {
+  wordpress: 'WordPress', woocommerce: 'WooCommerce', vps: 'VPS', rdp: 'RDP', ssl: 'SSL', tls: 'TLS', dns: 'DNS', ai: 'AI', llm: 'LLM', llms: 'LLMs',
+  cpanel: 'cPanel', whm: 'WHM', directadmin: 'DirectAdmin', n8n: 'n8n', mcp: 'MCP', mcps: 'MCPs', api: 'API', nvme: 'NVMe', ssd: 'SSD', gpu: 'GPU', cpu: 'CPU',
+  usa: 'USA', us: 'US', uk: 'UK', uae: 'UAE', eu: 'EU', ksa: 'KSA', ip: 'IP', ipv4: 'IPv4', ipv6: 'IPv6', vpn: 'VPN', seo: 'SEO', crm: 'CRM', erp: 'ERP',
+  whmcs: 'WHMCS', dv: 'DV', ov: 'OV', ev: 'EV', os: 'OS', kvm: 'KVM', mt4: 'MT4', mt5: 'MT5', saas: 'SaaS', smtp: 'SMTP', php: 'PHP',
+};
+/** Display label for automatic links and pages: "Windows Vps" → "Windows VPS", "wordpress" → "WordPress". */
+export function prettyName(name: string) {
+  return String(name || '').trim().replace(/[A-Za-z][A-Za-z0-9]*/g, (w) => WORDS[w.toLowerCase()] || (w === w.toLowerCase() || w === w.toUpperCase() && w.length > 3 ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w));
 }
 
 /* ------------------------------------------------------------------ category pages */

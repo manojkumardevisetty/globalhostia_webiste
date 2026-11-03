@@ -6,7 +6,8 @@ import { renderPage } from '@/lib/render/page';
 import { renderProductPage } from '@/lib/render/product-page';
 import { renderTheme, renderBlogRoute } from '@/lib/theme';
 import { THEME_ONLY, dynamicRoute } from '@/lib/theme/routes';
-import { PSEO_REDIRECTS } from '@/lib/theme/pseo';
+import { PSEO_REDIRECTS, categoryRedirect } from '@/lib/theme/pseo';
+import { getCatalog } from '@/lib/theme/data';
 import { getSettings } from '@/lib/settings';
 import { verifySession, COOKIE } from '@/lib/auth';
 
@@ -29,6 +30,11 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: stri
   if (r) return NextResponse.redirect(new URL(r[0], req.url), r[1]);
   const pr = PSEO_REDIRECTS[path.slice(1).toLowerCase()];
   if (pr) return NextResponse.redirect(new URL(pr, req.url), 301);
+  // /category/<slug> of a category another page already sells → that page (lib/theme/pseo.ts coveredBy)
+  if (segs.length === 2 && segs[0].toLowerCase() === 'category') {
+    const to = await getCatalog().then((cat) => categoryRedirect(cat, segs[1].toLowerCase())).catch(() => '');
+    if (to) return NextResponse.redirect(new URL(to, req.url), 301);
+  }
   if (/\.html?$/i.test(path)) return NextResponse.redirect(new URL(path.replace(/\/?index\.html?$/i, '/').replace(/\.html?$/i, ''), req.url), 301);
 
   const session = await verifySession(req.cookies.get(COOKIE)?.value);

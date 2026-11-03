@@ -8,22 +8,24 @@ import { page } from '../shell';
 import { pageHero, sectionHead, planCards, plansNote, ctaBand, breadcrumbJsonLd, link, fromText, available } from '../ui';
 import { trustStrip } from '../growth';
 import { productsLd } from './vps';
-import { locationOf, siteOf } from '../pseo';
-import { CLAIMED, TYPE_LABEL, TYPE_PAGE, categoryHref } from '../sitelinks';
+import { locationOf, siteOf, categoryPages } from '../pseo';
+import { CLAIMED, TYPE_LABEL, TYPE_PAGE, categoryHref, prettyName } from '../sitelinks';
 
 const strip = (h: string) => h.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
 
 export default async function render(ctx: PageCtx): Promise<string | null> {
   const slug = ctx.slug.split('/')[1] || '';
   const cat = await getCatalog();
-  const c = cat.categories.find((x) => x.slug === slug);
+  // only approved categories that no other page sells (others 301 in app/[[...slug]]/route.ts or 404)
+  const c = categoryPages(cat).find((x) => x.slug === slug);
   if (!c) return null;
   const products = categoryProducts(cat, c.slug);
   if (!products.length) return null;
   return renderCategory(ctx, cat, c, products);
 }
 
-function renderCategory(ctx: PageCtx, cat: Catalog, c: TCategory, products: TProduct[]) {
+function renderCategory(ctx: PageCtx, cat: Catalog, raw: TCategory, products: TProduct[]) {
+  const c = { ...raw, name: prettyName(raw.name) };
   const site = siteOf(cat);
   const path = `/category/${c.slug}`;
   // a category that also has a hand-written page keeps that page as the canonical URL
@@ -31,7 +33,7 @@ function renderCategory(ctx: PageCtx, cat: Catalog, c: TCategory, products: TPro
   const fam = c.type !== 'other' ? TYPE_LABEL[c.type] : '';
   const famPage = TYPE_PAGE[c.type];
   const parent = c.parentId ? cat.categories.find((x) => x.id === c.parentId) : undefined;
-  const subs = cat.categories.filter((x) => x.parentId === c.id && products.some((p) => p.categorySlug === x.slug));
+  const subs = cat.categories.filter((x) => x.parentId === c.id && products.some((p) => p.categorySlug === x.slug)).map((x) => ({ ...x, name: prettyName(x.name) }));
   const desc = strip(c.description) || strip(c.seoDescription) || `${products.length} ${products.length === 1 ? 'plan' : 'plans'} with live prices from our billing system.`;
   const from = minFrom(available(products), cat.currency);
   const cheapest = from ? products.find((p) => fromPrice(p, cat.currency)?.amount === from.amount) : undefined;

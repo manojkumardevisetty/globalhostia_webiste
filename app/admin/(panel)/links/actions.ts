@@ -38,6 +38,10 @@ export async function saveSiteLinks(fd: FormData) {
     if (val && (FAMILY_IDS as readonly string[]).includes(val)) types[k.slice(5)] = val;
   }
   next.categoryTypes = types;
+  // "show automatically" switches, only for categories that were on the form (reviewed or pre-existing ones)
+  const show = { ...cur.show };
+  for (const slug of fd.getAll('show_slugs').map(String)) show[slug] = bool(fd, `show_${slug}`);
+  next.show = show;
   next.autoMenu = bool(fd, 'autoMenu');
   next.offers = { ssl: str(fd, 'offer_ssl'), hosting: str(fd, 'offer_hosting') };
 
@@ -83,4 +87,16 @@ export async function saveSiteLinks(fd: FormData) {
   await setSetting('site_links', siteLinks({ site_links: next }));
   await audit(s, 'update', 'settings', 'site_links');
   done(BACK, 'Site links saved. Menus, footer and generated pages are updated.');
+}
+
+/** One-click from "New categories: review": show (or keep hidden) a category automatically on the site. */
+export async function reviewCategory(fd: FormData) {
+  const s = await requireSession('content');
+  const slug = str(fd, 'slug');
+  if (!/^[a-z0-9][a-z0-9/-]*$/.test(slug)) fail(BACK, 'Unknown category');
+  const on = str(fd, 'show') === '1';
+  const cur = siteLinks(await getSettings());
+  await setSetting('site_links', siteLinks({ site_links: { ...cur, show: { ...cur.show, [slug]: on } } }));
+  await audit(s, 'update', 'settings', 'site_links', { category: slug, show: on });
+  done(BACK, on ? `"${slug}" is now shown on the site automatically` : `"${slug}" stays hidden from menus and generated pages`);
 }

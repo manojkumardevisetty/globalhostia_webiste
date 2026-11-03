@@ -5,6 +5,7 @@ import 'server-only';
 import { getCatalog, availableCurrencies, pricedTlds, cycles, deriveSpecs, type Catalog, type TProduct } from '../theme/data';
 import { ROUTES } from '../theme/routes';
 import { categoryHref } from '../theme/sitelinks';
+import { categoryHrefIn } from '../theme/pseo';
 import { CYCLE_LABEL, CYCLE_MONTHS } from '../pricing';
 import { CURRENCY_LABEL } from '../currency';
 import { DEFAULT_EMAIL, DEFAULT_PHONE } from '../seo';
@@ -37,8 +38,9 @@ const strip = (s: string) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/&
 const round = (n: number) => Math.round(n * 100) / 100;
 
 /** Listing page for a category: its hand-written page (first route listing it), else the generated /category/<slug>. */
-export function categoryPath(slug: string): string | null {
-  return slug ? categoryHref(slug) : null;
+export function categoryPath(slug: string, cat?: Catalog): string | null {
+  if (!slug) return null;
+  return cat ? categoryHrefIn(cat, slug) : categoryHref(slug);
 }
 
 /** WHMCS cart link for a product/cycle in a currency (adds &currency=<WHMCS id> when known). */
@@ -73,7 +75,7 @@ export function toAgentProduct(cat: Catalog, p: TProduct, currency: string, site
   const head = prices.find((x) => x.cycle === p.displayCycle) || prices[0] || null;
   const specs = deriveSpecs(p.features, p.attributes);
   const catRow = cat.categories.find((c) => c.slug === p.categorySlug);
-  const cp = p.categorySlug ? categoryPath(p.categorySlug) : null;
+  const cp = p.categorySlug ? categoryPath(p.categorySlug, cat) : null;
   return {
     slug: p.slug, name: p.name, tagline: strip(p.tagline), description: strip(p.description),
     category: catRow ? { slug: catRow.slug, name: catRow.name } : null, type: p.whmcsType || '',
@@ -106,7 +108,7 @@ export async function agentData(currency?: string | null): Promise<AgentData> {
     const ps = products.filter((p) => p.category?.slug === c.slug);
     const priced = ps.filter((p) => p.from);
     const low = priced.reduce<AgentProduct | null>((a, b) => (!a || (b.from!.perMonth ?? b.from!.price) < (a.from!.perMonth ?? a.from!.price) ? b : a), null);
-    const path = categoryPath(c.slug);
+    const path = categoryPath(c.slug, cat);
     return {
       slug: c.slug, name: c.name, parent: c.parentId ? cat.categories.find((x) => x.id === c.parentId)?.slug || null : null,
       summary: strip(c.seoDescription || c.description) || (path ? ROUTES[path.slice(1)]?.description || '' : ''),
