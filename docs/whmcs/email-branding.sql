@@ -181,7 +181,7 @@ UPDATE tblconfiguration SET value = '
 </p>
 <p style="margin:0 0 6px;">Support: <a href="mailto:support@globalhostia.com" style="color:#23313d;text-decoration:none;">support@globalhostia.com</a> &nbsp;&middot;&nbsp; +971 50 734 1578</p>
 <p style="margin:0 0 6px;">Web hosting &middot; VPS &amp; dedicated servers &middot; Domains &middot; SSL &middot; Business email</p>
-<p style="margin:0;">&copy; GlobalHostia &middot; a brand of Desert Tech Cloud Services LLC &middot; Dubai, United Arab Emirates.<br>You received this email because of an account or order with GlobalHostia.</p>
+<p style="margin:0;">&copy; GlobalHostia &middot; Dubai, United Arab Emirates.<br>You received this email because of an account or order with GlobalHostia.</p>
 </td></tr>
 </table>
 <!--[if mso]></td></tr></table><![endif]-->
