@@ -131,27 +131,33 @@ function footer(menus: ThemeMenu[], cat: Catalog, phone: string, email: string, 
   const company = 'GlobalHostia';
   const cols = footerColumns(menus, cat.links?.footerExtra);
   const pays = ['visa', 'mastercard', 'amex', 'discover', 'jcb', 'maestro'];
+  // One flat dark surface: contact + newsletter column beside the link columns, then a bottom bar with the brand,
+  // legal line, accepted payments and back-to-top. Styles: the Footer block of public/hp/theme.css.
   return `<footer class="hp-footer">
   <div class="hp-container">
     <div class="hp-fbox">
       <div class="hp-contact-card">
-        <h2>Contact us</h2>
-        <p>Sales and technical support, every hour of every day.</p>
+        <div class="hp-cc-head">
+          <h2>Contact us</h2>
+          <p>Sales and technical support, every hour of every day.</p>
+        </div>
+        <div class="hp-cc-rows">
         ${phone ? `<div class="hp-cc-row">${hexIcon('phone')}<div><small>Call us</small><a class="num" href="${esc(telHref(phone))}">${esc(phone)}</a></div></div>` : ''}
         ${email ? `<div class="hp-cc-row">${hexIcon('mail')}<div><small>Email us</small><a href="mailto:${esc(email)}">${esc(email)}</a></div></div>` : ''}
         ${wa ? `<div class="hp-cc-row">${hexIcon('chat')}<div><small>Chat on WhatsApp</small><a href="https://wa.me/${esc(wa)}">Message us on WhatsApp</a></div></div>` : ''}
+        </div>
         ${lead}
       </div>
       <nav class="hp-fcols" aria-label="Footer">${cols.map((c) => `<div><h3>${esc(c.title)}</h3>${c.links.map((l) => `<a href="${esc(l.href)}">${esc(l.label)}</a>`).join('')}</div>`).join('')}</nav>
-      <div class="hp-pay" role="img" aria-label="Accepted payment methods: Visa, Mastercard, American Express, Discover, JCB, Maestro and Bitcoin">
-        ${pays.map((p) => `<img src="/image/payment/${p}.png" alt="${({ visa: 'Visa', mastercard: 'Mastercard', amex: 'American Express', discover: 'Discover', jcb: 'JCB', maestro: 'Maestro' } as Record<string, string>)[p] || p} accepted" width="48" height="30" loading="lazy">`).join('')}<span class="hp-btc">Bitcoin</span>
-      </div>
     </div>
   </div>
   <div class="hp-foot-bottom">
     <div class="hp-container">
       ${logo('white', 157, 30, true)}
       <p class="hp-legal">© ${new Date().getFullYear()} ${esc(s.site_name || 'Globalhostia')} · ${esc(company)}, Dubai, UAE. <a href="/terms-conditions">Terms</a> · <a href="/privacy-policy">Privacy</a>${consentLink(s.tracking)}<br><span class="hp-live"><i aria-hidden="true"></i><b>Prices shown live from our billing system.</b></span></p>
+      <div class="hp-pay" role="img" aria-label="Accepted payment methods: Visa, Mastercard, American Express, Discover, JCB, Maestro and Bitcoin">
+        ${pays.map((p) => `<img src="/image/payment/${p}.png" alt="${({ visa: 'Visa', mastercard: 'Mastercard', amex: 'American Express', discover: 'Discover', jcb: 'JCB', maestro: 'Maestro' } as Record<string, string>)[p] || p} accepted" width="48" height="30" loading="lazy">`).join('')}<span class="hp-btc">Bitcoin</span>
+      </div>
       <a class="hp-totop" href="#main" aria-label="Back to top">${icon('up')}</a>
     </div>
   </div>
