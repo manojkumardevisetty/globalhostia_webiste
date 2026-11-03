@@ -14,7 +14,7 @@ const PAGES = [
   ['home', '/'], ['web-hosting', '/web-hosting'], ['vps', '/vps-hosting'], ['dedicated', '/dedicated-servers'],
   ['ssl', '/ssl-certificate'], ['domains', '/domains-registration'], ['tld', '/domains/com'], ['product', '/p/hostia-ultra-usa'],
   ['compare', '/compare'], ['plan-finder', '/plan-finder'], ['blog', '/blog'], ['contact', '/contact'], ['terms', '/terms-conditions'],
-  ['connectors', '/connectors'], ['docs', '/docs/mcp'], ['email', '/google-workspace'], ['help', '/help-center'],
+  ['connectors', '/connectors'], ['docs', '/docs/mcp'], ['email', '/google-workspace'], ['help', '/help-center'], ['store', '/business-services'],
   ['uae', '/web-hosting-dubai'], ['migration', '/free-migration'], ['404', '/no-such-page-xyz'],
   ['acc-login', '/account/login'],
   ['acc-home', '/account', 'auth'], ['acc-services', '/account/services', 'auth'], ['acc-domains', '/account/domains', 'auth'],
@@ -101,6 +101,7 @@ function audit() {
   for (const e of leaves) {
     const s = getComputedStyle(e);
     if (s.position === 'absolute' || s.position === 'fixed' || floating(e)) continue;
+    if (s.webkitLineClamp && s.webkitLineClamp !== 'none') continue; // clamped excerpts hide their extra lines on purpose
     let box = e.parentElement, scrolled = false;
     while (box && box !== document.body && !isBox(box)) { if (scrolls(getComputedStyle(box))) scrolled = true; box = box.parentElement; }
     if (!box || box === document.body || scrolled) continue;

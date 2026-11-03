@@ -7,7 +7,7 @@
 .ae-flag i:nth-child(3){background:#fff}
 .ae-flag i:nth-child(4){background:#000}
 .ae-price{position:relative;max-width:420px;margin-left:auto;padding:30px 28px 24px;border-radius:var(--r-lg);background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.18);box-shadow:0 30px 60px -30px rgba(0,0,0,.6);color:#fff}
-.ae-price__tld{font:800 clamp(40px,4vw + 24px,76px)/1 var(--head);letter-spacing:-.04em;background:linear-gradient(90deg,#fff,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ae-price__tld{font:800 clamp(36px,3vw + 22px,60px)/1 var(--head);letter-spacing:-.04em;background:linear-gradient(90deg,#fff,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
 .ae-price__rows{margin-top:18px;display:grid;gap:0}
 .ae-price__rows div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.14)}
 .ae-price__rows dt{color:var(--on-dark-mute);font-size:14.5px}

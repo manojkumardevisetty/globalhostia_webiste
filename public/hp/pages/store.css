@@ -166,6 +166,10 @@
   .bs-results li{grid-template-columns:minmax(0,1fr) auto}
   .bs-results li>.hp-link{grid-column:1/-1}
   .bs-grid,.bs-pop,.bs-bundles{grid-template-columns:minmax(0,1fr)}
+  .bs-card{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:12px;padding:16px;align-items:start}
+  .bs-card>.hp-hexi{width:36px;height:40px}
+  .bs-card__foot{grid-column:1/-1;padding-top:12px}
+  .bs-card__t{font-size:17px}
   .bs-sec{padding-top:44px}
 }
 @media (prefers-reduced-motion:reduce){.bs-card,.bs-chip,.bs-index a{transition:none}.bs-card:hover{transform:none}}
