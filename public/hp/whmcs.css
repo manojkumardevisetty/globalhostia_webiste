@@ -846,12 +846,16 @@ img.gh-avatar { border-radius: 50% !important; object-fit: cover; background: #f
 .gh-foot__help a { font-weight: 600; color: #fdd700 !important; }
 .gh-foot__main { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 28px; padding: 20px 0; }
 .gh-foot__logo img { height: 30px; width: auto; display: block; }
-.gh-foot nav { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.gh-foot__main { padding: 16px 0 6px; }
+.gh-foot__groups { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px 24px; padding: 6px 0 18px; }
+.gh-foot__groups b { display: block; margin-bottom: 6px; font: 700 13px Manrope, Inter, sans-serif; color: #fff; letter-spacing: .02em; }
+.gh-foot__groups a { display: block; padding: 2px 0; font-size: 13px; color: #a9b4bf !important; }
+@media (max-width: 1100px) { .gh-foot__groups { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .gh-foot__base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.08); font-size: 13px; color: #8794a1; }
 .gh-foot__legal { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-right: 76px; }
 .gh-foot__legal a { color: #8794a1 !important; }
 @media (max-width: 760px) {
   .gh-foot__main { flex-direction: column; align-items: flex-start; }
-  .gh-foot nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; width: 100%; }
+  .gh-foot__groups { grid-template-columns: 1fr 1fr; }
   .gh-foot__base { flex-direction: column; }
 }

@@ -780,7 +780,11 @@
     var sec = f.querySelector('.footer-section'); if (!sec) return;
     var logo = f.querySelector('.left-side-footer-logo img'), phone = (f.querySelector('.footer-top-section span') || {}).textContent || '';
     var legal = [].filter.call(f.querySelectorAll('.left-side-footer-logo a'), function (a) { return /legal|privacy|cookie|terms/i.test(a.textContent); });
-    var nav = [['My services', 'clientarea.php?action=services'], ['Domains', 'clientarea.php?action=domains'], ['Invoices', 'clientarea.php?action=invoices'], ['Support tickets', 'supporttickets.php'], ['Knowledgebase', 'knowledgebase.php'], ['Network status', 'serverstatus.php'], ['Contact', 'contact.php']];
+    var seen = {}, groups = [].map.call(f.querySelectorAll('.footer-top > .row:first-child > div'), function (col) {
+      var h = col.querySelector('h1,h2,h3,h4,h5,h6,.footer-title, strong'); var links = [];
+      [].forEach.call(col.querySelectorAll('a[href]'), function (a) { var t = a.textContent.trim(), k = t.toLowerCase(); if (!t || seen[k]) return; seen[k] = 1; links.push([t, a.getAttribute('href')]); });
+      return { t: h ? h.textContent.trim() : '', l: links };
+    }).filter(function (g) { return g.l.length; });
     var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
     var tel = phone.replace(/[^\d+]/g, ''), wa = tel.replace(/\D/g, '');
     var d = document.createElement('div'); d.className = 'gh-foot';
@@ -789,7 +793,7 @@
       (wa ? '<a href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : '') +
       '<a href="submitticket.php">Open a ticket</a></div>' +
       '<div class="gh-foot__main"><a class="gh-foot__logo" href="https://globalhostia.com/">' + (logo ? '<img src="' + esc(logo.getAttribute('src')) + '" alt="GlobalHostia">' : 'GlobalHostia') + '</a>' +
-      '<nav aria-label="Footer">' + nav.map(function (n) { return '<a href="' + n[1] + '">' + n[0] + '</a>'; }).join('') + '</nav></div>' +
+      '</div><nav class="gh-foot__groups" aria-label="Footer">' + groups.map(function (g) { return '<div><b>' + esc(g.t) + '</b>' + g.l.map(function (n) { return '<a href="' + esc(n[1]) + '">' + esc(n[0]) + '</a>'; }).join('') + '</div>'; }).join('') + '</nav>' +
       '<div class="gh-foot__base"><span>© ' + new Date().getFullYear() + ' GlobalHostia. All rights reserved.</span><span class="gh-foot__legal">' +
       legal.map(function (a) { return '<a href="' + esc(a.getAttribute('href')) + '">' + esc(a.textContent.trim()) + '</a>'; }).join('') + '</span></div>';
     sec.style.display = 'none'; sec.parentNode.insertBefore(d, sec);
