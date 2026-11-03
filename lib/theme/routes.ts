@@ -108,6 +108,9 @@ export const ROUTES: Record<string, RouteDef> = {
   'domain-broker': { kind: 'broker', title: 'Domain broker service', description: 'The domain you want is taken? A dedicated broker contacts the owner anonymously, negotiates within your budget and secures the transfer through escrow.',
     seoTitle: 'Domain Broker Service: Buy a Taken Domain',
     meta: 'Buy a taken or premium domain: anonymous owner outreach, negotiation within your budget and escrow transfer. A fixed fee to start and a commission only if the deal closes.' },
+  'premium-domains': { kind: 'premium', title: 'Premium domains for sale', description: 'Hand-picked premium domain names for sale, with the price shown upfront. Request a name and we confirm it, send a secure invoice and move it to your account.',
+    seoTitle: 'Premium Domains for Sale: Short, Brandable Names',
+    meta: 'Buy a premium domain name with the price shown upfront: short, brandable .com, .ai, .io and .ae names. We confirm, invoice securely and transfer it to you.' },
   'data-centers': { kind: 'datacenters', title: 'Data centers and network locations', description: 'Where our hosting, VPS and dedicated servers run, and a live test of the round-trip time from your browser to our network.' },
   'web-hosting-dubai': { kind: 'uae', title: 'Web Hosting in Dubai', description: 'Web hosting from a Dubai-based company: NVMe plans with free SSL, prices in AED, a price-locked renewal and support by WhatsApp and ticket around the clock.', categories: H },
   'vps-uae': { kind: 'uae', title: 'VPS Hosting UAE', description: 'Linux and Windows VPS for UAE businesses: dedicated vCPU and RAM, NVMe storage, root access and engineers on WhatsApp 24/7. Live prices in AED or USD.', categories: ['hostiavps', 'high-performance-vps'] },
@@ -124,7 +127,7 @@ export const ROUTES: Record<string, RouteDef> = {
 };
 
 /** Pages that only exist in the Hostpen theme: always rendered by it, whatever the site theme (like /blog). */
-export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-broker']);
+export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-broker', 'premium-domains']);
 for (const v of VS_SLUGS) THEME_ONLY.add(v); // GlobalHostia vs <host> pages
 
 /**
@@ -141,6 +144,8 @@ export function dynamicRoute(segs: string[]): RouteDef | null {
   if (s.length === 1 && s[0] === 'hosting-for') return { kind: 'usecase', title: '', description: '' };
   // Business services shop: hub and category pages (lib/theme/pages/store.ts, config in Admin → Business services)
   if (s.length === 1 && s[0] === 'business-services') return { kind: 'store', title: '', description: '' };
+  // Premium domain detail pages /premium-domains/<domain> (lib/theme/pages/premium.ts returns null for an unknown name → 404)
+  if (s.length === 2 && s[0] === 'premium-domains' && /^[a-z0-9][a-z0-9-]{0,62}(\.[a-z0-9-]{1,63}){1,2}$/.test(s[1])) return { kind: 'premium', title: '', description: '' };
   if (s.length !== 2 || !DYNAMIC_PREFIX[s[0]] || !/^[a-z0-9][a-z0-9-]{0,62}$/.test(s[1])) return null;
   return { kind: DYNAMIC_PREFIX[s[0]], title: '', description: '' };
 }

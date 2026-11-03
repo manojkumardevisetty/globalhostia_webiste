@@ -8,6 +8,8 @@ import { checkDomain, domainLimit, validDomain } from '../../agents/domain';
 import { callTool } from '../../agents/mcp';
 import { brokerConfig, catalogRate } from '../../broker';
 import { searchSite } from '../site-search';
+import { premiumItems, premiumConfig } from '../../premium/store';
+import { searchPremium } from '../../premium/core';
 import { ToolError, type AiTool, type ToolCtx, type UiEvent } from '../agent';
 
 export interface ShopCtx extends ToolCtx {
@@ -69,7 +71,7 @@ function spendChecks(ctx: ShopCtx, n: number) {
   return allow;
 }
 const COUNTRY_TLD: Record<string, string> = { AE: '.ae', IN: '.in', PK: '.pk', SA: '.sa', GB: '.co.uk', UK: '.co.uk', US: '.us', QA: '.qa', OM: '.om', KW: '.kw', BH: '.bh', EG: '.eg', DE: '.de', FR: '.fr', CA: '.ca', AU: '.com.au', SG: '.sg', MY: '.my', NG: '.ng', KE: '.ke', ZA: '.co.za' };
-const domainChip = (r: any) => ({ domain: r.domain, available: !!r.available, register: r.register, renew: r.renew, currency: r.currency, cartUrl: r.addToCartUrl || null });
+const domainChip = (r: any) => ({ domain: r.domain, available: !!r.available, register: r.premium ? r.premium.price : r.register, renew: r.premium ? r.premium.renew : r.renew, currency: r.premium ? r.premium.currency : r.currency, cartUrl: r.addToCartUrl || null, ...(r.premium ? { premium: true } : {}) });
 function brokerCard(d: AgentData, domain: string): UiEvent {
   const cfg = brokerConfig(d.cat.settings);
   const rate = d.currency === 'USD' ? 1 : catalogRate(d.cat.products, d.currency);
@@ -174,7 +176,7 @@ export const publicTools: AiTool<ShopCtx>[] = [
       if (!r.ok) return { text: r.message + (r.supportedTlds ? ` We sell: ${r.supportedTlds.slice(0, 20).join(' ')}` : ''), isError: true };
       const ui: UiEvent[] = [{ type: 'domains', items: [domainChip(r)] }];
       if (!r.available) ui.push(brokerCard(d, dom));
-      return { text: r.available ? `${dom} is available: ${r.register ?? 'see checkout'} ${r.currency} first year, renews ${r.renew ?? 'see checkout'} ${r.currency}/year.` : `${dom} is taken. Broker card shown; offer suggest_domains alternatives.`, ui };
+      return { text: r.available && r.premium ? `${dom} is available as a registry PREMIUM name: ${r.premium.price} ${r.premium.currency} first year${r.premium.renew != null ? `, renews ${r.premium.renew} ${r.premium.currency}/year` : ''}; final price confirmed in the cart. Say it is a premium name.` : r.available ? `${dom} is available: ${r.register ?? 'see checkout'} ${r.currency} first year, renews ${r.renew ?? 'see checkout'} ${r.currency}/year.` : `${dom} is taken. Broker card shown; offer suggest_domains alternatives, and search_premium_domains for similar names for sale.`, ui };
     },
   },
   {
@@ -206,6 +208,22 @@ export const publicTools: AiTool<ShopCtx>[] = [
       return {
         text: avail.length ? `Available (shown as chips): ${avail.map((r) => `${r.domain} ${r.register ?? '?'} ${r.currency} first year, renews ${r.renew ?? '?'}`).join('; ')}` : 'None of the ideas were available; ask for other keywords.',
         ui: avail.length ? [{ type: 'domains', title: 'Available names', items: avail.map(domainChip) }] : [],
+      };
+    },
+  },
+  {
+    name: 'search_premium_domains', scope: 'public', kind: 'read',
+    description: 'Premium domain names GlobalHostia has FOR SALE (own listings and selected marketplace listings) with their real one-time price. Use when the visitor wants a short, premium or aftermarket name, or their name is taken. Results show as cards linking to the listing page, where they request it (we confirm, send a secure invoice, transfer it). Never invent names or prices; if nothing matches, offer the domain broker.',
+    input_schema: S({ keyword: { type: 'string', description: 'Part of the name, e.g. "cloud".' }, tld: { type: 'string', description: 'Extension, e.g. ".ai".' }, max_price: { type: 'number', description: 'Maximum price in USD.' }, limit: { type: 'integer', minimum: 1, maximum: 8 } }),
+    async run(a, ctx) {
+      const d = await data(ctx);
+      const [cfg, items] = await Promise.all([premiumConfig(), premiumItems()]);
+      if (!cfg.enabled) return { text: 'The premium domains page is not available. Offer the domain broker instead.' };
+      const r = searchPremium(items, { keyword: str(a.keyword, 40), tld: str(a.tld, 24), maxPrice: num(a.max_price), limit: Math.min(8, Math.max(1, num(a.limit) || 6)) }, d.site);
+      if (!r.items.length) return { text: `No premium domains for sale match${r.total ? ' those filters' : ' right now'}. Offer the domain broker (${d.site}/domain-broker) or suggest_domains for available names.` };
+      return {
+        text: `Premium domains for sale (one-time prices, request on the listing page): ${r.items.map((x) => `${x.domain} ${x.price === null ? 'make an offer' : `${x.price} ${x.currency}`}`).join('; ')}. All: ${r.url}`,
+        ui: [{ type: 'premium', title: 'Premium domains for sale', items: r.items, more: r.url }],
       };
     },
   },

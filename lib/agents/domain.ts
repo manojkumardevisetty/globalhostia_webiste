@@ -23,7 +23,9 @@ export function validDomain(raw: unknown): string | null {
 }
 
 export type DomainResult =
-  | { ok: true; domain: string; tld: string; available: boolean; currency: string; register: number | null; renew: number | null; transfer: number | null; addToCartUrl: string | null; cached: boolean; checkedAt: string }
+  | { ok: true; domain: string; tld: string; available: boolean; currency: string; register: number | null; renew: number | null; transfer: number | null; addToCartUrl: string | null; cached: boolean; checkedAt: string;
+      /** set when Dynadot reports a registry premium name: its real price (USD, with the admin markup); the final price is confirmed in the cart */
+      premium?: { price: number; renew: number | null; currency: 'USD' } }
   | { ok: false; status: number; error: string; message: string; supportedTlds?: string[] };
 
 export async function checkDomain(raw: unknown, currency?: string | null): Promise<DomainResult> {
@@ -47,8 +49,11 @@ export async function checkDomain(raw: unknown, currency?: string | null): Promi
     cache.set(domain, { at: Date.now(), available });
   }
   const t = tlds.find((x) => x.tld === tld)!;
+  // registry premium names (lib/premium/store.ts): Dynadot's real price, never the standard TLD price
+  const prem = available ? await import('../premium/store').then((m) => m.registryPremium(domain)).catch(() => null) : null;
   return {
-    ok: true, domain, tld, available, currency: d.currency, register: t.register, renew: t.renew, transfer: t.transfer,
+    ok: true, domain, tld, available, currency: d.currency, register: prem ? null : t.register, renew: prem ? null : t.renew, transfer: t.transfer,
     addToCartUrl: available ? domainCartLink(d.cat, domain, d.currency) : null, cached, checkedAt: new Date().toISOString(),
+    ...(prem ? { premium: { price: prem.price, renew: prem.renew, currency: prem.currency } } : {}),
   };
 }

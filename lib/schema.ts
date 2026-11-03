@@ -337,10 +337,41 @@ export const brokerRequests = pgTable('broker_requests', {
   utmCampaign: text('utm_campaign').notNull().default(''),
   referrer: text('referrer').notNull().default(''),
   ipHash: text('ip_hash').notNull().default(''),
+  // 'broker' (taken domain, /domain-broker) or 'premium' (purchase request from /premium-domains; listing = what was shown)
+  kind: text('kind').notNull().default('broker'),
+  listing: jsonb('listing'),
   createdAt: now('created_at'),
   updatedAt: now('updated_at'),
 }, (t) => [index('broker_status_idx').on(t.status, t.createdAt)]);
 export type BrokerRequest = typeof brokerRequests.$inferSelect;
+
+// Premium domains marketplace (lib/premium/*, Admin → Premium domains). Created by db-setup patch '036-premium-domains'.
+// premium_domains: the owner's own listings (owned or brokered). premium_feed: cached Dynadot marketplace listings
+// (refreshed by the daily cron / "Refresh now"; base Dynadot price in USD, the public price applies the admin rule).
+export const premiumDomains = pgTable('premium_domains', {
+  id: id(),
+  domain: text('domain').notNull().unique(),
+  price: numeric('price', { precision: 14, scale: 2 }),
+  currency: text('currency').notNull().default('USD'),
+  makeOffer: boolean('make_offer').notNull().default(false),
+  minOffer: numeric('min_offer', { precision: 14, scale: 2 }),
+  tags: jsonb('tags').$type<string[]>().notNull().default([]),
+  description: text('description').notNull().default(''),
+  status: text('status').notNull().default('draft'), // draft | for_sale | under_offer | sold
+  owned: boolean('owned').notNull().default(true), // false = brokered for a third party
+  featured: boolean('featured').notNull().default(false),
+  soldAt: timestamp('sold_at', { withTimezone: true }),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [index('premium_domains_status_idx').on(t.status)]);
+export type PremiumDomain = typeof premiumDomains.$inferSelect;
+export const premiumFeed = pgTable('premium_feed', {
+  domain: text('domain').primaryKey(),
+  listingId: text('listing_id').notNull().default(''),
+  price: numeric('price', { precision: 14, scale: 2 }).notNull(),
+  currency: text('currency').notNull().default('USD'),
+  fetchedAt: now('fetched_at'),
+});
 
 // Portal DNS editor: zones we created on the DNS-only DirectAdmin account for domain-only customers
 // (lib/portal/dns.ts). Only `client_id` may edit the zone; admin can remove it (Admin → Hosting panels).

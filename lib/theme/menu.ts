@@ -63,6 +63,7 @@ export function defaultMenu(cat: Catalog): ThemeMenu[] {
         { label: 'Transfer a domain', href: L.transfer, icon: 'transfer', desc: 'Move your domain to us at no cost.' },
         { label: 'Domain pricing', href: '/domains-registration#pricing', icon: 'tag', desc: 'Registration, renewal and transfer prices.' },
         { label: '.ae domains', href: '/ae-domains', icon: 'globe', desc: 'The UAE country domain for local businesses.' },
+        { label: 'Premium domains', href: '/premium-domains', icon: 'star', desc: 'Short, brandable names for sale, price upfront.' },
         { label: 'Domain broker', href: '/domain-broker', icon: 'key', desc: 'Want a taken domain? We negotiate it for you.' },
       ] },
     ] },
@@ -204,6 +205,11 @@ export function getMenu(cat: Catalog): ThemeMenu[] {
   if (valid(raw) && !menus.some((m) => m.groups.some((g) => g.items.some((i) => String(i.href).startsWith('/domain-broker'))))) {
     const dm = menus.find((m) => /domain/i.test(m.id) || /domain/i.test(m.label));
     if (dm?.groups[0]) dm.groups[0] = { ...dm.groups[0], items: [...dm.groups[0].items, { label: 'Domain broker', href: '/domain-broker', icon: 'key', desc: 'Want a taken domain? We negotiate it for you.' }] };
+  }
+  // …and the premium domains marketplace (lib/premium), same rule
+  if (valid(raw) && !menus.some((m) => m.groups.some((g) => g.items.some((i) => String(i.href).startsWith('/premium-domains'))))) {
+    const dm = menus.find((m) => /domain/i.test(m.id) || /domain/i.test(m.label));
+    if (dm?.groups[0]) dm.groups[0] = { ...dm.groups[0], items: [...dm.groups[0].items, { label: 'Premium domains', href: '/premium-domains', icon: 'star', desc: 'Short, brandable names for sale, price upfront.' }] };
   }
   return menus.map((m) => ({ ...m, id: m.id.replace(/[^a-z0-9-]/gi, '') || 'menu', featured: m.featured || featuredFor(m.id, cat) }));
 }

@@ -20,6 +20,9 @@ const PAGES = [
   ['acc-home', '/account', 'auth'], ['acc-services', '/account/services', 'auth'], ['acc-domains', '/account/domains', 'auth'],
   ['acc-invoices', '/account/invoices', 'auth'], ['acc-support', '/account/support', 'auth'],
   ['acc-home-ar', '/account', 'ar'], ['acc-domains-ar', '/account/domains', 'ar'],
+  // premium domains (lib/premium): 'rtl' = Arabic right-to-left stress without signing in; PREMIUM_DETAIL = a listed name
+  ['premium', '/premium-domains'], ['premium-detail', process.env.PREMIUM_DETAIL || '/premium-domains/atlas.test'], ['home-hostpen', '/?theme=hostpen'],
+  ['premium-ar', '/premium-domains', 'rtl'], ['premium-detail-ar', process.env.PREMIUM_DETAIL || '/premium-domains/atlas.test', 'rtl'],
 ];
 
 /** Runs in the page: returns a list of findings. */
@@ -147,6 +150,8 @@ function stress(ar) {
   set('.hp-plan h3,.hp-pfeature h3,.hp-prow__name a,.pd-name,.ac-svc__name,.ac-card h3', LONG_PLAN);
   set('.hp-price__amt', '1,234,567.89', 2);
   set('.hp-tl b,.dom-name,.dom-row b,.ac-dom__name,.ac-domain b,.ps-card b,[data-domain]', LONG_DOMAIN);
+  set('.pd-card__h .pd-dom b,.pd-hero__h .pd-dom b,.pd-cert .pd-dom b', LONG_DOMAIN.replace(/\.com$/, ''));
+  set('.pd-card__price b,.pd-buy__price', '$1,234,567.89', 3);
   [...document.querySelectorAll('a[href^="mailto:"]')].slice(0, 2).forEach((a) => { a.textContent = LONG_EMAIL; });
   [...document.querySelectorAll('input[type=search],input[name=domain],.hp-dfield input,.hp-msearch input')].forEach((i) => { i.value = LONG_DOMAIN; });
   if (ar) {
@@ -167,7 +172,7 @@ function stress(ar) {
       let signedIn = false;
       for (const [key, path, need] of PAGES) {
         if (ONLY.length && !ONLY.includes(key)) continue;
-        if (need && !signedIn) {
+        if (need && need !== 'rtl' && !signedIn) {
           await p.goto(BASE + '/account/login');
           await p.fill('#au-email', 'demo@example.com'); await p.fill('#au-pass', 'demo-pass');
           await Promise.all([p.waitForURL((u) => !u.pathname.endsWith('/login'), { timeout: 30000 }).catch(() => {}), p.click('button:has-text("Sign in")')]);
@@ -176,7 +181,7 @@ function stress(ar) {
         await ctx.addCookies([{ name: 'gh_lang', value: need === 'ar' ? 'ar' : 'en', url: BASE }]);
         try { await p.goto(BASE + path, { waitUntil: 'networkidle', timeout: 90000 }); } catch { rows.push([key, w, mode, 'load', 'timeout']); continue; }
         await p.addStyleTag({ content: '.gh-consent{display:none!important}' });
-        if (mode === 'stress') await p.evaluate(stress, need === 'ar' || key === 'blog');
+        if (mode === 'stress') await p.evaluate(stress, need === 'ar' || need === 'rtl' || key === 'blog');
         await p.waitForTimeout(150);
         const found = await p.evaluate(audit);
         const uniq = [...new Map(found.map((f) => [f.join(' '), f])).values()];

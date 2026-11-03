@@ -217,11 +217,22 @@
       var wrap = el("div", { class: "ghai-doms" });
       (e.items || []).forEach(function (x) {
         wrap.appendChild(el("div", { class: "ghai-dom" + (x.available ? "" : " ghai-dom--taken") }, [
-          el("span", {}, [el("b", { text: x.domain }), el("small", { text: x.available ? money(x.register, x.currency) + " first year · renews " + money(x.renew, x.currency) : "Already registered" })]),
+          el("span", {}, [el("b", { text: x.domain }), el("small", { text: x.available ? (x.premium ? "Premium · " : "") + money(x.register, x.currency) + " first year · renews " + money(x.renew, x.currency) : "Already registered" })]),
           x.available ? el("button", { class: "ghai-btn ghai-btn--sm", type: "button", text: "Add", "aria-label": "Add " + x.domain + " to cart", onclick: function (ev) { addItem({ key: "d:" + x.domain, kind: "domain", domain: x.domain, label: x.domain, detail: "Domain, 1 year", price: x.register, setupFee: 0, currency: x.currency }); ev.target.textContent = "Added"; ev.target.disabled = true; if (window.GHFx) window.GHFx.pop(ev.target); } }) : null
         ]));
       });
       box.appendChild(wrap);
+    } else if (e.type === "premium") {
+      // premium domains for sale (search_premium_domains): link to the listing page, no add-to-cart (request + invoice flow)
+      var pw = el("div", { class: "ghai-doms" });
+      (e.items || []).forEach(function (x) {
+        pw.appendChild(el("div", { class: "ghai-dom" }, [
+          el("span", {}, [el("b", { text: x.domain }), el("small", { text: x.price == null ? "Premium · make an offer" : "Premium · " + money(x.price, x.currency) + " one-time" })]),
+          el("a", { class: "ghai-btn ghai-btn--sm", href: x.url, text: "View" })
+        ]));
+      });
+      box.appendChild(pw);
+      if (e.more) box.appendChild(el("a", { class: "ghai-link", href: e.more, text: "All premium domains" }));
     } else if (e.type === "broker") {
       box.appendChild(el("article", { class: "ghai-card ghai-broker" }, [el("h5", { text: e.domain + " is taken" }), el("p", { text: "Our domain broker can contact the owner and negotiate for you. Service fee " + money(e.fee, e.currency) + "." }),
         el("div", { class: "ghai-row" }, [el("a", { class: "ghai-btn ghai-btn--sm", href: e.url, text: "Ask the broker" })])]));

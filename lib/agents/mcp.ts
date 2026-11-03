@@ -231,7 +231,9 @@ export async function callTool(name: string, a: Args, ip: string, domainLimit: (
       if (!r.ok) { const { ok: _o, status: _s, ...body } = r; return fail(r.message, body); }
       const { ok: _o, ...body } = r;
       const broker = r.available ? '' : `${(await dataFor(a)).site}/domain-broker?domain=${encodeURIComponent(r.domain)}`;
-      return textOf(r.available
+      return textOf(r.available && r.premium
+        ? `${r.domain} is available as a registry PREMIUM domain: ${r.premium.price.toFixed(2)} ${r.premium.currency} first year${r.premium.renew !== null ? `, renews at ${r.premium.renew.toFixed(2)} ${r.premium.currency}/year` : ''} (final price confirmed in the cart). Add to cart: ${r.addToCartUrl}`
+        : r.available
         ? `${r.domain} is available. Registration ${r.register !== null ? `${r.register.toFixed(2)} ${r.currency} for the first year` : 'price shown in cart'}${r.renew !== null ? `, renews at ${r.renew.toFixed(2)} ${r.currency}/year` : ''}. Add to cart: ${r.addToCartUrl}`
         : `${r.domain} is already registered. Taken? Request our broker: ${broker}`,
         r.available ? body : { ...body, request_domain_broker: broker });

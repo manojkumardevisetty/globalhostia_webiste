@@ -113,6 +113,11 @@ export async function connectorDeps(o: { base: string; ip: string; currency?: st
       return cartLinkFor(d, a.slug, cycle, a.domain) as any;
     },
     checkDomain: (d, cur) => checkDomain(d, cur) as any,
+    async premiumSearch(a) {
+      const [{ premiumItems, premiumConfig }, { searchPremium }, d] = await Promise.all([import('../premium/store'), import('../premium/core'), agentData()]);
+      const [cfg, items] = await Promise.all([premiumConfig(), premiumItems()]);
+      return searchPremium(cfg.enabled ? items : [], a, d.site);
+    },
     client: (cid) => api.getClientsDetails(cid),
     services: (cid) => api.getClientsProducts(cid),
     service: (cid, id) => api.getService(cid, id),

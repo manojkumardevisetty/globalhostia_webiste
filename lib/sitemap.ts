@@ -105,6 +105,11 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
   for (const p of pseo) if (!have.has(p.slice(1))) add(p, p.startsWith('/domains/') ? maxDate(tldMod, catalogMod) : catalogMod);
   // Business services shop: only while published, and only pages with something to order or quote (lib/store/view.ts)
   for (const p of cat ? storePaths(cat) : []) if (!have.has(p.slice(1))) add(p, maxDate(catalogMod, s.business_services_at) || catalogMod);
+  // premium domain detail pages (lib/premium): listed names only, while the page is live
+  try {
+    const { premiumItems, premiumConfig } = await import('./premium/store');
+    if ((await premiumConfig()).enabled) for (const i of await premiumItems()) add(`/premium-domains/${i.domain}`, i.updatedAt || themeMod);
+  } catch { /* tables not created yet */ }
   return out;
 }
 

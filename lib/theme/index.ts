@@ -38,6 +38,7 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   broker: () => import('./pages/broker'),
   category: () => import('./pages/category'),
   store: () => import('./pages/store'),
+  premium: () => import('./pages/premium'),
 };
 
 /** Returns themed HTML, or null when this URL isn't part of the theme (caller falls back to the original theme). */

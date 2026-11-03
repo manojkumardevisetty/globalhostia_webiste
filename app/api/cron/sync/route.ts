@@ -6,6 +6,7 @@ import { checkTickets } from '@/lib/support-notify';
 import { submitChanged } from '@/lib/indexnow';
 import { scanAndNotify } from '@/lib/portal/push';
 import { runContentCron } from '@/lib/content/engine';
+import { refreshFeed } from '@/lib/premium/store';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -20,13 +21,15 @@ export async function GET(req: NextRequest) {
   const content = await runContentCron({ deadlineMs: 100_000 }).catch((e: any) => ({ ok: false, error: e?.message || String(e) }));
   // IndexNow: sitemap URLs whose <lastmod> moved since yesterday's run (after the catalog sync below)
   const indexnow = async () => (process.env.VERCEL_ENV === 'production' ? submitChanged('daily cron') : null);
-  if (!whmcsConfigured()) return NextResponse.json({ skipped: true, content, indexnow: await indexnow() });
+  // Premium domains: refresh the cached Dynadot marketplace listings (no-op while the feed is switched off; never throws)
+  const premium = await refreshFeed('cron').then((r) => ({ ok: r.ok, kept: r.kept, error: r.error })).catch((e: any) => ({ ok: false, error: e?.message || String(e) }));
+  if (!whmcsConfigured()) return NextResponse.json({ skipped: true, content, premium, indexnow: await indexnow() });
   // daily safety net for ticket emails (independent of the catalog auto-sync switch)
   const support = await checkTickets('cron').catch((e: any) => ({ ok: false, error: e?.message || String(e) }));
   // portal web push (tickets, invoices, expiring domains, suspensions); /api/cron/push runs the same scan on its own schedule
   const push = await scanAndNotify().catch((e: any) => ({ ok: false, error: e?.message || String(e) }));
   const s = await getSettings();
-  if (s.sync_auto === false) return NextResponse.json({ skipped: true, support, push, content, indexnow: await indexnow() });
+  if (s.sync_auto === false) return NextResponse.json({ skipped: true, support, push, content, premium, indexnow: await indexnow() });
   const sync = await syncAll('cron');
-  return NextResponse.json({ ...sync, support, push, content, indexnow: await indexnow() });
+  return NextResponse.json({ ...sync, support, push, content, premium, indexnow: await indexnow() });
 }

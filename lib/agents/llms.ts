@@ -87,6 +87,7 @@ export async function buildLlms(full: boolean) {
   L.push('3. Choose options (operating system, extra RAM or disk, domain) in the cart, sign in or create an account, and pay. Servers and hosting are set up automatically after payment.');
   L.push(`4. Domains: search on ${S}/domains-registration or open ${d.cat.base}/cart.php?a=add&domain=register&query=<name>.`);
   L.push(`5. Domain already taken: request the domain broker service at ${S}/domain-broker?domain=<name> (anonymous owner outreach, negotiation and escrow; a fixed service fee plus a commission only if a deal closes, details on that page).`);
+  L.push(`6. Premium domains for sale (real listings with one-time prices): ${S}/premium-domains; each name has a page /premium-domains/<domain> with a purchase request form (we confirm, send a secure invoice and transfer the domain).`);
   L.push('');
 
   const pol = policies(d);

@@ -25,6 +25,8 @@ export interface ConnectorDeps {
   recommendPlan(a: Record<string, unknown>): Promise<Record<string, unknown>>;
   cartLink(a: { slug: string; cycle?: string; currency?: string; domain?: string }): Promise<Record<string, unknown>>;
   checkDomain(domain: string, currency?: string): Promise<Record<string, unknown>>;
+  /** premium domains for sale (lib/premium); optional so older mocks keep working */
+  premiumSearch?(a: { keyword?: string; tld?: string; maxPrice?: number; limit?: number }): Promise<{ total: number; url: string; items: Record<string, unknown>[] }>;
   policies(topic?: string): Promise<Record<string, unknown>>;
   /* account (WHMCS; every call scoped to the client id) */
   client(cid: number): Promise<any>;
@@ -196,6 +198,18 @@ export const TOOLS: ToolDef[] = [
       if (ctx.commerce && r.available && r.addToCartUrl) data.add_to_cart_url = r.addToCartUrl;
       const price = ctx.commerce && r.register !== null && r.register !== undefined ? ` (${Number(r.register).toFixed(2)} ${r.currency} first year${r.renew != null ? `, renews at ${Number(r.renew).toFixed(2)}` : ''})` : '';
       return { summary: r.available ? `${r.domain} is available${price}.` : `${r.domain} is already registered.`, data };
+    },
+  },
+  {
+    name: 'search_premium_domains', title: 'Search premium domains for sale', scope: null, commerce: true,
+    description: 'Premium domain names GlobalHostia has for sale (its own listings and selected registrar-marketplace listings), filtered by keyword, extension and maximum price (USD). Returns each name with its one-time price (or "make an offer") and the listing page, where the customer sends a purchase request; GlobalHostia confirms it, sends a secure invoice and transfers the domain. This tool never takes payment. No sign-in needed.',
+    inputSchema: obj({ keyword: { type: 'string', maxLength: 40, description: 'Part of the name, e.g. "cloud"' }, tld: { type: 'string', maxLength: 24, description: 'Extension, e.g. ".ai"' }, max_price: { type: 'number', minimum: 0, description: 'Maximum price in USD' }, limit: { type: 'integer', minimum: 1, maximum: 20 } }),
+    outputSchema: out({ total: NUM, url: STR, items: ARR }), annotations: { title: 'Search premium domains for sale', ...RO },
+    async run(a, ctx) {
+      if (!ctx.deps.premiumSearch) throw new ToolFail('Premium domains are not available right now.');
+      const max = typeof a.max_price === 'number' && a.max_price > 0 ? a.max_price : undefined;
+      const r = await ctx.deps.premiumSearch({ keyword: str(a, 'keyword', 40), tld: str(a, 'tld', 24), maxPrice: max, limit: intArg(a, 'limit', 1, 20) ?? 8 });
+      return { summary: r.items.length ? `${r.items.length} premium domain(s) for sale: ${r.items.map((x) => `${x.domain} ${x.price === null ? '(make an offer)' : `${x.price} ${x.currency}`}`).join('; ')}. Listing: ${r.url}` : `No premium domains for sale match. The domain broker can try to buy a taken name: ${r.url.replace(/\/premium-domains$/, '/domain-broker')}`, data: r };
     },
   },
   {

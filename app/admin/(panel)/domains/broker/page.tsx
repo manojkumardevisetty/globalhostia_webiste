@@ -84,7 +84,7 @@ export default async function BrokerRequests({ searchParams }: { searchParams: P
                       <div className="space-y-2">
                         {list.map((r) => (
                           <div key={r.id} className="rounded-lg border border-slate-200 bg-white p-3 text-[13px] shadow-sm">
-                            <Link href={`/admin/domains/broker/${r.id}`} className="block break-all font-semibold text-slate-900 hover:text-brand-600">{r.domain}</Link>
+                            <Link href={`/admin/domains/broker/${r.id}`} className="block break-all font-semibold text-slate-900 hover:text-brand-600">{r.domain}</Link>{r.kind === 'premium' && <span className="mt-1 inline-block"><Badge tone="yellow">Premium listing</Badge></span>}
                             <div className="mt-1 text-slate-500">{r.name}</div>
                             <div className="mt-1 tabular-nums text-slate-600">Max {amt(r.budgetMax, r.currency)}</div>
                             {r.agreedPrice && <div className="tabular-nums text-emerald-700">Agreed {amt(r.agreedPrice, r.currency)}</div>}

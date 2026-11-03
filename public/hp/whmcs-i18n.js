@@ -213,6 +213,7 @@
     '<b>We negotiate</b> and hold payment in escrow': '<b>نتفاوض</b> ونحفظ المبلغ لدى طرف ضامن',
     '<b>The domain moves</b> to your account': '<b>ينتقل النطاق</b> إلى حسابك',
     'Buy it now': 'اشترِه الآن',
+    'Or browse premium domains for sale': 'أو تصفّح النطاقات المميزة المعروضة للبيع',
     'See more': 'عرض المزيد',
     'Great alternative': 'بديل ممتاز',
     'first year': 'السنة الأولى',

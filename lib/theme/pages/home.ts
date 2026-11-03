@@ -9,6 +9,7 @@ import { getLatestPosts, postPath, fmtPostDate } from '../../blog';
 import { postCard } from './blog';
 import { mobileSearch, mobileHero } from '../mobile-hero';
 import { aiPromo, homeSection, mobilePill } from '../aiconnect';
+import { homePremium } from '../../premium/home';
 import {
   heroSlider, domainSearch, sectionHead, bigTabs, planCards, plansNote, link, statRow, barChart, dcMap, splitHead, featureGrid,
   ctaBand, colHead, testimonials, faq, articleList, logosStrip, available,
@@ -42,7 +43,7 @@ function showcase(ps: TProduct[], currency: string) {
 }
 
 export default async function render(ctx: PageCtx): Promise<string> {
-  const [cat, posts] = await Promise.all([getCatalog(), getLatestPosts(3)]);
+  const [cat, posts, prem] = await Promise.all([getCatalog(), getLatestPosts(3), homePremium()]);
   const { currency, base } = cat;
   const prefix = currencyPrefix(cat) || '$';
   const hosting = productsFor(cat, H), vps = productsFor(cat, ['hostiavps']), ded = productsFor(cat, D);
@@ -210,11 +211,13 @@ export default async function render(ctx: PageCtx): Promise<string> {
     ctx, catalog: cat, path: '/', title: ctx.route.title, description: ctx.route.description,
     // the blog strip's card styles live in theme.css, so no page stylesheet is needed here
     preload: [{ src: '/hp/img/hero-hosting.jpg', sizes: '100vw', media: '(min-width: 768px)' }, ...(mHero.preload ? [mHero.preload] : [])],
-    bodyClass: 'hp-home', css: ['mhero', 'aic'], js: ['mhero'],
+    bodyClass: 'hp-home', css: ['mhero', 'aic', ...(prem.html ? ['pdm'] : [])], js: ['mhero', ...(prem.html ? ['pdm'] : [])],
     body: (() => {
       const aiSec = ai.home.position === 'off' ? '' : homeSection(ai);
       const at = (pos: string) => (ai.home.position === pos ? aiSec : '');
-      return [mTop, hero, domain, trustStrip(cat.settings), plans, at('after-plans'), infra, at('after-infra'), features, at('after-features'), cta, trio, at('before-blog'), blog, logosStrip()];
+      // premium domains row (Admin → Premium domains → Homepage row): hidden when there is nothing to show
+      const pd = (pos: string) => (prem.position === pos ? prem.html : '');
+      return [mTop, hero, domain, pd('after-domain'), trustStrip(cat.settings), plans, at('after-plans'), pd('after-plans'), infra, at('after-infra'), features, at('after-features'), cta, trio, at('before-blog'), pd('before-blog'), blog, logosStrip()];
     })().filter(Boolean).join('\n'),
   });
 }

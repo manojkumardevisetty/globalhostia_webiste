@@ -587,6 +587,19 @@ try {
       await tx`create index if not exists reminders_log_client_idx on reminders_log (client_id, sent_at)`;
       await tx`create index if not exists reminders_log_created_idx on reminders_log (created_at)`;
     },
+    // 36. Premium domains marketplace (lib/premium/*): own listings, cached Dynadot listings, purchase requests in broker_requests.
+    '036-premium-domains': async (tx) => {
+      await tx`create table if not exists premium_domains (
+        id text primary key, domain text not null unique, price numeric(14,2), currency text not null default 'USD', make_offer boolean not null default false,
+        min_offer numeric(14,2), tags jsonb not null default '[]'::jsonb, description text not null default '', status text not null default 'draft',
+        owned boolean not null default true, featured boolean not null default false, sold_at timestamptz,
+        created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      await tx`create index if not exists premium_domains_status_idx on premium_domains (status)`;
+      await tx`create table if not exists premium_feed (domain text primary key, listing_id text not null default '', price numeric(14,2) not null,
+        currency text not null default 'USD', fetched_at timestamptz not null default now())`;
+      await tx`alter table broker_requests add column if not exists kind text not null default 'broker'`;
+      await tx`alter table broker_requests add column if not exists listing jsonb`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;
