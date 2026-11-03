@@ -17,9 +17,9 @@
   #main-body .card-body, #main-body .panel-body, #main-body .card-header, #main-body .panel-heading, #main-body .card-footer, #main-body .panel-footer { padding-left: 16px !important; padding-right: 16px !important; }
   #main-body .card, #main-body .panel { margin-bottom: 16px; }
   #main-body .card .card, #main-body .panel .panel { box-shadow: none !important; }
-  #main-body h1, #main-body .h1 { font-size: 26px !important; line-height: 1.2 !important; }
-  #main-body h2, #main-body .h2 { font-size: 21px !important; line-height: 1.25 !important; }
-  #main-body h3, #main-body .h3 { font-size: 18px !important; line-height: 1.3 !important; }
+  #main-body h1, #main-body .h1 { font-size: 21px !important; line-height: 1.25 !important; }
+  #main-body h2, #main-body .h2 { font-size: 18px !important; line-height: 1.3 !important; }
+  #main-body h3, #main-body .h3 { font-size: 16px !important; line-height: 1.35 !important; }
 
   /* ---------- forms and buttons ---------- */
   /* form text below 16px is raised to 16px by whmcs-mobile.js (CSS alone would also shrink the larger hero searches) */
@@ -37,8 +37,8 @@
   .ghm-stack.input-group { flex-wrap: wrap !important; }
   .ghm-stack .input-group-append, .ghm-stack .input-group-btn, .ghm-stack .input-group-prepend, .ghm-stack [style*="absolute"] { position: static !important; inset: auto !important; transform: none !important; }
   .ghm-stack .form-group { margin: 0 !important; }
-  .ghm-stack input[type=text], .ghm-stack input[type=email], .ghm-stack input:not([type]) { padding-right: 14px !important; border-radius: 12px !important; }
-  .ghm-stack .btn, .ghm-stack button, .ghm-stack [type=submit] { position: static !important; inset: auto !important; transform: none !important; width: 100% !important; min-height: 46px; margin: 0 !important; border-radius: 12px !important; }
+  .ghm-stack input[type=text], .ghm-stack input[type=email], .ghm-stack input:not([type]) { padding-right: 14px !important; border-radius: 8px !important; }
+  .ghm-stack .btn, .ghm-stack button, .ghm-stack [type=submit] { position: static !important; inset: auto !important; transform: none !important; width: 100% !important; min-height: 46px; margin: 0 !important; border-radius: 8px !important; }
 
   /* ---------- tables: scroll sideways inside their card instead of widening the page ---------- */
   .table-responsive, .table-container, .dataTables_wrapper, .ghm-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -56,8 +56,8 @@
   #order-standard_cart > .row, #order-standard_cart .cart-body > .row { margin-left: 0 !important; margin-right: 0 !important; }
   #order-standard_cart .secondary-cart-body, #order-standard_cart .secondary-cart-sidebar, #order-standard_cart .cart-body,
   #order-standard_cart > .row > [class*="col-"] { padding-left: 0 !important; padding-right: 0 !important; flex: 0 0 100%; max-width: 100%; }
-  #order-standard_cart .header-lined { padding: 14px 16px !important; margin: 0 0 16px !important; border-radius: 14px !important; }
-  #order-standard_cart .header-lined h1, #order-standard_cart .header-lined .h1 { font-size: 22px !important; margin: 0 !important; }
+  #order-standard_cart .header-lined { padding: 0 !important; margin: 4px 0 16px !important; border-radius: 0 !important; }
+  #order-standard_cart .header-lined h1, #order-standard_cart .header-lined .h1 { font-size: 21px !important; margin: 0 !important; }
   /* one card level: the outer card keeps its frame, anything carded inside it goes flat */
   .emyui-cart-aws .secondary-cart-body > .row:first-child { padding: 16px !important; margin: 0 0 16px !important; }
   .emyui-cart-aws .secondary-cart-body > .row:first-child > [class*="col-"] { padding: 0 !important; }
@@ -89,8 +89,8 @@
   #order-standard_cart .sub-heading span, #order-standard_cart .sub-heading .primary-bg-color {
     position: static !important; top: auto !important; display: block !important; padding: 0 !important; margin: 0 !important;
     background: none !important; border: 0 !important; box-shadow: none !important; border-radius: 0 !important;
-    font: 800 17px/1.3 Manrope, Inter, sans-serif !important; color: var(--gh-ink, #23313d) !important; }
-  #order-standard_cart .promo-box, #order-standard_cart .promo, #order-standard_cart .estimate-taxes, #order-standard_cart .view-cart-tabs { padding: 16px !important; margin-bottom: 16px !important; border-radius: 16px !important; }
+    font: 700 16px/1.3 Manrope, Inter, sans-serif !important; color: var(--gh-ink, #23313d) !important; }
+  #order-standard_cart .promo-box, #order-standard_cart .promo, #order-standard_cart .estimate-taxes, #order-standard_cart .view-cart-tabs { padding: 16px !important; margin-bottom: 16px !important; border-radius: 12px !important; }
   #order-standard_cart .view-cart-tabs .tab-content { padding: 12px 0 0 !important; border: 0 !important; }
   #order-standard_cart .view-cart-tabs .nav-tabs { flex-wrap: nowrap; overflow-x: auto; }
   #order-standard_cart .view-cart-tabs .nav-link { min-height: 44px; display: flex; align-items: center; white-space: nowrap; font-size: 14px; }
@@ -100,9 +100,9 @@
   [name=promocode], #inputPromotionCode { width: 100% !important; padding-right: 14px !important; height: 48px !important; }
   [name=validatepromo], #frmPromoCode .btn, #frmPromoCode button { position: static !important; inset: auto !important; transform: none !important; width: 100% !important; min-height: 46px; margin: 0 !important; }
   .input-group:has([name=promocode]) { flex-wrap: wrap !important; gap: 10px; }
-  .input-group:has([name=promocode]) > * { flex: 1 1 100% !important; width: 100% !important; margin: 0 !important; border-radius: 12px !important; }
+  .input-group:has([name=promocode]) > * { flex: 1 1 100% !important; width: 100% !important; margin: 0 !important; border-radius: 8px !important; }
   /* "Estimate taxes" (whmcs.js folds the tax form into <details class="gh-taxes">) */
-  .gh-taxes { padding: 0 16px !important; border-radius: 16px !important; margin: 0 0 16px !important; }
+  .gh-taxes { padding: 0 16px !important; border-radius: 12px !important; margin: 0 0 16px !important; }
   .gh-taxes > summary { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 !important; font: 600 15px/1.3 Inter, system-ui, sans-serif !important; }
   .gh-taxes > summary::-webkit-details-marker { display: none; }
   .gh-taxes > summary::after { float: none !important; font-size: 20px; line-height: 1; }
@@ -111,17 +111,17 @@
   .gh-taxes .form-group { margin-bottom: 12px; }
   .gh-taxes .btn, #frmEstimateTaxes .btn { width: 100%; }
   /* order summary: one card, readable header, full-width checkout */
-  #orderSummary { padding: 16px !important; margin: 0 0 16px !important; border-radius: 16px !important; }
+  #orderSummary { padding: 16px !important; margin: 0 0 16px !important; border-radius: 12px !important; }
   #orderSummary .summary-container, #order-standard_cart #orderSummary .summary-container { border: 0 !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; margin: 0 !important; border-radius: 0 !important; }
-  #orderSummary h2, #orderSummary .summary-header, #order-standard_cart .order-summary h2 { background: none !important; color: var(--gh-ink, #23313d) !important; padding: 0 !important; margin: 0 0 12px !important; border-radius: 0 !important; font: 800 19px/1.25 Manrope, Inter, sans-serif !important; }
+  #orderSummary h2, #orderSummary .summary-header, #order-standard_cart .order-summary h2 { background: none !important; color: var(--gh-ink, #23313d) !important; padding: 0 !important; margin: 0 0 12px !important; border-radius: 0 !important; font: 700 17px/1.3 Manrope, Inter, sans-serif !important; }
   #orderSummary .clearfix, #orderSummary .subtotal, #orderSummary .recurring-totals { display: flex !important; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 7px 0 !important; font-size: 14px; }
   #orderSummary .clearfix::before, #orderSummary .clearfix::after { display: none !important; }
   #orderSummary .float-left, #orderSummary .float-right, #orderSummary .pull-left, #orderSummary .pull-right { float: none !important; }
   #orderSummary .float-right, #orderSummary .pull-right { text-align: right; font-weight: 600; }
   #orderSummary .total-due-today { padding: 14px !important; margin: 12px 0 !important; }
-  #orderSummary .total-due-today .amt { font-size: 26px !important; line-height: 1.15; }
+  #orderSummary .total-due-today .amt { font-size: 22px !important; line-height: 1.2; }
   #orderSummary .text-right, #orderSummary .text-center { text-align: center !important; }
-  #orderSummary .btn-checkout, #orderSummary #checkout { display: flex !important; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; margin: 0 0 6px !important; border-radius: 12px !important; }
+  #orderSummary .btn-checkout, #orderSummary #checkout { display: flex !important; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; margin: 0 0 6px !important; border-radius: 10px !important; }
   #orderSummary br { display: none; }
   #orderSummary .btn-continue-shopping, #continueShopping { display: flex !important; align-items: center; justify-content: center; width: 100%; min-height: 44px; }
   #order-standard_cart .sidebar, #order-standard_cart .cart-sidebar { margin-bottom: 16px; }
@@ -129,7 +129,7 @@
   .gh-co { gap: 16px !important; }
   .gh-co__card { padding: 16px !important; }
   #frmCheckout .sub-heading { height: auto !important; border: 0 !important; text-align: left !important; margin: 18px 0 10px !important; }
-  #frmCheckout .sub-heading span { position: static !important; display: block !important; padding: 0 !important; background: none !important; font: 800 17px/1.3 Manrope, Inter, sans-serif !important; }
+  #frmCheckout .sub-heading span { position: static !important; display: block !important; padding: 0 !important; background: none !important; border: 0 !important; font: 700 16px/1.3 Manrope, Inter, sans-serif !important; }
   #frmCheckout .field-container, #frmCheckout .account-select-container { padding: 16px !important; }
 
   /* ---------- floating buttons: smaller, above the home indicator, never over totals ---------- */
@@ -175,4 +175,15 @@
 @media (max-width: 359px) {
   .site-header .brand-logo img { max-width: 104px; }
   .site-header .header-btn { gap: 4px; }
+}
+
+/* 2026-11-03 refinement pass: 44px touch targets for the small controls that were left at 30-36px */
+@media (max-width: 767px) {
+  .ghh-chips button { min-height: 44px; padding: 8px 14px; border-radius: 8px; }
+  .ghh-btn--sm { height: 44px; padding: 0 14px; }
+  .ghh-icon { width: 44px; height: 44px; }
+  html body .btn-add-to-cart, #primaryIndividualResult .btn { min-height: 44px !important; }
+  .modal .close { width: 44px !important; height: 44px !important; }
+  .top-header-area-menu a { min-height: 36px; display: inline-flex !important; align-items: center; }
+  .domain-suggestion .actions .btn { flex: 0 0 auto; }
 }

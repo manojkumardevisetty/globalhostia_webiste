@@ -56,7 +56,8 @@
     D.querySelectorAll('#main-body table').forEach(function (t) {
       if (t.closest('.ghm-scroll, .table-responsive, .table-container, .dataTables_wrapper, .dataTables_scrollBody') || !vis(t)) return;
       var p = t.parentElement; if (!p) return;
-      if (t.scrollWidth <= p.clientWidth + 2 && t.getBoundingClientRect().right <= innerWidth + 1) return;
+      var tr = t.getBoundingClientRect(); // also wrap a table a card clips (overflow:hidden) before it reaches the viewport edge
+      if (t.scrollWidth <= p.clientWidth + 2 && tr.right <= innerWidth + 1 && tr.right <= p.getBoundingClientRect().right + 1) return;
       var w = D.createElement('div'); w.className = 'ghm-scroll'; p.insertBefore(w, t); w.appendChild(t);
     });
   }

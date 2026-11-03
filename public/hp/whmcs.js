@@ -2,7 +2,7 @@
    1) Replaces the endless horizontal store-category scroller with 5 grouped menus (Hostpen Modern style).
    2) Adds a promo banner above store listings.
    Pure progressive enhancement: if anything fails the original page stays as it was. */
-(function (s) { try { if (window.GH_MOBILE) return; window.GH_MOBILE = 1; var o = new URL(s.src).origin, q = '?v=20261103a', h = document.head, l = document.createElement('link'), j = document.createElement('script'); l.rel = 'stylesheet'; l.href = o + '/hp/whmcs-mobile.css' + q; h.appendChild(l); j.src = o + '/hp/whmcs-mobile.js' + q; j.async = true; h.appendChild(j); } catch (e) {} })(document.currentScript || {}); // phone layer: public/hp/whmcs-mobile.css + .js (bump q after editing them)
+(function (s) { try { if (window.GH_MOBILE) return; window.GH_MOBILE = 1; var o = new URL(s.src).origin, q = '?v=20261103c', h = document.head, l = document.createElement('link'), j = document.createElement('script'); l.rel = 'stylesheet'; l.href = o + '/hp/whmcs-mobile.css' + q; h.appendChild(l); j.src = o + '/hp/whmcs-mobile.js' + q; j.async = true; h.appendChild(j); } catch (e) {} })(document.currentScript || {}); // phone layer: public/hp/whmcs-mobile.css + .js (bump q after editing them)
 
 /* Language (English / Arabic) for everything this file adds; WHMCS's own language decides. Signals, strongest first:
    ?language=<name> on the URL (WHMCS's switch), window.GH_LANG (printed by docs/whmcs/globalhostia_hosting_hook.php),
@@ -491,8 +491,11 @@
     fetch(B + '/cart.php?a=view', { credentials: 'same-origin' }).then(function (r) { return r.text(); }).then(function (html) {
       var doc = new DOMParser().parseFromString(html, 'text/html'), sum = doc.getElementById('orderSummary'), items = [];
       doc.querySelectorAll('.view-cart-items .item, .secondary-cart-body .item').forEach(function (it) {
-        var n = it.querySelector('.item-title, .item-group, strong, h3, h4'); var dmn = it.querySelector('.item-domain'); var p = it.querySelector('.item-price span, .item-price, .price');
-        if (n) items.push('<li><b>' + esc(n.textContent.trim()) + '</b>' + (dmn ? '<span>' + esc(dmn.textContent.trim()) + '</span>' : '') + (p ? '<i>' + esc(p.textContent.trim().split('\n')[0]) + '</i>' : '') + '</li>');
+        var n = it.querySelector('.item-title, .item-group, strong, h3, h4'); var dmn = it.querySelector('.item-domain'); var p = it.querySelector('.item-price span') || it.querySelector('.item-price, .price');
+        // title without the domain badge WHMCS nests inside it (shown on its own line below), words kept apart
+        var nc = n && n.cloneNode(true); if (nc) nc.querySelectorAll('.item-domain').forEach(function (x) { x.remove(); }); nc && nc.querySelectorAll('.item-group').forEach(function (x) { x.textContent = ' ' + x.textContent; });
+        var nm = nc ? nc.textContent.replace(/\s+/g, ' ').trim() : '', pr = p ? p.textContent.trim().split('\n')[0].trim() : '';
+        if (n) items.push('<li><b>' + esc(nm || n.textContent.trim()) + '</b>' + (dmn ? '<span>' + esc(dmn.textContent.trim()) + '</span>' : '') + (pr ? '<i>' + esc(pr) + '</i>' : '') + '</li>');
       });
       var box = aside.querySelector('.gh-co__sum');
       if (sum) { sum.querySelectorAll('script, .btn, a.btn, #checkout, form').forEach(function (x) { x.remove(); }); var hh = sum.querySelector('h2, .summary-header'); if (hh) hh.remove(); box.innerHTML = (items.length ? '<ul class="gh-co__items">' + items.join('') + '</ul>' : '') + sum.innerHTML; }
@@ -858,7 +861,8 @@
   }
   function footerCredit() {
     [].forEach.call(document.querySelectorAll('footer p, footer div, [class*="footer"] p, [class*="footer"] .col, [class*="footer"] [class*="col-"]'), function (el) {
-      if (el.children.length > 4 || !/coodiv|lots? of coffee/i.test(el.textContent) || el.dataset.ghc) return;
+      // only the credit line itself: a wrapper that also holds the footer columns would be wiped (and footerCompact then finds nothing)
+      if (el.children.length > 4 || !/coodiv|lots? of coffee/i.test(el.textContent) || el.dataset.ghc || el.textContent.trim().length > 180 || el.querySelector('.footer-top, .footer-section, .gh-foot, ul, h5')) return;
       el.dataset.ghc = 1; el.textContent = _t('© {year} GlobalHostia. All rights reserved.', { year: new Date().getFullYear() });
     });
   }
