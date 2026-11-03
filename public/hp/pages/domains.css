@@ -126,7 +126,7 @@
   .dom-flow__fill{transform-origin:top;transform:scaleY(0)}
   .dom-flow__cp{left:18px;top:var(--p);margin:-14px 0 0}
   .dom-flow__cp em{top:50%;left:38px;transform:translateY(-50%)}
-  .dom-flow__chip{left:-6px;top:0;transform:translate(-100%,-50%);font-size:11.5px;padding:6px 9px}
+  .dom-flow__chip{left:-24px;z-index:3;top:0;transform:translate(-100%,-50%);font-size:11.5px;padding:6px 9px}
   .hp-mo .dom-flow.in .dom-flow__rider{animation-name:dom-ride-v}
   .hp-mo .dom-flow.in .dom-flow__fill{animation-name:dom-fill-v}
 }
