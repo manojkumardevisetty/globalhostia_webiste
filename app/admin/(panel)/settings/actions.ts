@@ -3,6 +3,7 @@ import { requireSession, audit } from '@/lib/session';
 import { done, fail, str, bool } from '@/lib/admin';
 import { setSetting } from '@/lib/settings';
 import { TRUST_DEFAULTS } from '@/lib/theme/growth';
+import { generateVapid, vapid } from '@/lib/portal/push';
 
 export async function saveSettings(fd: FormData) {
   const s = await requireSession('settings');
@@ -26,4 +27,17 @@ export async function saveSettings(fd: FormData) {
   await setSetting('dc_test_urls', tests.join('\n'));
   await audit(s, 'update', 'settings');
   done('/admin/settings', 'Settings saved');
+}
+
+/** Web push for the customer portal: create (or replace) the VAPID key pair. Replacing drops every subscription. */
+export async function generatePushKeys(fd: FormData) {
+  const s = await requireSession('settings');
+  const subject = str(fd, 'push_subject') || 'mailto:support@globalhostia.com';
+  if (!/^(mailto:[^\s@]+@[^\s@]+\.[a-z]{2,}|https:\/\/\S+)$/i.test(subject)) fail('/admin/settings', 'Contact must be a mailto: address or an https:// URL');
+  const cur = await vapid();
+  if (cur?.source === 'env') fail('/admin/settings', 'Keys come from environment variables; change them in Vercel instead');
+  if (cur && !bool(fd, 'confirm')) fail('/admin/settings', 'Tick the box to confirm replacing the keys');
+  const pub = await generateVapid(subject);
+  await audit(s, cur ? 'regenerate' : 'generate', 'push_vapid', null, { publicKey: pub.slice(0, 16) + '…', subject });
+  done('/admin/settings', cur ? 'New notification keys generated. Customers must turn notifications on again.' : 'Notification keys generated. Customers can now turn on notifications.');
 }

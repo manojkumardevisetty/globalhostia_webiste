@@ -4,6 +4,8 @@ import { done, fail, str } from '@/lib/admin';
 import { setSetting } from '@/lib/settings';
 import { whmcs } from '@/lib/whmcs';
 import { checkTickets, sendTestNotification, supportSettings } from '@/lib/support-notify';
+import { after } from 'next/server';
+import { notifyTicketReply } from '@/lib/portal/push';
 
 export async function replyTicket(fd: FormData) {
   const s = await requireSession('commerce');
@@ -20,6 +22,8 @@ export async function replyTicket(fd: FormData) {
     await whmcs('AddTicketReply', { ticketid: id, message, adminusername: cfg.adminUsername, markdown: false, status: status && status !== 'keep' ? status : undefined });
   } catch (e: any) { fail(back, `WHMCS did not accept the reply: ${e.message}`); }
   await audit(s, 'ticket_reply', 'support', String(id));
+  // web push to the customer's devices (portal notifications), after the response
+  try { after(() => notifyTicketReply(id).catch(() => {})); } catch { void notifyTicketReply(id).catch(() => {}); }
   done(back, 'Reply sent — the customer gets the usual WHMCS email.');
 }
 

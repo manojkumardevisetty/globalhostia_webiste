@@ -393,3 +393,28 @@ export const aiTicketRuns = pgTable('ai_ticket_runs', {
   updatedAt: now('updated_at'),
 }, (t) => [uniqueIndex('ai_ticket_runs_activity').on(t.ticketId, t.activity), index('ai_ticket_runs_created_idx').on(t.createdAt)]);
 export type AiTicketRun = typeof aiTicketRuns.$inferSelect;
+
+// Portal web push (lib/portal/push.ts): one row per browser/device subscription, owned by a WHMCS client. Categories
+// the customer turned on (tickets, invoices, domains, services). Created by db-setup patch '022-portal-push'.
+export const pushSubscriptions = pgTable('push_subscriptions', {
+  id: id(),
+  clientId: integer('client_id').notNull(),
+  userId: integer('user_id'),
+  endpoint: text('endpoint').notNull().unique(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  categories: jsonb('categories').notNull().default(['tickets', 'invoices', 'domains', 'services']),
+  lang: text('lang').notNull().default('en'),
+  ua: text('ua').notNull().default(''),
+  failCount: integer('fail_count').notNull().default(0),
+  lastOkAt: timestamp('last_ok_at', { withTimezone: true }),
+  createdAt: now('created_at'),
+}, (t) => [index('push_sub_client_idx').on(t.clientId)]);
+export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
+
+// One row per notification already sent (dedupe key like "inv:5001:overdue"), so the scanner never repeats itself.
+export const pushLog = pgTable('push_log', {
+  key: text('key').primaryKey(),
+  clientId: integer('client_id').notNull(),
+  sentAt: now('sent_at'),
+}, (t) => [index('push_log_sent_idx').on(t.sentAt)]);

@@ -1,0 +1,27 @@
+{
+  "name": "GlobalHostia",
+  "short_name": "GlobalHostia",
+  "description": "Your GlobalHostia account: services, domains, invoices and support.",
+  "id": "/account",
+  "start_url": "/account?source=pwa",
+  "scope": "/account",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "lang": "en",
+  "dir": "auto",
+  "theme_color": "#16212b",
+  "background_color": "#16212b",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Domains", "short_name": "Domains", "url": "/account/domains", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Billing", "short_name": "Billing", "url": "/account/invoices", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Support", "short_name": "Support", "url": "/account/support", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

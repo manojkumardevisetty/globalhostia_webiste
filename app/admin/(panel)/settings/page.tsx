@@ -2,7 +2,10 @@ import { requireSession } from '@/lib/session';
 import { getSettings } from '@/lib/settings';
 import { PageHeader, Card, Field, Flash } from '@/components/ui';
 import { CYCLES, CYCLE_LABEL } from '@/lib/pricing';
-import { saveSettings } from './actions';
+import { saveSettings, generatePushKeys } from './actions';
+import { vapid } from '@/lib/portal/push';
+import { db, schema } from '@/lib/db';
+import { count } from 'drizzle-orm';
 import { trustPoints } from '@/lib/theme/growth';
 
 export const metadata = { title: 'Settings' };
@@ -10,6 +13,8 @@ export const metadata = { title: 'Settings' };
 export default async function Settings({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   await requireSession('settings');
   const sp = await searchParams; const s = await getSettings();
+  const keys = await vapid();
+  const subs = await db.select({ n: count() }).from(schema.pushSubscriptions).then((r) => Number(r[0]?.n || 0)).catch(() => null);
   const t = (k: string, label: string, hint?: string) => <Field label={label} hint={hint}><input name={k} defaultValue={s[k] ?? ''} className="input" /></Field>;
   return (
     <>
@@ -62,6 +67,27 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         </Card>
         <div className="lg:col-span-2"><button className="btn btn-primary">Save settings</button></div>
       </form>
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card title="Customer portal notifications (web push)">
+          <div className="grid gap-3 text-sm text-slate-600">
+            <p>Customers can turn on browser and phone notifications in <code>/account/settings</code> (ticket replies, new and overdue invoices, domains expiring within 7 days, suspended services). Sending needs a VAPID key pair.</p>
+            {keys ? (
+              <>
+                <p><b>Status:</b> ready ({keys.source === 'env' ? 'keys from the VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY environment variables' : 'keys generated here, private key encrypted in the database'}) · {subs === null ? 'subscription table not created yet (runs on the next deploy)' : `${subs} subscribed device${subs === 1 ? '' : 's'}`}</p>
+                <p className="break-all"><b>Public key:</b> <code>{keys.publicKey}</code></p>
+              </>
+            ) : <p><b>Status:</b> not set up. Generate a key pair below (or set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT in Vercel).</p>}
+            <p>Notifications are checked by the daily cron and by <code>/api/cron/push</code> (Bearer CRON_SECRET), which you can call more often from an external scheduler. Staff replies from the admin support page are sent at once.</p>
+          </div>
+          {keys?.source !== 'env' && (
+            <form action={generatePushKeys} className="mt-4 grid gap-3">
+              <Field label="Contact (VAPID subject)" hint="mailto: address push services can contact about your notifications"><input name="push_subject" defaultValue={keys?.subject || `mailto:${s.email || 'support@globalhostia.com'}`} className="input" /></Field>
+              {keys && <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="confirm" required /> Replace the current keys (every customer must turn notifications on again)</label>}
+              <div><button className="btn">{keys ? 'Regenerate keys' : 'Generate keys'}</button></div>
+            </form>
+          )}
+        </Card>
+      </div>
     </>
   );
 }

@@ -26,7 +26,16 @@ const clients = {
   2: { id: 2, userid: 2, firstname: 'Other', lastname: 'Person', companyname: '', email: 'other@example.com', address1: '1 Main St', city: 'Austin', state: 'TX', postcode: '73301', country: 'US', countrycode: 'US', status: 'Active', currency: 1, currency_code: 'USD' },
   7: { id: 7, userid: 7, firstname: 'Test', lastname: 'Client', email: 'test@example.com', companyname: 'ACME', country: 'AE', city: 'Dubai', status: 'Active', currency_code: 'USD', datecreated: '2026-01-02' },
 };
-const passwords = { 'demo@example.com': 'demo-pass', 'other@example.com': 'other-pass', 'tfa@example.com': 'tfa-pass' };
+const passwords = { 'demo@example.com': 'demo-pass', 'other@example.com': 'other-pass', 'tfa@example.com': 'tfa-pass', 'dev@example.com': 'dev-pass' };
+// WHMCS 8 users on client accounts (team access): user 11 owns client 1; 21 is a developer on client 1 (and signs in as dev@example.com)
+const users = {
+  11: { id: 11, firstname: 'Demo', lastname: 'Customer', email: 'demo@example.com' },
+  21: { id: 21, firstname: 'Dana', lastname: 'Developer', email: 'dev@example.com' },
+  22: { id: 22, firstname: 'Bilal', lastname: 'Accounts', email: 'billing@example.com' },
+};
+const access = { 1: [{ user: 11, owner: true, perms: [] }, { user: 21, owner: false, perms: ['products', 'manageproducts', 'productsso', 'domains', 'managedomains', 'tickets'] }, { user: 22, owner: false, perms: ['invoices', 'quotes', 'emails'] }] };
+const invites = [];
+const locks = { 301: 'Locked', 302: 'Unlocked', 304: 'Locked', 306: 'Unlocked', 303: 'Locked' };
 const services = {
   1: [
     { id: 101, clientid: 1, pid: 120, name: 'Cloud VPS 4', translated_name: 'Cloud VPS 4', groupname: 'Servers', module: 'vpsautomation', domain: 'vps1.demo-brand.com', dedicatedip: '203.0.113.24', assignedips: '203.0.113.25\n203.0.113.26', username: 'root', password: 'NEVER-SHOW-THIS', serverhostname: 'node7.rdp.example', regdate: day(-200), firstpaymentamount: '24.00', recurringamount: '24.00', billingcycle: 'Monthly', nextduedate: day(12), status: 'Active', paymentmethodname: 'Credit Card',
@@ -83,8 +92,52 @@ const portal = {
     const list = Object.values(clients).filter((c) => !q || c.email.toLowerCase().includes(q) || `${c.firstname} ${c.lastname}`.toLowerCase().includes(q));
     return { totalresults: list.length, clients: { client: list.map((c) => ({ id: c.id, firstname: c.firstname, lastname: c.lastname, companyname: c.companyname, email: c.email, datecreated: c.datecreated || '2026-01-02', status: c.status })) } };
   },
-  GetUsers: (p) => ({ totalresults: 0, users: [] }),
-  GetClientsDetails: (p) => { const c = clients[cid(p)] || err('Client Not Found'); return { client: c, ...c, stats: { numactivetickets: 1 } }; },
+  GetUsers: (p) => {
+    const q = String(p.search || '').toLowerCase();
+    const list = Object.values(users).filter((u) => !q || u.email.startsWith(q)).map((u) => ({ ...u, clients: Object.entries(access).flatMap(([c, l]) => l.filter((a) => a.user === u.id).map((a) => ({ id: Number(c), isOwner: a.owner }))) }));
+    return { totalresults: list.length, users: list };
+  },
+  GetClientsDetails: (p) => {
+    const c = clients[cid(p)] || err('Client Not Found');
+    const us = (access[c.id] || []).map((a) => ({ id: a.user, name: `${users[a.user].firstname} ${users[a.user].lastname}`, email: users[a.user].email, is_owner: a.owner }));
+    const client = { ...c, users: { user: us } };
+    return { client, ...client, stats: { numactivetickets: 1 } };
+  },
+  GetUserPermissions: (p) => {
+    const a = (access[Number(p.client_id)] || []).find((x) => x.user === Number(p.user_id)) || err('User not associated with client');
+    return { permissions: a.perms.join(',') };
+  },
+  UpdateUserPermissions: (p) => {
+    const a = (access[Number(p.client_id)] || []).find((x) => x.user === Number(p.user_id)) || err('User not associated with client');
+    if (a.owner) err('Cannot modify owner permissions');
+    a.perms = String(p.permissions || '').split(',').filter(Boolean);
+    return {};
+  },
+  CreateClientInvite: (p) => {
+    if (!clients[Number(p.client_id)]) err('Client not found');
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(String(p.email || ''))) err('Invalid email');
+    if (invites.some((i) => i.email === p.email && i.client === Number(p.client_id))) err('An invite already exists for this email address');
+    invites.push({ client: Number(p.client_id), email: String(p.email), permissions: String(p.permissions) });
+    return {};
+  },
+  DeleteUserClient: (p) => {
+    const l = access[Number(p.client_id)] || [];
+    const i = l.findIndex((x) => x.user === Number(p.user_id));
+    if (i < 0) err('User not associated with client');
+    if (l[i].owner) err('Cannot remove the account owner');
+    l.splice(i, 1);
+    return {};
+  },
+  DomainGetLockingStatus: (p) => {
+    const d = Object.values(domains).flat().find((x) => x.id === Number(p.domainid)) || err('Domain ID Not Found');
+    return { lockstatus: locks[d.id] || 'Unlocked' };
+  },
+  DomainUpdateLockingStatus: (p) => {
+    const d = Object.values(domains).flat().find((x) => x.id === Number(p.domainid)) || err('Domain ID Not Found');
+    if (d.domainname.endsWith('.ae')) err('Registrar Error: .ae does not support registrar lock');
+    locks[d.id] = p.lockstatus === '1' || p.lockstatus === 'true' ? 'Locked' : 'Unlocked';
+    return {};
+  },
   ValidateLogin: (p) => {
     const e = String(p.email || '').toLowerCase();
     if (!passwords[e] || passwords[e] !== p.password2) err('Email or Password Invalid');
@@ -151,7 +204,7 @@ const portal = {
   },
   UpdateClient: (p) => {
     const c = clients[Number(p.clientid)] || err('Client ID Not Found');
-    for (const k of ['firstname', 'lastname', 'companyname', 'phonenumber', 'address1', 'city', 'state', 'postcode', 'country']) if (p[k] !== undefined) c[k] = p[k];
+    for (const k of ['firstname', 'lastname', 'companyname', 'phonenumber', 'address1', 'city', 'state', 'postcode', 'country', 'language']) if (p[k] !== undefined) c[k] = p[k];
     if (p.country) c.countrycode = p.country;
     return { clientid: c.id };
   },
@@ -188,4 +241,4 @@ http.createServer((req, res) => {
     try { res.end(JSON.stringify({ result: 'success', ...h(p) })); }
     catch (e) { res.end(JSON.stringify({ result: 'error', message: e.message })); }
   });
-}).listen(4555, '127.0.0.1', () => console.log('mock WHMCS on :4555'));
+}).listen(Number(process.env.MOCK_PORT) || 4555, '127.0.0.1', () => console.log(`mock WHMCS on :${Number(process.env.MOCK_PORT) || 4555}`));

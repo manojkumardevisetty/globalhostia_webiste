@@ -452,6 +452,16 @@ try {
       }
       await tx`insert into settings (key, value) values ('business_services', ${JSON.stringify(storeConfigSeed())}::jsonb) on conflict (key) do nothing`;
     },
+    // 22. Portal web push: browser subscriptions per WHMCS client + a sent log so each notification goes out once.
+    '022-portal-push': async (tx) => {
+      await tx`create table if not exists push_subscriptions (
+        id text primary key, client_id integer not null, user_id integer, endpoint text not null unique, p256dh text not null, auth text not null,
+        categories jsonb not null default '["tickets","invoices","domains","services"]'::jsonb, lang text not null default 'en', ua text not null default '',
+        fail_count integer not null default 0, last_ok_at timestamptz, created_at timestamptz not null default now())`;
+      await tx`create index if not exists push_sub_client_idx on push_subscriptions (client_id)`;
+      await tx`create table if not exists push_log (key text primary key, client_id integer not null, sent_at timestamptz not null default now())`;
+      await tx`create index if not exists push_log_sent_idx on push_log (sent_at)`;
+    },
     // 30. AI assistant (lib/ai/*): usage/cost log and support-ticket automation decisions. Settings live in settings.ai_settings.
     '030-ai': async (tx) => {
       await tx`create table if not exists ai_usage (
