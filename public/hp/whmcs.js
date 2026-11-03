@@ -1012,6 +1012,43 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   /** a technical value (domain, address, path, IP) that keeps left-to-right order inside Arabic text */
   function ltr(s) { return '<bdi dir="ltr">' + esc(s) + '</bdi>'; }
+  /*<err-map>*/
+  // API failure -> what happened + what to do (mirrors lib/ux/errors.ts and /hp/fx.js). The server's own sentence is kept
+  // only for input problems, rate limits and "not available on this panel"; everything else gets the standard copy.
+  var ERR_COPY = {
+    network: N_('You seem to be offline. Check your connection and try again.'),
+    timeout: N_('This is taking longer than usual. Please try again in a moment.'),
+    rate: N_('Too many attempts in a short time. Please wait a minute, then try again.'),
+    auth: N_('Your session expired. Reload the page and sign in again to continue.'),
+    forbidden: N_('This action is not allowed from this page. Reload the page and try again.'),
+    validation: N_('Please check the highlighted fields and try again.'),
+    notfound: N_('We could not find what you were looking for. It may have been moved or removed.'),
+    unavailable: N_('This service is busy right now. Your websites and email keep running. Please try again in a few minutes.'),
+    server: N_('Something went wrong on our side. Please try again in a minute.')
+  };
+  function ghErr(status, code, msg) {
+    var c = String(code || '').toLowerCase(), k;
+    if (c === 'network' || c === 'offline') k = 'network';
+    else if (c === 'timeout' || c === 'panel_timeout') k = 'timeout';
+    else if (c === 'expired' || c === 'unauthorized') k = 'auth';
+    else if (c === 'rate_limited') k = 'rate';
+    else if (c === 'invalid' || c === 'panel') k = 'validation';
+    else if (c === 'panel_unreachable' || c === 'not_configured') k = 'unavailable';
+    else if (!status) k = 'network';
+    else if (status === 408 || status === 504) k = 'timeout';
+    else if (status === 429) k = 'rate';
+    else if (status === 401) k = 'auth';
+    else if (status === 403) k = 'forbidden';
+    else if (status === 404 || status === 410) k = 'notfound';
+    else if (status === 400 || status === 409 || status === 413 || status === 422) k = 'validation';
+    else if (status === 501 && c === 'unsupported') k = 'validation';
+    else if (status === 502 || status === 503) k = 'unavailable';
+    else k = 'server';
+    var own = typeof msg === 'string' && msg.length > 3 && msg.length < 300 && !/\b(WHMCS|DirectAdmin|WHM|Vercel|Neon|Postgres)\b|\bat \S+:\d+/.test(msg) ? msg : '';
+    var keep = own && (k === 'validation' || k === 'rate' || c === 'panel_timeout' || c === 'panel_unreachable');
+    return { kind: k, msg: keep ? own : _t(ERR_COPY[k]), retry: k === 'network' || k === 'timeout' || k === 'rate' || k === 'unavailable' || k === 'server' };
+  }
+  /*</err-map>*/
   var I = {
     dns: 'M12 2a10 10 0 100 20 10 10 0 000-20zM2 12h20M12 2c2.8 3 4 6.5 4 10s-1.2 7-4 10c-2.8-3-4-6.5-4-10s1.2-7 4-10z',
     email: 'M3 5h18v14H3zM3 6l9 7 9-7',
@@ -1036,7 +1073,7 @@
   var FLIP = { fwd: 1, redirects: 1, ext: 1, forwarders: 1, autoresponders: 1 };
   function ic(n, sz) { return '<svg viewBox="0 0 24 24" width="' + (sz || 16) + '" height="' + (sz || 16) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"' + (FLIP[n] ? ' class="ghh-flip"' : '') + '><path d="' + I[n] + '"/></svg>'; }
   // [group label, [[view, label, capability section, sub-cap]]]; labels are English (N_ marks them for the dictionary), shown through _t()
-  var N_ = function (s) { return s; };
+  function N_(s) { return s; } // hoisted: ERR_COPY above uses it
   var NAV = [
     ['', [['overview', N_('Overview'), 'overview'], ['health', N_('Site health'), 'health']]],
     [N_('Domains'), [['dns', 'DNS', 'dns'], ['subdomains', N_('Subdomains'), 'subdomains'], ['aliases', N_('Aliases'), 'aliases'], ['redirects', N_('Redirects'), 'redirects'], ['ssl', 'SSL', 'ssl'], ['php', N_('PHP version'), 'php']]],
@@ -1155,32 +1192,50 @@
       var init = { method: opts.method || 'GET', headers: { authorization: 'Bearer ' + G.token }, credentials: 'omit', mode: 'cors', cache: 'no-store' };
       if (opts.json) { init.method = 'POST'; init.headers['content-type'] = 'application/json'; init.body = JSON.stringify(opts.json); }
       if (opts.form) { init.method = 'POST'; init.body = opts.form; }
+      // no answer in time (uploads and backups get longer): a clear "taking longer than usual" instead of an endless spinner
+      var ac = window.AbortController ? new AbortController() : null, tm = 0;
+      if (ac) { init.signal = ac.signal; tm = setTimeout(function () { ac.abort(); }, opts.form ? 180000 : 45000); }
+      var boom = function (status, code, msg) { var info = ghErr(status, code, msg), e = new Error(info.msg); e.code = code === 'unauthorized' ? 'expired' : code || info.kind; e.kind = info.kind; e.status = status; e.retry = info.retry; return e; };
       return fetch(url, init).then(function (r) {
+        clearTimeout(tm);
         if (opts.raw && r.ok) return r;
-        return r.json().catch(function () { return { error: 'server', message: _t('Unexpected answer from the server ({status})', { status: r.status }) }; }).then(function (d) {
-          if (!r.ok) { var e = new Error(L10N.srv(d.message) || _t('Request failed')); e.code = d.error; e.status = r.status; throw e; }
+        return r.json().catch(function () { return { error: r.ok ? 'server' : '', message: '' }; }).then(function (d) {
+          if (!r.ok || d.error === 'server') throw boom(r.status, d.error, L10N.srv(d.message));
           if (init.method === 'POST') Object.keys(PC).forEach(function (k) { if (k.indexOf(section + ':') === 0) delete PC[k]; });
+          if (init.method === 'POST') S.fails = 0;
           return d;
         });
-      }, function () { var e = new Error(_t('Network problem. Check your connection and try again.')); e.code = 'network'; throw e; });
+      }, function (x) { clearTimeout(tm); throw boom(0, x && x.name === 'AbortError' ? 'timeout' : navigator.onLine === false ? 'offline' : 'network'); });
     }
-    function toast(msg, kind) {
+    function toast(msg, kind, extra) {
       var box = $('[data-toasts]'), el = document.createElement('div');
       el.className = 'ghh-toast ghh-toast--' + (kind || 'ok'); el.setAttribute('role', kind === 'err' ? 'alert' : 'status');
-      el.innerHTML = '<span class="ghh-toast__mk" aria-hidden="true"></span><span>' + esc(L10N.srv(msg)) + '</span><button type="button" aria-label="' + esc(_t('Dismiss')) + '">' + ic('x', 14) + '</button>';
+      el.innerHTML = '<span class="ghh-toast__mk" aria-hidden="true"></span><span>' + esc(L10N.srv(msg)) + (extra ? ' ' + extra : '') + '</span><button type="button" aria-label="' + esc(_t('Dismiss')) + '">' + ic('x', 14) + '</button>';
       el.querySelector('button').onclick = function () { el.remove(); };
       box.appendChild(el); setTimeout(function () { el.classList.add('is-out'); setTimeout(function () { el.remove(); }, 300); }, kind === 'err' ? 7000 : 4200);
     }
     function fail(e, where) {
       if (e && e.code === 'expired') return expired();
-      if (where) where.innerHTML = errBox(e && e.message);
-      else toast(e && e.message || _t('Something went wrong'), 'err');
+      S.fails = (S.fails || 0) + 1;
+      if (where) where.innerHTML = errBox(e && e.message, e);
+      else toast(e && e.message || _t('Something went wrong'), 'err', helpLink(e));
+    }
+    /* after two failures in a row, or when the problem is on our side: a way to reach a person */
+    function helpLink(e) {
+      if (!((S.fails || 0) >= 2 || (e && (e.kind === 'server' || e.kind === 'unavailable')))) return '';
+      var wa = document.querySelector('a[href^="https://wa.me/"], a[href^="https://api.whatsapp.com/"]');
+      return wa ? '<a class="ghh-help" href="' + esc(wa.getAttribute('href')) + '" target="_blank" rel="noopener">' + _t('Still stuck? Message us on WhatsApp') + '</a>'
+        : '<a class="ghh-help" href="submitticket.php">' + _t('Still stuck? Open a support ticket') + '</a>';
     }
     function expired() {
       body.innerHTML = '<div class="ghh-state"><span class="ghh-state__hex">' + ic('refresh', 22) + '</span><h3>' + _t('Your session timed out') + '</h3><p>' + _t('For your security the hosting tools sign out after 10 minutes. Reload the page to continue where you left off.') + '</p><button type="button" class="ghh-btn ghh-btn--pri" data-reload>' + _t('Reload page') + '</button></div>';
       body.querySelector('[data-reload]').onclick = function () { location.reload(); };
     }
-    function errBox(m) { return '<div class="ghh-state ghh-state--err" role="alert"><span class="ghh-state__hex">' + ic('alert', 22) + '</span><h3>' + _t('That did not work') + '</h3><p>' + esc(m || _t('Please try again in a moment.')) + '</p><button type="button" class="ghh-btn" data-retry>' + ic('refresh') + ' ' + _t('Try again') + '</button></div>'; }
+    function errBox(m, e) {
+      var title = e && e.kind === 'network' ? _t('You are offline') : e && e.kind === 'timeout' ? _t('Still waiting for your server') : e && e.kind === 'unavailable' ? _t('Your hosting server is not answering') : _t('That did not work');
+      return '<div class="ghh-state ghh-state--err" role="alert"><span class="ghh-state__hex">' + ic('alert', 22) + '</span><h3>' + title + '</h3><p>' + esc(m || _t('Please try again in a moment.')) + '</p>' +
+        (!e || e.retry !== false ? '<button type="button" class="ghh-btn" data-retry>' + ic('refresh') + ' ' + _t('Try again') + '</button>' : '') + helpLink(e) + '</div>';
+    }
     function empty(icon, title, text, cta) { return '<div class="ghh-state"><span class="ghh-state__hex">' + ic(icon, 22) + '</span><h3>' + esc(title) + '</h3><p>' + esc(text) + '</p>' + (cta || '') + '</div>'; }
     function skel(n) { var s = '<div class="ghh-skel" aria-busy="true" aria-label="' + esc(_t('Loading')) + '">'; for (var i = 0; i < n; i++) s += '<div class="ghh-skel__row"><i></i><i></i><i></i></div>'; return s + '</div>'; }
     function can(sec, f) { var c = S.session && S.session.caps[sec]; return !!(c && c.indexOf(f) >= 0); }
@@ -1188,6 +1243,19 @@
     function busy(b, on) { if (!b) return; b.disabled = on; b.classList.toggle('is-busy', on); }
     function retryOn(el, fn) { var r = el.querySelector('[data-retry]'); if (r) r.onclick = fn; }
     var B_ = function (s) { return '<b>' + ltr(s) + '</b>'; }; // bold technical value inside a sentence
+    /* the row that holds `text` flashes once when the list redraws after an add (DNS record, mailbox, database…) */
+    function hlNext(text) {
+      text = String(text || '').trim().toLowerCase(); if (!text || !window.MutationObserver) return;
+      var until = Date.now() + 8000, mo = new MutationObserver(function () {
+        if (Date.now() > until) return mo.disconnect();
+        var rows = body.querySelectorAll('tbody tr, ul > li');
+        for (var i = 0; i < rows.length; i++) if (!rows[i].closest('form') && rows[i].textContent.toLowerCase().indexOf(text) >= 0) {
+          mo.disconnect(); var r = rows[i]; r.classList.add('ghh-hl'); setTimeout(function () { r.classList.remove('ghh-hl'); }, 2800);
+          if (r.scrollIntoView) r.scrollIntoView({ block: 'nearest' }); return;
+        }
+      });
+      mo.observe(body, { childList: true, subtree: true });
+    }
 
     /* inline confirm: replaces the action cell until confirmed or cancelled */
     function confirmIn(cell, text, label, run, rebind) {
@@ -1204,7 +1272,7 @@
     /* inline form panel above a list */
     function formPanel(slot, title, fields, submitLabel, onSubmit) {
       slot.innerHTML = '<form class="ghh-form" novalidate><div class="ghh-form__head"><h4>' + esc(title) + '</h4><button type="button" class="ghh-icon" data-close aria-label="' + esc(_t('Close')) + '">' + ic('x') + '</button></div><div class="ghh-form__grid">' + fields + '</div>' +
-        '<p class="ghh-form__err" role="alert" hidden></p><div class="ghh-form__foot"><button type="button" class="ghh-btn" data-close>' + _t('Cancel') + '</button><button class="ghh-btn ghh-btn--pri" type="submit">' + esc(submitLabel) + '</button></div></form>';
+        '<p class="ghh-form__err" id="ghh-ferr-' + Math.random().toString(36).slice(2, 7) + '" role="alert" hidden></p><div class="ghh-form__foot"><button type="button" class="ghh-btn" data-close>' + _t('Cancel') + '</button><button class="ghh-btn ghh-btn--pri" type="submit">' + esc(submitLabel) + '</button></div></form>';
       var f = slot.querySelector('form'), err = f.querySelector('.ghh-form__err');
       [].forEach.call(f.querySelectorAll('[data-close]'), function (b) { b.onclick = function () { slot.innerHTML = ''; }; });
       [].forEach.call(f.querySelectorAll('[data-gen]'), function (b) { b.onclick = function () { var i = f.querySelector('[name="' + b.getAttribute('data-gen') + '"]'); i.value = genPass(); i.type = 'text'; i.select(); }; });
@@ -1213,7 +1281,15 @@
         e.preventDefault(); err.hidden = true;
         var sb = f.querySelector('[type=submit]'); busy(sb, true);
         var data = {}; [].forEach.call(f.elements, function (el) { if (el.name) data[el.name] = el.type === 'checkbox' ? el.checked : el.value; });
-        onSubmit(data).then(function () { slot.innerHTML = ''; }, function (e2) { busy(sb, false); if (e2 && e2.code === 'expired') return expired(); err.textContent = e2 && e2.message || _t('Failed'); err.hidden = false; });
+        [].forEach.call(f.querySelectorAll('[aria-invalid]'), function (x) { x.removeAttribute('aria-invalid'); });
+        // required fields first: the browser's own check is off (novalidate), so name the empty field and focus it
+        var miss = [].filter.call(f.querySelectorAll('[required]'), function (x) { return !x.closest('[hidden]') && !String(x.value || '').trim(); })[0];
+        if (miss) { busy(sb, false); miss.setAttribute('aria-invalid', 'true'); miss.setAttribute('aria-describedby', err.id); err.textContent = _t('Fill in {field}.', { field: (f.querySelector('label[for="' + miss.id + '"]') || {}).textContent || _t('this field') }); err.hidden = false; miss.focus(); return; }
+        onSubmit(data).then(function () { slot.innerHTML = ''; }, function (e2) {
+          busy(sb, false); if (e2 && e2.code === 'expired') return expired();
+          err.innerHTML = esc(e2 && e2.message || _t('Failed')) + (e2 && e2.retry ? ' ' + helpLink(e2) : ''); err.hidden = false;
+          if (e2 && e2.kind === 'validation') { var bad = f.querySelector('input:not([type=hidden]), select, textarea'); [].some.call(f.querySelectorAll('[name]'), function (x) { var l = f.querySelector('label[for="' + x.id + '"]'); if (l && e2.message.toLowerCase().indexOf(l.textContent.trim().toLowerCase()) >= 0) { bad = x; return true; } return false; }); if (bad) { bad.setAttribute('aria-invalid', 'true'); bad.setAttribute('aria-describedby', err.id); bad.focus(); } }
+        });
       };
       var first = f.querySelector('input:not([type=hidden]), select, textarea'); if (first) first.focus();
       slot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -1697,7 +1773,7 @@
           fld('ttl', _t('TTL (seconds)'), { type: 'number', min: 60, value: rec ? rec.ttl : 3600 });
         formPanel(slot, rec ? _t('Edit {type} record', { type: rec.type }) : _t('Add a DNS record'), flds, rec ? _t('Save record') : _t('Add record'), function (v) {
           var payload = { op: rec ? 'edit' : 'add', domain: d, record: v }; if (rec) payload.id = rec.id;
-          return api('dns', null, { json: payload }).then(function (r) { toast(r.message); load(); });
+          return api('dns', null, { json: payload }).then(function (r) { toast(r.message); hlNext(v.value); load(); });
         });
         var f = slot.querySelector('form'), ty = f.querySelector('[name=type]');
         var hints = { A: '203.0.113.10', AAAA: '2001:db8::10', CNAME: 'target.example.com', MX: 'mail.' + d, TXT: 'v=spf1 include:_spf.example.com ~all', SRV: 'sip.' + d };
@@ -1792,7 +1868,7 @@
       };
       var newBox = function () {
         formPanel(slot, _t('New mailbox'), fld('user', _t('Address'), { required: true, suffix: '@' + d, placeholder: 'info' }) + fld('password', _t('Password'), { type: 'password', required: true, hint: _t('8+ characters with upper and lower case and a digit') }) + fld('quota', _t('Quota'), { type: 'number', min: 0, value: 1024, suffix: 'MB', hint: _t('0 = unlimited') }), _t('Create mailbox'), function (v) {
-          return api('email', null, { json: { op: 'create', domain: d, user: v.user, password: v.password, quota: +v.quota || 0 } }).then(function (r) { toast(r.message); load(); });
+          return api('email', null, { json: { op: 'create', domain: d, user: v.user, password: v.password, quota: +v.quota || 0 } }).then(function (r) { toast(r.message); hlNext(v.user + '@' + d); load(); });
         });
       };
       var render = function () {
@@ -1828,7 +1904,7 @@
       };
       var add = body.querySelector('[data-add]'); if (add) add.onclick = newBox;
       var addf = body.querySelector('[data-addf]');
-      if (addf) addf.onclick = function () { formPanel(fslot, _t('New forwarder'), fld('user', _t('Forward mail for'), { required: true, suffix: '@' + d, placeholder: 'sales' }) + fld('to', _t('To address'), { type: 'email', required: true, placeholder: 'you@gmail.com' }), _t('Add forwarder'), function (v) { return api('email', null, { json: { op: 'addForwarder', domain: d, user: v.user, to: v.to } }).then(function (r) { toast(r.message); load(); }); }); };
+      if (addf) addf.onclick = function () { formPanel(fslot, _t('New forwarder'), fld('user', _t('Forward mail for'), { required: true, suffix: '@' + d, placeholder: 'sales' }) + fld('to', _t('To address'), { type: 'email', required: true, placeholder: 'you@gmail.com' }), _t('Add forwarder'), function (v) { return api('email', null, { json: { op: 'addForwarder', domain: d, user: v.user, to: v.to } }).then(function (r) { toast(r.message); hlNext(v.user + '@' + d); load(); }); }); };
       load();
     }
 
@@ -1925,7 +2001,7 @@
       var load = function () { list.innerHTML = skel(3); api('databases').then(function (r) { dbs = r.databases; prefix = r.prefix; render(); }, function (e) { fail(e, list); retryOn(list, load); }); };
       var create = function () {
         formPanel(slot, _t('New database'), fld('name', _t('Database name'), { required: true, prefix: prefix, placeholder: 'shop' }) + fld('user', _t('Database user'), { required: true, prefix: prefix, placeholder: 'shop' }) + fld('password', _t('Password'), { type: 'password', required: true, wide: true, hint: _t('Save it now: it cannot be shown again.') }), _t('Create database'), function (v) {
-          return api('databases', null, { json: { op: 'create', name: v.name, user: v.user, password: v.password } }).then(function (r) { toast(r.message); load(); });
+          return api('databases', null, { json: { op: 'create', name: v.name, user: v.user, password: v.password } }).then(function (r) { toast(r.message); hlNext(prefix + v.name); load(); });
         });
       };
       var render = function () {
@@ -1971,7 +2047,7 @@
         list.innerHTML = skel(3);
         api(cfg.section, cfg.query || null).then(function (r) { items = cfg.pick(r); render(); }, function (e) { if (cfg.onError) return cfg.onError(e, list, open); fail(e, list); retryOn(list, load); });
       };
-      var open = function () { var f = cfg.form(); formPanel(slot, f[0], f[1], f[2], function (v) { return api(cfg.section, null, { json: cfg.submit(v) }).then(function (r) { toast(r.message); load(); }); }); if (cfg.afterForm) cfg.afterForm(slot.querySelector('form')); };
+      var open = function () { var f = cfg.form(); formPanel(slot, f[0], f[1], f[2], function (v) { return api(cfg.section, null, { json: cfg.submit(v) }).then(function (r) { toast(r.message); var k = Object.keys(v).filter(function (x) { return !/pass/i.test(x) && typeof v[x] === 'string' && v[x].trim(); })[0]; if (k) hlNext(v[k]); load(); }); }); if (cfg.afterForm) cfg.afterForm(slot.querySelector('form')); };
       var render = function () {
         if (!items.length) { list.innerHTML = empty(cfg.emptyIcon, cfg.emptyTitle, cfg.emptyText, cfg.canAdd ? addBtn(cfg.addLabel, 'data-add2') : ''); var a2 = list.querySelector('[data-add2]'); if (a2) a2.onclick = open; return; }
         list.innerHTML = table(cfg.cols, cfg.render(items));
@@ -2253,5 +2329,223 @@
       var tries = 0;
       (function wait() { if (window.GH_HOSTING && window.GH_HOSTING.token) mount(window.GH_HOSTING); else if (++tries < 10) setTimeout(wait, 300); })();
     } catch (e) {}
+  });
+})();
+
+// Feedback on the WHMCS pages we skin: purchase celebration (order complete, invoice turned Paid) with a "what happens
+// next" card and one GA4 purchase event per order, a hexagon wait screen while the payment page opens, checkout errors
+// linked to their fields, ticket confirmation, domain added to cart, and roles on WHMCS's own alerts.
+// Selectors follow WHMCS's standard templates (standard_cart complete.tpl / viewinvoice.tpl / ticketconfirmation.tpl);
+// every step does nothing when its element is missing. Motion: transform / opacity; reduced motion shows the end state.
+(function () {
+  'use strict';
+  if (!window.GH_L10N || window.GH_L10N.wait) return;
+  var L10N = window.GH_L10N, _t = L10N.t;
+  var D = document, W = window, P = location.pathname, Q = location.search;
+  var reduce = false; try { reduce = W.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  function ready(f) { if (D.readyState !== 'loading') f(); else D.addEventListener('DOMContentLoaded', f); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var ss = (function () { try { var s = W.sessionStorage, k = '__gh'; s.setItem(k, '1'); s.removeItem(k); return s; } catch (e) { return null; } })();
+  var once = function (k) { if (!ss) return true; if (ss.getItem(k)) return false; ss.setItem(k, '1'); return true; };
+  var HEX = 'M60 8 105 34v52L60 112 15 86V34z';
+  var live = function (msg) { var r = D.getElementById('gh-live'); if (!r) { r = D.createElement('div'); r.id = 'gh-live'; r.className = 'gh-sr'; r.setAttribute('aria-live', 'polite'); D.body.appendChild(r); } r.textContent = ''; setTimeout(function () { r.textContent = msg; }, 60); };
+
+  /* ---------------- purchase burst + "what happens next" card */
+  function burst() {
+    var p = '', C = ['#c5386f', '#fdd700', '#e14c7f', '#fdd700'];
+    for (var i = 0; i < 12; i++) p += '<i class="gh-ok__p" style="--a:' + (i * 30 + (i % 2 ? 12 : 0)) + 'deg;--d:' + (62 + (i % 3) * 14) + 'px;--c:' + C[i % 4] + ';--s:' + (6 + (i % 3) * 3) + 'px;--t:' + (0.55 + (i % 4) * 0.04).toFixed(2) + 's"></i>';
+    return '<div class="gh-ok__burst" aria-hidden="true">' + p + '<svg class="gh-ok__hex" viewBox="0 0 120 120" width="120" height="120" focusable="false"><defs><linearGradient id="gh-ok-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e14c7f"/><stop offset=".6" stop-color="#c5386f"/><stop offset="1" stop-color="#8f1c52"/></linearGradient></defs>' +
+      '<path class="gh-ok__fill" d="' + HEX + '" fill="url(#gh-ok-g)"/><path class="gh-ok__line" d="' + HEX + '" pathLength="100"/><path class="gh-ok__tick" d="M40 62 54 76 82 46" pathLength="100"/></svg></div>';
+  }
+  function card(o) {
+    var steps = o.steps.map(function (s, i) { return '<li><span class="gh-ok__n" aria-hidden="true">' + (i + 1) + '</span><div><b>' + esc(s[0]) + '</b><p>' + esc(s[1]) + '</p>' + (s[2] ? '<a href="' + esc(s[2]) + '">' + esc(s[3]) + '</a>' : '') + '</div></li>'; }).join('');
+    var meta = o.meta.filter(Boolean).map(function (m) { return '<span>' + m + '</span>'; }).join('');
+    return '<section class="gh-ok ' + (reduce ? 'is-still' : 'is-on') + '" role="status" aria-labelledby="gh-ok-h" tabindex="-1">' + burst() +
+      '<div class="gh-ok__card"><h2 id="gh-ok-h">' + esc(o.title) + '</h2>' + (meta ? '<p class="gh-ok__meta">' + meta + '</p>' : '') + (o.lead ? '<p class="gh-ok__lead">' + esc(o.lead) + '</p>' : '') +
+      '<h3>' + esc(_t('What happens next')) + '</h3><ol class="gh-ok__steps">' + steps + '</ol></div></section>';
+  }
+  /* GA4 / GTM: one "purchase" per order or invoice (sessionStorage guard), only where a tag is already on the page */
+  function purchase(id, value, currency, invoiceId) {
+    if (!id || !once('gh-purchase:' + id)) return;
+    if (invoiceId && ss) ss.setItem('gh-purchase-inv:' + invoiceId, '1');
+    var ev = { transaction_id: String(id) };
+    if (value != null && !isNaN(value)) { ev.value = Number(value); if (currency) ev.currency = String(currency).toUpperCase(); }
+    try {
+      if (typeof W.gtag === 'function') W.gtag('event', 'purchase', ev);
+      else if (W.dataLayer && W.dataLayer.push) W.dataLayer.push({ event: 'purchase', ecommerce: ev });
+    } catch (e) {}
+  }
+  function money(txt) {
+    var m = String(txt || '').replace(/\s+/g, ' ').match(/([A-Z]{3})?\s*([$€£₹]|AED|USD|EUR|GBP|INR|SAR)?\s*([\d.,]+\d)\s*([A-Z]{3})?/);
+    if (!m) return null;
+    var cur = m[1] || m[4] || ({ '$': 'USD', '€': 'EUR', '£': 'GBP', '₹': 'INR' })[m[2]] || m[2] || '';
+    var n = m[3].replace(/,(?=\d{3}\b)/g, '').replace(/,/g, '.');
+    return { value: parseFloat(n), currency: cur, text: String(txt).replace(/\s+/g, ' ').trim() };
+  }
+  function play(el) { if (!el) return; try { el.focus({ preventScroll: true }); } catch (e) {} }
+
+  function orderComplete() {
+    var box = D.querySelector('#order-standard_cart .order-confirmation, .order-confirmation');
+    if (!/cart\.php/i.test(P) || !(/[?&]a=complete\b/.test(Q) || box) || D.querySelector('.gh-ok')) return;
+    var G = W.GH_ORDER || {}; // optional: printed by the WHMCS hook on the complete page ({ number, amount, currency, invoiceId, paid })
+    var root = D.querySelector('#order-standard_cart') || D.querySelector('#main-body .container, #main-body, main');
+    if (!root) return;
+    var txt = (box && box.textContent) || root.textContent || '';
+    var num = G.number || G.id || ((box && box.querySelector('span, strong')) || {}).textContent || (txt.match(/(?:order number|رقم الطلب)[^\d]{0,12}(\d{3,})/i) || [])[1] || '';
+    num = String(num).trim().replace(/[^\w-]/g, '');
+    var invA = root.querySelector('a[href*="viewinvoice.php?id="]');
+    var inv = G.invoiceId || (invA ? (invA.getAttribute('href').match(/id=(\d+)/) || [])[1] : '');
+    var unpaid = G.paid === false || (G.paid !== true && !!root.querySelector('.alert-warning a[href*="viewinvoice.php"]'));
+    var amt = G.amount != null ? { value: +G.amount, currency: G.currency || '', text: G.amountText || (G.currency ? G.amount + ' ' + G.currency : String(G.amount)) } : null;
+    var meta = [num ? _t('Order #{n}', { n: esc(num) }) : '', amt ? esc(_t('Total {amount}', { amount: amt.text })) : ''];
+    var html = card({
+      title: unpaid ? _t('Order placed: one step left') : _t('Order confirmed'), meta: meta,
+      lead: unpaid ? _t('Pay the invoice to start the set-up. Your order is saved.') : _t('Thank you. Your order is in and we are setting it up now.'),
+      steps: [
+        unpaid && inv ? [_t('Pay invoice #{n}', { n: inv }).replace(/[⁦-⁩]/g, ''), _t('Set-up starts automatically as soon as the payment arrives.'), 'viewinvoice.php?id=' + inv, _t('Pay now')]
+          : [_t('Check your email'), _t('Your order confirmation and receipt are on their way to the email address on your account.')],
+        [_t('Set up your service or domain'), _t('Hosting is created automatically. Manage it, connect your domain and add email from your account.'), 'clientarea.php?action=services', _t('Go to my services')],
+        [_t('Get help any time'), _t('Our engineers answer 24/7 by ticket and WhatsApp, including free help moving your website.'), 'submitticket.php', _t('Open a support ticket')]
+      ]
+    });
+    var h = root.querySelector('.header-lined, h1');
+    var host = D.createElement('div'); host.innerHTML = html; var sec = host.firstChild;
+    if (h && h.parentNode) h.parentNode.insertBefore(sec, h.nextSibling); else root.insertBefore(sec, root.firstChild);
+    if (h) h.classList.add('gh-sr-h'); // the card's heading says it; the page title stays for screen readers
+    if (box) box.classList.add('gh-hidden');
+    requestAnimationFrame(function () { play(sec); });
+    if (num) purchase('order-' + num, amt && amt.value, amt && amt.currency, inv);
+  }
+
+  function invoicePaid() {
+    if (!/viewinvoice\.php/i.test(P)) return;
+    var id = (Q.match(/[?&]id=(\d+)/) || [])[1]; if (!id) return;
+    var st = D.querySelector('.invoice-status');
+    var paid = !!(st && (st.querySelector('.paid') || /\bpaid\b|مدفوعة/i.test(st.textContent) && !/unpaid|غير مدفوعة/i.test(st.textContent)));
+    var key = 'gh-inv-unpaid:' + id;
+    if (!paid) { if (ss) ss.setItem(key, '1'); payWait(); return; }
+    // celebrate only the moment it turns Paid: back from the payment page, or seen unpaid earlier in this visit
+    var turned = /[?&]paymentsuccess=true/i.test(Q) || (ss && ss.getItem(key));
+    if (!turned || D.querySelector('.gh-ok')) return;
+    if (ss) ss.removeItem(key);
+    var c = D.querySelector('.invoice-container'); if (!c) return;
+    var tot = null; [].some.call(c.querySelectorAll('.total-row, tr'), function (r) { if (/total/i.test(r.textContent) && !/sub\s*total/i.test(r.textContent)) { var cells = r.querySelectorAll('td, th'); tot = money(cells.length ? cells[cells.length - 1].textContent : r.textContent); return !!tot; } return false; });
+    var host = D.createElement('div');
+    host.innerHTML = card({
+      title: _t('Payment received'), meta: [_t('Invoice #{n}', { n: esc(id) }), tot ? esc(_t('Paid {amount}', { amount: tot.text })) : ''],
+      lead: _t('Thank you. Your payment is confirmed and your services are being activated or renewed.'),
+      steps: [
+        [_t('Check your email'), _t('Your receipt is on its way. You can also download this invoice as a PDF below.')],
+        [_t('Set up your service or domain'), _t('New services are created automatically within a few minutes. Renewals are already extended.'), 'clientarea.php?action=services', _t('Go to my services')],
+        [_t('Get help any time'), _t('Our engineers answer 24/7 by ticket and WhatsApp.'), 'submitticket.php', _t('Open a support ticket')]
+      ]
+    });
+    var sec = host.firstChild; c.insertBefore(sec, c.firstChild);
+    requestAnimationFrame(function () { play(sec); });
+    if (!(ss && ss.getItem('gh-purchase-inv:' + id))) purchase('invoice-' + id, tot && tot.value, tot && tot.currency);
+  }
+
+  /* ---------------- waiting for the payment page / order: hexagon spinner + progress text instead of a blank wait */
+  function waitScreen(title) {
+    var el = D.querySelector('.gh-wait'); if (el) return el;
+    el = D.createElement('div'); el.className = 'gh-wait'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+    el.innerHTML = '<div class="gh-wait__box"><svg class="gh-wait__hex" viewBox="0 0 48 48" width="56" height="56" aria-hidden="true" focusable="false"><path d="M24 3 42.2 13.5v21L24 45 5.8 34.5v-21z" fill="none" stroke="rgba(197,56,111,.18)" stroke-width="4" stroke-linejoin="round"/><path class="gh-wait__arc" d="M24 3 42.2 13.5v21L24 45 5.8 34.5v-21z" fill="none" stroke="#c5386f" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" pathLength="120" stroke-dasharray="30 90"/></svg>' +
+      '<b class="gh-wait__t"></b><p class="gh-wait__p"></p><button type="button" class="gh-wait__x" hidden>' + esc(_t('Hide this message')) + '</button></div>';
+    D.body.appendChild(el);
+    el.querySelector('.gh-wait__t').textContent = title;
+    el.querySelector('.gh-wait__p').textContent = _t('Please keep this page open.');
+    var x = el.querySelector('.gh-wait__x'); x.onclick = function () { el.remove(); };
+    var steps = [[6000, _t('Still working. Secure payment pages can take up to 30 seconds to open.')], [20000, _t('This is taking longer than usual. Check your email for a receipt before paying again, or message us on WhatsApp.')]];
+    steps.forEach(function (s) { setTimeout(function () { if (!el.isConnected) return; el.querySelector('.gh-wait__p').textContent = s[1]; if (s[0] > 10000) x.hidden = false; }, s[0]); });
+    W.addEventListener('pageshow', function (e) { if (e.persisted && el.isConnected) el.remove(); });
+    return el;
+  }
+  function payWait() {
+    var c = D.querySelector('.invoice-container'); if (!c || c.dataset.ghWait) return; c.dataset.ghWait = '1';
+    D.addEventListener('submit', function (e) {
+      var f = e.target; if (e.defaultPrevented || !f || !c.contains(f) || f.target === '_blank') return;
+      if (f.querySelector('select[name=gateway]') && !f.querySelector('[type=submit], button:not([type=button])')) return; // the gateway switcher reloads the page
+      setTimeout(function () { if (!e.defaultPrevented) waitScreen(_t('Opening the secure payment page…')); }, 0);
+    });
+  }
+  function checkoutWait() {
+    var f = D.getElementById('frmCheckout'); if (!f || f.dataset.ghWait) return; f.dataset.ghWait = '1';
+    D.addEventListener('submit', function (e) { if (e.target !== f) return; setTimeout(function () { if (!e.defaultPrevented) waitScreen(_t('Placing your order…')); }, 0); });
+  }
+
+  /* ---------------- checkout / cart errors: one announced summary, each problem linked to its field */
+  var FIELD = [
+    [/first name|الاسم الأول/i, '#inputFirstName'], [/last name|اسم العائلة/i, '#inputLastName'], [/e-?mail|البريد/i, '#inputEmail'],
+    [/address|العنوان/i, '#inputAddress1'], [/city|المدينة/i, '#inputCity'], [/state|region|المنطقة|الولاية/i, '#stateselect, #inputState'],
+    [/post ?code|zip|الرمز البريدي/i, '#inputPostcode'], [/phone|الهاتف/i, '#inputPhone'], [/password|كلمة المرور/i, '#inputNewPassword1, #inputPassword'],
+    [/terms|الشروط/i, '#accepttos'], [/country|الدولة/i, '#inputCountry'], [/payment method|طريقة الدفع/i, 'input[name=paymentmethod]'],
+    [/company|الشركة/i, '#inputCompanyName']
+  ];
+  function formErrors() {
+    if (!/cart\.php|register\.php|clientarea\.php|submitticket\.php|pwreset|password/i.test(P + Q)) return;
+    [].forEach.call(D.querySelectorAll('.checkout-error-feedback, #order-standard_cart .alert-danger, .login-form .alert-danger, .logincontainer .alert-danger, form .alert-danger'), function (a, n) {
+      if (a.dataset.gh || a.offsetParent === null) return; a.dataset.gh = '1';
+      a.setAttribute('role', 'alert'); a.tabIndex = -1; if (!a.id) a.id = 'gh-err-' + n;
+      var first = null;
+      [].forEach.call(a.querySelectorAll('li'), function (li) {
+        var hit = FIELD.filter(function (f) { return f[0].test(li.textContent); })[0], el = hit && D.querySelector(hit[1]);
+        if (!el) return;
+        el.setAttribute('aria-invalid', 'true');
+        var ids = (el.getAttribute('aria-describedby') || '').split(' ').filter(Boolean); if (ids.indexOf(a.id) < 0) ids.push(a.id); el.setAttribute('aria-describedby', ids.join(' '));
+        var b = D.createElement('button'); b.type = 'button'; b.className = 'gh-errlink'; b.textContent = _t('Fix this');
+        b.onclick = function () { el.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' }); setTimeout(function () { el.focus(); }, reduce ? 0 : 350); };
+        li.appendChild(D.createTextNode(' ')); li.appendChild(b);
+        el.addEventListener('input', function () { el.removeAttribute('aria-invalid'); }, { once: true });
+        if (!first) first = el;
+      });
+      if (n === 0) { a.scrollIntoView({ block: 'center', behavior: 'auto' }); try { a.focus({ preventScroll: true }); } catch (e) {} }
+    });
+  }
+
+  /* ---------------- WHMCS's own alerts: roles, a hexagon mark on success, ticket confirmation */
+  function alerts() {
+    [].forEach.call(D.querySelectorAll('.alert-danger:not([role]), .alert-warning:not([role])'), function (a) { a.setAttribute('role', 'alert'); });
+    [].forEach.call(D.querySelectorAll('.alert-success'), function (a) {
+      if (a.dataset.gh || a.closest('.gh-ok')) return; a.dataset.gh = '1';
+      if (!a.getAttribute('role')) a.setAttribute('role', 'status');
+      var mk = D.createElement('span'); mk.className = 'gh-okmk'; mk.setAttribute('aria-hidden', 'true'); a.insertBefore(mk, a.firstChild); a.classList.add('gh-alert-ok');
+    });
+    if (/submitticket\.php/i.test(P) && /[?&]step=3\b/.test(Q) && !D.querySelector('.gh-tk-done')) {
+      var root = D.querySelector('#main-body .container, #main-body, main'); if (!root) return;
+      var a = root.querySelector('a[href*="viewticket.php"]'), tid = a ? (a.textContent.match(/#?\s*([A-Z0-9-]{4,})/i) || [])[1] : '';
+      var el = D.createElement('div'); el.className = 'gh-tk-done ' + (reduce ? 'is-still' : 'is-on'); el.setAttribute('role', 'status');
+      el.innerHTML = '<svg class="gh-tk-done__mk" viewBox="0 0 120 120" width="64" height="64" aria-hidden="true" focusable="false"><path class="gh-ok__fill" d="' + HEX + '" fill="#c5386f"/><path class="gh-ok__line" d="' + HEX + '" pathLength="100"/><path class="gh-ok__tick" d="M40 62 54 76 82 46" pathLength="100"/></svg>' +
+        '<div><h2>' + esc(_t('Ticket opened')) + '</h2><p>' + (tid ? _t('Your ticket number is {n}.', { n: '<b>' + esc(tid) + '</b>' }) + ' ' : '') + esc(_t('Our engineers reply by email and here in your account, usually within the hour.')) + '</p></div>';
+      var h = root.querySelector('.header-lined, h1'); if (h && h.parentNode) h.parentNode.insertBefore(el, h.nextSibling); else root.insertBefore(el, root.firstChild);
+    }
+  }
+
+  /* ---------------- domain search: available result pops, "add to cart" pops, cart badge bumps */
+  function cartFx() {
+    var bump = function (el) { if (!el || reduce) return; el.classList.remove('gh-bump'); void el.offsetWidth; el.classList.add('gh-bump'); setTimeout(function () { el.classList.remove('gh-bump'); }, 600); };
+    var badges = D.querySelectorAll('#cartItemCount, .cart-item-count, .gh-cart-count, a[href*="cart.php?a=view"] .badge');
+    if (W.MutationObserver) [].forEach.call(badges, function (b) { var last = b.textContent; new MutationObserver(function () { if (b.textContent !== last) { last = b.textContent; bump(b); } }).observe(b, { childList: true, characterData: true, subtree: true }); });
+    var av = D.querySelector('#primaryLookupResult .domain-available, .domain-checker-available');
+    if (av && W.MutationObserver) { var seen = false, chk = function () { if (!seen && av.offsetParent !== null) { seen = true; bump(av); } }; chk(); new MutationObserver(chk).observe(av, { attributes: true, attributeFilter: ['style', 'class'] }); }
+    D.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.btn-add-to-cart, .domain-add-to-cart, [data-domain].btn');
+      if (!b || !W.MutationObserver) return;
+      var dom = b.getAttribute('data-domain') || '', t0 = b.textContent, stop = setTimeout(function () { mo.disconnect(); }, 8000);
+      var mo = new MutationObserver(function () {
+        if (b.textContent === t0 && !/checkout|added/i.test(b.className)) return;
+        mo.disconnect(); clearTimeout(stop); bump(b); b.classList.add('gh-added');
+        if (dom) live(_t('{d} is in your cart.', { d: dom }));
+      });
+      mo.observe(b, { attributes: true, childList: true, subtree: true, characterData: true });
+    }, true);
+  }
+
+  ready(function () {
+    try { orderComplete(); } catch (e) {}
+    try { invoicePaid(); } catch (e) {}
+    try { checkoutWait(); } catch (e) {}
+    try { formErrors(); setTimeout(formErrors, 1200); } catch (e) {}
+    try { alerts(); } catch (e) {}
+    try { cartFx(); } catch (e) {}
   });
 })();
