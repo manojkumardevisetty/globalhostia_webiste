@@ -105,7 +105,7 @@ export const publicTools: AiTool<ShopCtx>[] = [
     name: 'recommend_plan', scope: 'public', kind: 'read',
     description: 'Pick GlobalHostia plans for a described need. The UI shows the best pick and one alternative as cards with price, renewal and Add to cart. Use after at most 2 clarifying questions.',
     input_schema: S({
-      need: { type: 'string', description: 'What they want to host, e.g. "WooCommerce shop, 2 sites, UAE customers".' },
+      need: { type: 'string', description: 'What they want to host, in English even when the visitor writes another language, e.g. "WooCommerce shop, 2 sites, UAE customers".' },
       budget_monthly: { type: 'number', description: 'Max monthly-equivalent price in the visitor currency.' },
       location: { type: 'string' }, os: { type: 'string' }, min_ram_gb: { type: 'number' }, websites: { type: 'integer' },
       billing_cycle: { type: 'string', enum: CYCLES, description: 'Billing preference if stated.' },
@@ -116,7 +116,7 @@ export const publicTools: AiTool<ShopCtx>[] = [
       if (!r.recommendations.length) return { text: r.note || 'No plan matched. Ask what matters most or offer browse_category.' };
       const prods = r.recommendations.map((x) => d.products.find((p) => p.slug === x.slug)!).filter(Boolean);
       const cyc = str(a.billing_cycle, 20) || undefined;
-      const why = (w: string[]) => w.map((x) => x.replace(/^matches ".*" plans$/, 'Built for what you described').replace(/^closest available: .* plan$/, 'Closest plan we offer for this').replace('lowest price of these picks', 'lowest price of these options')).join(', ');
+      const why = (w: string[]) => w.map((x) => x.replace(/^matches ".*" plans$/, 'Built for what you described').replace(/^closest available: .* plan$/, 'Closest plan we offer for this').replace('lowest price of these picks', 'lowest price of these options')).join(', ').replace(/^./, (c) => c.toUpperCase());
       const cards = prods.slice(0, 2).map((p, i) => planCard(p, i ? 'Alternative' : 'Best pick', why(r.recommendations[i].why) || (i ? 'Another good option' : 'Closest match to your needs'), cyc));
       return { text: `Shown to the visitor as cards (best pick first). Prices in ${d.currency}:\n${prods.map(brief).join('\n')}`, ui: [{ type: 'plans', items: cards }] };
     },
