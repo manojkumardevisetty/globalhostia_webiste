@@ -246,6 +246,11 @@ export const posts = pgTable('posts', {
   focusKeyword: text('focus_keyword').notNull().default(''),
   secondaryKeywords: text('secondary_keywords').notNull().default(''), // comma separated
   relatedProducts: jsonb('related_products').$type<string[]>().notNull().default([]), // "cat:<slug>" | "p:<slug>"
+  // content engine (lib/content/*, db-setup patch '031-content-engine'): article language, guide collection, and the
+  // English post an Arabic version translates (hreflang pair)
+  lang: text('lang').notNull().default('en'), // en | ar
+  track: text('track').notNull().default(''), // '' | uae | global
+  translationOf: text('translation_of'),
   createdAt: now('created_at'),
   updatedAt: now('updated_at'),
 }, (t) => [index('posts_status_publish_idx').on(t.status, t.publishAt)]);
@@ -418,3 +423,38 @@ export const pushLog = pgTable('push_log', {
   clientId: integer('client_id').notNull(),
   sentAt: now('sent_at'),
 }, (t) => [index('push_log_sent_idx').on(t.sentAt)]);
+
+// SEO content engine (Admin → Marketing & SEO → Content engine, lib/content/*): topic ideas, their calendar slot and the
+// blog posts drafted from them. The article itself is a normal `posts` row (DRAFT until the owner approves it).
+// state: idea | approved | drafting | draft_ready | in_review | scheduled | published | rejected. Created by db-setup patch '031-content-engine'.
+export const contentIdeas = pgTable('content_ideas', {
+  id: id(),
+  track: text('track').notNull().default('global'), // uae | global
+  title: text('title').notNull(),
+  primaryKeyword: text('primary_keyword').notNull().default(''),
+  secondaryKeywords: jsonb('secondary_keywords').$type<string[]>().notNull().default([]),
+  intent: text('intent').notNull().default('informational'), // informational | commercial | transactional
+  country: text('country').notNull().default(''), // audience: AE, SA, GCC, Global…
+  target: text('target').notNull().default(''), // cat:<slug> | p:<slug> | /path (product/category the article links to)
+  slug: text('slug').notNull().default(''),
+  priority: integer('priority').notNull().default(50), // 0-100
+  rationale: text('rationale').notNull().default(''),
+  overlap: text('overlap').notNull().default(''), // possible overlap with an existing page (cannibalization warning)
+  source: text('source').notNull().default('ai'), // seed | ai | owner
+  state: text('state').notNull().default('idea'),
+  plannedFor: timestamp('planned_for', { withTimezone: true }), // calendar slot (publish date/time)
+  postId: text('post_id'),
+  arPostId: text('ar_post_id'),
+  wantArabic: boolean('want_arabic').notNull().default(false),
+  checks: jsonb('checks').$type<{ id: string; label: string; status: 'pass' | 'warn' | 'fail'; detail: string }[]>().notNull().default([]),
+  checkedAt: timestamp('checked_at', { withTimezone: true }),
+  costUsd: numeric('cost_usd', { precision: 12, scale: 6 }).notNull().default('0'),
+  error: text('error').notNull().default(''),
+  approvedBy: text('approved_by').notNull().default(''),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  notifiedAt: timestamp('notified_at', { withTimezone: true }),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [index('content_ideas_state_idx').on(t.state, t.plannedFor), index('content_ideas_post_idx').on(t.postId)]);
+export type ContentIdea = typeof contentIdeas.$inferSelect;

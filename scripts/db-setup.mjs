@@ -14,6 +14,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { enrichment } from '../lib/enrich-core.mjs';
 import { BLOG_SEED, BLOG_SEED_V1 } from './blog-seed.mjs';
 import { ALIAS_REDIRECTS } from '../lib/aliases.mjs';
+import { SEED_IDEAS } from '../lib/content/seed-ideas.mjs';
 
 const url = process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL;
 if (!url) { console.log('[db-setup] no DATABASE_URL — skipping'); process.exit(0); }
@@ -22,7 +23,7 @@ const id = () => Date.now().toString(36) + randomBytes(8).toString('hex');
 
 const FINGERPRINT = (() => {
   const h = createHash('sha256');
-  const files = ['scripts/db-setup.mjs', 'scripts/blog-seed.mjs', 'scripts/landing-seed.mjs', 'scripts/store-seed.mjs', 'lib/enrich-core.mjs', 'lib/aliases.mjs', 'drizzle/meta/_journal.json',
+  const files = ['scripts/db-setup.mjs', 'scripts/blog-seed.mjs', 'scripts/landing-seed.mjs', 'scripts/store-seed.mjs', 'lib/enrich-core.mjs', 'lib/aliases.mjs', 'lib/content/seed-ideas.mjs', 'drizzle/meta/_journal.json',
     ...fs.readdirSync('drizzle').filter((f) => f.endsWith('.sql')).sort().map((f) => `drizzle/${f}`)];
   for (const f of files) { h.update(f); try { h.update(fs.readFileSync(f)); } catch { h.update('-'); } }
   return h.digest('hex').slice(0, 24);
@@ -478,6 +479,28 @@ try {
         sent_by text not null default '', error text not null default '', created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
       await tx`create unique index if not exists ai_ticket_runs_activity on ai_ticket_runs (ticket_id, activity)`;
       await tx`create index if not exists ai_ticket_runs_created_idx on ai_ticket_runs (created_at)`;
+    },
+    // 31. SEO content engine (lib/content/*): article language / guide collection / translation link on posts, the idea and
+    // calendar table, and the curated starter backlog (24 ideas, state "idea": nothing is drafted or published).
+    '031-content-engine': async (tx) => {
+      await tx`alter table posts add column if not exists lang text not null default 'en'`;
+      await tx`alter table posts add column if not exists track text not null default ''`;
+      await tx`alter table posts add column if not exists translation_of text`;
+      await tx`create table if not exists content_ideas (
+        id text primary key, track text not null default 'global', title text not null, primary_keyword text not null default '',
+        secondary_keywords jsonb not null default '[]'::jsonb, intent text not null default 'informational', country text not null default '',
+        target text not null default '', slug text not null default '', priority integer not null default 50, rationale text not null default '',
+        overlap text not null default '', source text not null default 'ai', state text not null default 'idea', planned_for timestamptz,
+        post_id text, ar_post_id text, want_arabic boolean not null default false, checks jsonb not null default '[]'::jsonb, checked_at timestamptz,
+        cost_usd numeric(12,6) not null default 0, error text not null default '', approved_by text not null default '', approved_at timestamptz,
+        notified_at timestamptz, published_at timestamptz, created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      await tx`create index if not exists content_ideas_state_idx on content_ideas (state, planned_for)`;
+      await tx`create index if not exists content_ideas_post_idx on content_ideas (post_id)`;
+      const [{ n }] = await tx`select count(*)::int n from content_ideas`;
+      if (n === 0) for (const i of SEED_IDEAS) {
+        await tx`insert into content_ideas (id, track, title, primary_keyword, secondary_keywords, intent, country, target, slug, priority, rationale, source, state)
+          values (${id()}, ${i.track}, ${i.title}, ${i.primaryKeyword}, ${JSON.stringify(i.secondaryKeywords)}::jsonb, ${i.intent}, ${i.country}, ${i.target}, ${i.slug}, ${i.priority}, ${i.rationale}, 'seed', 'idea')`;
+      }
     },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
