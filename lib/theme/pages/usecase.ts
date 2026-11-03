@@ -10,7 +10,6 @@ import { pageHero, sectionHead, featureGrid, faq, faqJsonLd, ctaBand, breadcrumb
 import { trustStrip } from '../growth';
 import { productsLd } from './vps';
 import { TYPE_LABEL } from './planfinder';
-import { TYPE } from './planfinder';
 import { useCasePages, siteOf, type UseCase, type Pick } from '../pseo';
 
 export default async function render(ctx: PageCtx): Promise<string | null> {
@@ -22,7 +21,7 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
   return hit ? renderUseCase(ctx, cat, hit.u, hit.picks, all) : null;
 }
 
-const kindOf = (p: TProduct) => TYPE_LABEL[TYPE[p.categorySlug] || ''] || (p.categorySlug === 'ssl-certificates' ? 'SSL certificate' : p.categorySlug === 'business-email' ? 'Business email' : 'Plan');
+const kindOf = (p: TProduct) => (p.type !== 'other' && TYPE_LABEL[p.type]) || 'Plan';
 
 function pickCard(x: Pick, i: number, cat: Catalog) {
   const { p, why } = x;

@@ -8,19 +8,29 @@ import { getSettings, type Settings } from '../settings';
 import { cycles, orderUrl, type RProduct } from '../render/products';
 import { deriveSpecs, SPEC_LABEL } from '../render/specs';
 import { CYCLE_MONTHS, money } from '../pricing';
+import { siteLinks, familyFor, CLAIMED, TYPE, type SiteLinksConfig } from './sitelinks';
 
 export { cycles, orderUrl, deriveSpecs, SPEC_LABEL, money };
 
-export type TProduct = RProduct & { sortOrder: number; categorySlug: string; whmcsType: string; payType: string; configOptions: import('../schema').ConfigOption[] };
-export type TCategory = { id: string; slug: string; name: string; description: string; layout: string; cardTemplate: string; sortOrder: number; parentId: string | null; seoTitle: string; seoDescription: string };
+export type TProduct = RProduct & { sortOrder: number; categorySlug: string; whmcsType: string; payType: string; configOptions: import('../schema').ConfigOption[];
+  /** product family of its category (sitelinks.ts familyFor): shared, vps, dedicated, rdp, ssl… */
+  type: string };
+export type TCategory = { id: string; slug: string; name: string; description: string; layout: string; cardTemplate: string; sortOrder: number; parentId: string | null; seoTitle: string; seoDescription: string; type: string };
 export type TTld = { tld: string; currency: string; register: number | null; transfer: number | null; renew: number | null; featured: boolean; promo: string; sortOrder: number };
-export type Catalog = { settings: Settings; currency: string; currencyIds?: Record<string, number>; base: string; categories: TCategory[]; products: TProduct[]; tlds: TTld[] };
+export type Catalog = { settings: Settings; currency: string; currencyIds?: Record<string, number>; base: string; categories: TCategory[]; products: TProduct[]; tlds: TTld[];
+  /** slugs of categories the admin has hidden (they and their products are not in `categories` / `products`) */
+  hiddenCategories: string[];
+  /** settings.site_links, parsed */
+  links: SiteLinksConfig };
 
 const num = (v: unknown) => (v === null || v === undefined || v === '' ? null : Number.isFinite(parseFloat(String(v))) ? parseFloat(String(v)) : null);
 
 const loadCatalog = unstable_cache(async () => {
   const now = new Date();
-  const cats = await db.select().from(schema.categories).where(eq(schema.categories.visible, true)).orderBy(asc(schema.categories.sortOrder), asc(schema.categories.name));
+  const allCats = await db.select().from(schema.categories).orderBy(asc(schema.categories.sortOrder), asc(schema.categories.name));
+  const cats = allCats.filter((c) => c.visible);
+  const links = siteLinks(await getSettings());
+  const typeOf = (c?: { slug: string; name: string }) => (c ? familyFor(c.slug, c.name, links) : 'other');
   const rows = await db.select().from(schema.products).where(and(
     eq(schema.products.status, 'PUBLISHED'),
     eq(schema.products.whmcsRetired, false),
@@ -41,11 +51,13 @@ const loadCatalog = unstable_cache(async () => {
       badge: r.badge, badgeColor: r.badgeColor, featured: r.featured, displayCycle: r.displayCycle, orderUrl: r.orderUrl,
       whmcsPid: r.whmcsPid, categoryId: r.categoryId, sortOrder: r.sortOrder, whmcsType: r.whmcsType, payType: r.payType, configOptions: (r as any).configOptions || [],
       categorySlug: (r.categoryId && catById.get(r.categoryId)?.slug) || '',
+      type: typeOf(r.categoryId ? catById.get(r.categoryId) : undefined),
       prices: (byProduct.get(r.id) || []).map((p) => ({ currency: p.currency, prefix: p.prefix, suffix: p.suffix, cycle: p.cycle, price: String(p.price), setupFee: String(p.setupFee) })),
     }));
 
   return {
-    categories: cats.map((c) => ({ id: c.id, slug: c.slug, name: c.name, description: c.description, layout: c.layout, cardTemplate: c.cardTemplate, sortOrder: c.sortOrder, parentId: c.parentId, seoTitle: c.seoTitle, seoDescription: c.seoDescription })),
+    categories: cats.map((c) => ({ id: c.id, slug: c.slug, name: c.name, description: c.description, layout: c.layout, cardTemplate: c.cardTemplate, sortOrder: c.sortOrder, parentId: c.parentId, seoTitle: c.seoTitle, seoDescription: c.seoDescription, type: typeOf(c) })),
+    hiddenCategories: allCats.filter((c) => !c.visible).map((c) => c.slug),
     products,
     tlds: [
       ...tlds.map((t) => ({ tld: t.tld, currency: t.currency, register: num(t.register), transfer: num(t.transfer), renew: num(t.renew), featured: t.featured, promo: t.promo, sortOrder: t.sortOrder })),
@@ -65,7 +77,7 @@ export async function getCatalog(): Promise<Catalog> {
     const want = (await headers()).get('x-gh-cur');
     if (want && want !== def && availableCurrencies(data.products).includes(want)) currency = want;
   } catch { /* outside a request (build, cache) → default */ }
-  return { settings, currency, currencyIds, base: whmcsBase(settings), ...data };
+  return { settings, currency, currencyIds, base: whmcsBase(settings), links: siteLinks(settings), ...data };
 }
 
 const loadCurrencyIds = unstable_cache(async () => {
@@ -110,10 +122,32 @@ export function minFrom(products: Pick<RProduct, 'prices'>[], currency = 'USD'):
 /** "$2.50" style money for a FromPrice amount. */
 export const fmt = (v: number, prefix = '$') => money(v, prefix);
 
-/** Products in the given categories, sorted by admin sortOrder then cheapest per-month. */
+/**
+ * Category slugs a page lists, grown automatically: subcategories of the listed ones, and categories that no
+ * hand-written page claims (new in admin or from WHMCS) whose family matches a listed one. Set a category's family
+ * to "Other" in Admin → Site links to keep it on its own page only.
+ */
+export function expandCategories(cat: Pick<Catalog, 'categories'>, slugs: string[]): string[] {
+  const set = new Set(slugs);
+  const types = new Set(slugs.map((s) => cat.categories.find((c) => c.slug === s)?.type || TYPE[s]).filter((t) => t && t !== 'other'));
+  const ids = () => new Set(cat.categories.filter((c) => set.has(c.slug)).map((c) => c.id));
+  for (const c of cat.categories) if (!set.has(c.slug) && !CLAIMED.has(c.slug) && types.has(c.type)) set.add(c.slug);
+  for (let i = 0; i < 3; i++) { const pid = ids(); for (const c of cat.categories) if (c.parentId && pid.has(c.parentId)) set.add(c.slug); }
+  return [...set];
+}
+
+/** Products in the given categories (see expandCategories), sorted by admin sortOrder then cheapest per-month. */
 export function productsFor(cat: Catalog, slugs: string[] | undefined): TProduct[] {
   if (!slugs?.length) return [];
-  const set = new Set(slugs);
+  const set = new Set(expandCategories(cat, slugs));
+  const per = (p: TProduct) => fromPrice(p, cat.currency)?.amount ?? 1e9;
+  return cat.products.filter((p) => set.has(p.categorySlug)).sort((a, b) => a.sortOrder - b.sortOrder || per(a) - per(b));
+}
+
+/** Products of one category and its subcategories (no family expansion), in admin order. */
+export function categoryProducts(cat: Catalog, slug: string): TProduct[] {
+  const set = new Set([slug]);
+  for (let i = 0; i < 3; i++) { const ids = new Set(cat.categories.filter((c) => set.has(c.slug)).map((c) => c.id)); for (const c of cat.categories) if (c.parentId && ids.has(c.parentId)) set.add(c.slug); }
   const per = (p: TProduct) => fromPrice(p, cat.currency)?.amount ?? 1e9;
   return cat.products.filter((p) => set.has(p.categorySlug)).sort((a, b) => a.sortOrder - b.sortOrder || per(a) - per(b));
 }

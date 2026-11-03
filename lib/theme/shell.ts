@@ -88,7 +88,7 @@ function footer(menus: ThemeMenu[], cat: Catalog, phone: string, email: string, 
   const s = cat.settings;
   const wa = String(s.whatsapp || phone || '').replace(/[^\d]/g, '');
   const company = String(s.company || 'Desert Tech Cloud Services LLC');
-  const cols = footerColumns(menus);
+  const cols = footerColumns(menus, cat.links?.footerExtra);
   const pays = ['visa', 'mastercard', 'amex', 'discover', 'jcb', 'maestro'];
   return `<footer class="hp-footer">
   <div class="hp-container">

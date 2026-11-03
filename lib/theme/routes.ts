@@ -120,11 +120,12 @@ export const ROUTES: Record<string, RouteDef> = {
 export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-broker']);
 
 /**
- * Programmatic SEO pages (lib/theme/pseo.ts): /domains/<tld>, /locations/<loc>, /<type>/<loc>, /hosting-for[/<usecase>].
+ * Programmatic SEO pages (lib/theme/pseo.ts): /domains/<tld>, /locations/<loc>, /<type>/<loc>, /hosting-for[/<usecase>],
+ * and /category/<slug> for categories without a hand-written page (lib/theme/pages/category.ts).
  * Always rendered by the Hostpen theme (like THEME_ONLY). The page module returns null for an unknown slug → 404.
  */
 const DYNAMIC_PREFIX: Record<string, string> = {
-  domains: 'tld', locations: 'location', 'hosting-for': 'usecase',
+  domains: 'tld', locations: 'location', 'hosting-for': 'usecase', category: 'category',
   'web-hosting': 'location', vps: 'location', 'dedicated-servers': 'location', 'windows-rdp': 'location', 'linux-rdp': 'location',
 };
 export function dynamicRoute(segs: string[]): RouteDef | null {

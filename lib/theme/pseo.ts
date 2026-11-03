@@ -6,7 +6,7 @@
 // curated, deliberately generic facts. Prices are never written here: they come from `tlds` / `product_prices`.
 import { deriveSpecs, fromPrice, type Catalog, type TProduct, type TTld } from './data';
 import { available } from './ui';
-import { TYPE } from './pages/planfinder';
+import { CLAIMED, type TldBlurb } from './sitelinks';
 
 /* ------------------------------------------------------------------ helpers */
 export const siteOf = (cat: Catalog) => String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
@@ -115,6 +115,15 @@ export const TLD_INFO: Record<string, TldInfo> = {
   '.art': { kind: 'generic', forWho: 'Artists, galleries, designers, museums and creative studios.',
     facts: ['A newer generic extension launched in 2017.', 'Short and recognised in many languages.', 'Open to anyone.'], related: ['.digital', '.blog', '.me'] },
 };
+
+/** Editorial facts of a TLD: built-in TLD_INFO with the admin's blurb (Admin → Site links) on top; null = generic copy. */
+export function tldInfo(cat: { links?: Catalog['links'] }, tld: string): TldInfo | null {
+  const base = TLD_INFO[tld];
+  const ed: TldBlurb | undefined = cat.links?.tldBlurbs[tld];
+  if (!ed) return base || null;
+  const kind = base?.kind || (/^\.[a-z]{2}$/.test(tld) || /^\.(co|com|org|net|ac|gov)\.[a-z]{2}$/.test(tld) ? 'country' : 'generic');
+  return { kind, country: base?.country, forWho: ed.forWho || base?.forWho || '', facts: ed.facts || base?.facts || [], related: ed.related || base?.related || [] };
+}
 
 /** Two-letter extensions and second-level ones like .co.uk are country codes. */
 export const isCountryTld = (tld: string) => TLD_INFO[tld]?.kind === 'country' || /^\.[a-z]{2}$/.test(tld) || /^\.(co|com|org|net|ac|gov)\.[a-z]{2}$/.test(tld);
@@ -226,7 +235,7 @@ export const FAMILIES = [
   { id: 'dedicated', label: 'Dedicated servers', short: 'Dedicated Servers', types: ['dedicated'], page: '/dedicated-servers' },
   { id: 'rdp', label: 'Remote desktop (RDP)', short: 'RDP', types: ['rdp'], page: '/windows-rdp' },
 ] as const;
-export const familyOf = (p: TProduct) => FAMILIES.find((f) => (f.types as readonly string[]).includes(TYPE[p.categorySlug] || ''))?.id || null;
+export const familyOf = (p: TProduct) => FAMILIES.find((f) => (f.types as readonly string[]).includes(p.type))?.id || null;
 
 /** Type-by-location URL prefixes. Each lists the products of `cats` (category slugs) or `types` (planfinder TYPE). */
 export const TYPE_LOC: Record<string, { label: string; plural: string; types?: string[]; cats?: string[]; page: string }> = {
@@ -240,7 +249,7 @@ export const TYPE_LOC: Record<string, { label: string; plural: string; types?: s
 export const TYPE_LOC_EXISTING: Record<string, string> = { 'web-hosting/uae': '/web-hosting-dubai', 'vps/uae': '/vps-uae', 'windows-rdp/uae': '/windows-rdp-uae' };
 export const inTypeLoc = (prefix: string, p: TProduct) => {
   const d = TYPE_LOC[prefix];
-  return !!d && (d.cats ? d.cats.includes(p.categorySlug) : (d.types || []).includes(TYPE[p.categorySlug] || ''));
+  return !!d && (d.cats ? d.cats.includes(p.categorySlug) : (d.types || []).includes(p.type));
 };
 
 export type LocGroup = { loc: LocInfo; products: TProduct[] };
@@ -257,7 +266,12 @@ export function locationGroups(cat: Catalog): LocGroup[] {
     map.set(loc.slug, g);
   }
   const per = (p: TProduct) => fromPrice(p, cat.currency)?.amount ?? 1e9;
-  for (const g of map.values()) g.products.sort((a, b) => a.sortOrder - b.sortOrder || per(a) - per(b));
+  const ed = cat.links?.locations || {};
+  for (const g of map.values()) {
+    g.products.sort((a, b) => a.sortOrder - b.sortOrder || per(a) - per(b));
+    const e = ed[g.loc.slug]; // admin notes (Admin → Site links) over the built-in LOCS text
+    if (e) g.loc = { ...g.loc, ...(e.name && { name: e.name, the: e.name }), ...(e.note && { note: e.note }), ...(e.near && { near: e.near }) };
+  }
   return [...map.values()].sort((a, b) => b.products.length - a.products.length || a.loc.name.localeCompare(b.loc.name));
 }
 
@@ -284,7 +298,7 @@ export function specOf(p: TProduct): Spec {
   return {
     ram: gbOf(s.ram), cores: c ? +c[1] : 0, disk: gbOf(s.storage), sites: w ? (/unl/i.test(w[1]) ? 999 : +w[1]) : 0,
     os: /windows|win\b/.test(text) ? 'Windows' : /linux|ubuntu|debian/.test(text) ? 'Linux' : '',
-    loc: locationOf(p)?.name || '', family: familyOf(p), type: TYPE[p.categorySlug] || p.categorySlug,
+    loc: locationOf(p)?.name || '', family: familyOf(p), type: p.type || p.categorySlug,
   };
 }
 
@@ -298,7 +312,7 @@ export type UseCase = {
   links: { label: string; href: string }[];
 };
 
-const by = (types: string[]) => (p: TProduct) => types.includes(TYPE[p.categorySlug] || '');
+const by = (types: string[]) => (p: TProduct) => types.includes(p.type);
 const cheap = (cat: Catalog) => (a: TProduct, b: TProduct) => (fromPrice(a, cat.currency)?.amount ?? 1e9) - (fromPrice(b, cat.currency)?.amount ?? 1e9);
 const gbTxt = (n: number) => (n >= 1024 ? `${+(n / 1024).toFixed(1)} TB` : `${+n.toFixed(1)} GB`);
 /** Up to `n` plans spread across the price range (entry, middle, top) so the reader sees real choices. */
@@ -509,7 +523,10 @@ export function useCasePages(cat: Catalog) {
   const ps = available(cat.products);
   // a selector that fails on odd catalog data skips its page instead of breaking the hub or the sitemap
   const safe = (u: UseCase) => { try { return u.select(ps, cat); } catch { return []; } };
-  return USE_CASES.map((u) => ({ u, picks: safe(u) })).filter((x) => x.picks.length > 0);
+  const ed = cat.links?.useCases || {};
+  return USE_CASES.filter((u) => !ed[u.slug]?.hidden)
+    .map((u) => { const e = ed[u.slug]; return e ? { ...u, ...(e.name && { name: e.name }), ...(e.h1 && { h1: e.h1 }), ...(e.lead && { lead: e.lead }), ...(e.meta && { meta: e.meta }), ...(e.intro && { intro: e.intro }) } : u; })
+    .map((u) => ({ u, picks: safe(u) })).filter((x) => x.picks.length > 0);
 }
 
 /* ------------------------------------------------------------------ redirects + sitemap */
@@ -520,11 +537,17 @@ export const PSEO_REDIRECTS: Record<string, string> = {
   ...Object.fromEntries(Object.entries(TYPE_LOC_EXISTING).map(([k, to]) => [k, to])),
 };
 
+/** Categories that get a generated /category/<slug> page: visible, with products, and no hand-written page. */
+export function categoryPages(cat: Catalog) {
+  return cat.categories.filter((c) => !CLAIMED.has(c.slug) && cat.products.some((p) => p.categorySlug === c.slug));
+}
+
 /** Every programmatic URL path (for the sitemap and the crawl check). */
 export function pseoPaths(cat: Catalog): string[] {
   const groups = locationGroups(cat);
   const uc = useCasePages(cat);
   return [
+    ...categoryPages(cat).map((c) => `/category/${c.slug}`),
     '/domains/all',
     ...tldPageList(cat).filter((t) => !TLD_EXISTING[t]).map((t) => `/domains/${tldSlug(t)}`),
     ...groups.map((g) => `/locations/${g.loc.slug}`),

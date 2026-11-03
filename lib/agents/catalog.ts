@@ -4,6 +4,7 @@
 import 'server-only';
 import { getCatalog, availableCurrencies, pricedTlds, cycles, deriveSpecs, type Catalog, type TProduct } from '../theme/data';
 import { ROUTES } from '../theme/routes';
+import { categoryHref } from '../theme/sitelinks';
 import { CYCLE_LABEL, CYCLE_MONTHS } from '../pricing';
 import { CURRENCY_LABEL } from '../currency';
 import { DEFAULT_EMAIL, DEFAULT_PHONE } from '../seo';
@@ -35,11 +36,9 @@ export const siteOf = (cat: Catalog) => String(cat.settings.site_url || 'https:/
 const strip = (s: string) => String(s || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 const round = (n: number) => Math.round(n * 100) / 100;
 
-/** Listing page for a category: first route whose categories include it, preferring routes where it is the first category. */
+/** Listing page for a category: its hand-written page (first route listing it), else the generated /category/<slug>. */
 export function categoryPath(slug: string): string | null {
-  const entries = Object.entries(ROUTES).filter(([k, r]) => r.categories?.includes(slug) && !/^aws-pro-|^vps-2$/.test(k));
-  const best = entries.find(([, r]) => r.categories![0] === slug) || entries[0];
-  return best ? `/${best[0]}` : null;
+  return slug ? categoryHref(slug) : null;
 }
 
 /** WHMCS cart link for a product/cycle in a currency (adds &currency=<WHMCS id> when known). */

@@ -1,10 +1,15 @@
 // Default mega-menu configuration. Featured panels are computed from live catalog prices.
 // Admins can override the whole menu with settings.theme_menu (JSON array of ThemeMenu, same shape).
+// Either way the menu follows the catalog (getMenu): links to hidden categories drop out, and categories that no
+// hand-written page covers (new in admin or synced from WHMCS) are added to the menu of their family, in admin order.
 import { money } from '../pricing';
-import { available } from './ui';
-import { productsFor, minFrom, pricedTlds, whmcsLinks, currencyPrefix, type Catalog } from './data';
+import { available, fromText } from './ui';
+import { productsFor, categoryProducts, minFrom, pricedTlds, whmcsLinks, currencyPrefix, type Catalog } from './data';
+import { CLAIMED, TYPE_ICON, TYPE_MENU, categoryHref, FOOTER_EXTRA_DEFAULTS } from './sitelinks';
 
-export type MenuItem = { label: string; href: string; icon: string; desc?: string; cats?: string[]; soon?: boolean };
+export type MenuItem = { label: string; href: string; icon: string; desc?: string; cats?: string[]; soon?: boolean;
+  /** set on items added automatically from a category (getMenu) */
+  auto?: string };
 export type MenuGroup = { title: string; items: MenuItem[] };
 export type MenuFeatured = {
   tag?: string; title: string;
@@ -132,16 +137,54 @@ export function featuredFor(id: string, cat: Catalog): MenuFeatured | undefined 
   return undefined;
 }
 
+export function validMenu(m: unknown): m is ThemeMenu[] { return valid(m); }
 function valid(m: unknown): m is ThemeMenu[] {
   return Array.isArray(m) && m.length > 0 && m.every((x) => x && typeof x.id === 'string' && typeof x.label === 'string' && Array.isArray(x.groups)
     && x.groups.every((g: any) => g && Array.isArray(g.items) && g.items.every((i: any) => i && typeof i.label === 'string' && typeof i.href === 'string')));
+}
+
+const strip = (h: string) => h.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+const clip = (t: string, n = 64) => (t.length > n ? `${t.slice(0, n - 1).replace(/\s+\S*$/, '')}…` : t);
+
+/** Categories that should be in the menu but no item links to: visible, with products, no hand-written page. */
+export function autoMenuItems(cat: Catalog, menus: ThemeMenu[]): { menu: string; item: MenuItem }[] {
+  const linked = new Set(menus.flatMap((m) => m.groups.flatMap((g) => g.items.flatMap((i) => [...(i.cats || []), i.href]))));
+  const withProducts = new Set(cat.products.map((p) => p.categorySlug));
+  const out: { menu: string; item: MenuItem }[] = [];
+  for (const c of cat.categories) {
+    if (CLAIMED.has(c.slug) || !withProducts.has(c.slug)) continue;
+    const href = categoryHref(c.slug);
+    if (linked.has(c.slug) || linked.has(href)) continue;
+    // a subcategory is listed on its parent's page; only add it when the parent is not in the menu itself
+    const parent = c.parentId ? cat.categories.find((x) => x.id === c.parentId) : undefined;
+    if (parent && withProducts.has(parent.slug)) continue;
+    const ps = categoryProducts(cat, c.slug);
+    const from = minFrom(available(ps), cat.currency);
+    const cheapest = from && ps.find((p) => fromText(p, cat.currency));
+    const desc = clip(strip(c.seoDescription || c.description)) || (cheapest ? `From ${fromText(cheapest, cat.currency)}` : `${ps.length} plan${ps.length === 1 ? '' : 's'}`);
+    out.push({ menu: TYPE_MENU[c.type] || 'business', item: { label: c.name, href, icon: TYPE_ICON[c.type] || 'box', desc, cats: [c.slug], auto: c.slug } });
+  }
+  return out;
 }
 
 /** Menus to render: settings.theme_menu override (JSON string or array) or defaults; featured panels filled from catalog. */
 export function getMenu(cat: Catalog): ThemeMenu[] {
   let raw: unknown = cat.settings.theme_menu;
   if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch { raw = null; } }
-  const menus = valid(raw) ? raw : defaultMenu(cat);
+  const base = valid(raw) ? raw : defaultMenu(cat);
+  // links whose categories all exist but are hidden in admin drop out (unknown slugs are treated as editorial links)
+  const hidden = new Set(cat.hiddenCategories || []);
+  const menus: ThemeMenu[] = base.map((m) => ({ ...m, groups: m.groups.map((g) => ({ ...g, items: g.items.filter((i) => !(i.cats?.length && i.cats.every((c) => hidden.has(c)))) })).filter((g) => g.items.length) }));
+  if (cat.links?.autoMenu !== false) {
+    for (const { menu, item } of autoMenuItems(cat, menus)) {
+      const m = menus.find((x) => x.id === menu) || menus.find((x) => x.id === 'business') || menus.find((x) => !/support/i.test(x.id)) || menus[0];
+      if (!m) continue;
+      // join the group that already lists the same family, else the last group
+      const fam = cat.categories.find((c) => c.slug === item.auto)?.type;
+      const g = m.groups.find((gr) => gr.items.some((i) => i.cats?.some((s) => cat.categories.find((c) => c.slug === s)?.type === fam))) || m.groups[m.groups.length - 1];
+      if (g) g.items.push(item); else m.groups.push({ title: 'More', items: [item] });
+    }
+  }
   // a saved custom menu predates the domain broker page: add it to the Domains menu unless it's already linked anywhere
   if (valid(raw) && !menus.some((m) => m.groups.some((g) => g.items.some((i) => String(i.href).startsWith('/domain-broker'))))) {
     const dm = menus.find((m) => /domain/i.test(m.id) || /domain/i.test(m.label));
@@ -151,7 +194,7 @@ export function getMenu(cat: Catalog): ThemeMenu[] {
 }
 
 /** Footer columns derived from the menu (Security folds into Domains, like the approved design). */
-export function footerColumns(menus: ThemeMenu[]) {
+export function footerColumns(menus: ThemeMenu[], extra?: { title: string; links: { label: string; href: string }[] }[] | null) {
   const cols = menus.map((m) => ({ title: m.label, links: dedupe(m.groups.flatMap((g) => g.items)).map((i) => ({ label: i.label, href: i.href })) }));
   const sec = cols.findIndex((c) => /security/i.test(c.title)), dom = cols.findIndex((c) => /domain/i.test(c.title));
   if (sec >= 0 && dom >= 0) { cols[dom].links.push(cols[sec].links[0]); cols.splice(sec, 1); }
@@ -160,15 +203,8 @@ export function footerColumns(menus: ThemeMenu[]) {
   col(/domain/i)?.links.push({ label: 'Domains A–Z', href: '/domains/all' });
   col(/server/i)?.links.push({ label: 'Locations', href: '/data-centers#dc-loc-h' });
   col(/hosting/i)?.links.push({ label: 'Hosting for…', href: '/hosting-for' });
-  cols.push({ title: 'In the UAE', links: [
-    { label: 'Web hosting in Dubai', href: '/web-hosting-dubai' }, { label: 'VPS hosting UAE', href: '/vps-uae' },
-    { label: 'Windows RDP UAE', href: '/windows-rdp-uae' },
-    { label: 'Choosing hosting in the UAE', href: '/best-hosting-uae' },
-  ] });
-  cols.push({ title: 'Learn', links: [
-    { label: 'Hosting comparisons', href: '/compare' }, { label: 'Hosting guides', href: '/guides' },
-    { label: 'Shared vs VPS vs cloud', href: '/compare/shared-vs-vps-vs-cloud-vs-dedicated' }, { label: 'Move your website', href: '/guides/move-website-to-hostia' },
-  ] });
+  // editorial columns: Admin → Site links (settings.site_links.footerExtra), else the defaults
+  for (const c of extra || FOOTER_EXTRA_DEFAULTS) cols.push({ title: c.title, links: c.links.map((l) => ({ ...l })) });
   return cols;
 }
 function dedupe(items: MenuItem[]) { const seen = new Set<string>(); return items.filter((i) => (seen.has(i.label) ? false : (seen.add(i.label), true))); }

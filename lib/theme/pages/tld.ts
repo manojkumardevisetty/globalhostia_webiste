@@ -9,7 +9,7 @@ import { getCatalog, pricedTlds, currencyPrefix, domainCartUrl, type Catalog, ty
 import { page } from '../shell';
 import { breadcrumbs, breadcrumbJsonLd, domainSearch, sectionHead, faq, faqJsonLd, ctaBand, icon, hexIcon, link, ld, pageHero, VAT_NOTE } from '../ui';
 import { trustStrip } from '../growth';
-import { TLD_INFO, TLD_EXISTING, isCountryTld, tldPageList, tldFromSlug, tldHref, tldRow, tldSlug, siteOf, type TldInfo } from '../pseo';
+import { tldInfo, TLD_EXISTING, isCountryTld, tldPageList, tldFromSlug, tldHref, tldRow, tldSlug, siteOf, type TldInfo } from '../pseo';
 
 const pct = (a: number, b: number) => Math.round(((a - b) / b) * 100);
 
@@ -25,7 +25,7 @@ function priceRank(row: TTld, all: TTld[]) {
   return q < 1 / 3 ? `in the lower third of the ${n} extensions we sell by first-year price` : q > 2 / 3 ? `in the upper third of the ${n} extensions we sell by first-year price` : `mid-range among the ${n} extensions we sell by first-year price`;
 }
 
-function relatedFor(tld: string, info: TldInfo | undefined, cat: Catalog, pages: string[]) {
+function relatedFor(tld: string, info: TldInfo | null | undefined, cat: Catalog, pages: string[]) {
   const have = new Set(pages);
   const out: string[] = [];
   for (const t of info?.related || []) if (have.has(t) && t !== tld && !out.includes(t)) out.push(t);
@@ -58,7 +58,7 @@ async function renderTld(ctx: PageCtx, cat: Catalog, tld: string) {
   const pages = tldPageList(cat);
   const priced = pricedTlds(cat);
   const row = tldRow(cat, tld);
-  const info = TLD_INFO[tld];
+  const info = tldInfo(cat, tld);
   const cc = isCountryTld(tld);
   const path = `/domains/${tldSlug(tld)}`;
   const label = tld.slice(1).toUpperCase();
@@ -138,7 +138,7 @@ async function renderTld(ctx: PageCtx, cat: Catalog, tld: string) {
     ${sectionHead({ id: 'ps-rel-h', title: `Extensions to consider with ${tld}`, lead: 'Register a second extension to protect your name, or compare alternatives if yours is taken.' })}
     <ul class="ps-rel">${relRows.map(({ t, r }, i) => `<li data-reveal style="--i:${i}"><a href="${esc(tldHref(t))}">
       <b class="ps-rel__tld">${esc(t)}</b>
-      <span class="ps-rel__for">${esc(TLD_INFO[t]?.forWho || (isCountryTld(t) ? 'Country-code extension' : 'Generic extension open to anyone'))}</span>
+      <span class="ps-rel__for">${esc(tldInfo(cat, t)?.forWho || (isCountryTld(t) ? 'Country-code extension' : 'Generic extension open to anyone'))}</span>
       <span class="ps-rel__p num">${r ? `${esc(m(r.register))} first year${r.renew !== null ? `<small>Renews at ${esc(m(r.renew))}</small>` : ''}` : 'See price'}</span>
       <span class="hp-link" aria-hidden="true">${esc(t)} details${icon('arrow')}</span></a></li>`).join('')}</ul>
   </div></section>` : '';

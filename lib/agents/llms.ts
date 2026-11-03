@@ -4,6 +4,8 @@ import 'server-only';
 import { agentData, agentTlds, type AgentData, type AgentProduct } from './catalog';
 import { SPEC_LABEL } from '../render/specs';
 import { LEARN_SECTIONS, learnPages, learnPath, type LearnSection } from '../theme/learn';
+import { locationGroups, useCasePages } from '../theme/pseo';
+import { FAMILY_IDS } from '../theme/sitelinks';
 
 const SPEC_ORDER = ['cpu', 'ram', 'storage', 'bandwidth', 'ips', 'websites', 'email', 'os'];
 const md = (s: string) => String(s || '').replace(/[\[\]]/g, '').replace(/\s+/g, ' ').trim();
@@ -40,8 +42,14 @@ export async function buildLlms(full: boolean) {
   const tlds = agentTlds(d);
   const L: string[] = [];
 
+  // what the company sells, from the families of the published products (sitelinks.ts), plus domains when TLDs are priced
+  const PLURAL: Record<string, string> = { shared: 'web hosting', wp: 'managed WordPress hosting', reseller: 'reseller hosting', vps: 'VPS and cloud servers', dedicated: 'dedicated servers', rdp: 'RDP servers', forex: 'forex VPS', automation: 'automation servers', ai: 'AI / LLM servers', ssl: 'SSL certificates', email: 'business email', tools: 'business tools' };
+  const fams = FAMILY_IDS.filter((f) => PLURAL[f] && d.cat.products.some((p) => p.type === f)).map((f) => PLURAL[f]);
+  const others = d.categories.filter((c) => d.cat.categories.find((x) => x.slug === c.slug)?.type === 'other').map((c) => c.name.toLowerCase());
+  const sellList = [...fams, ...others, ...(tlds.length ? ['domain names'] : [])];
+  const sells = sellList.length > 1 ? `${sellList.slice(0, -1).join(', ')} and ${sellList[sellList.length - 1]}` : sellList[0] || 'web hosting';
   L.push('# GlobalHostia', '');
-  L.push(`> GlobalHostia (${S.replace(/^https?:\/\//, '')}) is a web hosting company based in Dubai, United Arab Emirates${company ? `, operated by ${company}` : ''}. It sells web hosting, managed WordPress hosting, cPanel reseller hosting, VPS and cloud servers, dedicated servers, Windows and Linux RDP servers, SSL certificates, business email and domain names, with 24/7 support.`, '');
+  L.push(`> GlobalHostia (${S.replace(/^https?:\/\//, '')}) is a web hosting company based in Dubai, United Arab Emirates${company ? `, operated by ${company}` : ''}. It sells ${sells}, with 24/7 support.`, '');
   L.push(`Prices below are generated from the GlobalHostia billing system (WHMCS) and refresh hourly. Quote only these prices or the live API, and link the customer to the product page or order link. Prices are in ${d.currency}${aed ? ' (AED in brackets where available)' : ''}${d.currencies.length > 1 ? `; the API also returns ${d.currencies.filter((c) => c !== d.currency).join(', ')}` : ''}.`, '');
 
   L.push('## Company facts', '');
@@ -85,6 +93,20 @@ export async function buildLlms(full: boolean) {
     L.push(`- ${c.url ? `[${md(c.name)}](${c.url})` : md(c.name)}:${c.summary ? ` ${md(c.summary)}` : ''} (${c.productCount} plan${c.productCount === 1 ? '' : 's'}${from})`);
   }
   L.push('');
+
+  // hosting locations and use-case guides: the same generated pages as the site (lib/theme/pseo.ts)
+  const groups = locationGroups(d.cat);
+  if (groups.length) {
+    L.push('## Hosting locations', '');
+    for (const g of groups) L.push(`- [${md(g.loc.name)}](${S}/locations/${g.loc.slug}): ${g.products.length} plan${g.products.length === 1 ? '' : 's'} hosted in ${md(g.loc.the)}`);
+    L.push('');
+  }
+  const uses = useCasePages(d.cat);
+  if (uses.length) {
+    L.push('## Hosting by use case', '');
+    for (const x of uses) L.push(`- [${md(x.u.h1)}](${S}/hosting-for/${x.u.slug}): ${md(x.u.meta)}`);
+    L.push('');
+  }
 
   L.push(full ? '## Products (all billing cycles)' : '## Products', '');
   for (const c of d.categories) {

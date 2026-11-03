@@ -391,6 +391,11 @@ try {
       for (const [k, v] of Object.entries({ broker_fee_usd: 79, broker_commission_pct: 15, broker_min_commission_usd: 100, broker_whmcs_pid: '', broker_department_id: '' }))
         await tx`insert into settings (key,value) values (${k},${JSON.stringify(v)}::jsonb) on conflict (key) do nothing`;
     },
+    // 19. Site links (Admin → Website → Site links): category families, footer columns, TLD/use-case/location text and
+    // cart offers live in settings.site_links. Empty object = everything automatic from the catalog, built-in defaults.
+    '019-site-links-dyn': async (tx) => {
+      await tx`insert into settings (key,value) values ('site_links', ${JSON.stringify({ autoMenu: true, categoryTypes: {}, tldBlurbs: {}, useCases: {}, locations: {}, footerExtra: null, offers: { ssl: '', hosting: '' } })}::jsonb) on conflict (key) do nothing`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

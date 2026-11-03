@@ -112,7 +112,14 @@
   };
   function catBanner() {
     var m = location.pathname.match(/\/store\/([^/]+)\/?$/); if (!m || document.querySelector('.gh-catbanner')) return;
-    var info = CAT_INFO[m[1]]; if (!info) return;
+    var info = CAT_INFO[m[1]];
+    if (!info) { // a category without curated copy: use its name and description from the catalog
+      storeLinks().then(function (d) {
+        var c = (d.categories || []).filter(function (x) { return x.slug === m[1]; })[0];
+        if (c && c.desc) { CAT_INFO[m[1]] = [c.name, c.desc, IC_FOR[c.icon] || 'server']; catBanner(); }
+      });
+      return;
+    }
     var title = document.querySelector('#order-standard_cart h1, .emyui-cart-aws h1, h1.coodiv-text-4');
     if (!title) return;
     var b = document.createElement('div');
@@ -288,6 +295,12 @@
         '<div class="gh-help"><div><b>Need a hand?</b><span>Our team is available 24/7 by ticket, phone and WhatsApp.</span></div><div class="gh-help__a"><a href="' + B + '/submitticket.php">Open a ticket</a><a href="' + B + '/serverstatus.php">Network status</a><a href="' + B + '/contact.php">Contact us</a></div></div>' +
       '</div>';
     document.documentElement.classList.add('gh-is-home');
+    // order tiles follow the catalog: categories with products, in admin order (the list above is the offline fallback)
+    storeLinks().then(function (d) {
+      var list = (d.categories || []).slice(0, 6), box = document.querySelector('.gh-cats');
+      if (!box || list.length < 3) return;
+      box.innerHTML = list.map(function (c) { return '<a class="gh-cat" href="' + B + '/store/' + encodeURIComponent(c.slug) + '"><span class="gh-hex">' + svg(IC[IC_FOR[c.icon]] || IC.server) + '</span><b>' + esc(c.name) + '</b><span>' + esc(c.desc ? c.desc.split(/[.:;]/)[0].slice(0, 48) : c.products + ' plan' + (c.products === 1 ? '' : 's')) + '</span><i aria-hidden="true">→</i></a>'; }).join('');
+    });
   }
 
   /* ---------- order flow ---------- */
@@ -586,6 +599,14 @@
     }
   }
 
+  /* live store data (offers + categories) from the catalog, fetched once per page */
+  var linksP;
+  function storeLinks() {
+    if (!linksP) linksP = fetch(ORIGIN + '/api/store/links?h=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.json(); }).catch(function () { return { offers: {}, categories: [] }; });
+    return linksP;
+  }
+  var IC_FOR = { globe: 'globe', wp: 'layers', users: 'user', server: 'server', cpu: 'cpu', monitor: 'monitor', chart: 'pulse', flow: 'layers', spark: 'cpu', lock: 'shield', mail: 'chat', at: 'globe', grid: 'invoice', box: 'layers' };
+
   function cartOffers() {
     if (!/cart\.php/.test(location.pathname) || !/a=view/.test(location.search)) return;
     var items = [].slice.call(document.querySelectorAll('.secondary-cart-body .item, .view-cart-items .item, .emyui-cart-aws .row'));
@@ -593,13 +614,14 @@
     var hdr = document.querySelector('.site-header, header'); var hm = hdr && hdr.textContent.match(/\b(USD|AED|INR|GBP|EUR|SAR|CAD|AUD|SGD|MYR)\b/); var cur = hm ? hm[1] : 'USD';
     var SYM = { USD: '$', EUR: '€', GBP: '£', INR: '₹' }; var fmt = function (n) { return SYM[cur] ? SYM[cur] + n.toFixed(2) : cur + ' ' + n.toFixed(2); };
     var hasHosting = /hostia|hosting|wordpress|vps|server|rdp/.test(text), hasDomain = /domain registration|domain transfer/.test(text), hasSsl = /ssl/.test(text);
-    fetch(ORIGIN + '/api/store/specs?h=' + Math.floor(Date.now() / 6e5)).then(function (r) { return r.json(); }).then(function (all) {
-      var pick = function (slug) { var p = all[slug]; return p && p.pid && p.prices && p.prices[cur] ? p : null; };
+    // offers come from the catalog (Admin → Site links → cart offers, else the cheapest SSL / hosting plan): no pids here
+    storeLinks().then(function (d) {
+      var pick = function (p) { return p && p.pid && p.prices && p.prices[cur] ? p : null; };
       var price = function (p) { var t = p.prices[cur]; return t.monthly != null ? fmt(t.monthly) + '/mo' : t.annually != null ? fmt(t.annually) + '/yr' : ''; };
       var offers = [];
-      var ssl = pick('positivessl-dv');
+      var ssl = pick(d.offers && d.offers.ssl);
       if (hasHosting && !hasSsl && ssl) offers.push({ t: 'Add a trusted SSL certificate', d: 'Green padlock and the business trust boost for checkout pages.', p: price(ssl), h: B + '/cart.php?a=add&pid=' + ssl.pid, tag: 'Security' });
-      var lite = pick('hostia-ultra') || pick('hostia-lite');
+      var lite = pick(d.offers && d.offers.hosting);
       if (hasDomain && !hasHosting && lite) offers.push({ t: 'Add website hosting', d: 'Put your new domain online today: NVMe hosting, free SSL and email included.', p: price(lite), h: B + '/cart.php?a=add&pid=' + lite.pid, tag: 'Bundle' });
       if (hasHosting && !hasDomain) offers.push({ t: 'Add a matching domain', d: 'Register your name alongside the plan, we connect everything automatically.', p: '', h: B + '/cart.php?a=add&domain=register', tag: 'Bundle' });
       if (/monthly/.test(text)) offers.push({ t: 'Switch to yearly and save', d: 'Longer terms cost less per month and lock your price. Edit the item and pick 1, 2 or 3 years.', p: '', h: '', tag: 'Save', edit: true });

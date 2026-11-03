@@ -10,22 +10,9 @@ import { trustStrip, waLink } from '../growth';
 import { leadForm } from '../lead';
 import { siteOf, crumbsFor } from './vps';
 
-/** Category slug → product family used by the scorer. */
-export const TYPE: Record<string, string> = {
-  'hosting-usa': 'shared', 'hostia-shared': 'shared', 'hosting-singapore': 'shared',
-  'wordpress-hosting': 'wp', 'cpanel-reseller': 'reseller',
-  hostiavps: 'vps', 'high-performance-vps': 'vps',
-  'dedicated-servers': 'dedicated', 'premiumdedicated-servers': 'dedicated',
-  'windows-rdp': 'rdp', 'linux-rdp': 'rdp', 'forex-vps': 'forex', mcps: 'automation', 'ai-llm': 'ai',
-};
-export const TYPE_LABEL: Record<string, string> = {
-  shared: 'Web hosting', wp: 'WordPress hosting', reseller: 'Reseller hosting', vps: 'VPS', dedicated: 'Dedicated server',
-  rdp: 'Remote desktop (RDP)', forex: 'Forex VPS', automation: 'Automation server', ai: 'AI / LLM server',
-};
-export const TYPE_PAGE: Record<string, string> = {
-  shared: '/web-hosting', wp: '/wordpress-hosting', reseller: '/cpanel-reseller', vps: '/vps-hosting', dedicated: '/dedicated-servers',
-  rdp: '/windows-rdp', forex: '/forex-vps', automation: '/n8n-automation', ai: '/ai-llm-hosting',
-};
+// Category → family mapping lives in ../sitelinks (admin-editable; new categories are inferred).
+export { TYPE, TYPE_LABEL, TYPE_PAGE } from '../sitelinks';
+import { FINDER_FAMILIES, TYPE_LABEL, TYPE_PAGE } from '../sitelinks';
 
 /** Websites capacity from features ("10 Websites", "Unlimited websites"); 0 = unknown. */
 function sitesCap(p: TProduct) {
@@ -65,12 +52,12 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const cat = await getCatalog();
   const { currency, base, settings: s } = cat;
   const site = siteOf(cat);
-  const pool = available(cat.products.filter((p) => TYPE[p.categorySlug]));
+  const pool = available(cat.products.filter((p) => FINDER_FAMILIES.includes(p.type)));
   const data = pool.map((p) => {
     const sp = deriveSpecs(p.features, p.attributes);
     const f = fromPrice(p, currency);
     return {
-      n: p.name, t: TYPE[p.categorySlug], k: p.categorySlug, u: orderUrl(p, base, f?.cycle), d: `/p/${p.slug}`,
+      n: p.name, t: p.type, k: p.categorySlug, u: orderUrl(p, base, f?.cycle), d: `/p/${p.slug}`,
       a: f ? +f.amount.toFixed(4) : null, p: fromText(p, currency) || '', w: sitesCap(p), l: sp.location || '', os: sp.os || '',
       sp: [sp.cpu, sp.ram, sp.storage].filter(Boolean).slice(0, 3).join(' · ') || p.tagline || '',
     };

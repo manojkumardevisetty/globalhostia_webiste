@@ -9,7 +9,7 @@ import { page } from '../shell';
 import { pageHero, sectionHead, dcMap, faq, faqJsonLd, ctaBand, breadcrumbJsonLd, icon, hexIcon, fromText, available, type DC } from '../ui';
 import { trustStrip } from '../growth';
 import { siteOf, crumbsFor } from './vps';
-import { TYPE, TYPE_LABEL, TYPE_PAGE } from './planfinder';
+import { TYPE_LABEL, TYPE_PAGE, FINDER_FAMILIES } from '../sitelinks';
 import { locationGroups, typeLocPages, TYPE_LOC } from '../pseo';
 
 /** Coordinates and plain-language reach for known location labels (as used in product attributes). */
@@ -45,7 +45,7 @@ function locations(ps: TProduct[]): Loc[] {
     const k = name.toLowerCase();
     const l = map.get(k) || { name, key: k, products: [], types: [], geo };
     l.products.push(p);
-    const t = TYPE[p.categorySlug]; if (t && !l.types.includes(t)) l.types.push(t);
+    const t = p.type; if (FINDER_FAMILIES.includes(t) && !l.types.includes(t)) l.types.push(t);
     map.set(k, l);
   }
   return [...map.values()].sort((a, b) => b.products.length - a.products.length || a.name.localeCompare(b.name));
