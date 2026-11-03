@@ -192,3 +192,121 @@ export const MAX_TRANSFER_BYTES = 4 * 1024 * 1024; // Vercel request/response bo
 
 /** Only these look like text we let the customer edit in the browser. */
 export const isEditable = (name: string) => /\.(txt|html?|css|js|mjs|json|xml|php\d?|phtml|md|ini|conf|htaccess|env|ya?ml|csv|svg|py|rb|pl|sh|log|sql|tpl|twig|vue|ts|tsx|jsx)$|^\.(htaccess|user\.ini|htpasswd)$/i.test(name);
+
+/* ---------------- subdomains, aliases, redirects ---------------- */
+
+/** A subdomain label under one of the account's domains ("shop", "dev-1"); no dots, no wildcard. */
+export function subLabel(input: unknown): string {
+  const s = String(input ?? '').trim().toLowerCase();
+  if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(s)) bad('Subdomain may use letters, digits and dashes (max 63)');
+  if (s === 'www') bad('"www" is reserved');
+  return s;
+}
+
+/** URL path on the site: starts with "/", no spaces, quotes, "..", or control characters. */
+export function urlPath(input: unknown): string {
+  const s = String(input ?? '').trim();
+  if (!/^\/[A-Za-z0-9._~%!$&()*+,;=:@\/-]{0,500}$/.test(s) || s.includes('..') || s.includes('//')) bad('Path must start with / and contain no spaces or quotes');
+  return s;
+}
+
+/** Absolute http(s) URL for redirect targets / forwarders. */
+export function httpUrl(input: unknown): string {
+  const s = String(input ?? '').trim();
+  let u: URL;
+  try { u = new URL(s); } catch { return bad('Enter a full URL starting with https://'); }
+  if (!/^https?:$/.test(u.protocol) || u.username || u.password || s.length > 1000 || /[\s"'<>\\]/.test(s)) bad('Enter a full URL starting with https://');
+  domainName(u.hostname);
+  return s;
+}
+
+export const REDIRECT_TYPES = ['301', '302', '303'] as const;
+export function redirectType(input: unknown): string {
+  const s = String(input ?? '301');
+  if (!(REDIRECT_TYPES as readonly string[]).includes(s)) bad('Redirect type must be 301, 302 or 303');
+  return s;
+}
+
+/* ---------------- FTP, protected folders ---------------- */
+
+export function ftpUser(input: unknown): string {
+  const s = String(input ?? '').trim().toLowerCase();
+  if (!/^[a-z0-9](?:[a-z0-9._-]{0,30}[a-z0-9])?$/.test(s) || s.includes('..')) bad('FTP user may use letters, digits, dot, dash and underscore (max 32)');
+  return s;
+}
+
+/** Folder protection realm / label shown in the browser's login prompt. */
+export function realm(input: unknown): string {
+  const s = String(input ?? '').trim();
+  if (!s || s.length > 80 || /[\x00-\x1f\x7f"\\<>]/.test(s)) bad('Name must be 1-80 characters without quotes');
+  return s;
+}
+
+/** A plain login name for HTTP auth (protected folders). */
+export function httpUser(input: unknown): string {
+  const s = String(input ?? '').trim();
+  if (!/^[A-Za-z0-9._-]{1,32}$/.test(s)) bad('User name may use letters, digits, dot, dash and underscore (max 32)');
+  return s;
+}
+
+/* ---------------- cron ---------------- */
+
+const CRON_RANGES = { minute: [0, 59], hour: [0, 23], dayofmonth: [1, 31], month: [1, 12], dayofweek: [0, 7] } as const;
+export type CronField = keyof typeof CRON_RANGES;
+export const CRON_FIELDS = Object.keys(CRON_RANGES) as CronField[];
+
+/** Strict numeric cron field: "*", "5", "1-5", "*\/15", "0-30/10", "1,15,30" within the field's range. */
+export function cronField(input: unknown, field: CronField): string {
+  const s = String(input ?? '').trim();
+  const [lo, hi] = CRON_RANGES[field];
+  if (!s || s.length > 60) bad(`Invalid ${field}`);
+  for (const part of s.split(',')) {
+    const m = /^(\*|(\d{1,2})(?:-(\d{1,2}))?)(?:\/(\d{1,2}))?$/.exec(part);
+    if (!m) bad(`Invalid ${field}: use numbers, *, ranges (1-5), lists (1,2) or steps (*/15)`);
+    const a = m![2] !== undefined ? Number(m![2]) : lo, b = m![3] !== undefined ? Number(m![3]) : m![2] !== undefined ? a : hi;
+    const step = m![4] !== undefined ? Number(m![4]) : 1;
+    if (a < lo || b > hi || a > b || step < 1 || step > hi) bad(`${field} must be within ${lo}-${hi}`);
+  }
+  return s;
+}
+
+/** Command: free text (it runs as the account user), single line, bounded. */
+export function cronCommand(input: unknown): string {
+  const s = String(input ?? '').trim();
+  if (!s || s.length > 1000) bad('Command must be 1-1000 characters');
+  if (/[\x00-\x1f\x7f]/.test(s)) bad('Command must be a single line');
+  return s;
+}
+
+/* ---------------- email extras ---------------- */
+
+export function messageText(input: unknown, max = 4000): string {
+  const s = String(input ?? '').replace(/\r\n/g, '\n');
+  if (!s.trim() || s.length > max) bad(`Message must be 1-${max} characters`);
+  if (/[\x00-\x08\x0b-\x1f\x7f]/.test(s)) bad('Message contains invalid characters');
+  return s;
+}
+
+/** YYYY-MM-DD, within a sane window. */
+export function isoDate(input: unknown, label = 'Date'): { y: number; m: number; d: number } {
+  const s = String(input ?? '').trim();
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) bad(`${label} must be a date`);
+  const y = Number(m![1]), mo = Number(m![2]), d = Number(m![3]);
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  if (dt.getUTCMonth() !== mo - 1 || y < 2000 || y > 2100) bad(`${label} is not a valid date`);
+  return { y, m: mo, d };
+}
+
+export const SPAM_WHERE = ['inbox', 'spamfolder', 'userspamfolder', 'delete'] as const;
+export interface SpamInput { enabled: boolean; threshold: number; where: (typeof SPAM_WHERE)[number]; highScore: number; highScoreBlock: boolean }
+export function spamSettings(input: any): SpamInput {
+  const enabled = !!input?.enabled;
+  const threshold = Number(input?.threshold ?? 5);
+  if (!Number.isFinite(threshold) || threshold < 1 || threshold > 50) bad('Spam score must be between 1 and 50');
+  const where = String(input?.where || 'inbox') as SpamInput['where'];
+  if (!SPAM_WHERE.includes(where)) bad('Choose where spam goes');
+  const highScore = Number(input?.highScore ?? 15);
+  if (!Number.isInteger(highScore) || highScore < 1 || highScore > 100) bad('High score must be a whole number 1-100');
+  return { enabled, threshold: Math.round(threshold * 10) / 10, where, highScore, highScoreBlock: !!input?.highScoreBlock };
+}

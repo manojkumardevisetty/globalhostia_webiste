@@ -69,7 +69,30 @@ CMD_API_DATABASES
 CMD_API_DB_USER
 CMD_API_SSL
 CMD_API_SITE_BACKUP
+CMD_API_SHOW_USER_USAGE
+CMD_API_SHOW_USER_CONFIG
+CMD_API_SUBDOMAINS
+CMD_API_DOMAIN_POINTER
+CMD_API_REDIRECT
+CMD_API_ADDITIONAL_DOMAINS
+CMD_API_DOMAIN
+CMD_API_EMAIL_AUTORESPONDER
+CMD_API_EMAIL_VACATION
+CMD_API_SPAMASSASSIN
+CMD_API_FTP
+CMD_API_CRON_JOBS
 ```
+
+The last twelve were added with the second feature set (Overview, subdomains, aliases, redirects, PHP version,
+autoresponders, vacation, spam filter, FTP, cron, protected folders). If you created the key before, edit it and tick them.
+Notes:
+- `CMD_API_SHOW_USER_USAGE` / `CMD_API_SHOW_USER_CONFIG` (Overview) are sent as the key owner with `user=<account>`, not via login-as.
+- `CMD_API_DOMAIN` also covers creating/deleting domains in DirectAdmin; our API only ever sends `action=php_selector`
+  for a domain the account owns. `CMD_API_ADDITIONAL_DOMAINS` is only used with `action=view` to read PHP versions.
+- Protected folders are set with `CMD_API_FILE_MANAGER` (`action=protect`, already allowed). The list of protected
+  folders and the WordPress list come from DirectAdmin's JSON API (`GET /api/web-protect/list`,
+  `GET /api/wordpress/locations`). If your key's command restrictions block `/api/*`, the panel still lets customers
+  protect folders but cannot list existing ones, and the WordPress tab is hidden.
 
 Never tick `ALL_USER`, `ALL_RESELLER`, `ALL_ADMIN`, `CMD_LOGIN_KEYS` or `CMD_API_LOGIN_KEYS` (those can read or change keys).
 `CMD_API_SHOW_USERS` is only used by the admin **Test connection** button.
@@ -155,6 +178,22 @@ Troubleshooting
 | Issue SSL | Let's Encrypt (CMD_API_SSL) | AutoSSL run | Let's Encrypt extension via CLI gateway |
 | Backups list/create | yes | yes (fullbackup_to_homedir) | not offered |
 | Backup restore | yes | not offered | not offered |
+| Overview (disk, bandwidth, inodes, counts vs limits) | yes | yes (ResourceUsage) | not offered |
+| Subdomains | yes | yes | not offered |
+| Domain aliases / pointers | yes | not offered | not offered |
+| Redirects | yes | yes (Mime) | not offered |
+| PHP version per domain | yes (PHP selector slots) | yes (MultiPHP, LangPHP) | not offered |
+| Autoresponders | yes | yes (no CC copy) | not offered |
+| Vacation messages | yes | not offered | not offered |
+| Spam filter (SpamAssassin) | yes | not offered | not offered |
+| FTP accounts | yes | yes | not offered |
+| Cron jobs | yes | yes (API 2 Cron) | not offered |
+| Protected folders | yes | not offered | not offered |
+| WordPress sites (list) | when DirectAdmin's WordPress manager answers | not offered | not offered |
+
+WordPress one-click install is not offered yet: Softaculous / Installatron have no documented per-user API we could
+verify, and DirectAdmin's own `/api/wordpress/install-quick` request body is not documented publicly. Customers install
+from the control panel; the site then appears in the WordPress tab.
 
 The panel hides tabs and buttons a server type does not support. The provider interface (`lib/hosting/types.ts`)
 has room for a future VPS adapter (power, reboot, reinstall, console) for modules such as SBVPS.

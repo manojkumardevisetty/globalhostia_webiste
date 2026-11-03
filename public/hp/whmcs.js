@@ -879,7 +879,7 @@
   } catch (e) {}
 })();
 
-// Manage hosting: tabbed DNS / Email / Files / Databases / SSL / Backups panel on the service details page.
+// Manage hosting: Overview + grouped tools (Domains, Email, Files, Databases, Advanced) on the service details page.
 // Shown only when the WHMCS hook (docs/whmcs/globalhostia_hosting_hook.php) printed window.GH_HOSTING for an Active
 // DirectAdmin / cPanel / Plesk service owned by the signed-in client. Talks to ORIGIN/api/hosting/* with that token in
 // the Authorization header (no cookies). The panel's own "Login to DirectAdmin" button is left in place as a fallback.
@@ -901,10 +901,23 @@
     folder: 'M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z', file: 'M6 3h8l4 4v14H6zM14 3v4h4',
     refresh: 'M20 11a8 8 0 10-2.3 5.7M20 4v7h-7', fwd: 'M4 12h14M13 6l6 6-6 6', user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0',
     shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', alert: 'M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z',
-    x: 'M6 6l12 12M18 6L6 18', rename: 'M9 4h6M9 20h6M12 4v16M4 9l-2 3 2 3M20 9l2 3-2 3', ext: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6', gauge: 'M4 18a8 8 0 1116 0M12 18l4-6'
+    x: 'M6 6l12 12M18 6L6 18', overview: 'M4 18a8 8 0 1116 0M12 18l4-6', subdomains: 'M6 3v12a3 3 0 003 3h9M14 14l4 4-4 4',
+    aliases: 'M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1', redirects: 'M4 12h14M13 6l6 6-6 6',
+    php: 'M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14', forwarders: 'M4 6h11M4 12h7M4 18h11M15 9l4 3-4 3', autoresponders: 'M9 7L4 12l5 5M4 12h11a5 5 0 015 5v2',
+    spam: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l6 0', ftp: 'M4 8h16v12H4zM8 4h8M12 11v6M9 14l3 3 3-3', protect: 'M6 11h12v10H6zM8 11V7a4 4 0 018 0v4M12 15v2',
+    cron: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2', wordpress: 'M12 3a9 9 0 100 18 9 9 0 000-18zM6 8l3.5 10L12 11l2.5 7L18 8', rename: 'M9 4h6M9 20h6M12 4v16M4 9l-2 3 2 3M20 9l2 3-2 3', ext: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6', gauge: 'M4 18a8 8 0 1116 0M12 18l4-6'
   };
   function ic(n, sz) { return '<svg viewBox="0 0 24 24" width="' + (sz || 16) + '" height="' + (sz || 16) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' + I[n] + '"/></svg>'; }
-  var TABS = [['dns', 'DNS'], ['email', 'Email'], ['files', 'Files'], ['databases', 'Databases'], ['ssl', 'SSL'], ['backups', 'Backups']];
+  // [group label, [[view, label, capability section, sub-cap]]]
+  var NAV = [
+    ['', [['overview', 'Overview', 'overview']]],
+    ['Domains', [['dns', 'DNS', 'dns'], ['subdomains', 'Subdomains', 'subdomains'], ['aliases', 'Aliases', 'aliases'], ['redirects', 'Redirects', 'redirects'], ['ssl', 'SSL', 'ssl'], ['php', 'PHP version', 'php']]],
+    ['Email', [['email', 'Mailboxes', 'email', 'list'], ['forwarders', 'Forwarders', 'email', 'forwarders'], ['autoresponders', 'Autoresponders', 'autoresponders'], ['spam', 'Spam filter', 'spam']]],
+    ['Files', [['files', 'File manager', 'files'], ['ftp', 'FTP accounts', 'ftp'], ['protect', 'Protected folders', 'protect']]],
+    ['Data', [['databases', 'Databases', 'databases']]],
+    ['Advanced', [['cron', 'Cron jobs', 'cron'], ['backups', 'Backups', 'backups'], ['wordpress', 'WordPress', 'wordpress']]]
+  ];
+  var DOMAIN_VIEWS = { dns: 1, subdomains: 1, aliases: 1, redirects: 1, php: 1, email: 1, forwarders: 1, autoresponders: 1, spam: 1, ftp: 1, protect: 1 };
   var bytes = function (n) { n = +n || 0; return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : n < 1073741824 ? (n / 1048576).toFixed(1) + ' MB' : (n / 1073741824).toFixed(2) + ' GB'; };
   var when = function (s) { if (!s) return ''; var d = new Date(s); return isNaN(d) ? esc(s) : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }); };
   function genPass() {
@@ -938,8 +951,8 @@
     root.innerHTML =
       '<header class="ghh__head"><span class="ghh__mark" aria-hidden="true">' + ic('gauge', 20) + '</span><div class="ghh__ttl"><h2 id="ghh-title">Manage hosting</h2><p class="ghh__sub" data-sub>Connecting to your hosting account</p></div>' +
       '<div class="ghh__dom" data-dom hidden><label for="ghh-dom">Domain</label><select id="ghh-dom" data-domsel></select></div></header>' +
-      '<div class="ghh__tabs" role="tablist" aria-label="Hosting tools" data-tabs></div>' +
-      '<div class="ghh__body" role="tabpanel" tabindex="-1" data-body aria-live="polite"></div>' +
+      '<div class="ghh__wrap"><nav class="ghh__nav" aria-label="Hosting tools" data-tabs></nav>' +
+      '<div class="ghh__body" id="ghh-panel" tabindex="-1" data-body aria-live="polite"></div></div>' +
       '<div class="ghh__toasts" aria-live="polite" aria-atomic="false" data-toasts></div>';
     var $ = function (s) { return root.querySelector(s); };
     var body = $('[data-body]');
@@ -1031,16 +1044,20 @@
       var sel = $('[data-domsel]');
       sel.innerHTML = s.domains.map(function (d) { return '<option' + (d === S.domain ? ' selected' : '') + '>' + esc(d) + '</option>'; }).join('');
       sel.onchange = function () { S.domain = sel.value; S.cache = {}; show(S.tab); };
-      var tabs = TABS.filter(function (t) { return s.caps[t[0]] && s.caps[t[0]].length; });
+      var vis = function (it) { var c = s.caps[it[2]]; return !!(c && c.length && (!it[3] || c.indexOf(it[3]) >= 0)); };
+      var groups = NAV.map(function (g) { return [g[0], g[1].filter(vis)]; }).filter(function (g) { return g[1].length; });
+      var tabs = [].concat.apply([], groups.map(function (g) { return g[1]; }));
       var tl = $('[data-tabs]');
-      tl.innerHTML = tabs.map(function (t, i) { return '<button type="button" role="tab" id="ghh-tab-' + t[0] + '" aria-controls="ghh-panel" aria-selected="false" tabindex="-1" data-tab="' + t[0] + '">' + ic(t[0], 17) + '<span>' + t[1] + '</span></button>'; }).join('');
-      body.id = 'ghh-panel';
-      tl.onclick = function (e) { var b = e.target.closest('[data-tab]'); if (b) show(b.getAttribute('data-tab'), true); };
+      tl.innerHTML = groups.map(function (g) {
+        return '<div class="ghh-nav__grp"' + (g[0] ? ' role="group" aria-label="' + esc(g[0]) + '"' : '') + '>' + (g[0] ? '<span class="ghh-nav__h" aria-hidden="true">' + esc(g[0]) + '</span>' : '') +
+          g[1].map(function (t) { return '<button type="button" class="ghh-nav__it" id="ghh-tab-' + t[0] + '" aria-controls="ghh-panel" aria-current="false" data-tab="' + t[0] + '">' + ic(t[0], 16) + '<span>' + esc(t[1]) + '</span></button>'; }).join('') + '</div>';
+      }).join('');
+      tl.onclick = function (e) { var b = e.target.closest('[data-tab]'); if (b) show(b.getAttribute('data-tab')); };
       tl.onkeydown = function (e) {
-        var bs = [].slice.call(tl.querySelectorAll('[role=tab]')), i = bs.indexOf(document.activeElement);
+        var bs = [].slice.call(tl.querySelectorAll('[data-tab]')), i = bs.indexOf(document.activeElement);
         if (i < 0) return;
-        var n = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? bs.length - 1 : null;
-        if (n === null) return; e.preventDefault(); n = (n + bs.length) % bs.length; bs[n].focus(); show(bs[n].getAttribute('data-tab'));
+        var n = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? i + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? bs.length - 1 : null;
+        if (n === null) return; e.preventDefault(); n = (n + bs.length) % bs.length; bs[n].focus();
       };
       var want = (location.hash.match(/^#hosting-(\w+)/) || [])[1];
       show(tabs.some(function (t) { return t[0] === want; }) ? want : tabs[0] ? tabs[0][0] : null);
@@ -1052,12 +1069,14 @@
     function show(tab, focus) {
       if (!tab) { body.innerHTML = empty('shield', 'No tools available', 'This hosting panel does not offer any self-service tools here yet. Use the control panel button instead.'); return; }
       S.tab = tab;
-      [].forEach.call(root.querySelectorAll('[role=tab]'), function (b) { var on = b.getAttribute('data-tab') === tab; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+      [].forEach.call(root.querySelectorAll('[data-tab]'), function (b) { var on = b.getAttribute('data-tab') === tab; b.setAttribute('aria-current', on ? 'page' : 'false'); if (on && b.scrollIntoView && b.parentNode.parentNode.scrollWidth > b.parentNode.parentNode.clientWidth) b.scrollIntoView({ block: 'nearest', inline: 'center' }); });
       body.setAttribute('aria-labelledby', 'ghh-tab-' + tab);
-      $('[data-dom]').hidden = !(tab === 'dns' || tab === 'email') || S.session.domains.length < 2;
+      $('[data-dom]').hidden = !DOMAIN_VIEWS[tab] || S.session.domains.length < 2;
       try { history.replaceState(null, '', '#hosting-' + tab); } catch (e) {}
-      ({ dns: dns, email: email, files: files, databases: databases, ssl: ssl, backups: backups })[tab]();
-      if (focus) { var b = root.querySelector('[data-tab="' + tab + '"]'); if (b) b.focus(); }
+      bindAll = function () {};
+      ({ overview: overview, dns: dns, subdomains: subdomains, aliases: aliases, redirects: redirects, php: php, email: email, forwarders: email, autoresponders: autoresponders, spam: spam,
+        files: files, ftp: ftp, protect: protect, databases: databases, cron: cron, ssl: ssl, backups: backups, wordpress: wordpress })[tab]();
+      if (focus) body.focus({ preventScroll: true });
     }
 
     /* ------------------------------------------------------------ DNS */
@@ -1120,14 +1139,14 @@
 
     /* ------------------------------------------------------------ Email */
     function email() {
-      var d = S.domain;
-      body.innerHTML = bar('Email accounts', 'Mailboxes on <b>' + esc(d) + '</b>.', can('email', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add>' + ic('plus') + ' New mailbox</button>' : '') +
-        '<div data-slot></div><div data-list>' + skel(3) + '</div>' +
-        (can('email', 'forwarders') ? '<div class="ghh-sep"></div>' + bar('Forwarders', 'Send mail for an address on to another inbox.', '<button type="button" class="ghh-btn" data-addf>' + ic('fwd') + ' New forwarder</button>') + '<div data-fslot></div><div data-flist>' + skel(2) + '</div>' : '');
+      var d = S.domain, fw = S.tab === 'forwarders';
+      body.innerHTML = fw ? bar('Forwarders', 'Send mail for an address on <b>' + esc(d) + '</b> on to another inbox.', '<button type="button" class="ghh-btn ghh-btn--pri" data-addf>' + ic('plus') + ' New forwarder</button>') + '<div data-fslot></div><div data-flist>' + skel(2) + '</div>'
+        : bar('Mailboxes', 'Email accounts on <b>' + esc(d) + '</b>.', can('email', 'create') ? '<button type="button" class="ghh-btn ghh-btn--pri" data-add>' + ic('plus') + ' New mailbox</button>' : '') + '<div data-slot></div><div data-list>' + skel(3) + '</div>';
       var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), boxes = [], fwds = [];
       var flist = body.querySelector('[data-flist]'), fslot = body.querySelector('[data-fslot]');
       var load = function () {
-        if (!can('email', 'list')) { list.innerHTML = empty('email', 'Create and manage mailboxes', 'Your panel does not list mailboxes here; you can still create them, change passwords and quotas.'); }
+        if (!list) { /* forwarders view */ }
+        else if (!can('email', 'list')) { list.innerHTML = empty('email', 'Create and manage mailboxes', 'Your panel does not list mailboxes here; you can still create them, change passwords and quotas.'); }
         else api('email', { domain: d }).then(function (r) { boxes = r.mailboxes; render(); }, function (e) { fail(e, list); retryOn(list, load); });
         if (flist) api('email', { domain: d, op: 'forwarders' }).then(function (r) { fwds = r.forwarders; renderF(); }, function (e) { fail(e, flist); retryOn(flist, load); });
       };
@@ -1147,7 +1166,7 @@
         bindAll();
       };
       var renderF = function () {
-        if (!fwds.length) { flist.innerHTML = '<p class="ghh-note">No forwarders on ' + esc(d) + '.</p>'; return; }
+        if (!fwds.length) { flist.innerHTML = empty('forwarders', 'No forwarders yet', 'Forward sales@' + d + ' to your personal inbox, or to several people at once.'); return; }
         flist.innerHTML = '<ul class="ghh-fwd">' + fwds.map(function (f, i) {
           return '<li><b>' + esc(f.email) + '</b><span class="ghh-arrow" aria-hidden="true">' + ic('fwd', 14) + '</span><span class="ghh-chips">' + f.to.map(function (t, j) { return '<span class="ghh-chip">' + esc(t) + '<button type="button" data-fi="' + i + '" data-fj="' + j + '" aria-label="Remove forwarding to ' + esc(t) + '">' + ic('x', 12) + '</button></span>'; }).join('') + '</span></li>';
         }).join('') + '</ul>';
@@ -1291,6 +1310,243 @@
       };
       var add = body.querySelector('[data-add]'); if (add) add.onclick = create;
       load();
+    }
+
+    /* ------------------------------------------------------------ shared: simple list views */
+    function addBtn(label, attr) { return '<button type="button" class="ghh-btn ghh-btn--pri" ' + (attr || 'data-add') + '>' + ic('plus') + ' ' + esc(label) + '</button>'; }
+    function table(cols, rows) {
+      return '<div class="ghh-tw"><table class="ghh-t"><thead><tr>' + cols.map(function (c) { return '<th scope="col">' + (c ? esc(c) : '<span class="ghh-sr">Actions</span>') + '</th>'; }).join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
+    }
+    function delCell(i, label) { return '<td class="ghh-act" data-i="' + i + '"><button type="button" class="ghh-icon ghh-icon--danger" data-del aria-label="' + esc(label) + '">' + ic('trash') + '</button></td>'; }
+    /** Generic list view: cfg = { section, title, sub, addLabel, emptyIcon, emptyTitle, emptyText, query, pick(r), render(items) -> rows[], cols, form() -> [title, fields, submit], submit(v) -> json, del(item) -> [question, json], canAdd, canDel } */
+    function listView(cfg) {
+      body.innerHTML = bar(cfg.title, cfg.sub, cfg.canAdd ? addBtn(cfg.addLabel) : '') + (cfg.extraTop || '') + '<div data-slot></div><div data-list>' + skel(3) + '</div>' + (cfg.after || '');
+      var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), items = [];
+      var load = function () {
+        list.innerHTML = skel(3);
+        api(cfg.section, cfg.query || null).then(function (r) { items = cfg.pick(r); render(); }, function (e) { if (cfg.onError) return cfg.onError(e, list, open); fail(e, list); retryOn(list, load); });
+      };
+      var open = function () { var f = cfg.form(); formPanel(slot, f[0], f[1], f[2], function (v) { return api(cfg.section, null, { json: cfg.submit(v) }).then(function (r) { toast(r.message); load(); }); }); if (cfg.afterForm) cfg.afterForm(slot.querySelector('form')); };
+      var render = function () {
+        if (!items.length) { list.innerHTML = empty(cfg.emptyIcon, cfg.emptyTitle, cfg.emptyText, cfg.canAdd ? addBtn(cfg.addLabel, 'data-add2') : ''); var a2 = list.querySelector('[data-add2]'); if (a2) a2.onclick = open; return; }
+        list.innerHTML = table(cfg.cols, cfg.render(items));
+        bindAll();
+      };
+      bindAll = function () {
+        [].forEach.call(list.querySelectorAll('[data-del]'), function (b) {
+          b.onclick = function () {
+            var cell = b.closest('[data-i]'), it = items[+cell.getAttribute('data-i')], q = cfg.del(it);
+            confirmIn(cell, q[0], q[2] || 'Delete', function (back) { api(cfg.section, null, { json: q[1] }).then(function (r) { toast(r.message); load(); }, function (e) { fail(e); back(); }); });
+          };
+        });
+        if (cfg.bind) cfg.bind(list, items, slot, load);
+      };
+      var add = body.querySelector('[data-add]'); if (add) add.onclick = open;
+      load();
+      return { load: load };
+    }
+    var mb = function (n) { return n >= 1024 ? (n / 1024).toFixed(n >= 10240 ? 0 : 1) + ' GB' : (Math.round(n * 10) / 10) + ' MB'; };
+
+    /* ------------------------------------------------------------ Overview */
+    function overview() {
+      body.innerHTML = bar('Overview', 'Your hosting plan usage at a glance.', '<button type="button" class="ghh-btn" data-re>' + ic('refresh') + ' Refresh</button>') + '<div data-list>' + skel(4) + '</div>';
+      var list = body.querySelector('[data-list]');
+      var load = function () {
+        list.innerHTML = skel(4);
+        api('overview').then(function (r) {
+          var meta = [r.plan ? ['Plan', r.plan] : null, r.ip ? ['IP address', r.ip] : null, ['Username', S.session.username], S.session.server ? ['Server', S.session.server] : null].filter(Boolean);
+          var big = r.items.filter(function (x) { return x.unit === 'MB' || x.key === 'inode'; }), small = r.items.filter(function (x) { return !(x.unit === 'MB' || x.key === 'inode'); });
+          var card = function (x, lg) {
+            var pct = x.limit ? Math.min(100, Math.round(x.used / x.limit * 100)) : 0, fmt = x.unit === 'MB' ? mb : function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+            return '<div class="ghh-stat' + (lg ? ' ghh-stat--lg' : '') + (pct >= 90 ? ' is-high' : '') + '"><span class="ghh-stat__l">' + esc(x.label) + '</span><b>' + esc(fmt(x.used)) + '</b><span class="ghh-stat__of">' + (x.limit ? 'of ' + esc(fmt(x.limit)) : 'Unlimited') + '</span>' +
+              '<div class="ghh-meter" role="meter" aria-label="' + esc(x.label) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + (x.limit ? Math.max(pct, 2) : 2) + '%"></i></div>' + (x.limit ? '<span class="ghh-stat__pct">' + pct + '% used</span>' : '') + '</div>';
+          };
+          var quick = [['email', 'Create a mailbox'], ['dns', 'Edit DNS records'], ['files', 'Open file manager'], ['backups', 'Make a backup']].filter(function (q) { return root.querySelector('[data-tab=' + q[0] + ']'); });
+          list.innerHTML = (r.suspended ? '<div class="ghh-alert" role="alert">' + ic('alert', 18) + '<span>This hosting account is suspended. Contact support to restore it.</span></div>' : '') +
+            '<dl class="ghh-meta">' + meta.map(function (m) { return '<div><dt>' + esc(m[0]) + '</dt><dd>' + esc(m[1]) + '</dd></div>'; }).join('') + '</dl>' +
+            (big.length ? '<div class="ghh-stats ghh-stats--lg">' + big.map(function (x) { return card(x, true); }).join('') + '</div>' : '') +
+            (small.length ? '<div class="ghh-stats">' + small.map(function (x) { return card(x); }).join('') + '</div>' : '') +
+            (quick.length ? '<h4 class="ghh-h4">Quick actions</h4><div class="ghh-quick">' + quick.map(function (q) { return '<button type="button" class="ghh-quick__it" data-go-tab="' + q[0] + '"><span class="ghh-ficon ghh-ficon--db">' + ic(q[0], 16) + '</span>' + esc(q[1]) + '<i aria-hidden="true">' + ic('redirects', 14) + '</i></button>'; }).join('') + '</div>' : '');
+          [].forEach.call(list.querySelectorAll('[data-go-tab]'), function (b) { b.onclick = function () { show(b.getAttribute('data-go-tab'), true); }; });
+        }, function (e) { fail(e, list); retryOn(list, load); });
+      };
+      body.querySelector('[data-re]').onclick = load;
+      load();
+    }
+
+    /* ------------------------------------------------------------ Subdomains, aliases, redirects */
+    function subdomains() {
+      var d = S.domain;
+      listView({ section: 'subdomains', query: { domain: d }, title: 'Subdomains', sub: 'Extra sites like <b>shop.' + esc(d) + '</b>, each with its own folder.', addLabel: 'New subdomain', canAdd: can('subdomains', 'add'),
+        emptyIcon: 'subdomains', emptyTitle: 'No subdomains yet', emptyText: 'Create blog.' + d + ' or shop.' + d + ' for a separate site.', cols: ['Subdomain', 'Folder', ''],
+        pick: function (r) { return r.subdomains; },
+        render: function (xs) { return xs.map(function (x, i) { return '<tr><td data-l="Subdomain"><b class="ghh-strong">' + esc(x + '.' + d) + '</b></td><td data-l="Folder"><code>domains/' + esc(d) + '/public_html/' + esc(x) + '</code></td>' + (can('subdomains', 'delete') ? delCell(i, 'Delete ' + x + '.' + d) : '<td></td>') + '</tr>'; }); },
+        form: function () { return ['New subdomain', fld('label', 'Subdomain', { required: true, suffix: '.' + d, placeholder: 'shop', wide: true }), 'Create subdomain']; },
+        submit: function (v) { return { op: 'add', domain: d, label: v.label }; },
+        del: function (x) { return ['Delete ' + x + '.' + d + '? Its files stay in your account.', { op: 'delete', domain: d, label: x, contents: false }]; } });
+    }
+    function aliases() {
+      var d = S.domain;
+      listView({ section: 'aliases', query: { domain: d }, title: 'Domain aliases', sub: 'Other domains that show the same website as <b>' + esc(d) + '</b>. Point the alias domain\'s DNS to this server first.', addLabel: 'Add alias', canAdd: can('aliases', 'add'),
+        emptyIcon: 'aliases', emptyTitle: 'No aliases yet', emptyText: 'Make ' + d.replace(/\.[^.]+$/, '') + '.net open the same site as ' + d + '.', cols: ['Domain', 'Type', ''],
+        pick: function (r) { return r.aliases; },
+        render: function (xs) { return xs.map(function (x, i) { return '<tr><td data-l="Domain"><b class="ghh-strong">' + esc(x.name) + '</b></td><td data-l="Type">' + (x.type === 'alias' ? '<span class="ghh-pill ghh-pill--ok">Alias (same site)</span>' : '<span class="ghh-pill ghh-pill--muted">Redirect to ' + esc(d) + '</span>') + '</td>' + (can('aliases', 'delete') ? delCell(i, 'Remove ' + x.name) : '<td></td>') + '</tr>'; }); },
+        form: function () { return ['Add a domain alias', fld('name', 'Alias domain', { required: true, placeholder: 'example.net' }) + fld('alias', 'Behaviour', { options: [['yes', 'Show the same website'], ['no', 'Redirect visitors to ' + d]], value: 'yes' }), 'Add alias']; },
+        submit: function (v) { return { op: 'add', domain: d, name: v.name, alias: v.alias !== 'no' }; },
+        del: function (x) { return ['Remove alias ' + x.name + '?', { op: 'delete', domain: d, name: x.name }, 'Remove']; } });
+    }
+    function redirects() {
+      var d = S.domain;
+      listView({ section: 'redirects', query: { domain: d }, title: 'Redirects', sub: 'Send visitors from an old address on <b>' + esc(d) + '</b> to a new one.', addLabel: 'New redirect', canAdd: can('redirects', 'add'),
+        emptyIcon: 'redirects', emptyTitle: 'No redirects yet', emptyText: 'Moved a page? Redirect /old-page to its new address so links and search rankings keep working.', cols: ['From', 'To', 'Type', ''],
+        pick: function (r) { return r.redirects; },
+        render: function (xs) { return xs.map(function (x, i) { return '<tr><td data-l="From"><code>' + esc(d + x.path) + '</code></td><td data-l="To" class="ghh-wrap"><code>' + esc(x.to) + '</code></td><td data-l="Type"><span class="ghh-pill ghh-pill--muted">' + esc(x.type) + (x.type === '301' ? ' permanent' : ' temporary') + '</span></td>' + (can('redirects', 'delete') ? delCell(i, 'Delete redirect ' + x.path) : '<td></td>') + '</tr>'; }); },
+        form: function () { return ['New redirect', fld('path', 'From path', { required: true, prefix: d, placeholder: '/old-page' }) + fld('to', 'To address', { required: true, type: 'url', placeholder: 'https://' + d + '/new-page' }) + fld('type', 'Type', { options: [['301', '301 Permanent (best for SEO)'], ['302', '302 Temporary'], ['303', '303 See other']], value: '301', wide: true }), 'Add redirect']; },
+        submit: function (v) { return { op: 'add', domain: d, path: v.path.charAt(0) === '/' ? v.path : '/' + v.path, to: v.to, type: v.type }; },
+        del: function (x) { return ['Delete the redirect from ' + x.path + '?', { op: 'delete', domain: d, path: x.path }]; } });
+    }
+
+    /* ------------------------------------------------------------ PHP */
+    function php() {
+      var d = S.domain;
+      body.innerHTML = bar('PHP version', 'Choose the PHP version <b>' + esc(d) + '</b> runs on. Check your site after switching.', '') + '<div data-list>' + skel(2) + '</div>';
+      var list = body.querySelector('[data-list]');
+      var load = function () {
+        list.innerHTML = skel(2);
+        api('php', { domain: d }).then(function (r) {
+          if (!r.options.length) { list.innerHTML = empty('php', 'Only one PHP version', 'This server offers a single PHP version for ' + d + '.'); return; }
+          list.innerHTML = '<form class="ghh-php" data-f><fieldset><legend class="ghh-sr">PHP version for ' + esc(d) + '</legend><div class="ghh-choices">' + r.options.map(function (o) {
+            var on = o.id === r.current;
+            return '<label class="ghh-choice' + (on ? ' is-on' : '') + '"><input type="radio" name="php" value="' + esc(o.id) + '"' + (on ? ' checked' : '') + (can('php', 'set') ? '' : ' disabled') + '><span class="ghh-choice__mk" aria-hidden="true"></span><span class="ghh-choice__tx"><b>' + esc(o.label) + '</b>' + (on ? '<em>Current</em>' : '') + '</span></label>';
+          }).join('') + '</div></fieldset>' + (can('php', 'set') ? '<div class="ghh-form__foot"><button type="submit" class="ghh-btn ghh-btn--pri" disabled>Switch version</button></div>' : '') + '</form>';
+          var f = list.querySelector('form'), sb = f.querySelector('[type=submit]');
+          f.onchange = function () { [].forEach.call(f.querySelectorAll('.ghh-choice'), function (l) { l.classList.toggle('is-on', l.querySelector('input').checked); }); if (sb) sb.disabled = (f.php.value || '') === r.current; };
+          f.onsubmit = function (e) { e.preventDefault(); busy(sb, true); api('php', null, { json: { op: 'set', domain: d, id: f.php.value } }).then(function (x) { toast(x.message); load(); }, function (er) { busy(sb, false); fail(er); }); };
+        }, function (e) { fail(e, list); retryOn(list, load); });
+      };
+      load();
+    }
+
+    /* ------------------------------------------------------------ Autoresponders + vacation */
+    function autoresponders() {
+      var d = S.domain, vac = can('autoresponders', 'vacation');
+      body.innerHTML = bar('Autoresponders', 'Automatic replies for addresses on <b>' + esc(d) + '</b>.', can('autoresponders', 'create') ? addBtn('New autoresponder') : '') + '<div data-slot></div><div data-list>' + skel(2) + '</div>' +
+        (vac ? '<div class="ghh-sep"></div>' + bar('Vacation messages', 'Replies that run only between two dates, then switch off by themselves.', addBtn('New vacation message', 'data-addv')) + '<div data-vslot></div><div data-vlist>' + skel(2) + '</div>' : '');
+      var list = body.querySelector('[data-list]'), slot = body.querySelector('[data-slot]'), vlist = body.querySelector('[data-vlist]'), vslot = body.querySelector('[data-vslot]'), A = [], V = [];
+      var load = function () {
+        api('autoresponders', { domain: d }).then(function (r) { A = r.autoresponders; V = r.vacations || []; render(); }, function (e) { fail(e, list); retryOn(list, load); if (vlist) vlist.innerHTML = ''; });
+      };
+      var newA = function () { formPanel(slot, 'New autoresponder', fld('user', 'For address', { required: true, suffix: '@' + d, placeholder: 'info' }) + fld('cc', 'Send a copy to (optional)', { type: 'email', placeholder: 'you@example.com' }) + fld('text', 'Reply message', { area: true, required: true, wide: true }), 'Save autoresponder', function (v) { return api('autoresponders', null, { json: { op: 'create', domain: d, user: v.user, cc: v.cc, text: v.text } }).then(function (r) { toast(r.message); load(); }); }); };
+      var today = new Date().toISOString().slice(0, 10), week = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+      var newV = function () { formPanel(vslot, 'New vacation message', fld('user', 'For address', { required: true, suffix: '@' + d, placeholder: 'info', wide: true }) + fld('start', 'From', { type: 'date', value: today, required: true }) + fld('end', 'Until', { type: 'date', value: week, required: true }) + fld('text', 'Message', { area: true, required: true, wide: true, value: 'Thanks for your email. I am away and will reply when I am back.' }), 'Save vacation message', function (v) { return api('autoresponders', null, { json: { op: 'vacation', domain: d, user: v.user, start: v.start, end: v.end, text: v.text } }).then(function (r) { toast(r.message); load(); }); }); };
+      var render = function () {
+        list.innerHTML = A.length ? table(['Address', 'Copy sent to', ''], A.map(function (x, i) { return '<tr><td data-l="Address"><b class="ghh-strong">' + esc(x.email) + '</b></td><td data-l="Copy to">' + (x.cc ? esc(x.cc) : '<span class="ghh-muted">No copy</span>') + '</td>' + (can('autoresponders', 'delete') ? '<td class="ghh-act" data-i="' + i + '" data-k="a"><button type="button" class="ghh-icon ghh-icon--danger" data-del aria-label="Delete autoresponder ' + esc(x.email) + '">' + ic('trash') + '</button></td>' : '<td></td>') + '</tr>'; }))
+          : empty('autoresponders', 'No autoresponders', 'Reply instantly to everyone who writes to support@' + d + ', for example with your opening hours.', can('autoresponders', 'create') ? addBtn('New autoresponder', 'data-add2') : '');
+        var a2 = list.querySelector('[data-add2]'); if (a2) a2.onclick = newA;
+        if (vlist) vlist.innerHTML = V.length ? table(['Address', 'Active', ''], V.map(function (x, i) { return '<tr><td data-l="Address"><b class="ghh-strong">' + esc(x.email) + '</b></td><td data-l="Active">' + (x.start ? esc(x.start) + ' to ' + esc(x.end || '') : '<span class="ghh-muted">Scheduled</span>') + '</td><td class="ghh-act" data-i="' + i + '" data-k="v"><button type="button" class="ghh-icon ghh-icon--danger" data-del aria-label="Delete vacation message ' + esc(x.email) + '">' + ic('trash') + '</button></td></tr>'; }))
+          : '<p class="ghh-note">No vacation messages scheduled.</p>';
+        bindAll();
+      };
+      bindAll = function () {
+        [].forEach.call(body.querySelectorAll('[data-del]'), function (b) {
+          b.onclick = function () {
+            var cell = b.closest('[data-i]'), isV = cell.getAttribute('data-k') === 'v', x = (isV ? V : A)[+cell.getAttribute('data-i')];
+            confirmIn(cell, 'Delete the ' + (isV ? 'vacation message' : 'autoresponder') + ' for ' + x.email + '?', 'Delete', function (back) { api('autoresponders', null, { json: { op: isV ? 'removeVacation' : 'delete', domain: d, user: x.user } }).then(function (r) { toast(r.message); load(); }, function (e) { fail(e); back(); }); });
+          };
+        });
+      };
+      var add = body.querySelector('[data-add]'); if (add) add.onclick = newA;
+      var addv = body.querySelector('[data-addv]'); if (addv) addv.onclick = newV;
+      load();
+    }
+
+    /* ------------------------------------------------------------ Spam */
+    function spam() {
+      var d = S.domain;
+      body.innerHTML = bar('Spam filter', 'SpamAssassin settings for mail to <b>' + esc(d) + '</b>.', '') + '<div data-list>' + skel(3) + '</div>';
+      var list = body.querySelector('[data-list]');
+      var load = function () {
+        list.innerHTML = skel(3);
+        api('spam', { domain: d }).then(function (r) {
+          if (!r.available) { list.innerHTML = empty('spam', 'Spam filter not available', 'SpamAssassin is not enabled for this account. Ask support to switch it on.'); return; }
+          var where = [['inbox', 'Deliver to the inbox, marked as spam'], ['spamfolder', 'Move to a shared spam folder'], ['userspamfolder', 'Move to each mailbox\'s Junk folder'], ['delete', 'Delete it']];
+          list.innerHTML = '<form class="ghh-panel" data-f novalidate>' +
+            '<label class="ghh-switch"><input type="checkbox" name="enabled"' + (r.enabled ? ' checked' : '') + '><span class="ghh-switch__t" aria-hidden="true"></span><span><b>Filter spam</b><small>Score every incoming message and act on likely spam.</small></span></label>' +
+            '<div class="ghh-form__grid" data-opts>' +
+            fld('threshold', 'Spam score threshold', { type: 'number', min: 1, value: r.threshold, hint: 'Lower catches more spam but risks real mail. 5 is a good default.' }) +
+            fld('where', 'When a message is spam', { options: where, value: r.where }) +
+            fld('highScore', 'Very high score', { type: 'number', min: 1, value: r.highScore, hint: 'Messages above this score can be deleted outright.' }) +
+            '<div class="ghh-fld"><span class="ghh-lbl">&nbsp;</span><label class="ghh-check"><input type="checkbox" name="highScoreBlock"' + (r.highScoreBlock ? ' checked' : '') + '> Delete mail above the very high score</label></div>' +
+            '</div><p class="ghh-form__err" role="alert" hidden></p>' + (can('spam', 'set') ? '<div class="ghh-form__foot"><button type="submit" class="ghh-btn ghh-btn--pri">Save settings</button></div>' : '') + '</form>';
+          var f = list.querySelector('form'), opts = f.querySelector('[data-opts]'), err = f.querySelector('.ghh-form__err');
+          var sync = function () { opts.classList.toggle('is-off', !f.enabled.checked); [].forEach.call(opts.querySelectorAll('input,select'), function (x) { x.disabled = !f.enabled.checked; }); };
+          f.enabled.onchange = sync; sync();
+          var thr = f.querySelector('[name=threshold]'); if (thr) thr.step = '0.5';
+          f.onsubmit = function (e) {
+            e.preventDefault(); var sb = f.querySelector('[type=submit]'); busy(sb, true); err.hidden = true;
+            api('spam', null, { json: { op: 'set', domain: d, settings: { enabled: f.enabled.checked, threshold: +thr.value, where: f.querySelector('[name=where]').value, highScore: +f.querySelector('[name=highScore]').value, highScoreBlock: f.highScoreBlock.checked } } })
+              .then(function (x) { busy(sb, false); toast(x.message); }, function (er) { busy(sb, false); if (er.code === 'expired') return expired(); err.textContent = er.message; err.hidden = false; });
+          };
+        }, function (e) { fail(e, list); retryOn(list, load); });
+      };
+      load();
+    }
+
+    /* ------------------------------------------------------------ FTP */
+    function ftp() {
+      var d = S.domain;
+      listView({ section: 'ftp', query: { domain: d }, title: 'FTP accounts', sub: 'Logins for FileZilla and other FTP apps. Server: <code>ftp.' + esc(d) + '</code>, port 21.', addLabel: 'New FTP account', canAdd: can('ftp', 'create'),
+        emptyIcon: 'ftp', emptyTitle: 'No extra FTP accounts', emptyText: 'Give a designer or developer access to just one folder of your site.', cols: ['Login', 'Folder', ''],
+        pick: function (r) { return r.accounts; },
+        render: function (xs) { return xs.map(function (x, i) { return '<tr><td data-l="Login"><b class="ghh-strong">' + esc(x.login) + '</b></td><td data-l="Folder"><code>' + esc(x.path || '/') + '</code></td><td class="ghh-act" data-i="' + i + '">' + (can('ftp', 'password') ? '<button type="button" class="ghh-btn ghh-btn--sm" data-pw>' + ic('key', 14) + ' Password</button>' : '') + (can('ftp', 'delete') ? '<button type="button" class="ghh-icon ghh-icon--danger" data-del aria-label="Delete ' + esc(x.login) + '">' + ic('trash') + '</button>' : '') + '</td></tr>'; }); },
+        form: function () { return ['New FTP account', fld('user', 'User name', { required: true, suffix: '@' + d, placeholder: 'designer' }) + fld('password', 'Password', { type: 'password', required: true }) + fld('dirType', 'Access to', { options: [['@domain', 'The website folder (public_html)'], ['@ftp', 'The public FTP folder'], ['custom', 'A specific folder']], value: '@domain' }) + fld('dir', 'Folder', { prefix: '~', placeholder: '/domains/' + d + '/public_html/uploads', hidden: true }), 'Create account']; },
+        afterForm: function (f) { var t = f.querySelector('[name=dirType]'), box = f.querySelector('[data-f=dir]'); t.onchange = function () { box.hidden = t.value !== 'custom'; }; },
+        submit: function (v) { return { op: 'create', domain: d, user: v.user, password: v.password, dir: v.dirType === 'custom' ? v.dir || '/' : v.dirType }; },
+        del: function (x) { return ['Delete FTP login ' + x.login + '? Files stay.', { op: 'delete', domain: d, user: x.user }]; },
+        bind: function (list, items, slot) { [].forEach.call(list.querySelectorAll('[data-pw]'), function (b) { b.onclick = function () { var x = items[+b.closest('[data-i]').getAttribute('data-i')]; formPanel(slot, 'New password for ' + x.login, fld('password', 'New password', { type: 'password', required: true, wide: true }), 'Change password', function (v) { return api('ftp', null, { json: { op: 'password', domain: d, user: x.user, password: v.password } }).then(function (r) { toast(r.message); }); }); }; }); } });
+    }
+
+    /* ------------------------------------------------------------ Protected folders */
+    function protect() {
+      var d = S.domain, base = '/domains/' + d + '/public_html';
+      listView({ section: 'protect', title: 'Protected folders', sub: 'Ask for a user name and password before anyone can open a folder of your website.', addLabel: 'Protect a folder', canAdd: can('protect', 'add'),
+        emptyIcon: 'protect', emptyTitle: 'No protected folders', emptyText: 'Lock a staging site or an admin area with a password.', cols: ['Folder', 'Login prompt', 'Users', ''],
+        pick: function (r) { return r.folders; },
+        onError: function (e, list) { list.innerHTML = '<div class="ghh-alert ghh-alert--soft">' + ic('alert', 18) + '<span>Existing protected folders could not be listed (' + esc(e.message) + '). You can still protect a folder.</span></div>'; },
+        render: function (xs) { return xs.map(function (x, i) { return '<tr><td data-l="Folder"><code>' + esc(x.path) + '</code></td><td data-l="Prompt">' + esc(x.realm || '') + '</td><td data-l="Users">' + (x.users.length ? esc(x.users.join(', ')) : '<span class="ghh-muted">None</span>') + '</td>' + (can('protect', 'delete') ? delCell(i, 'Remove protection from ' + x.path) : '<td></td>') + '</tr>'; }); },
+        form: function () { return ['Protect a folder on ' + d, fld('sub', 'Folder', { prefix: 'public_html/', placeholder: 'admin', required: true, wide: true, hint: 'The folder must already exist. Use / for the whole site.' }) + fld('realm', 'Login prompt', { value: 'Members only', required: true }) + fld('user', 'User name', { required: true }) + fld('password', 'Password', { type: 'password', required: true, wide: true }), 'Protect folder']; },
+        submit: function (v) { var sub = String(v.sub || '').replace(/^\/+|\/+$/g, ''); return { op: 'add', path: base + (sub ? '/' + sub : ''), realm: v.realm, user: v.user, password: v.password }; },
+        del: function (x) { return ['Remove password protection from ' + x.path + '?', { op: 'delete', path: x.path }, 'Remove']; } });
+    }
+
+    /* ------------------------------------------------------------ Cron */
+    var PRESETS = [['', 'Choose a common schedule'], ['*/5 * * * *', 'Every 5 minutes'], ['*/15 * * * *', 'Every 15 minutes'], ['0 * * * *', 'Every hour'], ['0 3 * * *', 'Every day at 03:00'], ['0 3 * * 1', 'Every Monday at 03:00'], ['0 3 1 * *', 'First day of each month at 03:00']];
+    function cronText(j) {
+      var k = [j.minute, j.hour, j.dayofmonth, j.month, j.dayofweek].join(' ');
+      var p = PRESETS.filter(function (x) { return x[0] === k; })[0];
+      return p ? p[1] : '';
+    }
+    function cron() {
+      var FIELDS = [['minute', 'Minute', '0-59'], ['hour', 'Hour', '0-23'], ['dayofmonth', 'Day', '1-31'], ['month', 'Month', '1-12'], ['dayofweek', 'Weekday', '0-7, 0 = Sun']];
+      listView({ section: 'cron', title: 'Cron jobs', sub: 'Run a script on a schedule (server time), for example WordPress tasks or backups. Commands run as your hosting user.', addLabel: 'New cron job', canAdd: can('cron', 'add'),
+        emptyIcon: 'cron', emptyTitle: 'No cron jobs', emptyText: 'Schedule a PHP script, e.g. /usr/local/bin/php ~/domains/site/public_html/cron.php', cols: ['Schedule', 'Command', ''],
+        pick: function (r) { return r.jobs; },
+        render: function (xs) { return xs.map(function (j, i) { var t = cronText(j); return '<tr><td data-l="Schedule"><code class="ghh-cron">' + esc([j.minute, j.hour, j.dayofmonth, j.month, j.dayofweek].join(' ')) + '</code>' + (t ? '<small class="ghh-muted ghh-block">' + esc(t) + '</small>' : '') + '</td><td data-l="Command" class="ghh-wrap"><code>' + esc(j.command) + '</code></td>' + (can('cron', 'delete') ? delCell(i, 'Delete cron job') : '<td></td>') + '</tr>'; }); },
+        form: function () {
+          return ['New cron job', fld('preset', 'Schedule', { options: PRESETS, value: '', wide: true }) + '<div class="ghh-cronf ghh-fld--wide">' + FIELDS.map(function (f) { return fld(f[0], f[1], { value: '*', required: true, hint: f[2] }); }).join('') + '</div>' + fld('command', 'Command', { required: true, wide: true, placeholder: '/usr/local/bin/php /home/' + S.session.username + '/domains/' + S.domain + '/public_html/cron.php' }), 'Add cron job'];
+        },
+        afterForm: function (f) { var pr = f.querySelector('[name=preset]'); pr.onchange = function () { if (!pr.value) return; pr.value.split(' ').forEach(function (v, i) { f.querySelector('[name=' + FIELDS[i][0] + ']').value = v; }); }; },
+        submit: function (v) { return { op: 'add', minute: v.minute, hour: v.hour, dayofmonth: v.dayofmonth, month: v.month, dayofweek: v.dayofweek, command: v.command }; },
+        del: function (j) { return ['Delete this cron job?', { op: 'delete', id: j.id }]; } });
+    }
+
+    /* ------------------------------------------------------------ WordPress */
+    function wordpress() {
+      listView({ section: 'wordpress', title: 'WordPress sites', sub: 'WordPress installations found on this account.', canAdd: false,
+        emptyIcon: 'wordpress', emptyTitle: 'No WordPress sites found', emptyText: 'Install WordPress from the WordPress manager in your control panel, then it appears here.', cols: ['Site', 'Version', 'Folder'],
+        pick: function (r) { return r.sites; },
+        render: function (xs) { return xs.map(function (w) { return '<tr><td data-l="Site">' + (/^https?:\/\//.test(w.url) ? '<a class="ghh-strong" href="' + esc(w.url) + '" target="_blank" rel="noopener">' + esc(w.url.replace(/^https?:\/\//, '')) + ' ' + ic('ext', 13) + '</a>' : esc(w.url)) + '</td><td data-l="Version">' + (w.version ? '<span class="ghh-pill ghh-pill--muted">' + esc(w.version) + '</span>' : '') + '</td><td data-l="Folder"><code>' + esc(w.path) + '</code></td></tr>'; }); },
+        form: function () { return ['', '', '']; }, submit: function () { return {}; }, del: function () { return ['', {}]; } });
     }
 
     /* ------------------------------------------------------------ SSL */

@@ -123,3 +123,49 @@ test('DirectAdmin parsers: url-encoded, json, errors, zones', () => {
   assert.equal(r.find((x) => x.type === 'TXT')?.value, '"v=spf1 a mx ~all ; not a comment"');
   assert.equal(parseDaZone('{"records":[{"type":"a","name":"www","value":"1.1.1.1","ttl":"60"}]}', 'shop.com')[0].type, 'A');
 });
+
+import { cronField, cronCommand, subLabel, urlPath, httpUrl, redirectType, ftpUser, realm, isoDate, spamSettings, messageText } from '../lib/hosting/validate.ts';
+import { daUsage, parsePointers, parseRedirects, parsePhp, parseVacations, spamFrom, parseCron, ftpTypeFor, parseProtected, parseWpSites } from '../lib/hosting/providers/directadmin-parse.ts';
+
+test('cron: strict schedule fields, single-line command', () => {
+  for (const [v, f] of [['*', 'minute'], ['*/15', 'minute'], ['0-30/10', 'minute'], ['1,15,30', 'dayofmonth'], ['0', 'dayofweek'], ['7', 'dayofweek'], ['1-12', 'month']] as const) assert.equal(cronField(v, f), v);
+  for (const [v, f] of [['60', 'minute'], ['24', 'hour'], ['0', 'dayofmonth'], ['13', 'month'], ['8', 'dayofweek'], ['5-1', 'hour'], ['*/0', 'minute'], ['mon', 'dayofweek'], ['@reboot', 'minute'], ['* *', 'minute'], ['1;rm', 'minute'], ['', 'hour']] as const) assert.throws(() => cronField(v, f), InputError, v);
+  assert.equal(cronCommand(' php ~/cron.php '), 'php ~/cron.php');
+  assert.throws(() => cronCommand('php a.php\n* * * * * evil'), InputError);
+  assert.throws(() => cronCommand(''), InputError);
+});
+
+test('domains extras: subdomain, redirect path / URL / type', () => {
+  assert.equal(subLabel('Shop'), 'shop');
+  for (const bad of ['www', 'a.b', '-a', 'a_b', '*', '']) assert.throws(() => subLabel(bad), InputError, bad);
+  assert.equal(urlPath('/old-page'), '/old-page');
+  for (const bad of ['old', '/a b', '/../x', '//evil.com', '/a"b']) assert.throws(() => urlPath(bad), InputError, bad);
+  assert.equal(httpUrl('https://shop.com/new?x=1'), 'https://shop.com/new?x=1');
+  for (const bad of ['javascript:alert(1)', 'ftp://x.com', 'https://user:pw@x.com', 'https://x.com/a b', 'shop.com']) assert.throws(() => httpUrl(bad), InputError, bad);
+  assert.equal(redirectType('302'), '302'); assert.throws(() => redirectType('307'), InputError);
+});
+
+test('ftp, protect, vacation, spam validators', () => {
+  assert.equal(ftpUser('Designer'), 'designer'); assert.throws(() => ftpUser('a@b'), InputError); assert.throws(() => ftpUser('a b'), InputError);
+  assert.equal(realm('Members only'), 'Members only'); assert.throws(() => realm('a"b'), InputError);
+  assert.deepEqual(isoDate('2026-12-20'), { y: 2026, m: 12, d: 20 }); assert.throws(() => isoDate('2026-02-30'), InputError); assert.throws(() => isoDate('20/12/2026'), InputError);
+  assert.deepEqual(spamSettings({ enabled: true, threshold: '4.55', where: 'spamfolder', highScore: 12, highScoreBlock: 1 }), { enabled: true, threshold: 4.6, where: 'spamfolder', highScore: 12, highScoreBlock: true });
+  assert.throws(() => spamSettings({ threshold: 0.5 }), InputError); assert.throws(() => spamSettings({ where: 'trash' }), InputError);
+  assert.throws(() => messageText('a\u0000b'), InputError); assert.equal(messageText('Hi\r\nthere'), 'Hi\nthere');
+});
+
+test('DirectAdmin parsers for the second feature set', () => {
+  const u = daUsage(parseDa('quota=8340.5&bandwidth=48210&vdomains=2&nemails=3&mysql=3&inode=1200'), parseDa('quota=20480&bandwidth=unlimited&vdomains=5&nemails=50&mysql=10&inode=200000&package=Pro&ip=1.2.3.4&suspended=no'));
+  assert.equal(u.plan, 'Pro'); assert.equal(u.suspended, false);
+  assert.deepEqual(u.items.find((x) => x.key === 'quota'), { key: 'quota', label: 'Disk space', unit: 'MB', used: 8340.5, limit: 20480 });
+  assert.equal(u.items.find((x) => x.key === 'bandwidth')?.limit, null);
+  assert.deepEqual(parsePointers(parseDa('b.net=alias&c.org=')), [{ name: 'b.net', type: 'alias' }, { name: 'c.org', type: 'pointer' }]);
+  assert.deepEqual(parseRedirects(parseDa('%2Fold=type%3D301%26url%3Dhttps%3A%2F%2Fx.com%2Fnew')), [{ path: '/old', to: 'https://x.com/new', type: '301' }]);
+  assert.deepEqual(parsePhp(parseDa('has_php_selector=yes&php1_select=2&php1_ver=8.1&php1_info=PHP%208.1%20php-fpm&php2_ver=8.2&php2_info=PHP%208.2%20php-fpm&php3_ver=no')), { current: '2', options: [{ id: '1', label: 'PHP 8.1 php-fpm' }, { id: '2', label: 'PHP 8.2 php-fpm' }] });
+  assert.deepEqual(parseVacations(parseDa('bob=startday%3D5%26startmonth%3D1%26startyear%3D2027%26endday%3D9%26endmonth%3D1%26endyear%3D2027'), 'x.com'), [{ user: 'bob', email: 'bob@x.com', start: '2027-01-05', end: '2027-01-09' }]);
+  assert.equal(spamFrom(parseDa('is_on=yes&required_hits=4.5&where=delete&high_score=12&high_score_block=yes')).threshold, 4.5);
+  assert.deepEqual(parseCron(parseDa('MAILTO=&0=*%2F5%20*%20*%20*%20*%20php%20%2Fhome%2Fa%2Fc.php')), [{ id: '0', minute: '*/5', hour: '*', dayofmonth: '*', month: '*', dayofweek: '*', command: 'php /home/a/c.php' }]);
+  assert.equal(ftpTypeFor('/domains/x.com/public_html', 'x.com'), 'domain'); assert.equal(ftpTypeFor('/domains/x.com/public_html/a', 'x.com'), 'custom');
+  assert.deepEqual(parseProtected([{ path: '/home/bob/domains/x.com/public_html/a', realm: 'R', users: ['u'] }, { path: '/etc' }], '/home/bob'), [{ path: '/domains/x.com/public_html/a', realm: 'R', users: ['u'] }, { path: '/etc', realm: '', users: [] }]);
+  assert.equal(parseWpSites([{ domain: 'x.com', path: '/', wordpress: { version: '6.8' } }, { domain: 'y.com', path: '/blog' }]).length, 1);
+});

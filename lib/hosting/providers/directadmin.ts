@@ -3,17 +3,26 @@
 // (documented and present on DirectAdmin 1.7x alongside the newer /api/* JSON API) with json=yes where accepted;
 // parsers accept both JSON and the legacy url-encoded format.
 import 'server-only';
-import { PanelError, type Account, type Backup, type Caps, type DnsRecord, type FileEntry, type HostingProvider, type Mailbox, type ServerConfig } from '../types';
+import { PanelError, type Account, type Redirect, type Backup, type Caps, type DnsRecord, type FileEntry, type HostingProvider, type Mailbox, type ServerConfig } from '../types';
 import { fqdn, dnsName, type DnsInput } from '../validate';
 import { attrs, daError, isHtml, parseDa, parseDaZone, toList } from './directadmin-parse';
 import { call, fromId, idOf, readCapped } from './http';
+import { daUsage, parseCron, parsePhp, parsePointers, parseRedirects, parseVacations, parseWpSites, parseProtected, spamFrom, ftpTypeFor } from './directadmin-parse';
 
 /** Every DirectAdmin command this adapter can send; the Login Key's "Commands" list should allow exactly these. */
 export const DA_COMMANDS = [
   'CMD_API_SHOW_USERS', // admin page connection test only (sent as the key owner, not login-as)
   'CMD_API_SHOW_DOMAINS', 'CMD_API_DNS_CONTROL', 'CMD_API_POP', 'CMD_API_EMAIL_FORWARDERS',
   'CMD_API_FILE_MANAGER', 'CMD_FILE_MANAGER', 'CMD_API_DATABASES', 'CMD_API_DB_USER', 'CMD_API_SSL', 'CMD_API_SITE_BACKUP',
+  // second feature set (overview, domains, email extras, FTP, cron, protected folders)
+  'CMD_API_SHOW_USER_USAGE', 'CMD_API_SHOW_USER_CONFIG', // overview: sent as the key owner with user=<account>
+  'CMD_API_SUBDOMAINS', 'CMD_API_DOMAIN_POINTER', 'CMD_API_REDIRECT',
+  'CMD_API_ADDITIONAL_DOMAINS', 'CMD_API_DOMAIN', // PHP version: read (action=view) / switch (action=php_selector only)
+  'CMD_API_EMAIL_AUTORESPONDER', 'CMD_API_EMAIL_VACATION', 'CMD_API_SPAMASSASSIN',
+  'CMD_API_FTP', 'CMD_API_CRON_JOBS',
 ] as const;
+/** New JSON API endpoints used (DirectAdmin 1.6x+), read-only, as the account user. */
+export const DA_JSON_ENDPOINTS = ['GET /api/web-protect/list', 'GET /api/wordpress/locations'] as const;
 type Cmd = (typeof DA_COMMANDS)[number];
 
 const BACKUP_SELECT = ['domain', 'subdomain', 'email', 'forwarder', 'autoresponder', 'vacation', 'list', 'emailsettings', 'ftp', 'ftpsettings', 'database'];
@@ -32,6 +41,15 @@ async function send(s: ServerConfig, as: string | undefined, cmd: Cmd, r: Req = 
   if (res.status >= 300 && res.status < 400) throw new PanelError('The hosting panel redirected the API call (login key rejected or wrong URL).', 502);
   if (res.status >= 500) throw new PanelError(`The hosting panel failed (HTTP ${res.status}).`, 502);
   return res;
+}
+
+/** New JSON API (/api/...), as the account user. Only the read-only endpoints in DA_JSON_ENDPOINTS are used. */
+async function jsonApi(s: ServerConfig, as: string, path: '/api/web-protect/list' | '/api/wordpress/locations'): Promise<any> {
+  const res = await call(`${s.url}${path}`, { headers: { authorization: auth(s, as), accept: 'application/json' }, timeout: 12_000 });
+  if (res.status === 404) throw new PanelError('Not available on this server', 501);
+  if (res.status === 401 || res.status === 403) throw new PanelError('The hosting panel refused this request.', 502);
+  if (!res.ok) throw new PanelError(`The hosting panel failed (HTTP ${res.status}).`, 502);
+  return res.json().catch(() => { throw new PanelError('Unreadable answer from the hosting panel', 502); });
 }
 
 async function api(s: ServerConfig, as: string | undefined, cmd: Cmd, r: Req = {}): Promise<Record<string, any>> {
@@ -58,6 +76,17 @@ export const DA_CAPS: Caps = {
   databases: ['list', 'create', 'delete', 'users', 'password'],
   ssl: ['status', 'issue'],
   backups: ['list', 'create', 'restore'],
+  overview: ['usage'],
+  subdomains: ['list', 'add', 'delete'],
+  aliases: ['list', 'add', 'delete'],
+  redirects: ['list', 'add', 'delete'],
+  php: ['get', 'set'],
+  autoresponders: ['list', 'create', 'delete', 'vacation'],
+  spam: ['get', 'set'],
+  ftp: ['list', 'create', 'delete', 'password'],
+  cron: ['list', 'add', 'delete'],
+  protect: ['list', 'add', 'delete'],
+  wordpress: ['list'], // kept only when detect() finds DirectAdmin's WordPress manager
 };
 
 const MB = 1048576;
@@ -255,5 +284,112 @@ export function directAdmin(acct: Account): HostingProvider {
       },
     },
   };
+  const NOT_META = (k: string) => !['error', 'text', 'details', 'success'].includes(k);
+  const home = `/home/${u}`;
+
+  P.usage = async () => {
+    const [use, conf] = await Promise.all([api(s, undefined, 'CMD_API_SHOW_USER_USAGE', { query: { user: u } }), api(s, undefined, 'CMD_API_SHOW_USER_CONFIG', { query: { user: u } })]);
+    return daUsage(use, conf);
+  };
+
+  P.detect = async () => {
+    const drop: Caps = {};
+    const wp = await jsonApi(s, u, '/api/wordpress/locations').then(() => true, () => false);
+    if (!wp) drop.wordpress = [];
+    return drop;
+  };
+
+  P.subdomains = {
+    list: async (domain) => toList(await A('CMD_API_SUBDOMAINS', { query: { domain } })).map((x) => x.toLowerCase()).sort(),
+    add: async (domain, label) => { await post('CMD_API_SUBDOMAINS', { action: 'create', domain, subdomain: label }); },
+    remove: async (domain, label, contents) => { await post('CMD_API_SUBDOMAINS', { action: 'delete', domain, select0: label, contents: contents ? 'yes' : 'no' }); },
+  };
+
+  P.aliases = {
+    list: async (domain) => parsePointers(await A('CMD_API_DOMAIN_POINTER', { query: { domain } })),
+    add: async (domain, from, alias) => { await post('CMD_API_DOMAIN_POINTER', { action: 'add', domain, from, alias: alias ? 'yes' : 'no' }); },
+    remove: async (domain, name) => { await post('CMD_API_DOMAIN_POINTER', { action: 'delete', delete: 'yes', domain, select0: name }); },
+  };
+
+  P.redirects = {
+    list: async (domain) => parseRedirects(await A('CMD_API_REDIRECT', { query: { domain } })),
+    add: async (domain, path, to, type) => { await post('CMD_API_REDIRECT', { action: 'add', domain, path, url: to, type }); },
+    remove: async (domain, r: Redirect) => { await post('CMD_API_REDIRECT', { action: 'delete', domain, select0: r.path }); },
+  };
+
+  P.php = {
+    get: async (domain) => parsePhp(await A('CMD_API_ADDITIONAL_DOMAINS', { query: { action: 'view', domain } })),
+    set: async (domain, id) => { await post('CMD_API_DOMAIN', { action: 'php_selector', domain, php1_select: id, save: 'Save' }); },
+  };
+
+  P.autoresponders = {
+    async list(domain) {
+      const o = await A('CMD_API_EMAIL_AUTORESPONDER', { query: { domain } });
+      return Object.entries(o).filter(([k]) => NOT_META(k)).map(([user, cc]) => ({ user, email: `${user}@${domain}`, cc: typeof cc === 'string' ? cc : '' }));
+    },
+    create: async (domain, user, text, cc) => { await post('CMD_API_EMAIL_AUTORESPONDER', { action: 'create', domain, user, text, cc: cc ? 'ON' : 'OFF', ...(cc ? { email: cc } : {}), create: 'Create' }); },
+    remove: async (domain, user) => { await post('CMD_API_EMAIL_AUTORESPONDER', { action: 'delete', domain, select0: user }); },
+    vacations: async (domain) => parseVacations(await A('CMD_API_EMAIL_VACATION', { query: { domain } }), domain),
+    async setVacation(domain, user, text, a, b) {
+      const exists = (await P.autoresponders!.vacations!(domain)).some((v) => v.user === user);
+      await post('CMD_API_EMAIL_VACATION', {
+        action: exists ? 'modify' : 'create', domain, user, text,
+        starttime: 'morning', startday: String(a.d), startmonth: String(a.m), startyear: String(a.y),
+        endtime: 'evening', endday: String(b.d), endmonth: String(b.m), endyear: String(b.y), ...(exists ? {} : { create: 'Create' }),
+      });
+    },
+    removeVacation: async (domain, user) => { await post('CMD_API_EMAIL_VACATION', { action: 'delete', domain, select0: user }); },
+  };
+
+  P.spam = {
+    async get(domain) {
+      try { return spamFrom(await A('CMD_API_SPAMASSASSIN', { query: { domain } })); }
+      catch (e) { if (e instanceof PanelError && e.status === 400) return { available: false, enabled: false, threshold: 5, where: 'inbox', highScore: 15, highScoreBlock: false }; throw e; }
+    },
+    async set(domain, v) {
+      if (!v.enabled) { await post('CMD_API_SPAMASSASSIN', { action: 'disable', domain }); return; }
+      await post('CMD_API_SPAMASSASSIN', { action: 'save', domain, is_on: 'yes', required_hits: String(v.threshold), where: v.where, high_score: String(v.highScore), high_score_block: v.highScoreBlock ? 'yes' : 'no', report_safe: '1', rewrite_subject: '1', subject_tag: '*****SPAM*****' });
+    },
+  };
+
+  P.ftp = {
+    async list(domain) {
+      const o = await A('CMD_API_FTP', { query: { domain } });
+      return Object.entries(o).filter(([k]) => NOT_META(k)).map(([user, v]) => {
+        const a = typeof v === 'object' ? attrs(v) : null;
+        const path = String(a ? a.path || a.directory || '' : v ?? '');
+        const name = user.includes('@') ? user.split('@')[0] : user;
+        return { user: name, login: user.includes('@') ? user : `${user}@${domain}`, path: path.startsWith(home) ? path.slice(home.length) || '/' : path };
+      }).sort((x, y) => x.user.localeCompare(y.user));
+    },
+    async create(domain, user, pass, dir) {
+      const f: Record<string, string> = { action: 'create', domain, user, passwd: pass, passwd2: pass, type: dir === '@ftp' ? 'ftp' : dir === '@domain' ? 'domain' : 'custom' };
+      if (f.type === 'custom') f.custom_val = dir === '/' ? home : home + dir;
+      await post('CMD_API_FTP', f);
+    },
+    async password(domain, user, pass) {
+      const acct = (await P.ftp!.list(domain)).find((x) => x.user === user);
+      if (!acct) throw new PanelError('Unknown FTP account', 400);
+      const t = ftpTypeFor(acct.path, domain);
+      await post('CMD_API_FTP', { action: 'modify', domain, user, passwd: pass, passwd2: pass, type: t, ...(t === 'custom' ? { custom_val: home + (acct.path === '/' ? '' : acct.path) } : {}) });
+    },
+    remove: async (domain, user) => { await post('CMD_API_FTP', { action: 'delete', domain, select0: user }); },
+  };
+
+  P.cron = {
+    list: async () => parseCron(await A('CMD_API_CRON_JOBS')),
+    add: async (j) => { await post('CMD_API_CRON_JOBS', { action: 'create', minute: j.minute, hour: j.hour, dayofmonth: j.dayofmonth, month: j.month, dayofweek: j.dayofweek, command: j.command }); },
+    remove: async (id) => { await post('CMD_API_CRON_JOBS', { action: 'delete', select0: id }); },
+  };
+
+  P.protect = {
+    list: async () => parseProtected(await jsonApi(s, u, '/api/web-protect/list'), home),
+    add: async (path, realm, user, pass) => { await post('CMD_API_FILE_MANAGER', { action: 'protect', path, enabled: 'yes', name: realm, user, passwd: pass, passwd2: pass }); },
+    // DirectAdmin: posting the protect form without "enabled" switches protection off
+    remove: async (path) => { await post('CMD_API_FILE_MANAGER', { action: 'protect', path, name: 'Protected' }); },
+  };
+
+  P.wordpress = { list: async () => parseWpSites(await jsonApi(s, u, '/api/wordpress/locations')) };
+
   return P;
 }

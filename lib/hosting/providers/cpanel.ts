@@ -17,6 +17,13 @@ export const CPANEL_CAPS: Caps = {
   databases: ['list', 'create', 'delete', 'users', 'password'],
   ssl: ['status', 'issue'], // issue = run AutoSSL for the account
   backups: ['list', 'create'], // full restore is a WHM/root operation, not offered to customers here
+  overview: ['usage'],
+  subdomains: ['list', 'add', 'delete'],
+  redirects: ['list', 'add', 'delete'],
+  php: ['get', 'set'],
+  autoresponders: ['list', 'create', 'delete'],
+  ftp: ['list', 'create', 'delete', 'password'],
+  cron: ['list', 'add', 'delete'],
 };
 
 const hdr = (s: ServerConfig) => ({ authorization: `whm ${s.apiUser}:${s.secret}`, accept: 'application/json' });
@@ -182,6 +189,70 @@ export function cpanel(acct: Account): HostingProvider {
       },
       async create() { await uapi('Backup', 'fullbackup_to_homedir'); return 'Full backup started. The archive appears in your home folder when it is ready.'; },
     },
+  };
+  const MBy = 1048576;
+  P.usage = async () => {
+    const rows: any[] = await uapi('ResourceUsage', 'get_usages');
+    const MAP: Record<string, [string, string, 'MB' | '']> = {
+      disk_usage: ['quota', 'Disk space', 'MB'], bandwidth: ['bandwidth', 'Bandwidth (this month)', 'MB'], filesusage: ['inode', 'Files and folders (inodes)', ''],
+      addon_domains: ['vdomains', 'Addon domains', ''], subdomains: ['nsubdomains', 'Subdomains', ''], parked_domains: ['domainptr', 'Domain aliases', ''],
+      email_accounts: ['nemails', 'Email accounts', ''], email_forwarders: ['nemailf', 'Email forwarders', ''], mysql_databases: ['mysql', 'Databases', ''], ftp_accounts: ['ftp', 'FTP accounts', ''],
+    };
+    const items = rows.filter((r) => MAP[r.id]).map((r) => {
+      const [key, label, unit] = MAP[r.id];
+      const conv = (v: any) => (v === null || v === undefined || v === '' ? null : unit === 'MB' ? Math.round((Number(v) / MBy) * 10) / 10 : Number(v));
+      return { key, label, unit, used: conv(r.usage) ?? 0, limit: conv(r.maximum) };
+    });
+    return { items };
+  };
+  P.subdomains = {
+    async list(domain) { const d = await uapi('DomainInfo', 'list_domains'); return (d.sub_domains || []).map((x: string) => x.toLowerCase()).filter((x: string) => x.endsWith('.' + domain)).map((x: string) => x.slice(0, -(domain.length + 1))).sort(); },
+    add: async (domain, label) => { await uapi('SubDomain', 'addsubdomain', { domain: label, rootdomain: domain, dir: `public_html/${label}` }); },
+    remove: async (domain, label) => { await api2('SubDomain', 'delsubdomain', { domain: `${label}.${domain}` }); },
+  };
+  P.redirects = {
+    async list(domain) {
+      const rows: any[] = await uapi('Mime', 'list_redirects', { domain });
+      return rows.filter((r) => String(r.domain).toLowerCase() === domain || r.domain === '.*').map((r) => ({ path: String(r.sourceurl || '/'), to: String(r.destination || ''), type: /temp/i.test(String(r.type)) ? '302' : '301' }));
+    },
+    add: async (domain, path, to, type) => { await uapi('Mime', 'add_redirect', { domain, src: path, redirect: to, type: type === '301' ? 'permanent' : 'temp', redirect_wildcard: '0', redirect_www: '0' }); },
+    remove: async (domain, r) => { await uapi('Mime', 'delete_redirect', { domain, src: r.path }); },
+  };
+  P.php = {
+    async get(domain) {
+      const [vh, inst]: [any[], any] = await Promise.all([uapi('LangPHP', 'php_get_vhost_versions'), uapi('LangPHP', 'php_get_installed_versions')]);
+      const cur = vh.find((v) => String(v.vhost).toLowerCase() === domain);
+      const versions: string[] = inst?.versions || [];
+      return { current: String(cur?.version || ''), options: versions.map((v) => ({ id: v, label: v.replace(/^ea-php(\d)(\d+)$/, 'PHP $1.$2') })) };
+    },
+    set: async (domain, id) => { await uapi('LangPHP', 'php_set_vhost_versions', { vhost: domain, version: id }); },
+  };
+  P.autoresponders = {
+    async list(domain) { const rows: any[] = await uapi('Email', 'list_auto_responders', { domain }); return rows.map((r) => ({ user: String(r.email).split('@')[0], email: String(r.email), cc: '' })); },
+    create: async (domain, user, text) => { await uapi('Email', 'add_auto_responder', { email: user, domain, from: `${user}@${domain}`, subject: 'Auto reply', body: text, is_html: '0', interval: '8', start: '0', stop: '0' }); },
+    remove: async (domain, user) => { await uapi('Email', 'delete_auto_responder', { email: `${user}@${domain}` }); },
+  };
+  P.ftp = {
+    async list(domain) {
+      const rows: any[] = await uapi('Ftp', 'list_ftp_with_disk');
+      return rows.filter((r) => r.type === 'sub' && String(r.login || r.user).toLowerCase().endsWith('@' + domain)).map((r) => ({
+        user: String(r.login || r.user).split('@')[0], login: String(r.login || r.user), path: String(r.dir || '').startsWith(home) ? String(r.dir).slice(home.length) || '/' : String(r.dir || ''),
+      }));
+    },
+    async create(domain, user, pass, dir) {
+      const hd = dir === '@domain' ? 'public_html' : dir === '@ftp' ? `public_ftp/${user}` : dir.replace(/^\//, '');
+      await uapi('Ftp', 'add_ftp', { user, domain, pass, homedir: hd });
+    },
+    password: async (domain, user, pass) => { await uapi('Ftp', 'passwd', { user, domain, pass }); },
+    remove: async (domain, user) => { await uapi('Ftp', 'delete_ftp', { user, domain, destroy: '0' }); },
+  };
+  P.cron = {
+    async list() {
+      const rows: any[] = await api2('Cron', 'listcron', {});
+      return (rows || []).filter((r) => r.linekey && r.command).map((r) => ({ id: String(r.linekey), minute: String(r.minute), hour: String(r.hour), dayofmonth: String(r.day), month: String(r.month), dayofweek: String(r.weekday), command: String(r.command) }));
+    },
+    add: async (j) => { await api2('Cron', 'add_line', { minute: j.minute, hour: j.hour, day: j.dayofmonth, month: j.month, weekday: j.dayofweek, command: j.command }); },
+    remove: async (id) => { await api2('Cron', 'remove_line', { linekey: id }); },
   };
   return P;
 }

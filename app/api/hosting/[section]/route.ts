@@ -7,6 +7,7 @@ import { auditHosting, cors, errorResponse, hostingCtx, HttpError, ownedDomains,
 import { probeSsl } from '@/lib/hosting/ssl-probe';
 import { PANEL_LABEL, type Section } from '@/lib/hosting/types';
 import {
+  cronCommand, cronField, CRON_FIELDS, ftpUser, httpUrl, httpUser, isoDate, messageText, realm, redirectType, spamSettings, subLabel, urlPath, domainName,
   dbFullName, dbSuffix, dnsRecord, emailAddress, isEditable, joinPath, mailUser, MAX_EDIT_BYTES, MAX_TRANSFER_BYTES,
   ownedDomain, password, quotaMb, safeName, safePath, splitPath, InputError,
 } from '@/lib/hosting/validate';
@@ -14,7 +15,7 @@ import {
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-const SECTIONS = ['session', 'dns', 'email', 'files', 'databases', 'ssl', 'backups'] as const;
+const SECTIONS = ['session', 'overview', 'dns', 'subdomains', 'aliases', 'redirects', 'php', 'email', 'autoresponders', 'spam', 'files', 'ftp', 'protect', 'databases', 'cron', 'ssl', 'backups', 'wordpress'] as const;
 type S = (typeof SECTIONS)[number];
 
 const ok = (req: Request, data: unknown, status = 200) => Response.json(data, { status, headers: cors(req) });
@@ -43,9 +44,55 @@ export async function GET(req: Request, { params }: { params: Promise<{ section:
     switch (section) {
       case 'session': {
         const domains = await ownedDomains(ctx);
-        return ok(req, { panel: p.panel, panelLabel: PANEL_LABEL[p.panel], username: ctx.acct.username, domain: ctx.acct.domain, server: ctx.acct.server.name, caps: p.caps, domains,
+        const caps = { ...p.caps };
+        if (p.detect) { try { Object.assign(caps, await p.detect()); } catch { /* keep static caps */ } }
+        for (const k of Object.keys(caps) as Section[]) if (!caps[k]?.length) delete caps[k];
+        return ok(req, { panel: p.panel, panelLabel: PANEL_LABEL[p.panel], username: ctx.acct.username, domain: ctx.acct.domain, server: ctx.acct.server.name, caps, domains,
           limits: { editBytes: MAX_EDIT_BYTES, transferBytes: MAX_TRANSFER_BYTES } });
       }
+      case 'overview': {
+        need(ctx, 'overview', 'usage');
+        return ok(req, await p.usage!());
+      }
+      case 'subdomains': {
+        need(ctx, 'subdomains', 'list');
+        const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
+        return ok(req, { domain, subdomains: await p.subdomains!.list(domain) });
+      }
+      case 'aliases': {
+        need(ctx, 'aliases', 'list');
+        const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
+        return ok(req, { domain, aliases: await p.aliases!.list(domain) });
+      }
+      case 'redirects': {
+        need(ctx, 'redirects', 'list');
+        const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
+        return ok(req, { domain, redirects: await p.redirects!.list(domain) });
+      }
+      case 'php': {
+        need(ctx, 'php', 'get');
+        const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
+        return ok(req, { domain, ...(await p.php!.get(domain)) });
+      }
+      case 'autoresponders': {
+        need(ctx, 'autoresponders', 'list');
+        const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
+        const [auto, vac] = await Promise.all([p.autoresponders!.list(domain), (p.caps.autoresponders || []).includes('vacation') && p.autoresponders!.vacations ? p.autoresponders!.vacations(domain) : Promise.resolve([])]);
+        return ok(req, { domain, autoresponders: auto, vacations: vac });
+      }
+      case 'spam': {
+        need(ctx, 'spam', 'get');
+        const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
+        return ok(req, { domain, ...(await p.spam!.get(domain)) });
+      }
+      case 'ftp': {
+        need(ctx, 'ftp', 'list');
+        const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
+        return ok(req, { domain, accounts: await p.ftp!.list(domain) });
+      }
+      case 'protect': { need(ctx, 'protect', 'list'); return ok(req, { folders: await p.protect!.list() }); }
+      case 'cron': { need(ctx, 'cron', 'list'); return ok(req, { jobs: await p.cron!.list() }); }
+      case 'wordpress': { need(ctx, 'wordpress', 'list'); return ok(req, { sites: await p.wordpress!.list() }); }
       case 'dns': {
         need(ctx, 'dns', 'list');
         const domain = ownedDomain(q.get('domain'), await ownedDomains(ctx));
@@ -218,6 +265,120 @@ export async function POST(req: Request, { params }: { params: Promise<{ section
           detail = { db: d.name, user };
           if (op === 'password') { await p.databases!.password(d.name, user, password(b.password)); message = 'Password changed'; }
           else { await p.databases!.removeUser(d.name, user); message = 'User removed'; }
+        } else throw new InputError('Unknown operation');
+        break;
+      }
+      case 'subdomains': {
+        const domain = ownedDomain(b.domain, await ownedDomains(ctx));
+        const label = subLabel(b.label); detail = { domain, label };
+        if (op === 'add') { need(ctx, 'subdomains', 'add'); await p.subdomains!.add(domain, label); message = `${label}.${domain} created`; }
+        else if (op === 'delete') {
+          need(ctx, 'subdomains', 'delete');
+          if (!(await p.subdomains!.list(domain)).includes(label)) throw new InputError('That subdomain does not exist');
+          detail.contents = !!b.contents; await p.subdomains!.remove(domain, label, !!b.contents); message = 'Subdomain deleted';
+        } else throw new InputError('Unknown operation');
+        break;
+      }
+      case 'aliases': {
+        const domain = ownedDomain(b.domain, await ownedDomains(ctx));
+        const name = domainName(b.name); detail = { domain, name };
+        if (name === domain) throw new InputError('An alias must be a different domain');
+        if (op === 'add') { need(ctx, 'aliases', 'add'); detail.alias = b.alias !== false; await p.aliases!.add(domain, name, b.alias !== false); message = `${name} now points to ${domain}`; }
+        else if (op === 'delete') {
+          need(ctx, 'aliases', 'delete');
+          if (!(await p.aliases!.list(domain)).some((a) => a.name === name)) throw new InputError('That alias does not exist');
+          await p.aliases!.remove(domain, name); message = 'Alias removed';
+        } else throw new InputError('Unknown operation');
+        break;
+      }
+      case 'redirects': {
+        const domain = ownedDomain(b.domain, await ownedDomains(ctx));
+        const path = urlPath(b.path); detail = { domain, path };
+        if (op === 'add') { need(ctx, 'redirects', 'add'); const to = httpUrl(b.to), type = redirectType(b.type); Object.assign(detail, { to, type }); await p.redirects!.add(domain, path, to, type); message = 'Redirect added'; }
+        else if (op === 'delete') {
+          need(ctx, 'redirects', 'delete');
+          const r = (await p.redirects!.list(domain)).find((x) => x.path === path);
+          if (!r) throw new InputError('That redirect does not exist');
+          await p.redirects!.remove(domain, r); message = 'Redirect removed';
+        } else throw new InputError('Unknown operation');
+        break;
+      }
+      case 'php': {
+        need(ctx, 'php', 'set');
+        if (op !== 'set') throw new InputError('Unknown operation');
+        const domain = ownedDomain(b.domain, await ownedDomains(ctx));
+        const st = await p.php!.get(domain);
+        const opt = st.options.find((o) => o.id === String(b.id));
+        if (!opt) throw new InputError('That PHP version is not available');
+        detail = { domain, from: st.current, to: opt.id, label: opt.label };
+        await p.php!.set(domain, opt.id); message = `${domain} now uses ${opt.label}`;
+        break;
+      }
+      case 'autoresponders': {
+        const domain = ownedDomain(b.domain, await ownedDomains(ctx));
+        const user = mailUser(b.user); detail = { domain, user };
+        const ar = p.autoresponders!;
+        if (op === 'create') { need(ctx, 'autoresponders', 'create'); const cc = b.cc ? emailAddress(b.cc) : ''; detail.cc = cc; await ar.create(domain, user, messageText(b.text), cc); message = 'Autoresponder saved'; }
+        else if (op === 'delete') {
+          need(ctx, 'autoresponders', 'delete');
+          if (!(await ar.list(domain)).some((a) => a.user === user)) throw new InputError('That autoresponder does not exist');
+          await ar.remove(domain, user); message = 'Autoresponder removed';
+        } else if (op === 'vacation') {
+          need(ctx, 'autoresponders', 'vacation');
+          const start = isoDate(b.start, 'Start date'), end = isoDate(b.end, 'End date');
+          if (Date.UTC(end.y, end.m - 1, end.d) < Date.UTC(start.y, start.m - 1, start.d)) throw new InputError('End date must be after the start date');
+          detail.start = b.start; detail.end = b.end;
+          await ar.setVacation!(domain, user, messageText(b.text), start, end); message = 'Vacation message saved';
+        } else if (op === 'removeVacation') {
+          need(ctx, 'autoresponders', 'vacation');
+          if (!(await ar.vacations!(domain)).some((v) => v.user === user)) throw new InputError('That vacation message does not exist');
+          await ar.removeVacation!(domain, user); message = 'Vacation message removed';
+        } else throw new InputError('Unknown operation');
+        break;
+      }
+      case 'spam': {
+        need(ctx, 'spam', 'set');
+        if (op !== 'set') throw new InputError('Unknown operation');
+        const domain = ownedDomain(b.domain, await ownedDomains(ctx));
+        const v = spamSettings(b.settings); detail = { domain, ...v };
+        await p.spam!.set(domain, v); message = v.enabled ? 'Spam filter settings saved' : 'Spam filter switched off';
+        break;
+      }
+      case 'ftp': {
+        const domain = ownedDomain(b.domain, await ownedDomains(ctx));
+        const user = ftpUser(b.user); detail = { domain, user };
+        const exists = async () => { if (!(await p.ftp!.list(domain)).some((a) => a.user === user)) throw new InputError('That FTP account does not exist'); };
+        if (op === 'create') {
+          need(ctx, 'ftp', 'create');
+          const dir = b.dir === '@domain' || b.dir === '@ftp' ? b.dir : safePath(b.dir);
+          detail.dir = dir; await p.ftp!.create(domain, user, password(b.password), dir); message = `FTP account ${user}@${domain} created`;
+        } else if (op === 'password') { need(ctx, 'ftp', 'password'); await exists(); await p.ftp!.password(domain, user, password(b.password)); message = 'FTP password changed'; }
+        else if (op === 'delete') { need(ctx, 'ftp', 'delete'); await exists(); await p.ftp!.remove(domain, user); message = 'FTP account deleted'; }
+        else throw new InputError('Unknown operation');
+        break;
+      }
+      case 'protect': {
+        const path = safePath(b.path);
+        if (!/^\/domains\/[^/]+\/(public_html|private_html)(\/|$)/.test(path)) throw new InputError('Choose a folder inside a website (domains/<domain>/public_html/...)');
+        const dom = path.split('/')[2]; ownedDomain(dom, await ownedDomains(ctx));
+        detail = { path };
+        if (op === 'add') { need(ctx, 'protect', 'add'); const r = realm(b.realm), u = httpUser(b.user); Object.assign(detail, { realm: r, user: u }); await p.protect!.add(path, r, u, password(b.password)); message = 'Folder protected'; }
+        else if (op === 'delete') { need(ctx, 'protect', 'delete'); await p.protect!.remove(path); message = 'Protection removed'; }
+        else throw new InputError('Unknown operation');
+        break;
+      }
+      case 'cron': {
+        if (op === 'add') {
+          need(ctx, 'cron', 'add');
+          const j: any = {}; for (const f of CRON_FIELDS) j[f] = cronField(b[f], f);
+          j.command = cronCommand(b.command); detail = { ...j };
+          await p.cron!.add(j); message = 'Cron job added';
+        } else if (op === 'delete') {
+          need(ctx, 'cron', 'delete');
+          const job = (await p.cron!.list()).find((x) => x.id === String(b.id || ''));
+          if (!job) throw new InputError('That cron job no longer exists. Refresh the list.');
+          detail = { id: job.id, command: job.command.slice(0, 200) };
+          await p.cron!.remove(job.id); message = 'Cron job deleted';
         } else throw new InputError('Unknown operation');
         break;
       }
