@@ -755,3 +755,30 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
   .gh-tldrow > :first-child { grid-column: 1 / -1; font-size: 18px !important; font-weight: 800; }
   .gh-tldrow img { max-width: 28px; height: auto; vertical-align: middle; margin-right: 6px; }
 }
+/* 2026-11-03 taken domain: two cards (taken + broker fee | great alternative) */
+.gh-tk-on > .alert, .gh-tk-on .domain-unavailable > *:not(.gh-tk), .gh-tk-on .domain-checker-unavailable > *:not(.gh-tk), .gh-tk-on .gh-broker, .gh-tk-on p.text-danger, .gh-tk-on .domain-invalid { display: none !important; }
+.gh-tk-on { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+.gh-tk { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 0 0 24px; text-align: left; }
+.gh-tk__card { background: #fff; border: 1px solid var(--gh-line); border-radius: 18px; padding: 24px 26px; box-shadow: var(--gh-shadow); position: relative; }
+.gh-tk__taken { border: 2px solid #c5386f33; }
+.gh-tk__tag { display: inline-block; background: #16212b; color: #fff; font: 700 11px/1 Manrope, Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; padding: 6px 10px; border-radius: 6px; }
+.gh-tk__tag--alt { background: #fdd700; color: #16212b; }
+.gh-tk__dom { display: flex; align-items: center; gap: 10px; font: 800 30px/1.15 Manrope, Inter, sans-serif; color: #5a6774; margin: 14px 0 6px; word-break: break-all; }
+.gh-tk__dom svg { width: 26px; height: 26px; flex: none; fill: none; stroke: #8794a1; stroke-width: 2; }
+.gh-tk__taken p { margin: 0 0 18px; color: #23313d; font-size: 15px; }
+.gh-tk__taken p a { color: var(--gh-brand); font-weight: 700; text-decoration: underline; }
+.gh-tk__fee { display: flex; align-items: center; gap: 14px; margin: 0 0 20px; }
+.gh-tk__ic { width: 52px; height: 52px; border-radius: 50%; background: #fbe8ef; display: grid; place-items: center; flex: none; }
+.gh-tk__ic svg { width: 26px; height: 26px; fill: none; stroke: var(--gh-brand); stroke-width: 2; stroke-linejoin: round; }
+.gh-tk__fee small { display: block; color: #5a6774; font-size: 13px; }
+.gh-tk__fee b { display: block; font: 800 26px/1.2 Manrope, Inter, sans-serif; color: #16212b; }
+.gh-tk__fee em { display: block; font-style: normal; color: #5a6774; font-size: 12.5px; }
+.gh-tk__act { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.gh-tk__buy, .gh-tk__add { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 26px; border-radius: 10px; background: #16212b; color: #fff !important; font-weight: 700; text-decoration: none !important; border: 0; cursor: pointer; }
+.gh-tk__buy:hover, .gh-tk__add:hover { background: var(--gh-brand); }
+.gh-tk__more { color: #16212b !important; font-weight: 600; text-decoration: none !important; }
+.gh-tk__altdom { font: 800 32px/1.15 Manrope, Inter, sans-serif; color: #16212b; margin: 16px 0 8px; word-break: break-all; }
+.gh-tk__altdom span { color: var(--gh-brand); }
+.gh-tk__altprice { font-size: 18px; font-weight: 700; color: #16212b; margin: 0 0 20px; }
+.gh-tk__add[disabled] { background: #1c9a5b; cursor: default; }
+@media (max-width: 760px) { .gh-tk { grid-template-columns: 1fr; } .gh-tk__card { padding: 20px; } .gh-tk__dom, .gh-tk__altdom { font-size: 24px; } .gh-tk__buy, .gh-tk__add { width: 100%; } }

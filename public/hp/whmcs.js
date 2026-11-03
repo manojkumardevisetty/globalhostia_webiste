@@ -646,16 +646,59 @@
   }
 
   function brokerCta() {
+    var SYM = { USD: '$', EUR: '€', GBP: '£', INR: '₹', AED: 'AED ', SAR: 'SAR ', CAD: 'C$', AUD: 'A$', SGD: 'S$', MYR: 'RM ' };
+    var pageCur = function () { var m = document.body.innerText.match(/\d[\d,.]*\s(USD|AED|EUR|GBP|INR|SAR|CAD|AUD|SGD|MYR)\b/); return m ? m[1] : 'USD'; };
+    var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var fee = null;
+    var loadFee = function (cb) { if (fee) return cb(fee); fetch(ORIGIN + '/api/store/broker?currency=' + pageCur()).then(function (r) { return r.json(); }).then(function (d) { fee = d; cb(d); }).catch(function () { cb(null); }); };
+    var money = function (cur, n) { var sy = SYM[cur] || cur + ' '; return sy + Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 }); };
+    // best available alternative = first visible suggestion row with an add button
+    var alt = function () {
+      var rows = [].slice.call(document.querySelectorAll('.domain-suggestion, #domainSuggestions li, .suggested-domains .row, [class*="suggestion"]'));
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i]; if (r.offsetParent === null) continue;
+        var btn = r.querySelector('button.btn-add-to-cart, .btn-add-to-cart, button[data-domain], .btn:not([disabled])'); if (!btn || btn.offsetParent === null) continue;
+        var d = (btn.getAttribute('data-domain') || (r.textContent.match(/[a-z0-9-]+\.[a-z.]{2,}/i) || [])[0] || '').toLowerCase(); if (!d) continue;
+        var pr = r.querySelector('.price, [class*="price"]'); var price = pr ? pr.textContent.replace(/\s+/g, ' ').trim() : '';
+        return { dom: d, price: price, btn: btn };
+      }
+      return null;
+    };
     var run = function () {
       document.querySelectorAll('.domain-unavailable, .domain-checker-unavailable').forEach(function (el) {
         if (el.dataset.ghb || !/block|flex/.test(getComputedStyle(el).display) || el.offsetParent === null) return;
         var res = el.closest('.domain-lookup-primary-results, #primaryLookupResult, #DomainSearchResults') || el.parentNode;
         var b = res && res.querySelector('[data-domain]'); var txt = (el.textContent.match(/[a-z0-9-]+\.[a-z.]{2,}/i) || [])[0];
-        var dom = (b && b.getAttribute('data-domain')) || txt || ((document.querySelector('#inputDomain, input[name=domain], #registersld') || {}).value || '');
+        var dom = ((b && b.getAttribute('data-domain')) || txt || ((document.querySelector('#inputDomain, input[name=domain], #registersld') || {}).value || '')).toLowerCase().trim();
         el.dataset.ghb = 1;
-        var a = document.createElement('div'); a.className = 'gh-broker';
-        a.innerHTML = '<div><b>Domain taken? We can still try to get it.</b><span>Our brokers contact the owner anonymously and negotiate within your budget.</span></div><a href="' + ORIGIN + '/domain-broker' + (dom ? '?domain=' + encodeURIComponent(dom) : '') + '">Request a broker →</a>';
-        el.appendChild(a);
+        // the searched name is taken: the .com/.net/.org bundle would mislead, hide it
+        var bun = document.getElementById('domainBundle'); if (bun) bun.style.display = 'none';
+        var wrap = document.createElement('div'); wrap.className = 'gh-tk';
+        var href = ORIGIN + '/domain-broker' + (dom ? '?domain=' + encodeURIComponent(dom) : '');
+        wrap.innerHTML = '<div class="gh-tk__card gh-tk__taken"><span class="gh-tk__tag">Domain taken</span>' +
+          '<div class="gh-tk__dom"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 18.4 18.4 5.6"/></svg>' + esc(dom || 'This domain') + '</div>' +
+          '<p>We might be able to help you get it. <a href="' + href + '#how">How it works</a></p>' +
+          '<div class="gh-tk__fee"><span class="gh-tk__ic">' + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 4v5c0 4.4-3 8.3-7 9-4-.7-7-4.6-7-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span><div><small>Broker service fee</small><b data-gh-fee>…</b><em data-gh-fee-note></em></div></div>' +
+          '<div class="gh-tk__act"><a class="gh-tk__buy" href="' + href + '">Buy it now</a><a class="gh-tk__more" href="' + href + '#faq">See how it works</a></div></div>' +
+          '<div class="gh-tk__card gh-tk__alt" hidden><span class="gh-tk__tag gh-tk__tag--alt">Great alternative</span><div class="gh-tk__altdom" data-gh-alt></div><div class="gh-tk__altprice" data-gh-altp></div><button type="button" class="gh-tk__add">Make it yours</button></div>';
+        res.insertBefore(wrap, res.firstChild);
+        res.classList.add('gh-tk-on');
+        loadFee(function (d) {
+          var f = wrap.querySelector('[data-gh-fee]'), n = wrap.querySelector('[data-gh-fee-note]');
+          if (!d) { f.textContent = 'From $79'; return; }
+          f.textContent = money(d.currency, d.fee);
+          n.textContent = '+ ' + d.pct + '% only if we close the deal (min ' + money(d.currency, d.minCommission) + ')';
+        });
+        var tries = 0, fill = function () {
+          var a = alt(); var card = wrap.querySelector('.gh-tk__alt');
+          if (!a) { if (++tries < 20) setTimeout(fill, 600); return; }
+          var parts = a.dom.split('.'); var sld = parts.shift();
+          card.querySelector('[data-gh-alt]').innerHTML = esc(sld) + '<span>.' + esc(parts.join('.')) + '</span>';
+          card.querySelector('[data-gh-altp]').textContent = a.price;
+          card.querySelector('.gh-tk__add').onclick = function () { a.btn.click(); this.textContent = 'Added ✓'; this.disabled = true; };
+          card.hidden = false;
+        };
+        fill();
       });
     };
     run(); new MutationObserver(function () { clearTimeout(run.t); run.t = setTimeout(run, 200); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
