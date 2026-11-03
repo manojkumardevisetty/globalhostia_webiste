@@ -183,8 +183,4 @@ export const FOOTER_EXTRA_DEFAULTS: FooterColumn[] = [
     { label: 'Web hosting in Dubai', href: '/web-hosting-dubai' }, { label: 'VPS hosting UAE', href: '/vps-uae' },
     { label: 'Windows RDP UAE', href: '/windows-rdp-uae' }, { label: 'Choosing hosting in the UAE', href: '/best-hosting-uae' },
   ] },
-  { title: 'Learn', links: [
-    { label: 'Hosting comparisons', href: '/compare' }, { label: 'Hosting guides', href: '/guides' },
-    { label: 'Shared vs VPS vs cloud', href: '/compare/shared-vs-vps-vs-cloud-vs-dedicated' }, { label: 'Move your website', href: '/guides/move-website-to-hostia' },
-  ] },
 ];

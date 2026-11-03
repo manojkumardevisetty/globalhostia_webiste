@@ -220,7 +220,8 @@ export function footerColumns(menus: ThemeMenu[], extra?: { title: string; links
   col(/hosting/i)?.links.push({ label: 'Hosting for…', href: '/hosting-for' });
   // editorial columns: Admin → Site links (settings.site_links.footerExtra), else the defaults
   for (const c of extra || FOOTER_EXTRA_DEFAULTS) cols.push({ title: c.title, links: c.links.map((l) => ({ ...l })) });
-  return cols;
+  // the owner keeps learning/guide links out of the footer (they stay in the menu and on /guides, /compare)
+  return cols.filter((c) => !/^(learn|learning|resources|guides)$/i.test(c.title.trim()));
 }
 function dedupe(items: MenuItem[]) { const seen = new Set<string>(); return items.filter((i) => (seen.has(i.label) ? false : (seen.add(i.label), true))); }
 
