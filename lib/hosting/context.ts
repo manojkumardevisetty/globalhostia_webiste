@@ -10,6 +10,7 @@ import { serverFor } from './match';
 import { providerFor } from './providers';
 import { InputError, panelUser } from './validate';
 import { PanelError, type Account, type HostingProvider } from './types';
+import { publicPanelError } from '../ux/errors';
 
 export const ALLOWED_ORIGINS = (process.env.HOSTING_ALLOWED_ORIGINS || 'https://my.globalhostia.com').split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean);
 
@@ -32,7 +33,12 @@ export function errorResponse(req: Request, e: unknown) {
   const h = cors(req);
   if (e instanceof HttpError) return Response.json({ error: e.code, message: e.message }, { status: e.status, headers: h });
   if (e instanceof InputError) return Response.json({ error: 'invalid', message: e.message }, { status: 400, headers: h });
-  if (e instanceof PanelError) return Response.json({ error: 'panel', message: e.message }, { status: e.status, headers: h });
+  if (e instanceof PanelError) {
+    // the panel's own words stay in the log; customers get a friendly sentence (5xx) or the scrubbed validation text (4xx)
+    const pub = publicPanelError(e.status, e.message);
+    if (e.status >= 500) console.error('[hosting] panel', e.status, e.message);
+    return Response.json({ error: pub.code, message: pub.message }, { status: pub.status, headers: h });
+  }
   console.error('[hosting]', e);
   return Response.json({ error: 'server', message: 'Something went wrong. Please try again.' }, { status: 500, headers: h });
 }

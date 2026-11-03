@@ -204,8 +204,19 @@
       var e = form.querySelector('[data-err="' + name + '"]'), f = form.querySelector('[name="' + name + '"]');
       if (e) e.textContent = text || ''; if (f) { if (text) f.setAttribute('aria-invalid', 'true'); else f.removeAttribute('aria-invalid'); }
     }
+    // what went wrong + what to do (GHFx on the website; plain text where only this file is loaded)
+    function leadFail(status, j, er, nFields) {
+      if (!msg) return;
+      msg.setAttribute('role', 'alert');
+      if (W.GHFx) {
+        var info = W.GHFx.errInfo(status, j && j.ok === false && !j.error ? null : j, er);
+        if (nFields) info.retry = false;
+        W.GHFx.showError(msg, info, { retry: function () { if (form.requestSubmit) form.requestSubmit(); else if (btn) btn.click(); } });
+      } else msg.textContent = (j && j.error) || (status ? 'Something went wrong on our side. Please try again in a minute.' : 'You seem to be offline. Check your connection and try again.');
+    }
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
+      if (msg) { msg.setAttribute('role', 'status'); msg.classList.remove('ghfx-err'); }
       var fd = new FormData(form), data = {};
       fd.forEach(function (v, k) { data[k] = v; });
       ['email', 'phone', 'consent'].forEach(function (k) { setErr(k, ''); });
@@ -219,26 +230,28 @@
       if (btn) { btn.disabled = true; btn.setAttribute('aria-busy', 'true'); }
       if (msg) msg.textContent = 'Sending…';
       fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), credentials: 'same-origin' })
-        .then(function (r) { return r.json().catch(function () { return { ok: false }; }).then(function (j) { return { status: r.status, j: j }; }); })
+        .then(function (r) { return r.json().catch(function () { return null; }).then(function (j) { return { status: r.status, j: j }; }); })
         .then(function (res) {
           if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
           if (res.j && res.j.ok) {
             GH.track('generate_lead', { lead_source: data.source, page: location.pathname });
             try { D.dispatchEvent(new CustomEvent('gh:lead', { detail: { source: data.source } })); } catch (e) { /* old browsers */ }
             var done = D.createElement('p'); done.className = 'gh-lead__done'; done.setAttribute('role', 'status'); done.tabIndex = -1;
-            done.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b></b> </span>';
+            done.innerHTML = (W.GHFx ? '<span class="ghfx-mark ghfx-mark--sm">' + W.GHFx.checkSvg(40) + '</span>' : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5 20.5 7.4v9.2L12 21.5 3.5 16.6V7.4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m8.5 12.2 2.4 2.4 4.6-4.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>') + '<span><b></b> </span>';
             done.querySelector('b').textContent = opts.thanks || (data.source === 'plan-finder' ? 'Thank you. Our team will email your recommendation shortly.' : 'Thank you, you are on the list.');
             done.querySelector('span').appendChild(D.createTextNode(data.source === 'plan-finder' ? '' : 'We only write when we have something useful.'));
             form.replaceWith(done); done.focus({ preventScroll: true });
+            if (W.GHFx) W.GHFx.success(done, { small: true });
             if (opts.onDone) opts.onDone();
             return;
           }
-          var fields = (res.j && res.j.fields) || {};
-          Object.keys(fields).forEach(function (k) { setErr(k, fields[k]); });
-          if (msg) msg.textContent = (res.j && res.j.error) || 'Something went wrong. Please try again.';
-        }, function () {
+          var fields = (res.j && res.j.fields) || {}, keys = Object.keys(fields);
+          keys.forEach(function (k) { setErr(k, fields[k]); });
+          if (keys.length) { var ff = form.querySelector('[name="' + keys[0] + '"]'); if (ff) ff.focus(); }
+          leadFail(res.status, res.j, null, keys.length);
+        }, function (er) {
           if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
-          if (msg) msg.textContent = 'You seem to be offline. Please try again.';
+          leadFail(0, null, er, 0);
         });
     });
   }

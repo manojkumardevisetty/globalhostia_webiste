@@ -3,7 +3,7 @@
    Account pages and every /account response (HTML, JSON, CSV) always go to the network and are never stored:
    they are private to the signed-in customer. Also shows web push notifications. */
 "use strict";
-var VERSION = "gh-account-v1";
+var VERSION = "gh-account-v2"; // v2: offline page in the shared error-page style
 var SHELL = ["/pwa-offline.htm", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"];
 
 self.addEventListener("install", function (e) {

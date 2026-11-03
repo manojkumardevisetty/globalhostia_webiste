@@ -1,0 +1,63 @@
+/* GlobalHostia feedback kit styles (public/hp/fx.js). Brand: pink #c5386f, ink #16212b, gold #fdd700.
+   Motion uses transform / opacity (and a one-off stroke draw on a 64px SVG); prefers-reduced-motion = final state. */
+
+/* ---------- error box content (inside the existing .mg-alert / .br-alert / .bs-alert / .gh-lead__msg boxes) */
+.ghfx-err{display:flex;gap:10px;align-items:flex-start}
+.ghfx-err__ic{flex:none;display:inline-flex;margin-top:1px}
+.ghfx-err__tx{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ghfx-err__act{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px}
+.ghfx-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:10px;border:1.5px solid currentColor;background:transparent;color:inherit;font:600 14px/1 inherit;font-family:inherit;cursor:pointer}
+.ghfx-btn:hover{background:rgba(197,56,111,.08)}
+.ghfx-btn:focus-visible,.ghfx-link:focus-visible{outline:2px solid #c5386f;outline-offset:2px}
+.ghfx-link{color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- hexagon check (success) */
+.ghfx-mark{display:block;width:64px;height:64px;margin:0 auto}
+.ghfx-mark--sm{display:inline-block;width:40px;height:40px;margin:0;vertical-align:middle}
+.ghfx-mark--sm .ghfx-check{width:40px;height:40px}
+.ghfx-check{display:block;overflow:visible}
+.ghfx-check__hex{stroke-dasharray:100;stroke-dashoffset:0}
+.ghfx-check__tick{stroke-dasharray:100;stroke-dashoffset:0}
+.ghfx-check__sp{opacity:0}
+.ghfx-check.is-on{animation:ghfx-in .5s cubic-bezier(.2,.8,.2,1) both;transform-origin:50% 50%}
+.ghfx-check.is-on .ghfx-check__hex{animation:ghfx-draw .55s cubic-bezier(.6,0,.3,1) both}
+.ghfx-check.is-on .ghfx-check__fill{animation:ghfx-fade .3s .42s ease-out both}
+.ghfx-check.is-on .ghfx-check__tick{animation:ghfx-draw .34s .6s cubic-bezier(.3,.7,.2,1) both}
+.ghfx-check.is-on .ghfx-check__sp{animation:ghfx-spark .7s .7s ease-out both;transform-origin:32px 32px}
+@keyframes ghfx-in{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
+@keyframes ghfx-draw{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+@keyframes ghfx-fade{from{opacity:0}to{opacity:1}}
+@keyframes ghfx-spark{0%{opacity:0;transform:scale(.6)}40%{opacity:1}100%{opacity:0;transform:scale(1.35)}}
+
+/* ---------- pop / badge bump / row flash */
+.ghfx-pop{animation:ghfx-pop .42s cubic-bezier(.3,1.6,.5,1)}
+.ghfx-bump{animation:ghfx-bump .5s cubic-bezier(.3,1.8,.5,1)}
+@keyframes ghfx-pop{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes ghfx-bump{0%{transform:scale(1)}30%{transform:scale(1.35) translateY(-2px)}100%{transform:scale(1)}}
+.ghfx-row{position:relative}
+.ghfx-row>*{animation:ghfx-row 2.4s ease-out}
+@keyframes ghfx-row{0%,25%{background-color:rgba(253,215,0,.28)}100%{background-color:transparent}}
+
+/* ---------- toasts */
+.ghfx-toasts{position:fixed;inset-inline-end:16px;bottom:16px;z-index:9990;display:flex;flex-direction:column;gap:8px;max-width:min(380px,calc(100vw - 32px));pointer-events:none}
+.ghfx-toast{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;border-radius:12px;background:#16212b;color:#fff;font:500 14.5px/1.45 Inter,system-ui,sans-serif;box-shadow:0 18px 40px -18px rgba(22,33,43,.55);animation:ghfx-up .28s cubic-bezier(.2,.8,.2,1) both}
+.ghfx-toast--err{background:#7d1236}
+.ghfx-toast>span:nth-child(2){flex:1;min-width:0}
+.ghfx-toast button{flex:none;width:28px;height:28px;border:0;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;font-size:18px;line-height:1;cursor:pointer}
+.ghfx-toast.is-out{opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s}
+.ghfx-toast__mk{position:relative;flex:none;width:14px;height:16px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:#fdd700}
+.ghfx-toast--err .ghfx-toast__mk{background:#fff}
+.ghfx-toast__mk::after{content:"";position:absolute;inset:0;background:inherit;animation:ghfx-pulse 1.2s ease-out 2}
+@keyframes ghfx-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes ghfx-pulse{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.2);opacity:0}}
+
+/* ---------- hexagon spinner */
+.ghfx-spin{display:inline-flex;width:20px;height:20px;color:currentColor;vertical-align:middle}
+.ghfx-spin svg{width:100%;height:100%;animation:ghfx-rot .9s linear infinite;transform-origin:50% 50%}
+@keyframes ghfx-rot{to{transform:rotate(360deg)}}
+
+@media (prefers-reduced-motion: reduce){
+  .ghfx-check.is-on,.ghfx-check.is-on *,.ghfx-pop,.ghfx-bump,.ghfx-row>*,.ghfx-toast,.ghfx-toast__mk::after{animation:none!important}
+  .ghfx-check.is-on .ghfx-check__sp{opacity:0}
+  .ghfx-spin svg{animation-duration:3s}
+}

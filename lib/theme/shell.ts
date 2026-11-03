@@ -201,6 +201,7 @@ ${ICON_LINKS}
 ${(o.preload || []).map((p) => (typeof p === 'string' ? preloadImage(p) : preloadImage(p.src, p.sizes))).join('')}
 ${FONT_PRELOADS}
 <link rel="stylesheet" href="${asset('/hp/theme.css')}">
+<link rel="stylesheet" href="${asset('/hp/fx.css')}" media="print" onload="this.media='all'">
 ${hasPromo(promo) ? `<link rel="stylesheet" href="${asset('/hp/promo.css')}">` : ''}
 ${css.map((k) => `<link rel="stylesheet" href="${asset(`/hp/pages/${k}.css`)}">`).join('\n')}
 <script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("hp-mo")</script>
@@ -223,6 +224,7 @@ ${footer(menus, cat, phone, email, s.lead_footer === false || s.lead_footer === 
 ${waFloat(s, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.path)}
 ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=original')}"><i aria-hidden="true"></i>Theme preview · switch back to the current site</a>` : ''}
 <script src="${asset('/hp/theme.js')}" defer></script>
+<script src="${asset('/hp/fx.js')}" defer></script>
 ${WEBMCP_LOADER}
 ${aiChatLoader(s, cat.currency)}
 <script src="${asset('/hp/track.js')}" defer></script>

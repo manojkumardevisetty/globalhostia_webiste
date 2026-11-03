@@ -4,6 +4,7 @@
   "use strict";
   var form = HP.$("[data-mg-form]"), done = HP.$("[data-mg-done]");
   if (!form || !done) return;
+  if (!done.hidden && window.GHFx) window.GHFx.success(done);
   var t = HP.$("[data-mg-t]", form); if (t) t.value = String(Date.now());
   var btn = HP.$("[data-mg-btn]", form), alertBox = HP.$("[data-mg-alert]", form);
   var EMAIL = /^[^\s@<>()[\]\\,;:"]{1,64}@[a-z0-9.-]+\.[a-z]{2,}$/i, SITE = /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}(:\d+)?(\/\S*)?$/i;
@@ -31,6 +32,15 @@
   }
   form.addEventListener("input", function (e) { var w = e.target.closest("[data-field]"); if (w && w.classList.contains("is-err")) { var errs = check(); setErr(w.dataset.field, errs[w.dataset.field]); } });
   form.addEventListener("change", function (e) { if (e.target.name === "what") setErr("what", check().what); });
+  // failed send: the reason in plain words, "Try again" when retrying can help, WhatsApp once it keeps failing (/hp/fx.js)
+  function fail(status, r, er) {
+    if (!alertBox) return;
+    var FX = window.GHFx, info = FX ? FX.errInfo(status, r, er) : { msg: (r && r.error) || "We could not send your request. Please try again, or contact us on WhatsApp.", retry: false };
+    if (r && r.fields && FX) info.retry = false; // field problems: fixing the fields is the next step, not a retry
+    if (FX) FX.showError(alertBox, info, { retry: function () { if (form.requestSubmit) form.requestSubmit(); else btn.click(); } });
+    else { alertBox.textContent = info.msg; alertBox.hidden = false; }
+    if (!(r && r.fields)) alertBox.scrollIntoView({ block: "nearest", behavior: HP.reduce ? "auto" : "smooth" });
+  }
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     if (alertBox) alertBox.hidden = true;
@@ -39,20 +49,21 @@
     var fd = new FormData(form), body = {};
     fd.forEach(function (v, k) { if (k === "what") (body.what = body.what || []).push(v); else body[k] = v; });
     btn.disabled = true; btn.setAttribute("aria-busy", "true"); var lbl = HP.$("span", btn), old = lbl.textContent; lbl.textContent = "Sending your request…";
-    fetch(form.action, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify(body), credentials: "same-origin" })
-      .then(function (r) { return r.json().catch(function () { return { ok: false, error: "Unexpected reply from the server." }; }); })
+    var status = 0, ac = window.AbortController ? new AbortController() : null, tm = ac ? setTimeout(function () { ac.abort(); }, 25000) : 0;
+    fetch(form.action, { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify(body), credentials: "same-origin", signal: ac ? ac.signal : undefined })
+      .then(function (r) { status = r.status; return r.json().catch(function () { return null; }); })
       .then(function (r) {
         if (r && r.ok) {
           var tk = HP.$("[data-mg-ticket]", done), line = HP.$("[data-mg-tline]", done);
           if (r.ticket && r.ticket !== "received") { tk.textContent = r.ticket; line.hidden = false; } else line.hidden = true;
-          form.hidden = true; done.hidden = false; done.focus();
+          form.hidden = true; done.hidden = false; done.focus(); if (window.GHFx) window.GHFx.success(done);
           var top = done.getBoundingClientRect().top + window.pageYOffset - 120; window.scrollTo({ top: top, behavior: HP.reduce ? "auto" : "smooth" });
           return;
         }
         if (r && r.fields) show(r.fields);
-        if (alertBox) { alertBox.textContent = (r && r.error) || "We could not send your request. Please try again."; alertBox.hidden = false; }
+        fail(status, r, null);
       })
-      .catch(function () { if (alertBox) { alertBox.textContent = "Network error. Check your connection and try again, or contact us on WhatsApp."; alertBox.hidden = false; } })
-      .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); lbl.textContent = old; });
+      .catch(function (er) { fail(0, null, er); })
+      .then(function () { clearTimeout(tm); btn.disabled = false; btn.removeAttribute("aria-busy"); lbl.textContent = old; });
   });
 });

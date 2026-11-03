@@ -15,6 +15,8 @@ import { GET as aiPage } from '../ai/route';
 import { onDeploy } from '@/lib/indexnow';
 import { ALIAS_PATHS, HUB_PATH } from '@/lib/store/config';
 import { storeRedirect } from '@/lib/store/view';
+import { errorPage } from '@/lib/ux/error-page';
+import { renderNotFound } from '@/lib/theme/pages/notfound';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,10 +30,11 @@ const html = (body: string, status = 200, cache = true) => new NextResponse(body
   headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache && status === 200 ? pageCache() : 'private, no-store' },
 });
 
-/** Last resort when a page cannot be built at all (no database and no snapshot): 503 + Retry-After, never a 500. */
+/** Last resort when a page cannot be built at all (no database and no snapshot): 503 + Retry-After, never a 500.
+ *  The technical reason stays in the log; the visitor gets the branded page with "Try again" and support links. */
 function unavailable(e: unknown) {
   console.error('[page] render failed:', (e as Error)?.message || e);
-  return new NextResponse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="robots" content="noindex"><title>GlobalHostia</title><body style="font:16px system-ui;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;padding:24px"><div><h1>We'll be right back</h1><p>This page is temporarily unavailable. Please try again in a few minutes.</p><p><a href="https://my.globalhostia.com/clientarea.php">Client area</a> · <a href="mailto:support@globalhostia.com">support@globalhostia.com</a></p></div>`,
+  return new NextResponse(errorPage({ status: 503, retry: true, title: "We'll be right back", text: 'This page is temporarily unavailable. Please try again in a few minutes.' }),
     { status: 503, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'retry-after': '120' } });
 }
 
@@ -95,7 +98,8 @@ async function render(req: NextRequest, ctx: { params: Promise<{ slug?: string[]
   const preview = !!session && req.nextUrl.searchParams.has('preview');
   const s = await getSettings();
   if (s.maintenance && !session) {
-    return html(`<!doctype html><meta name=viewport content="width=device-width"><title>${s.site_name}</title><body style="font:16px system-ui;display:grid;place-items:center;height:100vh;margin:0"><div style="text-align:center"><h1>We'll be right back</h1><p>${s.site_name} is undergoing scheduled maintenance.</p></div>`, 503, false);
+    return html(errorPage({ status: 503, retry: true, siteName: String(s.site_name || 'GlobalHostia'), whatsapp: String(s.whatsapp || ''), email: String(s.email || '') || undefined,
+      title: "We'll be right back", text: `${s.site_name || 'GlobalHostia'} is undergoing scheduled maintenance. Please try again in a few minutes.` }), 503, false);
   }
 
   // Blog (admin → Blog) only exists in the Hostpen theme, so it renders with it whatever the site theme is.
@@ -125,6 +129,11 @@ async function render(req: NextRequest, ctx: { params: Promise<{ slug?: string[]
   const opts = { preview, query: req.nextUrl.searchParams, ip, path };
   const out = await renderPage(slug, opts);
   if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'));
+  // branded 404 (search + popular pages) with the site theme; the original theme's CMS "404" page otherwise
+  if (s.site_theme === 'hostpen' || tq === 'hostpen') {
+    const themed = await renderNotFound({ slug, path, preview: false, query: req.nextUrl.searchParams, route: { kind: 'content', title: 'Page not found', description: '' } }).catch((e) => { console.error('[page] 404 render failed:', (e as Error)?.message || e); return null; });
+    if (themed) return html(themed, 404, false);
+  }
   const nf = await renderPage('404', { ...opts, preview: false });
-  return html(nf || `<!doctype html><title>Not found</title><body style="font:16px system-ui;text-align:center;padding:80px"><h1>Page not found</h1><p><a href="/">Back to ${s.site_name}</a></p>`, 404, false);
+  return html(nf || errorPage({ status: 404, siteName: String(s.site_name || 'GlobalHostia'), title: 'We could not find that page', text: 'The link may be old, or the page has moved.' }), 404, false);
 }
