@@ -771,7 +771,7 @@
   function footerCredit() {
     [].forEach.call(document.querySelectorAll('footer p, footer div, [class*="footer"] p, [class*="footer"] .col, [class*="footer"] [class*="col-"]'), function (el) {
       if (el.children.length > 4 || !/coodiv|lots? of coffee/i.test(el.textContent) || el.dataset.ghc) return;
-      el.dataset.ghc = 1; el.textContent = '© ' + new Date().getFullYear() + ' GlobalHostia · Desert Tech Cloud Services LLC, Dubai. All rights reserved.';
+      el.dataset.ghc = 1; el.textContent = '© ' + new Date().getFullYear() + ' GlobalHostia. All rights reserved.';
     });
   }
   // Gravatar avatars: our logo as the default instead of Gravatar's blue icon; a "Change photo" link in the account menu

@@ -71,7 +71,7 @@ function proofFacts(cat: Catalog, r: Resolved): { big: string; label: string }[]
     if (n > 1) out.push({ big: String(n), label: 'domain extensions with live prices' });
   }
   out.push({ big: 'Live', label: 'prices straight from our billing system' });
-  out.push({ big: 'UAE', label: `${String(cat.settings.company || 'Desert Tech Cloud Services LLC')}, Dubai` });
+  out.push({ big: 'UAE', label: `${String(cat.settings.company || 'GlobalHostia')}, Dubai` });
   return out.slice(0, 4);
 }
 
@@ -178,7 +178,7 @@ export async function renderLanding(slug: string, o: { path: string; preview: bo
   const productLd = r.kind === 'product' && r.price ? ld({ '@context': 'https://schema.org', '@type': 'Product', name: r.product.name, sku: r.product.whmcsPid ? String(r.product.whmcsPid) : r.product.slug, brand: { '@type': 'Brand', name: siteName }, category: r.label, url: canonical,
     offers: { '@type': 'Offer', price: r.price.price.toFixed(2), priceCurrency: cat.currency, availability: 'https://schema.org/InStock', url: r.orderHref } }) : '';
   const year = new Date().getFullYear();
-  const company = String(s.company || 'Desert Tech Cloud Services LLC');
+  const company = String(s.company || 'GlobalHostia');
 
   const html = `<!DOCTYPE html>
 <html lang="en">

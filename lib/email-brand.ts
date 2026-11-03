@@ -19,7 +19,7 @@ export const EMAIL_DESIGN_VERSION = 'gh-email v1';
 
 export const BRAND = {
   name: 'GlobalHostia',
-  company: 'Desert Tech Cloud Services LLC',
+  company: 'GlobalHostia',
   city: 'Dubai, United Arab Emirates',
   site: 'https://globalhostia.com',
   clientArea: 'https://my.globalhostia.com',

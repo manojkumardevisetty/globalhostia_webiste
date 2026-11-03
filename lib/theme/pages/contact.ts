@@ -16,7 +16,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const phone = String(s.phone || ''), email = String(s.email || '');
   const waNum = String(s.whatsapp || phone || '').replace(/[^\d]/g, '');
   const wa = (text: string) => (waNum ? `https://wa.me/${waNum}?text=${encodeURIComponent(text)}` : '');
-  const company = String(s.company || 'Desert Tech Cloud Services LLC');
+  const company = String(s.company || 'GlobalHostia');
   const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
   const crumbs = [{ label: 'Home', href: '/' }, { label: 'Contact us' }];
 

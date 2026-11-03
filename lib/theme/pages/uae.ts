@@ -52,7 +52,7 @@ async function dubai(cat: Catalog, ctx: PageCtx) {
   const loc = locText(hosting);
   const curs = availableCurrencies(cat.products);
   const aed = curs.includes('AED');
-  const company = String(s.company || 'Desert Tech Cloud Services LLC');
+  const company = String(s.company || 'GlobalHostia');
   const wa = waLink(s, 'Hello Globalhostia, I am interested in web hosting in Dubai.');
   const from = fromHtml(hosting, cat, 'Plans');
   const facts: [IconName, string, string][] = [
