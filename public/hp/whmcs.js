@@ -768,6 +768,12 @@
       }
     }
   }
+  function footerCredit() {
+    [].forEach.call(document.querySelectorAll('footer p, footer div, [class*="footer"] p, [class*="footer"] .col, [class*="footer"] [class*="col-"]'), function (el) {
+      if (el.children.length > 4 || !/coodiv|lots? of coffee/i.test(el.textContent) || el.dataset.ghc) return;
+      el.dataset.ghc = 1; el.textContent = '© ' + new Date().getFullYear() + ' GlobalHostia · Desert Tech Cloud Services LLC, Dubai. All rights reserved.';
+    });
+  }
   function tldRows() {
     var tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n;
     while ((n = tw.nextNode())) {
@@ -818,7 +824,7 @@
     });
   }
 
-  ready(function () { try { curLabel(); setTimeout(curLabel, 1500); textFixes(); setTimeout(textFixes, 1500); setTimeout(textFixes, 4000); tldRows(); setTimeout(tldRows, 2500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { compactHero(); setTimeout(compactHero, 800); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  ready(function () { try { footerCredit(); } catch (e) {} try { curLabel(); setTimeout(curLabel, 1500); textFixes(); setTimeout(textFixes, 1500); setTimeout(textFixes, 4000); tldRows(); setTimeout(tldRows, 2500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { compactHero(); setTimeout(compactHero, 800); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
 
 // Support alerts: nudge the site to email the owner after a ticket is opened or replied to.

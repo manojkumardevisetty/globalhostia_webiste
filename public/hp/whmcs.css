@@ -832,3 +832,4 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 .footer-emyui-aws .bottom-footer-area { padding-top: 14px !important; padding-bottom: 76px !important; font-size: 13px; }
 .footer-emyui-aws .bottom-footer-area a { color: #8794a1 !important; }
 @media (max-width: 760px) { .footer-emyui-aws .footer-top [class*="col-"] { flex: 0 0 50% !important; max-width: 50% !important; } }
+.footer-emyui-aws .footer-top li { margin-bottom: 4px !important; } .footer-emyui-aws .footer-top li a { line-height: 1.6 !important; display: inline-block; padding: 1px 0; }
