@@ -762,7 +762,7 @@
       var v = n.nodeValue;
       if (/\bdomainavailable2\b/.test(v)) { n.nodeValue = v.replace(/\s*\bdomainavailable2\b\s*/g, ' '); continue; }
       if (/^\s*0\d{2}(\s*-\s*[A-Z]{3})?\s*$/.test(v)) {
-        var pe = n.parentElement; if (!pe || pe.getBoundingClientRect().top > 300) continue;
+        var pe = n.parentElement; if (!pe || (pe.getBoundingClientRect().top > 300 && !/-\s*[A-Z]{3}/.test(v) && !(pe.closest('footer, [class*="footer"]')))) continue;
         var m = v.match(/[A-Z]{3}/); var code = m ? m[0] : ((document.body.innerHTML.match(/\d[\d,.]*\s(USD|AED|EUR|GBP|INR|SAR|CAD|AUD|SGD|MYR)\b/) || [])[1] || '');
         n.nodeValue = v.replace(/0\d{2}(\s*-\s*[A-Z]{3})?/, code || 'Currency');
       }
