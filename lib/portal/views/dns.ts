@@ -79,13 +79,14 @@ function recordRows(o: DnsView, zone: string, recs: DnsRecord[]) {
     const k = rid(r);
     const editOpen = o.edit === r.id || (o.err?.scope === 'edit' && o.err.id === r.id);
     const delOpen = o.del === r.id;
-    const val = r.type === 'SRV' ? `${r.weight ?? 0} ${r.port ?? ''} ${r.value}` : r.value;
+    const val = ['CNAME', 'MX', 'SRV', 'NS'].includes(r.type) ? r.value.replace(/\.$/, '') : r.value;
+    const srvMeta = r.type === 'SRV' ? `<small class="ac-dns__meta">port ${esc(r.port ?? '')} · weight ${esc(r.weight ?? 0)}</small>` : '';
     const act = r.readonly
       ? `<span class="ac-dns__lock" title="Managed by GlobalHostia">${icon('lock')}<span>Protected</span></span>`
       : `<a class="ac-dns__ib" href="?edit=${esc(encodeURIComponent(r.id))}#rec-${k}" data-dns-open="ed-${k}" aria-controls="ed-${k}" aria-expanded="${editOpen}">${icon('pen')}<span>Edit</span></a>
          <a class="ac-dns__ib ac-dns__ib--del" href="?del=${esc(encodeURIComponent(r.id))}#rec-${k}" data-dns-open="del-${k}" aria-controls="del-${k}" aria-expanded="${delOpen}">${icon('x')}<span>Delete</span></a>`;
     const f: DnsForm = o.err?.scope === 'edit' && o.err.id === r.id && o.err.form ? o.err.form
-      : { name: r.name, value: r.value, ttl: String(r.ttl), priority: r.priority !== undefined ? String(r.priority) : undefined, weight: r.weight !== undefined ? String(r.weight) : undefined, port: r.port !== undefined ? String(r.port) : undefined };
+      : { name: r.name, value: val, ttl: String(r.ttl), priority: r.priority !== undefined ? String(r.priority) : undefined, weight: r.weight !== undefined ? String(r.weight) : undefined, port: r.port !== undefined ? String(r.port) : undefined };
     const edit = r.readonly ? '' : `<tr class="ac-dns__panel" id="ed-${k}" data-type="${esc(r.type)}"${editOpen ? '' : ' hidden'}><td colspan="6">
       ${o.err?.scope === 'edit' && o.err.id === r.id ? alert('err', esc(o.err.msg)) : ''}
       ${formOpen(o, 'edit', hidden('id', r.id), ` data-type="${esc(r.type)}"`)}<div class="ac-dns__grid">${fields(`ed-${k}`, zone, f, r.type)}</div>
@@ -96,7 +97,7 @@ function recordRows(o: DnsView, zone: string, recs: DnsRecord[]) {
     return `<tr class="ac-dns__rec${r.readonly ? ' is-ro' : ''}" id="rec-${k}" data-rt="${esc(r.type)}">
       <td data-l="Type">${typePill(r.type)}</td>
       <th scope="row" data-l="Name">${nameCell(r.name, zone)}</th>
-      <td data-l="Value" class="ac-dns__v"><span class="ac-mono" title="${esc(val)}">${esc(val)}</span>${r.type === 'TXT' && val.length > 40 ? `<button type="button" class="ac-copy" data-copy="${esc(val)}" aria-label="Copy value">${icon('copy')}<span>Copy</span></button>` : ''}</td>
+      <td data-l="Value" class="ac-dns__v"><span class="ac-mono" title="${esc(val)}">${esc(val)}</span>${srvMeta}${r.type === 'TXT' && val.length > 40 ? `<button type="button" class="ac-copy" data-copy="${esc(val)}" aria-label="Copy value">${icon('copy')}<span>Copy</span></button>` : ''}</td>
       <td data-l="Priority" class="num">${r.priority !== undefined && (r.type === 'MX' || r.type === 'SRV') ? esc(r.priority) : '<span class="ac-muted">—</span>'}</td>
       <td data-l="TTL" class="num">${esc(ttlLabel(r.ttl))}</td>
       <td class="ac-dns__act">${act}</td></tr>${edit}${del}`;
