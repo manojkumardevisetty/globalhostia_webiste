@@ -1165,8 +1165,12 @@
       var wrap = document.createElement('div'); wrap.className = 'ghh-dd';
       var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'ghh-dd__btn'; btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false');
       var list = document.createElement('ul'); list.className = 'ghh-dd__list'; list.setAttribute('role', 'listbox'); list.hidden = true; list.tabIndex = -1;
-      sel.parentNode.insertBefore(wrap, sel); wrap.appendChild(sel); wrap.appendChild(btn); wrap.appendChild(list); sel.classList.add('ghh-dd__native'); sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
-      var lab = sel.closest('label') || (sel.id && document.querySelector('label[for="' + sel.id + '"]')); if (lab) btn.setAttribute('aria-label', lab.textContent.trim());
+      // keep the widget out of any <label>: a label forwards clicks to its first control (the hidden select), so only some clicks opened the menu
+      var lab0 = sel.closest('label');
+      if (lab0) { lab0.parentNode.insertBefore(wrap, lab0.nextSibling); var t = document.createElement('span'); t.className = lab0.className; t.textContent = lab0.textContent.trim(); lab0.parentNode.replaceChild(t, lab0); t.onclick = function () { btn.click(); }; }
+      else sel.parentNode.insertBefore(wrap, sel);
+      wrap.appendChild(sel); wrap.appendChild(btn); wrap.appendChild(list); sel.classList.add('ghh-dd__native'); sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
+      btn.setAttribute('aria-label', (lab0 ? lab0.textContent.trim() : 'Choose') + ': ' + (sel.options[sel.selectedIndex] || {}).text);
       var act = 0;
       var sync = function () {
         var o = sel.options[sel.selectedIndex]; btn.innerHTML = '<span>' + esc(o ? o.text : '') + '</span>' + ic('chevron', 14);
@@ -1175,7 +1179,7 @@
       var close = function () { list.hidden = true; btn.setAttribute('aria-expanded', 'false'); wrap.classList.remove('open'); };
       var open = function () { act = sel.selectedIndex; sync(); list.hidden = false; btn.setAttribute('aria-expanded', 'true'); wrap.classList.add('open'); list.focus(); };
       var pick = function (i) { if (i !== sel.selectedIndex) { sel.selectedIndex = i; sel.dispatchEvent(new Event('change')); } close(); sync(); btn.focus(); };
-      btn.onclick = function () { list.hidden ? open() : close(); };
+      btn.onclick = function (e) { e.preventDefault(); e.stopPropagation(); list.hidden ? open() : close(); };
       list.onclick = function (e) { var li = e.target.closest('li'); if (li) pick(+li.getAttribute('data-i')); };
       list.onkeydown = function (e) {
         var n = sel.options.length;

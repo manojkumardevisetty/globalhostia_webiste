@@ -1170,3 +1170,5 @@ button.ghh-fname { cursor: pointer; } button.ghh-fname:hover { color: var(--gh-b
 /* advanced console button (white-labelled panel login) */
 .gh-console-btn { background: #fff !important; background-image: none !important; color: var(--gh-ink, #16212b) !important; border: 1.5px solid var(--gh-line, #e3e7ec) !important; border-radius: 12px !important; padding: 12px 22px !important; font: 600 15px Inter, sans-serif !important; box-shadow: none !important; transition: border-color .15s, color .15s; }
 .gh-console-btn:hover { border-color: var(--gh-brand, #c5386f) !important; color: var(--gh-brand, #c5386f) !important; }
+.ghh-dd__btn * { pointer-events: none; }
+.ghh__dom { display: flex; align-items: center; gap: 10px; }
