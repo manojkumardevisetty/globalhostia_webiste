@@ -10,6 +10,7 @@ import { getMenu, footerColumns, type ThemeMenu } from './menu';
 import { icon, iconSprite, hexIcon } from './ui';
 import { preloadImage } from './img';
 import { activeFor, barHtml, promoDataScript, hasPromo } from '../promo';
+import { normalize as mobileHeroCfg } from '../mobile-hero';
 import { waFloat } from './growth';
 import { leadForm } from './lead';
 import { trackingHead, consentLink } from '../tracking';
@@ -19,7 +20,7 @@ export type PageOpts = {
   title: string; description: string; path: string; body: string; ctx: PageCtx;
   css?: string[]; js?: string[]; jsonLd?: string | string[]; bodyClass?: string; ogImage?: string;
   /** LCP image(s): a URL (full-width, sizes 100vw) or { src, sizes } matching the page's <picture> */
-  preload?: (string | { src: string; sizes: string })[];
+  preload?: (string | { src: string; sizes: string; media?: string })[];
   catalog?: Catalog; noindex?: boolean;
   /** absolute canonical URL override (defaults to site_url + path) */
   canonical?: string;
@@ -67,22 +68,31 @@ function megaPanel(m: ThemeMenu) {
   return `<div class="hp-mega" id="m-${esc(m.id)}" data-panel><div class="hp-mega__panel"${f ? '' : ' style="grid-template-columns:1fr"'}><div class="hp-mega__cols">${links}</div>${feat}</div></div>`;
 }
 
-function header(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>) {
+/** Phone header icons (up to 767px, theme.css): deals, help, account, cart. The cart count comes from the gh_cart cookie
+ *  that /hp/whmcs.js sets on .globalhostia.com while the visitor uses the WHMCS cart (theme.js shows it). */
+function phoneIcons(cat: Catalog, L: ReturnType<typeof whmcsLinks>) {
+  const m = mobileHeroCfg(cat.settings.mobile_hero);
+  const a = (href: string, label: string, ic: string, extra = '') => `<a class="hp-micon" href="${esc(href)}" aria-label="${esc(label)}">${icon(ic)}${extra}</a>`;
+  return `<div class="hp-micons">${a(m.dealsHref, 'Deals and domain prices', 'tag')}${a(m.helpHref, 'Help center', 'help')}${a('/account', 'Your account', 'user')}${a(`${L.cart}?a=view`, 'Cart', 'cart', '<span class="hp-cartn" data-cart-count hidden></span>')}</div>`;
+}
+
+function header(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, cat: Catalog) {
   return `<header class="hp-header">
   <div class="hp-container hp-header__inner">
-    <a class="hp-brand" href="/" aria-label="Globalhostia home">${logo('black', 178, 34)}</a>
+    <a class="hp-brand" href="/" aria-label="Globalhostia home">${logo('black', 178, 34)}<img class="hp-brand__mark" src="/icon-192.png" alt="" width="36" height="36" loading="lazy"></a>
     <nav class="hp-nav" aria-label="Main">${menus.map((m) => `<button type="button" class="hp-nav__btn" aria-expanded="false" aria-controls="m-${esc(m.id)}" data-menu="m-${esc(m.id)}">${esc(m.label)}${icon('chev')}</button>`).join('')}</nav>
     <div class="hp-header__actions">
       <a class="hp-btn hp-btn--ghost" href="/account">Client login</a>
       <a class="hp-btn hp-btn--brand" href="${esc(L.register)}">Sign up</a>
       <button type="button" class="hp-burger" aria-expanded="false" aria-controls="hp-drawer" aria-label="Open menu">${icon('menu')}</button>
     </div>
+    ${phoneIcons(cat, L)}
   </div>
   ${menus.map(megaPanel).join('\n  ')}
 </header>`;
 }
 
-function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: string, email: string) {
+function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: string, email: string, currency = '') {
   return `<div class="hp-drawer" id="hp-drawer" aria-hidden="true" inert>
   <div class="hp-drawer__scrim" data-close></div>
   <div class="hp-drawer__sheet" role="dialog" aria-modal="true" aria-label="Menu">
@@ -92,6 +102,7 @@ function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: str
     <div class="hp-drawer__foot">
       <a class="hp-btn hp-btn--ghost" href="/account">Client login</a>
       <a class="hp-btn hp-btn--brand" href="${esc(L.register)}">Sign up</a>
+      ${currency ? `<div class="hp-drawer__cur">${currency}</div>` : ''}
       <div class="hp-drawer__contact">${phone ? `<a href="${esc(telHref(phone))}" aria-label="${esc(`Call us: ${phone}`)}">${icon('phone')}<span class="num">${esc(phone)}</span></a>` : ''}${email ? `<a href="mailto:${esc(email)}">${icon('mail')}${esc(email)}</a>` : ''}</div>
     </div>
   </div>
@@ -200,7 +211,7 @@ ${verificationMeta(s)}
 ${trackingHead(s.tracking)}
 <meta name="theme-color" content="#16212b">
 ${ICON_LINKS}
-${(o.preload || []).map((p) => (typeof p === 'string' ? preloadImage(p) : preloadImage(p.src, p.sizes))).join('')}
+${(o.preload || []).map((p) => (typeof p === 'string' ? preloadImage(p) : preloadImage(p.src, p.sizes, p.media))).join('')}
 ${FONT_PRELOADS}
 <link rel="stylesheet" href="${asset('/hp/theme.css')}">
 <link rel="stylesheet" href="${asset('/hp/fx.css')}" media="print" onload="this.media='all'">
@@ -217,8 +228,8 @@ ${iconSprite()}
 <a class="hp-skip" href="#main">Skip to content</a>
 ${barHtml(promo.bar)}
 ${utilBar(cat, L, phone, email)}
-${header(menus, L)}
-${drawer(menus, L, phone, email)}
+${header(menus, L, cat)}
+${drawer(menus, L, phone, email, currencyPicker(cat))}
 <main id="main" tabindex="-1">
 ${o.body}
 </main>

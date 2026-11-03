@@ -7,6 +7,7 @@ import { page } from '../shell';
 import { trustStrip, brokerCard } from '../growth';
 import { getLatestPosts, postPath, fmtPostDate } from '../../blog';
 import { postCard } from './blog';
+import { mobileSearch, mobileHero } from '../mobile-hero';
 import {
   heroSlider, domainSearch, sectionHead, bigTabs, planCards, plansNote, link, statRow, barChart, dcMap, splitHead, featureGrid,
   ctaBand, colHead, testimonials, faq, articleList, logosStrip, available,
@@ -84,7 +85,10 @@ export default async function render(ctx: PageCtx): Promise<string> {
       ctas: [{ label: 'Search for a domain', href: '#domain-q', attrs: 'data-focus-domain' }, { label: 'SSL certificates', href: '/ssl-certificate', variant: 'ghost' }],
       fromHtml: cheapTld ? `${esc(cheapTld.tld)} domains from <b class="num">${esc(money(cheapTld.register!, prefix))}</b> for the first year` : undefined,
     },
-  ]);
+  ], { desktopOnly: true });
+  // phones (up to 767px): sticky domain search + the admin-managed hero card (Admin > Marketing > Mobile hero)
+  const mHero = mobileHero(cat);
+  const mTop = mobileSearch(base, ctx.route.title) + mHero.html;
 
   /* ---------------- domain search ---------------- */
   const domain = `<section class="hp-domain" aria-labelledby="domain-q-h"><div class="hp-container">${domainSearch({ tlds, base, moreHref: '/domains-registration', prefix })}${brokerCard(cat.settings)}</div></section>`;
@@ -202,7 +206,8 @@ export default async function render(ctx: PageCtx): Promise<string> {
   return page({
     ctx, catalog: cat, path: '/', title: ctx.route.title, description: ctx.route.description,
     // the blog strip's card styles live in theme.css, so no page stylesheet is needed here
-    preload: ['/hp/img/hero-hosting.jpg'],
-    body: [hero, domain, trustStrip(cat.settings), plans, infra, features, cta, trio, blog, logosStrip()].join('\n'),
+    preload: [{ src: '/hp/img/hero-hosting.jpg', sizes: '100vw', media: '(min-width: 768px)' }, ...(mHero.preload ? [mHero.preload] : [])],
+    bodyClass: 'hp-home', css: ['mhero'], js: ['mhero'],
+    body: [mTop, hero, domain, trustStrip(cat.settings), plans, infra, features, cta, trio, blog, logosStrip()].join('\n'),
   });
 }

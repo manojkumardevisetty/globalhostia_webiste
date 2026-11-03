@@ -48,8 +48,9 @@ export function picture(o: PictureOpts): string {
 }
 
 /** <link rel=preload> for the LCP image: responsive (AVIF srcset + sizes) for manifest images. */
-export function preloadImage(src: string, sizes = '100vw') {
+export function preloadImage(src: string, sizes = '100vw', media = '') {
+  const m = media ? ` media="${esc(media)}"` : '';
   return imgInfo(src)
-    ? `<link rel="preload" as="image" type="image/avif" imagesrcset="${esc(srcsetOf(src, 'avif'))}" imagesizes="${esc(sizes)}" fetchpriority="high">`
-    : `<link rel="preload" as="image" href="${esc(src)}" fetchpriority="high">`;
+    ? `<link rel="preload" as="image" type="image/avif" imagesrcset="${esc(srcsetOf(src, 'avif'))}" imagesizes="${esc(sizes)}"${m} fetchpriority="high">`
+    : `<link rel="preload" as="image" href="${esc(src)}"${m} fetchpriority="high">`;
 }

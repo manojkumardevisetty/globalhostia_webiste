@@ -981,3 +981,32 @@ body .ghai-launch>span{position:absolute;width:1px;height:1px;overflow:hidden;cl
 body .ghai-launch .ghai-hex{width:38px;height:38px}
 .hp-footer{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 }
+/* ---------- phone header (up to 767px, lib/theme/shell.ts phoneIcons): compact dark bar — menu + brand mark on the left,
+   deals / help / account / cart icons on the right (44px targets). Desktop and tablet keep the white header. ---------- */
+.hp-micons,.hp-brand__mark,.hp-drawer__cur{display:none}
+@media (max-width:767px){
+:root{--header-h:64px}
+.hp-header::before,.hp-header.is-scrolled::before,.hp-header.is-menu-open::before{background:var(--deep);border-bottom:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+.hp-header.is-scrolled::before{box-shadow:0 8px 24px -16px rgba(0,0,0,.6)}
+.hp-header__inner{gap:4px;padding-left:8px;padding-right:8px}
+.hp-header__actions{display:contents}
+.hp-burger{order:-1;display:inline-flex;width:44px;height:44px;border:0;border-radius:10px;color:#fff;background:none}
+.hp-burger .hp-ico{width:24px;height:24px}
+.hp-brand picture,.hp-brand>picture img,.hp-brand>img:not(.hp-brand__mark){display:none}
+.hp-brand{min-width:44px;justify-content:center}
+.hp-brand .hp-brand__mark{display:block;width:34px;height:34px}
+.hp-micons{display:flex;align-items:center;margin-left:auto}
+.hp-micon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;color:#fff}
+.hp-micon .hp-ico{width:23px;height:23px;stroke-width:1.6}
+.hp-micon:active{background:rgba(255,255,255,.1)}
+.hp-micon:focus-visible,.hp-burger:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.hp-cartn{position:absolute;top:4px;right:2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--brand);color:#fff;font:700 11px/18px var(--body);text-align:center;box-shadow:0 0 0 2px var(--deep)}
+.hp-cartn[hidden]{display:none}
+/* the home page replaces the utility bar with the domain search bar; the currency picker moves into the menu */
+.hp-home .hp-util{display:none}
+.hp-drawer__cur{display:block;grid-column:1/-1}
+.hp-drawer__cur>.hp-u-item,.hp-drawer__cur .hp-cur>summary{display:inline-flex!important;align-items:center;gap:8px;min-height:44px;font-size:14px;color:var(--muted)}
+.hp-drawer__cur .hp-u-lbl{display:inline}
+.hp-drawer__cur .hp-cur__menu{position:static;transform:none;margin-top:4px;box-shadow:none;max-height:40vh;overflow:auto}
+}
+@media (max-width:340px){.hp-micon{width:40px}.hp-header__inner{padding-left:4px;padding-right:4px}}

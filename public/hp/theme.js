@@ -306,9 +306,13 @@
     if(panel.classList.contains("hp-dpanel")) once(panel,function(){panel.classList.add("in")},"0px");
   });
   $$("[data-focus-domain]").forEach(function(a){a.addEventListener("click",function(e){
-    var q=$("[data-domain-form] input[name=query]"); if(!q) return; e.preventDefault();
+    var q=$$("[data-domain-form] input[name=query]").filter(function(n){return n.offsetParent!==null})[0]; if(!q) return; e.preventDefault();
     q.scrollIntoView({behavior:reduce?"auto":"smooth",block:"center"}); setTimeout(function(){q.focus({preventScroll:true})},reduce?0:450);
   })});
+
+  /* ---------- phone header cart count: gh_cart cookie written by /hp/whmcs.js on the WHMCS cart (shared .globalhostia.com) ---------- */
+  (function(){ var b=$("[data-cart-count]"); if(!b) return; var m=D.cookie.match(/(?:^|;\s*)gh_cart=(\d+)/), c=m?+m[1]:0;
+    if(c>0){ b.textContent=c>99?"99+":String(c); b.hidden=false; var a=b.parentNode; if(a) a.setAttribute("aria-label","Cart, "+c+(c===1?" item":" items")) } })();
 
   /* ---------- typing placeholder: input[data-typing="a|b|c"] ---------- */
   if(!reduce) afterLoad(function(){ $$("input[data-typing]").forEach(function(q){

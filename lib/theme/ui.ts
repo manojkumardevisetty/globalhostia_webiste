@@ -101,6 +101,9 @@ const ICONS: Record<string, string> = {
   xlogo: '<path d="M4 4h4.5L20 20h-4.5zM4 20l6.6-7M20 4l-6.4 6.9"/>',
   rss: '<path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/>',
   whatsapp: '<path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/>',
+  help: '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
+  pause: '<path d="M9 5v14M15 5v14"/>',
+  play: '<path d="M7 4.5v15l12-7.5z"/>',
 };
 export type IconName = keyof typeof ICONS | string;
 export const ICON_NAMES = Object.keys(ICONS);
@@ -584,11 +587,15 @@ export const section = (inner: string, o: { id?: string; cls?: string; label?: s
 export type Slide = { kicker: string; title: string; text: string; image: string; imageW?: number; imageH?: number; ctas: Cta[]; fromHtml?: string; dot?: string };
 /** Homepage hero carousel: full-bleed image slides with a white card, progress dots, network canvas.
  *  The first slide's title is the page <h1>; others are <h2>. */
-export function heroSlider(slides: Slide[], o: { label?: string; interval?: number } = {}) {
-  return `<section class="hp-hero" data-hero-slider data-network${o.interval ? ` data-interval="${o.interval}"` : ''} aria-roledescription="carousel" aria-label="${esc(o.label || 'Featured products')}">
+const BLANK_SRC = '<source media="(max-width: 767px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==">';
+/** `desktopOnly`: phones get the mobile hero card instead (lib/theme/mobile-hero.ts): the section is hidden up to 767px
+ *  and its images resolve to a 1px blank there, so phones never download them. */
+export function heroSlider(slides: Slide[], o: { label?: string; interval?: number; desktopOnly?: boolean } = {}) {
+  const pic = (h: string) => (o.desktopOnly ? h.replace('<picture>', '<picture>' + BLANK_SRC) : h);
+  return `<section class="hp-hero${o.desktopOnly ? ' hp-hero--desk' : ''}" data-hero-slider data-network${o.interval ? ` data-interval="${o.interval}"` : ''} aria-roledescription="carousel" aria-label="${esc(o.label || 'Featured products')}">
   <div class="hp-hero__hex" aria-hidden="true"></div>
   ${slides.map((s, i) => `<div class="hp-slide${i ? '' : ' is-active'}" id="hp-slide-${i}" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${slides.length}">
-    ${picture({ src: s.image, className: 'hp-slide__img', width: s.imageW, height: s.imageH, priority: !i, deferred: !!i })}
+    ${pic(picture({ src: s.image, className: 'hp-slide__img', width: s.imageW, height: s.imageH, priority: !i, deferred: !!i }))}
     <div class="hp-container hp-slide__inner"><div class="hp-hcard">
       <span class="hp-kicker"><i aria-hidden="true"></i>${esc(s.kicker)}</span>
       <${i ? 'h2' : 'h1'} data-words>${esc(s.title)}</${i ? 'h2' : 'h1'}>

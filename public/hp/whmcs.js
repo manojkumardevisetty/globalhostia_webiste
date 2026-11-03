@@ -2589,6 +2589,19 @@
     }, true);
   }
 
+  /* ---------------- cart count for the main site's phone header (theme.js reads gh_cart on .globalhostia.com) */
+  function cartCookie() {
+    var host = location.hostname, dom = /(^|\.)globalhostia\.com$/i.test(host) ? '; domain=.globalhostia.com' : '';
+    var badge = D.querySelector('#cartItemCount, .cart-item-count');
+    var write = function () {
+      if (!badge) return;
+      var n = parseInt((badge.textContent || '').replace(/[^\d]/g, ''), 10) || 0;
+      D.cookie = 'gh_cart=' + n + '; path=/; max-age=' + (n ? 604800 : 0) + '; SameSite=Lax' + dom + (location.protocol === 'https:' ? '; Secure' : '');
+    };
+    write();
+    if (badge && W.MutationObserver) new MutationObserver(write).observe(badge, { childList: true, characterData: true, subtree: true });
+  }
+
   ready(function () {
     try { orderComplete(); } catch (e) {}
     try { invoicePaid(); } catch (e) {}
@@ -2596,6 +2609,7 @@
     try { formErrors(); setTimeout(formErrors, 1200); } catch (e) {}
     try { alerts(); } catch (e) {}
     try { cartFx(); } catch (e) {}
+    try { cartCookie(); } catch (e) {}
   });
 })();
 

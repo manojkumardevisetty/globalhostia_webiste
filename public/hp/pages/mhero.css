@@ -1,0 +1,57 @@
+/* Phone homepage top (lib/theme/mobile-hero.ts, /hp/pages/mhero.js): sticky domain search bar under the dark header and
+   the admin-managed hero carousel card. Hidden from 768px up, where the full-width hero slider shows instead. */
+.hp-mtop,.hp-mhero{display:none}
+@media (max-width:767px){
+.hp-hero--desk{display:none}
+.hp-mtop{display:block;position:sticky;top:var(--header-h);z-index:45;background:var(--deep);padding:2px 16px 14px}
+.hp-msearch{display:flex;height:52px;border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 10px 24px -18px rgba(0,0,0,.7)}
+.hp-msearch input{flex:1;min-width:0;border:0;outline:0;background:none;padding:0 16px;font:500 16px/1 var(--body);color:var(--ink);-webkit-appearance:none;appearance:none}
+.hp-msearch input::placeholder{color:#6b7783;opacity:1}
+.hp-msearch input::-webkit-search-cancel-button{-webkit-appearance:none}
+.hp-msearch button{flex:none;width:52px;height:52px;display:inline-flex;align-items:center;justify-content:center;border:0;background:var(--brand);color:#fff;cursor:pointer}
+.hp-msearch button .hp-ico{width:22px;height:22px;stroke-width:2.2}
+.hp-msearch button:active{background:var(--brand-d)}
+.hp-msearch:focus-within{box-shadow:0 0 0 3px var(--gold)}
+
+/* hero card: dark band continues from the header so the card sits on one surface */
+.hp-mhero{display:block;padding:4px 16px 0;background:linear-gradient(180deg,var(--deep) 0 46%,#fff 46%)}
+.hp-mhero__card{position:relative;height:clamp(400px,134vw,70vh);border-radius:20px;overflow:hidden;background:var(--deep);isolation:isolate;box-shadow:0 26px 44px -30px rgba(22,33,43,.7);touch-action:pan-y}
+.hp-mhero__track{position:absolute;inset:0;display:flex;transition:transform .55s var(--ease-o)}
+.hp-mslide{position:relative;flex:0 0 100%;height:100%;overflow:hidden}
+.hp-mslide__bg{position:absolute;inset:0;z-index:0}
+.hp-mslide__img,.hp-mslide__vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hp-mslide--raspberry .hp-mslide__bg{background:radial-gradient(90% 60% at 85% 8%,rgba(253,215,0,.28),transparent 60%),radial-gradient(120% 70% at 0% 100%,rgba(22,33,43,.6),transparent 60%),linear-gradient(165deg,#e14c7f 0%,#c5386f 38%,#8e1d52 100%)}
+.hp-mslide--midnight .hp-mslide__bg{background:radial-gradient(80% 55% at 90% 4%,rgba(197,56,111,.55),transparent 65%),radial-gradient(70% 50% at 0% 100%,rgba(253,215,0,.14),transparent 60%),linear-gradient(170deg,#24384a 0%,#16212b 55%,#0d151b 100%)}
+.hp-mslide--gold .hp-mslide__bg{background:radial-gradient(90% 60% at 15% 0%,rgba(255,255,255,.3),transparent 60%),linear-gradient(160deg,#fdd700 0%,#f08a4b 40%,#c5386f 75%,#8e1d52 100%)}
+.hp-mslide--raspberry .hp-mslide__bg::after,.hp-mslide--midnight .hp-mslide__bg::after,.hp-mslide--gold .hp-mslide__bg::after{content:"";position:absolute;inset:0;background:var(--hex) 0 0/42px 75px;opacity:.07}
+.hp-mslide__art{position:absolute;left:50%;top:7%;width:min(62%,240px);transform:translateX(-50%)}
+.hp-mslide__art svg{width:100%;height:auto}
+.hp-mslide__scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(13,21,27,calc(var(--s,.4)*.45)) 0%,rgba(13,21,27,calc(var(--s,.4)*.7)) 45%,rgba(13,21,27,var(--s,.4)) 100%)}
+.hp-mslide__body{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:24px 22px 92px;color:#fff}
+.hp-mslide__t{margin:0 0 22px;max-width:15ch;font:800 clamp(30px,9.2vw,40px)/1.08 var(--head);letter-spacing:-.02em;color:#fff;text-wrap:balance;text-shadow:0 2px 24px rgba(0,0,0,.25)}
+.hp-mslide__cta{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 30px;border-radius:999px;background:#fff;color:var(--deep);font:700 16px/1 var(--body);box-shadow:0 12px 26px -14px rgba(0,0,0,.55);transition:transform .15s var(--ease)}
+.hp-mslide__cta:active{transform:scale(.97)}
+.hp-mslide__cta:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.hp-mslide__fine{margin:14px 0 0;max-width:30ch;font-size:13px;line-height:1.45;color:rgba(255,255,255,.86)}
+
+/* controls: dots bottom-left, pause/play + prev/next bottom-right */
+.hp-mhero__ctrl{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:0 12px 14px 10px}
+.hp-mhero__dots{display:flex;align-items:center}
+.hp-mdot{display:inline-flex;align-items:center;justify-content:center;width:26px;height:44px;padding:0;border:0;background:none;cursor:pointer}
+.hp-mdot i{display:block;width:8px;height:8px;border-radius:4px;background:rgba(255,255,255,.5);transition:width .3s var(--ease),background-color .3s}
+.hp-mdot[aria-current="true"]{width:36px}
+.hp-mdot[aria-current="true"] i{width:24px;background:#fff}
+.hp-mhero__btns{display:flex;gap:8px}
+.hp-mbtn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.45);background:rgba(13,21,27,.32);color:#fff;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.hp-mbtn .hp-ico{width:18px;height:18px;stroke-width:2}
+.hp-mbtn .hp-ico.is-play{fill:currentColor;stroke-width:1.4}
+.hp-mbtn:active{background:rgba(255,255,255,.2)}
+.hp-mdot:focus-visible,.hp-mbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.hp-mhero .is-play,.hp-mhero.is-stopped .is-pause{display:none}
+.hp-mhero.is-stopped .is-play{display:block}
+
+/* the domain panel below no longer tucks under a full-bleed hero */
+.hp-home .hp-domain{margin-top:0;padding-top:20px}
+}
+@media (max-width:767px) and (prefers-reduced-motion:reduce){.hp-mhero__track,.hp-mdot i,.hp-mslide__cta{transition:none}}
+@media (max-width:359px){.hp-mslide__body{padding:20px 16px 88px}.hp-mhero__btns{gap:4px}.hp-mdot{width:22px}}
