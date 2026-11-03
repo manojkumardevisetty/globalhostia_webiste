@@ -17,7 +17,7 @@ export const DEFAULT_SETTINGS: Settings = {
   site_theme: 'hostpen',
 };
 // logs and bookkeeping that pages never read stay out of the cache and the snapshot
-const NOT_PUBLIC = new Set(['indexnow_log', 'patches', 'setup_fingerprint', 'hosting_servers', 'hosting_hmac_secret', 'hosting_dns_only', 'ai_settings', 'push_vapid', 'connector']); // push_vapid: sealed VAPID private key (lib/portal/push.ts); // hosting_*: sealed panel secrets (lib/hosting/servers.ts)
+const NOT_PUBLIC = new Set(['indexnow_log', 'patches', 'setup_fingerprint', 'hosting_servers', 'hosting_hmac_secret', 'hosting_dns_only', 'ai_settings', 'push_vapid', 'connector', 'reminders', 'reminders_secrets', 'reminders_lock', 'reminders_state']); // push_vapid: sealed VAPID private key (lib/portal/push.ts); // hosting_*: sealed panel secrets (lib/hosting/servers.ts)
 
 /** All settings (cached 6h, tag `site`; snapshot-backed when the database is unavailable). */
 export const getSettings = cachedRead('settings', async (): Promise<Settings> => {

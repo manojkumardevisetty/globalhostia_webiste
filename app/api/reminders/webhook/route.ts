@@ -1,0 +1,62 @@
+// Signed server-to-server webhook from the WHMCS hook (docs/whmcs/globalhostia_reminders_hook.php).
+// Header X-GH-Signature: t=<unix>,v1=<hex HMAC-SHA256("gh-hook.v1.<t>.<body>")> with the shared hook secret; 5-minute window.
+//   {"event":"order","orderid":N,"invoiceid":N,"cid":N,"email":"…","sk":"<session hash>"}   cart ordered → reminders stop
+//   {"event":"invoice_paid","invoiceid":N}                                                  overdue / renewal reminders stop
+//   {"event":"tick"}                                                                          WHMCS cron ran → reminder run (max every 10 min)
+import { NextRequest, NextResponse, after } from 'next/server';
+import { verifyHook, EMAIL_RE } from '@/lib/reminders/core';
+import { hookSecret, cartsOrdered, patchState, state, setPrefs, closeCart } from '@/lib/reminders/store';
+import { invoicePaid, runReminders } from '@/lib/reminders/engine';
+import { limiter } from '@/lib/agents/http';
+import { db, schema } from '@/lib/db';
+import { eq } from 'drizzle-orm';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
+const limit = limiter(120, 60_000);
+const TICK_EVERY_MS = 10 * 60_000;
+
+export async function POST(req: NextRequest) {
+  const ip = (req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown').trim();
+  if (limit(ip)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+  const body = await req.text();
+  if (body.length > 4000) return NextResponse.json({ error: 'too_large' }, { status: 413 });
+  const secret = await hookSecret();
+  if (!secret) return NextResponse.json({ error: 'not_configured' }, { status: 503 });
+  if (!verifyHook(req.headers.get('x-gh-signature'), body, secret)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  let e: any;
+  try { e = JSON.parse(body); } catch { return NextResponse.json({ error: 'invalid' }, { status: 400 }); }
+  const ev = String(e?.event || '');
+  await patchState({ lastHook: new Date().toISOString(), lastHookEvent: ev });
+
+  if (ev === 'order') {
+    const cid = Number(e.cid) > 0 ? Number(e.cid) : null;
+    const email = typeof e.email === 'string' && EMAIL_RE.test(e.email) ? e.email.toLowerCase() : '';
+    const orderId = Number(e.orderid) > 0 ? Number(e.orderid) : undefined;
+    const closed = await cartsOrdered(cid, email, orderId);
+    // guest cart of this browser session (the guest just became a client)
+    if (typeof e.sk === 'string' && /^[a-f0-9]{16,64}$/.test(e.sk)) {
+      const [g] = await db.select().from(schema.reminderCarts).where(eq(schema.reminderCarts.cartKey, `g:${e.sk}`));
+      if (g) { await closeCart(g.id, 'ordered', orderId); if (g.status === 'open') closed.push(g); }
+    }
+    // WhatsApp opt-in ticked by a guest at checkout: now that the account exists, record it on the client
+    if (cid && closed.some((c) => c.whatsappOptIn)) await setPrefs(cid, email, { whatsapp: true }, 'checkout').catch(() => {});
+    return NextResponse.json({ ok: true, carts: closed.length });
+  }
+  if (ev === 'invoice_paid') {
+    const id = Number(e.invoiceid);
+    if (!(id > 0)) return NextResponse.json({ error: 'invalid' }, { status: 400 });
+    after(() => invoicePaid(id).catch((x) => console.warn('[reminders] invoice_paid', x?.message || x)));
+    return NextResponse.json({ ok: true });
+  }
+  if (ev === 'tick') {
+    const st = await state();
+    const last = st.lastRun ? Date.parse(st.lastRun) : 0;
+    if (Date.now() - last < TICK_EVERY_MS) return NextResponse.json({ ok: true, skipped: 'recent' });
+    after(() => runReminders('whmcs-cron', { deadlineMs: 45_000 }).catch((x) => console.warn('[reminders] tick', x?.message || x)));
+    return NextResponse.json({ ok: true, started: true });
+  }
+  return NextResponse.json({ error: 'unknown_event' }, { status: 400 });
+}

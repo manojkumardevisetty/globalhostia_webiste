@@ -30,6 +30,9 @@ import { teamView, type TeamForm } from '@/lib/portal/views/team';
 import { listMembers, inviteUser, updatePermissions, removeUser } from '@/lib/portal/team';
 import { EMAIL_RE, normalizeEmail, permsFromForm, viewerIsOwner } from '@/lib/portal/team-perms';
 import { settingsView } from '@/lib/portal/views/settings';
+import { remindersCard } from '@/lib/portal/views/reminders';
+import { prefsFor, setPrefs, loadConfig as reminderConfig } from '@/lib/reminders/store';
+import { toE164 } from '@/lib/reminders/core';
 import { vapid, subscriptions, saveSubscription, removeSubscription, setCategories, setLanguage, sendToClient, PushUnavailable } from '@/lib/portal/push';
 import { parseSubscription, parseCategories, PUSH_CATEGORIES } from '@/lib/portal/push-crypto';
 import { paletteItems, forgetPalette } from '@/lib/portal/palette';
@@ -294,11 +297,15 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
 
   /* app & notifications */
   if (a === 'settings' && !b) {
-    const [keys, subs] = await Promise.all([vapid(), subscriptions(cid).catch(() => [])]);
+    const [keys, subs, rp, rcfg, cl] = await Promise.all([vapid(), subscriptions(cid).catch(() => []), prefsFor(cid).catch(() => null), reminderConfig().catch(() => null), api.getClientsDetails(cid).catch(() => null)]);
     const cats = subs.length ? [...new Set(subs.flatMap((s) => (Array.isArray(s.categories) ? s.categories : []) as string[]))] : [...PUSH_CATEGORIES];
+    // reminder choices: WhatsApp is offered only once the owner switched it on for at least one account reminder
+    const waOffered = !!rcfg && rcfg.whatsapp.enabled && (rcfg.renewal.channels.whatsapp || rcfg.overdue.channels.whatsapp || rcfg.domain.channels.whatsapp);
+    const reminders = rp ? remindersCard({ csrf: v.csrf, cartEmail: rp.cartEmail, renewalEmail: rp.renewalEmail, whatsapp: rp.whatsapp, whatsappAt: rp.whatsappAt ? rp.whatsappAt.toISOString() : null,
+      phone: cl ? toE164(cl.phonenumberformatted || cl.phonenumber, { country: cl.countrycode || cl.country, cc: cl.phonecc }) : null, waOffered, saved: q.get('ok') === 'reminders_saved' }) : '';
     return html(await F({
       title: t('App & notifications'), sub: esc(t('Install GlobalHostia as an app, choose notifications and set your language.')), active: 'settings',
-      body: settingsView({ csrf: v.csrf, publicKey: keys?.publicKey || null, available: !!keys, devices: subs.length, cats: parseCategories(cats), lang: curLang(), digits: curDigits() }),
+      body: settingsView({ csrf: v.csrf, publicKey: keys?.publicKey || null, available: !!keys, devices: subs.length, cats: parseCategories(cats), lang: curLang(), digits: curDigits(), reminders }),
     }));
   }
 
@@ -687,6 +694,14 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     const op = str('op', 20);
     const reply = (ok: boolean, key: string, status = ok ? 200 : 400) => (wantsJson ? json({ ok, key, message: t(PUSH_MSG[key] || key) }, status) : go(req, `/account/settings?${ok ? 'ok' : 'err'}=${key}`));
     if (pushLimit(`c${cid}`)) return reply(false, 'rate', 429);
+    if (op === 'reminder_prefs') {
+      // unticked boxes are absent from the form: absent = off. WhatsApp stays off unless ticked (explicit opt-in).
+      const next: { cartEmail: boolean; renewalEmail: boolean; whatsapp?: boolean } = { cartEmail: fd.get('cart') === '1', renewalEmail: fd.get('renewal') === '1' };
+      if (fd.get('wa_shown') === '1') next.whatsapp = fd.get('whatsapp') === '1'; // WhatsApp row not shown: keep the earlier choice
+      try { await setPrefs(cid, sess.email, next, 'portal'); } catch { return go(req, '/account/settings?err=failed#reminders'); }
+      await auditClient('client_reminder_prefs', sess.email, ip, next);
+      return go(req, '/account/settings?ok=reminders_saved#reminders');
+    }
     if (op === 'push_subscribe') {
       const sub = parseSubscription(str('sub', 4096));
       if (!sub) return reply(false, 'push_bad');

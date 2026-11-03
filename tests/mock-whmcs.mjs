@@ -81,6 +81,8 @@ const tickets = {
   8001: { ticketid: 8001, id: 8001, tid: 'OTH-100001', deptid: 1, deptname: 'Technical Support', userid: 2, date: day(-2) + ' 10:00:00', subject: 'Other client private ticket', status: 'Open', priority: 'Medium', lastreply: day(-2) + ' 10:00:00', replies: [{ replyid: 0, userid: 2, name: 'Other Person', date: day(-2) + ' 10:00:00', message: 'secret', admin: '' }] },
 };
 let nextTicket = 9000;
+const orders = [{ id: 501, ordernum: '8812', date: '2026-10-30 10:00:00', name: 'Test Client', amount: '5.99', paymentmethod: 'stripe', paymentstatus: 'Paid', status: 'Pending', userid: 7 }];
+const sentEmails = [];
 const departments = [{ id: 1, name: 'Technical Support' }, { id: 2, name: 'Billing' }, { id: 3, name: 'Sales' }];
 const cid = (p, k = 'clientid') => Number(p[k] || 7);
 const listInvoices = (uid) => Object.values(invoices).filter((i) => i.userid === uid);
@@ -145,17 +147,18 @@ const portal = {
   },
   ResetPassword: () => ({ email: 'sent' }),
   GetClientsProducts: (p) => {
-    let list = services[cid(p)] || [];
+    // no clientid + limitstart (paged scan of every client, lib/reminders/engine.ts) → all clients' services
+    let list = !p.clientid && p.limitstart !== undefined ? Object.values(services).flat().slice(Number(p.limitstart), Number(p.limitstart) + Number(p.limitnum || 25)) : services[cid(p)] || [];
     if (p.serviceid) list = list.filter((s) => s.id === Number(p.serviceid));
     return { totalresults: list.length, products: { product: list } };
   },
   GetClientsDomains: (p) => {
-    let list = domains[cid(p)] || [];
+    let list = !p.clientid && p.limitstart !== undefined ? Object.values(domains).flat().slice(Number(p.limitstart), Number(p.limitstart) + Number(p.limitnum || 25)) : domains[cid(p)] || [];
     if (p.domainid) list = list.filter((d) => d.id === Number(p.domainid));
     return { totalresults: list.length, domains: { domain: list.map(({ ns, ...d }) => d) } };
   },
   GetInvoices: (p) => {
-    let list = listInvoices(Number(p.userid || 7));
+    let list = !p.userid && p.limitstart !== undefined ? Object.values(invoices) : listInvoices(Number(p.userid || 7));
     if (p.status) list = list.filter((i) => i.status === p.status);
     return { totalresults: list.length, invoices: { invoice: list.map(({ items, ...i }) => i) } };
   },
@@ -221,7 +224,14 @@ const handlers = {
     ae: { register: { 1: '35.00' }, transfer: { 1: '35.00' }, renew: { 1: '35.00' } }, io: { register: { 1: '49.00' }, transfer: { 1: '49.00' }, renew: { 1: '49.00' } } } }),
   DomainWhois: (p) => ({ status: /google|globalhostia/.test(p.domain) ? 'unavailable' : 'available' }),
   GetStats: () => ({ income_today: '$120.00', income_thismonth: '$4,210.00', orders_pending: 3, orders_today_total: 5, tickets_open: 2, tickets_awaitingreply: 1 }),
-  GetOrders: () => ({ totalresults: 1, orders: { order: [{ id: 501, ordernum: '8812', date: '2026-10-30 10:00:00', name: 'Test Client', amount: '5.99', paymentmethod: 'stripe', paymentstatus: 'Paid', status: 'Pending', userid: 7 }] } }),
+  GetOrders: (p) => { const list = p.userid ? orders.filter((o) => o.userid === Number(p.userid)) : orders.filter((o) => o.userid === 7); return { totalresults: list.length, orders: { order: list } }; },
+  // reminders: emails "sent" through WHMCS are kept in memory; Mock* actions let tests inspect / change state
+  SendEmail: (p) => { if (!clients[Number(p.id)]) err('Client ID Not Found'); sentEmails.push({ id: Number(p.id), customtype: p.customtype, subject: p.customsubject, message: p.custommessage, at: Date.now() }); return {}; },
+  MockSentEmails: () => ({ emails: sentEmails }),
+  MockReset: () => { sentEmails.length = 0; orders.splice(1); for (const k of Object.keys(invoices)) if (Number(k) >= 9500) delete invoices[k]; return {}; },
+  MockAddOrder: (p) => { const o = { id: 600 + orders.length, ordernum: String(9000 + orders.length), date: new Date().toISOString().slice(0, 19).replace('T', ' '), name: 'x', amount: '1.00', paymentstatus: 'Unpaid', status: 'Pending', userid: Number(p.userid) }; orders.push(o); return { orderid: o.id }; },
+  MockAddInvoice: (p) => { const id = 9500 + Object.keys(invoices).filter((k) => Number(k) >= 9500).length; invoices[id] = { invoiceid: id, id, userid: Number(p.userid), invoicenum: '', date: day(Number(p.due) - 7), duedate: day(Number(p.due)), subtotal: p.total, total: p.total, balance: p.total, status: 'Unpaid', currencycode: 'USD', items: { item: [{ id: 1, type: 'Hosting', relid: Number(p.relid || 0), description: p.desc || 'Service', amount: p.total }] } }; return { invoiceid: id }; },
+  MockPayInvoice: (p) => { const i = invoices[Number(p.invoiceid)] || err('Invoice ID Not Found'); i.status = 'Paid'; i.balance = '0.00'; return {}; },
   GetPromotions: () => ({ promotions: { promotion: [{ id: 1, code: 'WELCOME10', type: 'Percentage', value: '10.00', uses: 4, maxuses: 0, expirationdate: '0000-00-00' }] } }),
   AddProduct: (p) => {
     const pid = 999 + products.filter((x) => x.pid >= 999).length;

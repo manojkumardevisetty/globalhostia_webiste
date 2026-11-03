@@ -527,3 +527,70 @@ export const oauthTokens = pgTable('oauth_tokens', {
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
   createdAt: now('created_at'),
 }, (t) => [index('oauth_tokens_grant_idx').on(t.grantId), index('oauth_tokens_exp_idx').on(t.expiresAt)]);
+
+// Abandoned-cart and renewal reminders (lib/reminders/*, Admin → Business → Reminders). Created by db-setup patch '035-reminders'.
+// Customer choices: one row per WHMCS client (client_id) or per guest email (client_id null). WhatsApp only after an
+// explicit opt-in (time + source kept as the consent record). unsubscribed_* = stopped from an email link.
+export const reminderPrefs = pgTable('reminder_prefs', {
+  id: id(),
+  clientId: integer('client_id').unique(),
+  email: text('email').notNull().default(''),
+  cartEmail: boolean('cart_email').notNull().default(true),
+  renewalEmail: boolean('renewal_email').notNull().default(true),
+  whatsapp: boolean('whatsapp').notNull().default(false),
+  whatsappAt: timestamp('whatsapp_at', { withTimezone: true }),
+  whatsappSource: text('whatsapp_source').notNull().default(''),
+  updatedAt: now('updated_at'),
+}, (t) => [index('reminder_prefs_email_idx').on(t.email)]);
+
+// Email addresses that unsubscribed from a link (scope cart | renewal | all). Checked before every send, clients and guests alike.
+export const reminderSuppress = pgTable('reminder_suppress', {
+  email: text('email').notNull(),
+  scope: text('scope').notNull(),
+  source: text('source').notNull().default('link'),
+  createdAt: now('created_at'),
+}, (t) => [uniqueIndex('reminder_suppress_uniq').on(t.email, t.scope)]);
+
+// Carts captured from the WHMCS client area (signed snapshot from the WHMCS hook; no prices, card data or passwords).
+// cart_key: "c:<clientid>" or "g:<session hash>"; one open cart per key. status: open | ordered | emptied | expired | stopped.
+export const reminderCarts = pgTable('reminder_carts', {
+  id: id(),
+  cartKey: text('cart_key').notNull().unique(),
+  clientId: integer('client_id'),
+  email: text('email').notNull().default(''),
+  consent: text('consent').notNull().default(''),
+  currencyId: integer('currency_id').notNull().default(0),
+  items: jsonb('items').notNull().default({}),
+  fingerprint: text('fingerprint').notNull().default(''),
+  status: text('status').notNull().default('open'),
+  whatsappOptIn: boolean('whatsapp_opt_in').notNull().default(false),
+  restoreClicks: integer('restore_clicks').notNull().default(0),
+  orderId: integer('order_id'),
+  createdAt: now('created_at'),
+  activityAt: now('activity_at'),
+  closedAt: timestamp('closed_at', { withTimezone: true }),
+}, (t) => [index('reminder_carts_status_idx').on(t.status, t.activityAt), index('reminder_carts_client_idx').on(t.clientId)]);
+
+// One row per reminder (kind, item, stage, channel, cycle) — the unique index makes every send idempotent.
+// item: "cart:<id>" / "svc:<id>" / "dom:<id>" / "inv:<id>"; cycle: the due / expiry date (a new billing cycle gets new
+// reminders), '' for carts. status: claimed | sent | failed | skipped. message_id groups the rows of one digest email.
+export const remindersLog = pgTable('reminders_log', {
+  id: id(),
+  kind: text('kind').notNull(),
+  clientId: integer('client_id'),
+  email: text('email').notNull().default(''),
+  item: text('item').notNull(),
+  stage: text('stage').notNull(),
+  channel: text('channel').notNull(),
+  cycle: text('cycle').notNull().default(''),
+  status: text('status').notNull().default('claimed'),
+  attempts: integer('attempts').notNull().default(1),
+  messageId: text('message_id').notNull().default(''),
+  error: text('error').notNull().default(''),
+  detail: jsonb('detail'),
+  createdAt: now('created_at'),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  convertedAt: timestamp('converted_at', { withTimezone: true }),
+}, (t) => [uniqueIndex('reminders_log_uniq').on(t.kind, t.item, t.stage, t.channel, t.cycle), index('reminders_log_client_idx').on(t.clientId, t.sentAt), index('reminders_log_created_idx').on(t.createdAt)]);
+export type ReminderLogRow = typeof remindersLog.$inferSelect;
+export type ReminderCartRow = typeof reminderCarts.$inferSelect;

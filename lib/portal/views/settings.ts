@@ -11,7 +11,7 @@ const catHint = (c: PushCategory) => ({
   domains: t('A reminder a week before a domain expires.'), services: t('If a service is suspended, so you can restore it quickly.'),
 })[c];
 
-export function settingsView(o: { csrf: string; publicKey: string | null; devices: number; cats: PushCategory[]; lang: Lang; digits: Digits; available: boolean }) {
+export function settingsView(o: { csrf: string; publicKey: string | null; devices: number; cats: PushCategory[]; lang: Lang; digits: Digits; available: boolean; reminders?: string }) {
   const install = card(t('Install the app'), `<div class="ac-st__app">
       <span class="ac-st__ico" aria-hidden="true"><img src="/icon-192.png" width="56" height="56" alt=""></span>
       <div><b>GlobalHostia</b><p class="ac-muted">${esc(t('Open your account from the home screen or dock, full screen, with notifications. Nothing to download from an app store.'))}</p></div>
@@ -57,5 +57,5 @@ export function settingsView(o: { csrf: string; publicKey: string | null; device
   const apps = card(t('Connected apps'), `<p class="ac-muted">${esc(t('Manage your account from Claude or ChatGPT. See which AI assistants are connected and disconnect them at any time.'))}</p>
     <div class="ac-card__foot ac-card__foot--stack"><a class="hp-btn hp-btn--dark ac-sm" href="/account/apps">${icon('plug')}${esc(t('Manage connected apps'))}</a><a class="hp-btn hp-btn--ghost ac-sm" href="/connectors">${esc(t('Set up a connector'))}</a></div>`, { id: 'ac-st-apps-h' });
 
-  return `<div class="ac-grid ac-grid--detail ac-st"><div class="ac-col">${push}${install}</div><div class="ac-col">${lang}${apps}${help}</div></div>`;
+  return `<div class="ac-grid ac-grid--detail ac-st"><div class="ac-col">${o.reminders || ''}${push}${install}</div><div class="ac-col">${lang}${apps}${help}</div></div>`;
 }

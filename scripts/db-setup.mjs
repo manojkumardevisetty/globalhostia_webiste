@@ -562,6 +562,31 @@ try {
       await tx`create table if not exists oauth_assertions (key text primary key, client_id text not null, expires_at timestamptz not null)`;
       await tx`create index if not exists oauth_assertions_exp_idx on oauth_assertions (expires_at)`;
     },
+    // 35. Abandoned-cart and renewal reminders (lib/reminders/*): customer choices, unsubscribes, captured carts, send log.
+    '035-reminders': async (tx) => {
+      await tx`create table if not exists reminder_prefs (
+        id text primary key, client_id integer unique, email text not null default '', cart_email boolean not null default true,
+        renewal_email boolean not null default true, whatsapp boolean not null default false, whatsapp_at timestamptz,
+        whatsapp_source text not null default '', updated_at timestamptz not null default now())`;
+      await tx`create index if not exists reminder_prefs_email_idx on reminder_prefs (email)`;
+      await tx`create table if not exists reminder_suppress (email text not null, scope text not null, source text not null default 'link', created_at timestamptz not null default now())`;
+      await tx`create unique index if not exists reminder_suppress_uniq on reminder_suppress (email, scope)`;
+      await tx`create table if not exists reminder_carts (
+        id text primary key, cart_key text not null unique, client_id integer, email text not null default '', consent text not null default '',
+        currency_id integer not null default 0, items jsonb not null default '{}'::jsonb, fingerprint text not null default '',
+        status text not null default 'open', whatsapp_opt_in boolean not null default false, restore_clicks integer not null default 0, order_id integer,
+        created_at timestamptz not null default now(), activity_at timestamptz not null default now(), closed_at timestamptz)`;
+      await tx`create index if not exists reminder_carts_status_idx on reminder_carts (status, activity_at)`;
+      await tx`create index if not exists reminder_carts_client_idx on reminder_carts (client_id)`;
+      await tx`create table if not exists reminders_log (
+        id text primary key, kind text not null, client_id integer, email text not null default '', item text not null, stage text not null,
+        channel text not null, cycle text not null default '', status text not null default 'claimed', attempts integer not null default 1,
+        message_id text not null default '', error text not null default '', detail jsonb, created_at timestamptz not null default now(),
+        sent_at timestamptz, converted_at timestamptz)`;
+      await tx`create unique index if not exists reminders_log_uniq on reminders_log (kind, item, stage, channel, cycle)`;
+      await tx`create index if not exists reminders_log_client_idx on reminders_log (client_id, sent_at)`;
+      await tx`create index if not exists reminders_log_created_idx on reminders_log (created_at)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

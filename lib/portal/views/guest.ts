@@ -50,7 +50,7 @@ const langLink = (path: string) => {
   return `<a class="ac-lang" href="/account/lang?set=${to}&amp;next=${esc(encodeURIComponent(path))}" lang="${to}" hreflang="${to}">${icon('globe')}${to === 'ar' ? 'العربية' : 'English'}</a>`;
 };
 
-function split(o: { crumb: string; statement: string; lead: string; items: [string, string, string][]; card: string; path: string }) {
+export function split(o: { crumb: string; statement: string; lead: string; items: [string, string, string][]; card: string; path: string }) {
   return `<section class="au-split" aria-labelledby="au-h1">
     <div class="au-brand">
       <div class="au-brand__bg" aria-hidden="true"></div>${hexNet()}

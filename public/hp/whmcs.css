@@ -2051,3 +2051,8 @@ html body .kbcategories p, html body .kbcategories .text-muted { font-size: 13.5
 html body .kbcategories .card-link { font-weight: 600; font-size: 15px; }
 html body .kb-article-item { color: var(--gh-ink) !important; font-weight: 600; font-size: 14.5px; }
 html body .kb-article-item small { display: block; margin-top: 2px; font-weight: 400; font-size: 13px; color: var(--gh-muted); }
+
+/* reminders: unticked opt-ins at checkout (whmcs.js, docs/whmcs/globalhostia_reminders_hook.php) */
+.gh-optins { margin: 16px 0; display: grid; gap: 10px; }
+.gh-optin { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.5; color: var(--gh-ink, #222); font-weight: 400; cursor: pointer; }
+.gh-optin input { margin-top: 3px; width: 18px; height: 18px; flex: none; accent-color: #111; }

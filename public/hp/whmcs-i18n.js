@@ -914,8 +914,12 @@
     'Services appear here when they are close to their due date. Your active services keep renewing on their normal schedule.': 'تظهر الخدمات هنا عند اقتراب موعد استحقاقها. تستمر خدماتك النشطة في التجديد وفق جدولها المعتاد.',
     'View my domains': 'عرض نطاقاتي',
     'View my services': 'عرض خدماتي',
-    'Renew a domain': 'تجديد نطاق'
-  };
+    'Renew a domain': 'تجديد نطاق',
+    /* reminders (cart restore, checkout opt-ins) */
+    'Your saved cart items are back in your cart.': 'عادت عناصر سلتك المحفوظة إلى السلة.',
+    'Email me a reminder if I don’t finish this order (at most 2 emails, unsubscribe any time).': 'أرسلوا لي تذكيرًا بالبريد إذا لم أكمل هذا الطلب (رسالتان كحد أقصى، ويمكن إلغاء الاشتراك في أي وقت).',
+    'Send renewal and payment reminders to my phone on WhatsApp (optional, stop any time).': 'أرسلوا تذكيرات التجديد والدفع إلى هاتفي عبر واتساب (اختياري، ويمكن الإيقاف في أي وقت).',
+};
   // server messages with values in them: [regular expression, Arabic with $1, $2 …]
   var srv = [
     ['(\\S+) record added', 'تمت إضافة سجل $1'],

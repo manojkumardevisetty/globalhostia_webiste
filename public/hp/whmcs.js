@@ -2747,3 +2747,75 @@
     try { titleContrast(); setTimeout(titleContrast, 1500); } catch (e) {}
   });
 })();
+
+// Reminders (docs/whmcs/globalhostia_reminders_hook.php prints window.GH_CART on cart pages): sends the signed cart
+// snapshot to globalhostia.com so a signed-in client who leaves gets a reminder email (cart reminders are EMAIL ONLY).
+// Guests are only remembered when they tick "Email me a reminder" at checkout (unticked by default) and type their email.
+// Checkout also offers an unticked WhatsApp opt-in for renewal / payment reminders when the owner switched WhatsApp on.
+// "Complete your order" links set a short gh_restore cookie: the cart's other items are put back here.
+// Never sends prices typed on the page, card data or passwords: the snapshot is built and signed by WHMCS itself.
+(function () {
+  'use strict';
+  if (!window.GH_L10N || window.GH_L10N.wait || window.GH_REM_DONE) return;
+  if (!/\/cart\.php$/.test(location.pathname)) return;
+  window.GH_REM_DONE = 1;
+  var _t = window.GH_L10N.t, D = document, W = window, ORIGIN = window.GH_L10N.origin || 'https://globalhostia.com';
+  var API = ORIGIN + '/api/reminders/cart', BASE = location.origin + location.pathname.replace(/\/cart\.php$/, '');
+  var lang = window.GH_L10N.lang === 'ar' ? 'ar' : 'en';
+  function ready(f) { if (D.readyState !== 'loading') f(); else D.addEventListener('DOMContentLoaded', f); }
+  function post(extra) {
+    var c = W.GH_CART; if (!c || !c.token) return;
+    var body = { token: c.token, lang: lang }; for (var k in extra) body[k] = extra[k];
+    try { fetch(API, { method: 'POST', mode: 'cors', credentials: 'omit', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true }).catch(function () {}); } catch (e) {}
+  }
+  function cookie(name) { var m = D.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)')); return m ? decodeURIComponent(m[1]) : ''; }
+  function live(msg) { var r = D.getElementById('gh-live'); if (!r) { r = D.createElement('div'); r.id = 'gh-live'; r.className = 'gh-sr'; r.setAttribute('aria-live', 'polite'); D.body.appendChild(r); } r.textContent = ''; setTimeout(function () { r.textContent = msg; }, 60); }
+
+  /* put back the other items of a reminded cart (the first one came through the WHMCS order link) */
+  function restore() {
+    var tok = cookie('gh_restore'); if (!tok) return;
+    var dom = /(^|\.)globalhostia\.com$/i.test(location.hostname) ? '; domain=.globalhostia.com' : '';
+    D.cookie = 'gh_restore=; path=/; max-age=0; SameSite=Lax' + dom + (location.protocol === 'https:' ? '; Secure' : '');
+    fetch(API + '?restore=' + encodeURIComponent(tok), { mode: 'cors', credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (d) {
+      var items = (d && d.items || []).slice(1, 20), i = 0;
+      if (!items.length) return;
+      var next = function () {
+        if (i >= items.length) { live(_t('Your saved cart items are back in your cart.')); if (/a=view/.test(location.search)) location.reload(); return; }
+        var it = items[i++], q = it.t === 'p' ? 'a=add&pid=' + encodeURIComponent(it.pid) + (it.cycle ? '&billingcycle=' + encodeURIComponent(it.cycle) : '') + '&skipconfig=1'
+          : 'a=add&domain=' + encodeURIComponent(it.type) + '&query=' + encodeURIComponent(it.domain);
+        if (d.promo) q += '&promocode=' + encodeURIComponent(d.promo);
+        fetch(BASE + '/cart.php?' + q, { credentials: 'same-origin' }).catch(function () {}).then(next);
+      };
+      next();
+    }).catch(function () {});
+  }
+
+  /* checkout: unticked opt-ins (guest cart reminder by email; WhatsApp for renewal / payment reminders) */
+  function checkout(cfg) {
+    var form = D.getElementById('frmCheckout'); if (!form || form.dataset.ghRem) return; form.dataset.ghRem = 1;
+    var c = W.GH_CART || {}, guest = !c.client, html = '';
+    if (guest && cfg.cart && cfg.guests) html += '<label class="gh-optin"><input type="checkbox" id="gh-rem-cart"> <span>' + _t('Email me a reminder if I don’t finish this order (at most 2 emails, unsubscribe any time).') + '</span></label>';
+    if (cfg.wa) html += '<label class="gh-optin"><input type="checkbox" id="gh-rem-wa"> <span>' + _t('Send renewal and payment reminders to my phone on WhatsApp (optional, stop any time).') + '</span></label>';
+    if (!html) return;
+    var box = D.createElement('div'); box.className = 'gh-optins'; box.innerHTML = html;
+    var at = form.querySelector('#btnCompleteOrder, .btn-checkout, button[type=submit]');
+    if (at && at.parentNode) at.parentNode.insertBefore(box, at); else form.appendChild(box);
+    var cart = D.getElementById('gh-rem-cart'), wa = D.getElementById('gh-rem-wa'), email = form.querySelector('#inputEmail, input[name=email]');
+    var send = function () { post({ consent: !!(cart && cart.checked) || !guest, email: guest && cart && cart.checked && email ? email.value.trim() : undefined, whatsapp: !!(wa && wa.checked) }); };
+    if (cart) cart.addEventListener('change', send);
+    if (wa) wa.addEventListener('change', function () { if (wa.checked) send(); });
+    if (email) email.addEventListener('change', function () { if (cart && cart.checked) send(); });
+  }
+
+  ready(function () {
+    try { restore(); } catch (e) {}
+    var tries = 0;
+    (function wait() {
+      if (!W.GH_CART) { if (++tries < 10) setTimeout(wait, 300); return; }
+      fetch(API + '?config=1', { mode: 'cors', credentials: 'omit' }).then(function (r) { return r.json(); }).catch(function () { return {}; }).then(function (cfg) {
+        if (W.GH_CART.client && cfg.cart) post({});
+        if (/a=checkout/.test(location.search)) try { checkout(cfg || {}); } catch (e) {}
+      });
+    })();
+  });
+})();
