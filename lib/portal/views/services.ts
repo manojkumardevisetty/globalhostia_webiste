@@ -20,7 +20,7 @@ export function servicesView(o: { csrf: string; products: any[]; cur: string; fi
 
 const copyBtn = (v: string, label: string) => `<button type="button" class="ac-copy" data-copy="${esc(v)}" aria-label="Copy ${esc(label)}">${icon('copy')}<span>Copy</span></button>`;
 
-export function serviceDetailView(o: { csrf: string; p: any; cur: string }) {
+export function serviceDetailView(o: { csrf: string; p: any; cur: string; dnsHref?: string }) {
   const p = o.p, cur = o.cur;
   const ips = ipList(p);
   const opts = configOptions(p);
@@ -74,6 +74,7 @@ export function serviceDetailView(o: { csrf: string; p: any; cur: string }) {
 
   const manage = card('Manage', `<ul class="ac-actions">
     <li>${icon('trend')}<div><b>Upgrade or downgrade</b><small>Change plan and pay only the difference.</small></div>${ssoButton(o.csrf, 'upgrade', p.id, 'Change plan', { sm: true })}</li>
+    ${o.dnsHref ? `<li>${icon('database')}<div><b>DNS records</b><small>Edit records for ${esc(p.domain)}.</small></div><a class="hp-btn hp-btn--ghost ac-sm" href="${esc(o.dnsHref)}">Manage DNS</a></li>` : ''}
     <li>${icon('headset')}<div><b>Get help with this service</b><small>Opens a ticket linked to it.</small></div><a class="hp-btn hp-btn--ghost ac-sm" href="/account/support/new?service=${esc(p.id)}">New ticket</a></li>
     <li class="ac-actions__danger">${icon('x')}<div><b>Request cancellation</b><small>Choose immediate or end-of-term cancellation.</small></div>${ssoButton(o.csrf, 'cancel', p.id, 'Request', { sm: true })}</li>
   </ul>`, { id: 'ac-man-h', flush: true });

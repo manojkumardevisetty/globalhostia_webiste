@@ -49,4 +49,75 @@
     dds.forEach(function (d) { if (d.open) { d.open = false; var s = d.querySelector("summary"); if (s) s.focus(); } });
   });
   dds.forEach(function (d) { d.addEventListener("toggle", function () { if (d.open) dds.forEach(function (o) { if (o !== d) o.open = false; }); }); });
+
+  // DNS records editor (/account/domains/<id>#dns): open edit / delete panels in place, per-type fields, type filter.
+  var dns = D.querySelector(".ac-dns");
+  if (dns) {
+    var HINT = {
+      A: ["203.0.113.10", "IPv4 address of your server."], AAAA: ["2001:db8::10", "IPv6 address of your server."],
+      CNAME: ["target.example.com", "Host name this name is an alias of. Not allowed on @."],
+      MX: ["mail.example.com", "Mail server host name. Lower priority is tried first."],
+      TXT: ["v=spf1 include:_spf.example.com ~all", "Text value, without surrounding quotes."],
+      SRV: ["sip.example.com", "Target host. Name must look like _service._tcp."]
+    };
+    var closeAll = function (except) {
+      $$(".ac-dns__panel", dns).forEach(function (p) { if (p.id !== except) p.hidden = true; });
+      $$("[data-dns-open]", dns).forEach(function (a) { if (a.getAttribute("data-dns-open") !== except) a.setAttribute("aria-expanded", "false"); });
+      $$(".ac-dns__rec.is-open", dns).forEach(function (r) { r.classList.remove("is-open"); });
+    };
+    $$("[data-dns-open]", dns).forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        var id = a.getAttribute("data-dns-open"), p = D.getElementById(id);
+        if (!p) return;
+        e.preventDefault();
+        var open = p.hidden;
+        closeAll(id);
+        p.hidden = !open;
+        a.setAttribute("aria-expanded", open ? "true" : "false");
+        var row = a.closest("tr");
+        if (row) row.classList.toggle("is-open", open);
+        if (open) { var f = p.querySelector("input:not([type=hidden]),button[type=submit]"); if (f) f.focus({ preventScroll: true }); }
+      });
+    });
+    $$("[data-dns-close]", dns).forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        var p = D.getElementById(a.getAttribute("data-dns-close"));
+        if (!p) return;
+        e.preventDefault();
+        closeAll("");
+        var row = p.previousElementSibling;
+        while (row && !row.classList.contains("ac-dns__rec")) row = row.previousElementSibling;
+        var b = row && row.querySelector("[data-dns-open]");
+        if (b) b.focus();
+      });
+    });
+    D.addEventListener("keydown", function (e) { if (e.key === "Escape" && D.activeElement && D.activeElement.closest && D.activeElement.closest(".ac-dns__panel")) closeAll(""); });
+    // per-type fields: the add form starts as data-type="all" (without JS every field shows)
+    $$(".ac-dns-form", dns).forEach(function (f) {
+      var sel = f.querySelector("[data-dns-type]");
+      if (!sel) return;
+      var sync = function () {
+        var t = sel.value;
+        if (!HINT[t]) return;
+        f.setAttribute("data-type", t);
+        var v = f.querySelector("[data-dns-value]"), h = f.querySelector("[data-dns-help]");
+        if (v) v.placeholder = HINT[t][0];
+        if (h) h.textContent = HINT[t][1];
+      };
+      sel.addEventListener("change", sync); sync();
+    });
+    // type filter
+    var bar = dns.querySelector("[data-dns-filter]");
+    if (bar) {
+      bar.hidden = false;
+      $$("button", bar).forEach(function (b) {
+        b.addEventListener("click", function () {
+          var t = b.getAttribute("data-t");
+          $$("button", bar).forEach(function (x) { var on = x === b; x.classList.toggle("is-on", on); x.setAttribute("aria-pressed", on ? "true" : "false"); });
+          closeAll("");
+          $$(".ac-dns__rec", dns).forEach(function (r) { r.hidden = !!t && r.getAttribute("data-rt") !== t; });
+        });
+      });
+    }
+  }
 })();

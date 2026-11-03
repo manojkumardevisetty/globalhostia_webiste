@@ -1,10 +1,12 @@
 import { requireSession } from '@/lib/session';
 import { PageHeader, Card, Badge, Flash, Field } from '@/components/ui';
-import { serverViews, hmacSecret, hmacFromEnv, type ServerView } from '@/lib/hosting/servers';
+import { serverViews, hmacSecret, hmacFromEnv, dnsOnlyConfig, type ServerView } from '@/lib/hosting/servers';
+import { listZones } from '@/lib/portal/dns';
+import { OUR_NS } from '@/lib/hosting/dns-plan';
 import { PANEL_LABEL, PANEL_TYPES } from '@/lib/hosting/types';
 import { DA_COMMANDS } from '@/lib/hosting/providers/directadmin';
 import { ALLOWED_ORIGINS } from '@/lib/hosting/context';
-import { saveServerAction, deleteServerAction, testServerAction, generateHmacAction, saveHmacAction } from './actions';
+import { saveServerAction, deleteServerAction, testServerAction, generateHmacAction, saveHmacAction, saveDnsOnlyAction, testDnsOnlyAction, removeZoneAction } from './actions';
 
 export const metadata = { title: 'Hosting panels' };
 export const dynamic = 'force-dynamic';
@@ -31,6 +33,9 @@ function ServerForm({ s }: { s?: ServerView }) {
       <Field label="Also match host names / IPs" hint="Fallback when the server ID is not set: WHMCS server host name or IP." className="sm:col-span-2">
         <input className="input" name="match" defaultValue={s?.match.join(', ')} placeholder="216.158.237.114, sonic.example.com" />
       </Field>
+      <Field label="Nameservers on this server" hint={`Customer DNS editor: domains using these nameservers count as "ours" (besides ${OUR_NS.join(', ')}). Leave empty for the server that answers ns1/ns2.globalhostia.com.`} className="sm:col-span-2">
+        <input className="input" name="nameservers" defaultValue={s?.nameservers?.join(', ')} placeholder="ns3.globalhostia.com, ns4.globalhostia.com" />
+      </Field>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="enabled" defaultChecked={s ? s.enabled : true} /> Enabled for customers</label>
       <div className="flex justify-end sm:col-span-1"><button className="btn btn-primary">{s ? 'Save changes' : 'Add server'}</button></div>
     </form>
@@ -40,7 +45,8 @@ function ServerForm({ s }: { s?: ServerView }) {
 export default async function HostingAdmin({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   await requireSession('integration');
   const sp = await searchParams;
-  const [servers, secret] = await Promise.all([serverViews(), hmacSecret()]);
+  const [servers, secret, dnsOnly, zones] = await Promise.all([serverViews(), hmacSecret(), dnsOnlyConfig().catch(() => null), listZones().catch(() => [])]);
+  const daServers = servers.filter((x) => x.panel === 'directadmin');
   const fromEnv = hmacFromEnv();
   return (
     <>
@@ -66,6 +72,35 @@ export default async function HostingAdmin({ searchParams }: { searchParams: Pro
             </Card>
           ))}
           <Card title={servers.length ? 'Add another server' : 'Add your first server'}><ServerForm /></Card>
+          <Card title="Customer DNS editor: DNS-only account"
+            actions={dnsOnly ? <form action={testDnsOnlyAction}><button className="btn btn-secondary">Test</button></form> : undefined}>
+            <p className="mb-4 text-sm text-slate-600">Domain-only customers whose domain uses our nameservers ({OUR_NS.join(', ')}) can turn on DNS management in My account → Domains. Their zone is created by adding the domain to this DirectAdmin user (no website, PHP or CGI), and only they can edit it. Create the user under the reseller that owns the Login Key, with unlimited domains.</p>
+            <form action={saveDnsOnlyAction} className="grid gap-4 sm:grid-cols-2">
+              <Field label="Server">
+                <select className="input" name="serverId" defaultValue={dnsOnly?.serverId || daServers[0]?.id || ''}>
+                  <option value="">Not set</option>
+                  {daServers.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                </select>
+              </Field>
+              <Field label="DirectAdmin username" hint="e.g. ghdns (created under the reseller)"><input className="input font-mono" name="daUser" defaultValue={dnsOnly?.daUser} placeholder="ghdns" /></Field>
+              <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="allowCreate" defaultChecked={dnsOnly ? dnsOnly.allowCreate : true} /> Customers may create zones (“Turn on DNS management”, “Use GlobalHostia DNS”)</label>
+              <div className="flex justify-end sm:col-span-2"><button className="btn btn-primary">Save</button></div>
+            </form>
+            {zones.length > 0 && (
+              <div className="mt-5 border-t border-slate-100 pt-4">
+                <h3 className="mb-2 text-sm font-semibold">Zones created for customers ({zones.length})</h3>
+                <ul className="divide-y divide-slate-100 text-sm">
+                  {zones.map((z) => (
+                    <li key={z.id} className="flex items-center justify-between gap-3 py-2">
+                      <span><span className="font-mono">{z.domain}</span> <span className="text-xs text-slate-500">client #{z.clientId} · {z.daUser} · {new Date(z.createdAt).toISOString().slice(0, 10)}</span></span>
+                      <form action={removeZoneAction}><input type="hidden" name="domain" value={z.domain} /><button className="btn btn-ghost text-red-600">Remove</button></form>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs text-slate-400">Remove deletes the domain (and its zone) from the DNS-only user. Do it only after the customer moved away.</p>
+              </div>
+            )}
+          </Card>
         </div>
         <div className="space-y-6">
           <Card title="WHMCS hook secret">

@@ -1,5 +1,6 @@
 // Domains: list and detail with nameserver editing.
 import { RENEW_WINDOW, daysBadge, renewAllDomainsButton } from './renewals';
+import { dnsSection, type DnsView } from './dns';
 import { card, daysUntil, dl, empty, esc, fmtDate, icon, money, pill, ssoButton, btn, fieldErr, invalid } from './kit';
 
 const autoRenew = (d: any) => !(d.donotrenew === true || d.donotrenew === 1 || d.donotrenew === '1');
@@ -34,7 +35,7 @@ export function domainsView(o: { csrf: string; domains: any[]; cur: string; invo
   };
 }
 
-export function domainDetailView(o: { csrf: string; d: any; cur: string; ns: string[] | null; nsInput?: string[]; errs?: Record<string, string> }) {
+export function domainDetailView(o: { csrf: string; d: any; cur: string; ns: string[] | null; nsInput?: string[]; errs?: Record<string, string>; dns?: Omit<DnsView, 'csrf' | 'd'> }) {
   const d = o.d;
   const editable = /active/i.test(d.status);
   const vals = o.nsInput || o.ns || [];
@@ -64,12 +65,12 @@ export function domainDetailView(o: { csrf: string; d: any; cur: string; ns: str
   ]) + `<div class="ac-card__foot ac-card__foot--stack">${ssoButton(o.csrf, 'domain_renew', d.id, 'Renew domain', { variant: 'brand', ic: 'refresh', block: true })}</div>`, { id: 'ac-dd-h' });
 
   const more = card('More settings', `<ul class="ac-actions">
-    <li>${icon('database')}<div><b>DNS records</b><small>A, CNAME, MX and TXT records.</small></div>${ssoButton(o.csrf, 'domain_dns', d.id, 'Open', { sm: true })}</li>
+    <li>${icon('database')}<div><b>DNS records</b><small>A, AAAA, CNAME, MX, TXT and SRV records.</small></div><a class="hp-btn hp-btn--ghost ac-sm" href="#dns">Manage</a></li>
     <li>${icon('users')}<div><b>Contact information</b><small>Registrant, admin and technical contacts.</small></div>${ssoButton(o.csrf, 'domain_contacts', d.id, 'Open', { sm: true })}</li>
     <li>${icon('key')}<div><b>Transfer code and lock</b><small>Get the EPP code or change the registrar lock.</small></div>${ssoButton(o.csrf, 'domain', d.id, 'Open', { sm: true })}</li>
   </ul>`, { id: 'ac-dm-h', flush: true });
 
-  return `<div class="ac-grid ac-grid--detail"><div class="ac-col">${card('Nameservers', nsForm, { id: 'ac-ns-h' })}</div><div class="ac-col">${overview}${more}</div></div>`;
+  return `<div class="ac-grid ac-grid--detail"><div class="ac-col">${card('Nameservers', nsForm, { id: 'ac-ns-h' })}</div><div class="ac-col">${overview}${more}</div></div>${o.dns ? dnsSection({ ...o.dns, csrf: o.csrf, d }) : ''}`;
 }
 
 const HOST = /^(?=.{4,253}$)(?!-)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}\.?$/i;

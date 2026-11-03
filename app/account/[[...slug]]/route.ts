@@ -16,6 +16,13 @@ import { invoicesView, invoiceDetailView, INVOICE_FILTERS } from '@/lib/portal/v
 import { ticketsView, newTicketView, ticketView, type TicketForm } from '@/lib/portal/views/support';
 import { profileView, validateProfile } from '@/lib/portal/views/profile';
 import { card, empty, errorBox, esc, btn, ssoButton, pill } from '@/lib/portal/views/kit';
+import { DNS_OK, type DnsView, type DnsForm } from '@/lib/portal/views/dns';
+import { DnsError, dnsState, dnsWriteLimit, enableZone, resolveZone, zoneProvider, nsFor } from '@/lib/portal/dns';
+import { templatePlan, type TemplateKey } from '@/lib/hosting/dns-plan';
+import { dnsRecord, InputError } from '@/lib/hosting/validate';
+import { PanelError } from '@/lib/hosting/types';
+import { loadServers } from '@/lib/hosting/servers';
+import { serverFor } from '@/lib/hosting/match';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -117,11 +124,21 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     let p: any;
     try { p = await api.getService(cid, id); } catch { return failed('Service', 'this service', 'services'); }
     if (!p) return notFound('service', '/account/services', 'services');
+    // hosting on a managed panel whose domain is registered with us: link to the in-portal DNS editor
+    let dnsHref: string | undefined;
+    if (/active/i.test(String(p.status)) && p.domain) {
+      try {
+        if (serverFor(p, await loadServers())) {
+          const dom = (await api.getClientsDomains(cid)).find((x: any) => String(x.domainname || '').toLowerCase() === String(p.domain).toLowerCase());
+          if (dom) dnsHref = `/account/domains/${Number(dom.id)}#dns`;
+        }
+      } catch { /* optional link */ }
+    }
     return html(await F({
       title: p.translated_name || p.name || 'Service', sub: `${p.domain ? `<span class="ac-mono">${esc(p.domain)}</span> ` : ''}${pill(p.status)}`, active: 'services',
       crumbs: [{ label: 'Products & Services', href: '/account/services' }, { label: p.name || 'Service' }],
       headAction: ssoButton(v.csrf, 'service', p.id, 'Open control panel', { variant: 'outline', ic: 'external' }),
-      body: serviceDetailView({ csrf: v.csrf, p, cur: sess.cur }),
+      body: serviceDetailView({ csrf: v.csrf, p, cur: sess.cur, dnsHref }),
     }));
   }
 
@@ -140,9 +157,10 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     let d: any;
     try { d = await api.getDomain(cid, id); } catch { return failed('Domain', 'this domain', 'domains'); }
     if (!d) return notFound('domain', '/account/domains', 'domains');
-    let ns: string[] | null = null;
-    try { ns = await api.domainGetNameservers(id); } catch { ns = null; }
-    return html(await F({ title: d.domainname, active: 'domains', crumbs: [{ label: 'Domains', href: '/account/domains' }, { label: d.domainname }], body: domainDetailView({ csrf: v.csrf, d, cur: sess.cur, ns }) }));
+    const okKey = q.get('ok') || '';
+    return domainPage(F, v.csrf, sess.cur, cid, d, {
+      ok: DNS_OK[okKey] ? okKey : undefined, edit: q.get('edit') || undefined, del: q.get('del') || undefined, add: q.has('add'), tpl: q.get('tpl') || undefined,
+    });
   }
 
   /* billing */
@@ -191,6 +209,14 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   }
 
   return notFound('page', '/account', 'dashboard');
+}
+
+/** Domain detail with its DNS section (nameservers read live from the registry, zone resolved per request). */
+async function domainPage(F: (o: any) => Promise<string>, csrf: string, cur: string, cid: number, d: any, dns: Omit<DnsView, 'csrf' | 'd' | 'st'>, status = 200) {
+  let ns: string[] | null = null;
+  try { ns = await api.domainGetNameservers(Number(d.id)); } catch { ns = null; }
+  const st = await dnsState(cid, d, ns);
+  return html(await F({ title: d.domainname, active: 'domains', crumbs: [{ label: 'Domains', href: '/account/domains' }, { label: d.domainname }], body: domainDetailView({ csrf, d, cur, ns, dns: { ...dns, st } }) }), status);
 }
 
 async function renderNewTicket(req: NextRequest, F: (o: any) => Promise<string>, v: Viewer, cid: number, form: TicketForm, errs?: Record<string, string>, status = 200) {
@@ -326,6 +352,111 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       r.headers.set('cache-control', 'private, no-store');
       return setFlag(r, true);
     } catch (e) { console.error('[sso] ' + to + ' gave up: ' + (e instanceof Error ? e.message : String(e))); return fail(); }
+  }
+
+  /* ---- DNS records editor ---- */
+  if (segs[0] === 'domains' && segs[2] === 'dns' && segs.length === 3) {
+    const id = idOf(segs[1]);
+    const d = id ? await api.getDomain(cid, id).catch(() => null) : null;
+    if (!id || !d) return go(req, '/account/domains');
+    const back = `/account/domains/${id}`;
+    const op = str('op', 20);
+    const zone = String(d.domainname || '').trim().toLowerCase();
+    const form: DnsForm = { type: str('type', 10).toUpperCase(), name: str('name', 260), value: str('value', 4096), ttl: str('ttl', 10), priority: str('priority', 10), weight: str('weight', 10), port: str('port', 10) };
+    const again = (msg: string, scope: NonNullable<DnsView['err']>['scope'], status: number, rid?: string, f?: DnsForm) =>
+      domainPage(F, v.csrf, sess.cur, cid, d, { err: { msg, scope, id: rid, form: f } }, status);
+    const audit = (action: string, detail: Record<string, unknown>) => auditClient(`client_dns_${action}`, sess.email, ip, { domainId: id, domain: zone, ...detail });
+    if (!/^active$/i.test(String(d.status))) return again('DNS can be managed once the domain is active.', 'zone', 409);
+    const wait = dnsWriteLimit(`c${cid}`);
+    if (wait) return again(`Too many changes in a short time. Try again in ${wait} seconds.`, op === 'add' ? 'add' : 'zone', 429, undefined, form);
+
+    let ns: string[] | null = null;
+    try { ns = await api.domainGetNameservers(id); } catch { ns = null; }
+    let plan: Awaited<ReturnType<typeof resolveZone>>['plan'];
+    try { plan = (await resolveZone(cid, d, ns)).plan; } catch { return again('We could not reach the DNS server right now. Please try again.', 'zone', 503); }
+    const fail = (e: unknown, scope: NonNullable<DnsView['err']>['scope'], rid?: string, f?: DnsForm) => {
+      const msg = e instanceof InputError || e instanceof DnsError ? e.message
+        : e instanceof PanelError ? (e.status === 400 ? `The DNS server refused the change: ${e.message}` : e.message)
+        : 'That change could not be saved. Please try again.';
+      if (!(e instanceof InputError)) console.error('[portal-dns]', op, zone, e instanceof Error ? e.message : e);
+      return again(msg, scope, e instanceof InputError ? 422 : 502, rid, f);
+    };
+
+    /* turn on: create the zone on the DNS-only account */
+    if (op === 'enable') {
+      if (plan.kind === 'hosting' || plan.kind === 'dnsonly') return go(req, `${back}#dns`);
+      if (plan.kind !== 'off' || !plan.canCreate) return again('DNS management cannot be turned on for this domain here. Please contact support.', 'zone', 409);
+      try { await enableZone(cid, id, zone); } catch (e) { await audit('enable.failed', { error: e instanceof Error ? e.message : String(e) }); return fail(e, 'zone'); }
+      await audit('enable', {});
+      return go(req, `${back}?ok=dns_on#dns`);
+    }
+
+    /* switch nameservers to ours; never before the zone exists (that would take the domain offline) */
+    if (op === 'use_ns') {
+      let target: string[];
+      try {
+        if (plan.kind === 'hosting' || plan.kind === 'dnsonly') target = nsFor(plan.server);
+        else if (plan.kind === 'external' && plan.canSwitch) { const z = await enableZone(cid, id, zone); target = nsFor(z.server); await audit('enable', { via: 'use_ns' }); }
+        else return again('We cannot switch this domain to GlobalHostia DNS automatically. Please contact support.', 'zone', 409);
+      } catch (e) { return fail(e, 'zone'); }
+      try { await api.domainUpdateNameservers(id, target); }
+      catch { return again('The registry did not accept the nameserver change. Your DNS zone is ready; please try again in a moment.', 'zone', 502); }
+      await auditClient('client_ns_update', sess.email, ip, { domainId: id, ns: target, via: 'dns_editor' });
+      return go(req, `${back}?ok=dns_ns#dns`);
+    }
+
+    if (plan.kind !== 'hosting' && plan.kind !== 'dnsonly') return again('DNS for this domain is not managed here yet.', 'zone', 409);
+    const p = zoneProvider(plan, zone);
+    if (!p.dns) return again('DNS editing is not available on this server.', 'zone', 409);
+    const via = { via: plan.kind, server: plan.server.id, user: plan.username };
+    const num = (x?: string) => (x === undefined || x === '' ? undefined : x);
+    const input = (f: DnsForm) => ({ type: f.type, name: f.name, value: f.value, ttl: num(f.ttl), priority: num(f.priority), weight: num(f.weight), port: num(f.port) });
+
+    if (op === 'add') {
+      let r;
+      try { r = dnsRecord(input(form), zone); } catch (e) { return fail(e, 'add', undefined, form); }
+      try { await p.dns.add(zone, r); } catch (e) { await audit('add.failed', { record: r, ...via }); return fail(e, 'add', undefined, form); }
+      await audit('add', { record: r, ...via });
+      return go(req, `${back}?ok=dns_added#dns`);
+    }
+    if (op === 'edit' || op === 'delete') {
+      const rid = str('id', 2000);
+      let old;
+      try { old = (await p.dns.list(zone)).find((x) => x.id === rid); } catch (e) { return fail(e, 'zone'); }
+      if (!old) return again('That record no longer exists. The list below is up to date.', 'zone', 409);
+      if (old.readonly) return again('Nameserver records are managed by GlobalHostia and cannot be changed here.', 'zone', 403);
+      const oldInfo = { type: old.type, name: old.name, value: old.value };
+      if (op === 'delete') {
+        if (str('confirm', 5) !== 'yes') return go(req, `${back}?del=${encodeURIComponent(rid)}#dns`);
+        try { await p.dns.remove(zone, old); } catch (e) { await audit('delete.failed', { old: oldInfo, ...via }); return fail(e, 'zone'); }
+        await audit('delete', { old: oldInfo, ...via });
+        return go(req, `${back}?ok=dns_deleted#dns`);
+      }
+      const f = { ...form, type: old.type };
+      let r;
+      try { r = dnsRecord(input(f), zone); } catch (e) { return fail(e, 'edit', rid, f); }
+      try { await p.dns.edit(zone, old, r); } catch (e) { await audit('edit.failed', { old: oldInfo, record: r, ...via }); return fail(e, 'edit', rid, f); }
+      await audit('edit', { old: oldInfo, record: r, ...via });
+      return go(req, `${back}?ok=dns_updated#dns`);
+    }
+    if (op === 'template') {
+      const key = str('template', 20) as TemplateKey;
+      const tin = { ip: str('ip', 64), txt: str('txt', 2048), name: str('name', 260) };
+      const tform = { value: key === 'ip' ? tin.ip : tin.txt, name: tin.name };
+      let plan2: ReturnType<typeof templatePlan>, adds;
+      try {
+        plan2 = templatePlan(key, zone, tin, await p.dns.list(zone));
+        adds = plan2.add.map((a) => dnsRecord(a, zone));
+      } catch (e) { return fail(e instanceof InputError || e instanceof PanelError ? e : new InputError(e instanceof Error ? e.message : 'Invalid template'), 'tpl', key, tform); }
+      // add first, then remove what it replaces: a failed step never leaves the name without records
+      try {
+        for (const r of adds) await p.dns.add(zone, r);
+        for (const r of plan2.remove) await p.dns.remove(zone, r);
+      } catch (e) { await audit('template.failed', { template: key, ...via }); return fail(e, 'tpl', key, tform); }
+      await audit('template', { template: key, added: adds, removed: plan2.remove.map((r) => ({ type: r.type, name: r.name, value: r.value })), ...via });
+      return go(req, `${back}?ok=dns_template#dns`);
+    }
+    return again('Unknown action.', 'zone', 400);
   }
 
   /* ---- nameservers ---- */

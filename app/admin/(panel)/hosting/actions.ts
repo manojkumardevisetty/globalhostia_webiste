@@ -2,7 +2,9 @@
 import { requireSession, audit } from '@/lib/session';
 import { done, fail, str, bool } from '@/lib/admin';
 import { createId } from '@/lib/id';
-import { deleteServer, getServer, hmacFromEnv, saveServer, setHmacSecret, storedServers } from '@/lib/hosting/servers';
+import { deleteServer, getServer, hmacFromEnv, saveServer, setHmacSecret, storedServers, saveDnsOnlyConfig, loadServers } from '@/lib/hosting/servers';
+import { removeZone, testDnsOnly } from '@/lib/portal/dns';
+import { panelUser } from '@/lib/hosting/validate';
 import { randomSecret } from '@/lib/hosting/crypto';
 import { testServer } from '@/lib/hosting/providers';
 import { PANEL_TYPES, type PanelType } from '@/lib/hosting/types';
@@ -21,10 +23,12 @@ export async function saveServerAction(fd: FormData) {
   if (ids.some((n) => !Number.isInteger(n) || n <= 0)) fail(P, 'WHMCS server IDs must be whole numbers, separated by commas');
   const match = str(fd, 'match').split(/[\s,]+/).map((x) => x.trim().toLowerCase()).filter(Boolean).slice(0, 20);
   if (match.some((m) => !/^[a-z0-9.:-]{1,253}$/.test(m))) fail(P, 'Host names / IPs may only use letters, digits, dot, dash and colon');
+  const nameservers = str(fd, 'nameservers').split(/[\s,]+/).map((x) => x.trim().toLowerCase().replace(/\.$/, '')).filter(Boolean).slice(0, 5);
+  if (nameservers.some((m) => !/^(?=.{4,253}$)([a-z0-9-]+\.)+[a-z]{2,63}$/.test(m))) fail(P, 'Nameservers must be host names like ns1.example.com');
   try {
-    await saveServer({ id, name, panel, url, apiUser, enabled: bool(fd, 'enabled'), whmcsServerIds: ids, match, secret: str(fd, 'secret') || undefined });
+    await saveServer({ id, name, panel, url, apiUser, enabled: bool(fd, 'enabled'), whmcsServerIds: ids, match, nameservers, secret: str(fd, 'secret') || undefined });
   } catch (e: any) { fail(P, e.message); }
-  await audit(s, 'hosting_server_save', 'hosting_server', id, { name, panel, url, apiUser, whmcsServerIds: ids, match, secretChanged: !!str(fd, 'secret') });
+  await audit(s, 'hosting_server_save', 'hosting_server', id, { name, panel, url, apiUser, whmcsServerIds: ids, match, nameservers, secretChanged: !!str(fd, 'secret') });
   done(P, `Server "${name}" saved`);
 }
 
@@ -69,4 +73,36 @@ export async function saveHmacAction(fd: FormData) {
   await setHmacSecret(v);
   await audit(s, 'hosting_hmac_set', 'settings', 'hosting_hmac_secret');
   done(P, 'Shared secret saved');
+}
+
+/* ---------------- DNS-only account (portal DNS editor for domain-only customers) ---------------- */
+export async function saveDnsOnlyAction(fd: FormData) {
+  const s = await requireSession('integration');
+  const serverId = str(fd, 'serverId'), daUser = str(fd, 'daUser');
+  if (!serverId && !daUser) { await saveDnsOnlyConfig(null); await audit(s, 'hosting_dns_only_clear', 'settings', 'hosting_dns_only'); done(P, 'DNS-only account cleared'); }
+  const srv = (await loadServers()).find((x) => x.id === serverId);
+  if (!srv) fail(P, 'Choose a server');
+  if (srv!.panel !== 'directadmin') fail(P, 'The DNS-only account must be on a DirectAdmin server');
+  try { panelUser(daUser); } catch { fail(P, 'Enter the DirectAdmin username (letters, digits, dot, dash, underscore)'); }
+  if (daUser.toLowerCase() === srv!.apiUser.toLowerCase()) fail(P, 'Use a dedicated user created under the reseller, not the key owner itself');
+  const allowCreate = bool(fd, 'allowCreate');
+  await saveDnsOnlyConfig({ serverId, daUser, allowCreate });
+  await audit(s, 'hosting_dns_only_save', 'settings', 'hosting_dns_only', { serverId, daUser, allowCreate });
+  done(P, `DNS-only account set to ${daUser} on ${srv!.name}`);
+}
+
+export async function testDnsOnlyAction() {
+  const s = await requireSession('integration');
+  let msg = '';
+  try { msg = await testDnsOnly(); } catch (e: any) { fail(P, `DNS-only account: ${e?.message || 'test failed'}`); }
+  await audit(s, 'hosting_dns_only_test', 'settings', 'hosting_dns_only');
+  done(P, `OK: ${msg}`);
+}
+
+export async function removeZoneAction(fd: FormData) {
+  const s = await requireSession('integration');
+  const domain = str(fd, 'domain').toLowerCase();
+  try { await removeZone(domain); } catch (e: any) { await audit(s, 'dns_zone_remove_failed', 'dns_zone', domain, { error: e?.message }); fail(P, `${domain}: ${e?.message || 'could not remove'}`); }
+  await audit(s, 'dns_zone_remove', 'dns_zone', domain);
+  done(P, `DNS zone for ${domain} removed`);
 }
