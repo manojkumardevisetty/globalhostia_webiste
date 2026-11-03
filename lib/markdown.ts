@@ -9,7 +9,8 @@ export type Rendered = { html: string; toc: TocItem[] };
 const SITE_HOSTS = /^(https?:)?\/\/(www\.)?globalhostia\.com(\/|$)/i;
 
 const plain = (s: string) => s.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
-const anchor = (s: string) => plain(s).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64) || 'section';
+// Arabic headings keep their letters (valid HTML ids), so the table of contents of an Arabic article has readable anchors
+const anchor = (s: string) => plain(s).toLowerCase().replace(/&/g, 'and').replace(/[\u064b-\u065f\u0670]/g, '').replace(/[^a-z0-9\u0621-\u064a\u0660-\u0669]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 64) || 'section';
 
 /** Render Markdown to sanitized HTML plus a table of contents built from the H2 headings. */
 export function renderMarkdown(md: string): Rendered {

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, or, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { PageHeader, Flash, LinkBtn, Card, fmtDate } from '@/components/ui';
 import { getSession } from '@/lib/session';
@@ -35,7 +35,11 @@ export default async function EditPost({ params, searchParams }: { params: Promi
     ogImage: p?.ogImage || '', canonical: p?.canonical || '',
     focusKeyword: p?.focusKeyword || '', secondaryKeywords: p?.secondaryKeywords || '',
     coverStyle: (p?.coverStyle as EditorPost['coverStyle']) || 'branded', takeaways: p?.takeaways || '', relatedProducts: p?.relatedProducts || [], updatedAt: p ? new Date(p.updatedAt).toISOString() : '',
+    track: (p?.track === 'uae' || p?.track === 'global' ? p.track : '') as EditorPost['track'], lang: p?.lang === 'ar' ? 'ar' : 'en',
   };
+  // drafted by the content engine: link back to its review page (quality checks, schedule, Arabic version)
+  const idea = p ? (await db.select({ id: schema.contentIdeas.id, state: schema.contentIdeas.state }).from(schema.contentIdeas)
+    .where(or(eq(schema.contentIdeas.postId, p.id), eq(schema.contentIdeas.arPostId, p.id))).limit(1).catch(() => []))[0] : undefined;
   const site = String(settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
 
   return (
@@ -43,6 +47,12 @@ export default async function EditPost({ params, searchParams }: { params: Promi
       <PageHeader title={isNew ? 'New blog post' : 'Edit post'} desc={p ? <>Last saved {fmtDate(p.updatedAt)}</> : 'Write in plain text with simple formatting. The preview shows exactly how it will look.'}
         actions={<LinkBtn href="/admin/blog">← All posts</LinkBtn>} />
       <Flash sp={sp} />
+      {idea && (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-sky-50 px-4 py-3 text-sm text-sky-900 ring-1 ring-sky-200">
+          <span>This article was drafted by the <b>content engine</b>. Save your edits here, then schedule or publish it from its review page (quality checks run again there).</span>
+          <LinkBtn href={`/admin/seo/content/${idea.id}`}>Back to review →</LinkBtn>
+        </div>
+      )}
       <PostEditor post={post} catalog={catalog} categories={cats} authors={authors} siteUrl={site} siteName={String(settings.site_name || 'Globalhostia')} />
       {revs.length > 0 && (
         <Card title="Earlier versions" className="mt-6">

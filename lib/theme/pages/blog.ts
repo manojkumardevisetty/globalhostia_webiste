@@ -5,7 +5,7 @@ import { esc } from '../../render/util';
 import { getCatalog, productsFor, productBySlug, categoryBySlug, fromPrice, orderUrl, deriveSpecs, type Catalog, type TProduct } from '../data';
 import { page } from '../shell';
 import { pageHero, breadcrumbs, breadcrumbJsonLd, ctaBand, icon, hexIcon, button, link, ld, available, fromText, planCards, plansNote, sectionHead, ICON_NAMES, faqJsonLd } from '../ui';
-import { getPosts, getPost, blogCategories, relatedPosts, postPath, absUrl, fmtPostDate, roadmapFrom, trustPointsFrom, blogTags, faqFromMarkdown, type BlogPost } from '../../blog';
+import { getPosts, getPost, blogCategories, relatedPosts, postPath, absUrl, fmtPostDate, roadmapFrom, trustPointsFrom, blogTags, faqFromMarkdown, COLLECTIONS, translationOf, type BlogPost } from '../../blog';
 import { renderMarkdown } from '../../markdown';
 
 export type BlogResult = { status: number; body: string; type?: string; cache?: boolean };
@@ -13,6 +13,21 @@ export type BlogResult = { status: number; body: string; type?: string; cache?: 
 const PER_PAGE = 9;
 const BLOG_TITLE = 'Hosting guides and news';
 const BLOG_LEAD = 'Practical guides on web hosting, domains, servers and security from the Globalhostia team in Dubai.';
+
+/** Article chrome in the article's language (Arabic articles from the content engine; the site shell stays English). */
+const T = {
+  en: { min: 'min read', updated: 'Updated', explains: 'What this article explains', takeaways: 'Key takeaways', inArticle: 'In this article', sections: 'sections', share: 'Share',
+    copy: 'Copy link', recoKick: 'Recommended for this topic', recoH: 'Put this guide into practice', from: 'From', order: 'Order', see: 'See price', priceNote: (c: string) => `Prices from our billing system, in ${c}.`,
+    ctaH: 'Host it with engineers on call 24/7', ctaP: 'Free SSL, daily backups and automatic setup. We help you move in.', webHosting: 'Web hosting', fromLower: 'from',
+    authorH: 'About the author', authorP: 'Practical guides from the GlobalHostia team in Dubai: web hosting, domains, servers and business email. Every article is reviewed by our team before it is published.',
+    lastUpdated: 'Last updated', other: 'اقرأ هذا المقال بالعربية', otherLang: 'ar', contact: 'Talk to our team', preview: 'Preview.', only: 'Only signed-in admins can see this page.' },
+  ar: { min: 'دقائق قراءة', updated: 'آخر تحديث', explains: 'ما يشرحه هذا المقال', takeaways: 'أهم النقاط', inArticle: 'في هذا المقال', sections: 'أقسام', share: 'مشاركة',
+    copy: 'نسخ الرابط', recoKick: 'خطط مقترحة لهذا الموضوع', recoH: 'طبّق هذا الدليل', from: 'من', order: 'اطلب', see: 'اعرض السعر', priceNote: (c: string) => `الأسعار من نظام الفوترة لدينا بعملة ${c}.`,
+    ctaH: 'استضافة مع مهندسين متاحين على مدار الساعة', ctaP: 'شهادة SSL مجانية ونسخ احتياطية يومية وتفعيل تلقائي. نساعدك في نقل موقعك.', webHosting: 'استضافة المواقع', fromLower: 'من',
+    authorH: 'عن الكاتب', authorP: 'أدلة عملية من فريق GlobalHostia في دبي حول استضافة المواقع والنطاقات والخوادم والبريد الإلكتروني للأعمال. يراجع فريقنا كل مقال قبل نشره.',
+    lastUpdated: 'آخر تحديث', other: 'Read this article in English', otherLang: 'en', contact: 'تحدث مع فريقنا', preview: 'معاينة.', only: 'هذه الصفحة مرئية للمشرفين فقط.' },
+};
+type Tx = typeof T.en;
 
 const siteOf = (cat: Catalog) => String(cat.settings.site_url || 'https://globalhostia.com').replace(/\/$/, '');
 const iso = (d: string) => new Date(d).toISOString();
@@ -29,13 +44,14 @@ function cover(p: BlogPost, o: { w: number; h: number; eager?: boolean; sizes?: 
   return `<span class="bl-img bl-img--${p.coverStyle}">${img}<span class="bl-img__fx" aria-hidden="true"></span>${chip}</span>`;
 }
 
+const fmtDate = (d: string, lang: 'en' | 'ar') => (lang === 'ar' ? new Date(d).toLocaleDateString('ar-AE-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Dubai' }) : fmtPostDate(d));
 const meta = (p: BlogPost) =>
-  `<p class="bl-meta"><time datetime="${esc(iso(p.date))}">${esc(fmtPostDate(p.date))}</time><span aria-hidden="true">·</span><span>${p.readingMinutes} min read</span></p>`;
+  `<p class="bl-meta"><time datetime="${esc(iso(p.date))}">${esc(fmtDate(p.date, p.lang))}</time><span aria-hidden="true">·</span><span>${p.readingMinutes} ${T[p.lang].min}</span></p>`;
 
 /** Post card (blog grid, related posts, homepage). */
 export function postCard(p: BlogPost, level: 2 | 3 = 3) {
   const h = `h${level}`;
-  return `<article class="bl-card" data-reveal>
+  return `<article class="bl-card" data-reveal${p.lang === 'ar' ? ' lang="ar" dir="rtl"' : ''}>
   <a class="bl-card__img" href="${esc(postPath(p.slug))}" tabindex="-1" aria-hidden="true">${cover(p, { w: 640, h: 360 })}</a>
   <div class="bl-card__body">
     <${h} class="bl-card__title"><a href="${esc(postPath(p.slug))}">${esc(p.title)}</a></${h}>
@@ -123,7 +139,7 @@ function topPicks(groups: Group[], n: number) {
   return out;
 }
 
-function recoBlock(cat: Catalog, picks: TProduct[]) {
+function recoBlock(cat: Catalog, picks: TProduct[], t: Tx = T.en) {
   if (!picks.length) return '';
   const cards = picks.map((p) => {
     const specs = deriveSpecs(p.features, p.attributes);
@@ -135,15 +151,15 @@ function recoBlock(cat: Catalog, picks: TProduct[]) {
       <h3 class="bl-pick__name"><a href="/p/${esc(p.slug)}">${esc(p.name)}</a></h3>
       ${feats.length ? `<ul class="bl-pick__feat">${feats.map((f) => `<li>${icon('check')}<span>${esc(f)}</span></li>`).join('')}</ul>` : ''}
       <div class="bl-pick__foot">
-        <p class="bl-pick__price">${price ? `<span>From</span> <b class="num">${esc(price)}</b>` : `<a href="${esc(orderUrl(p, cat.base))}">See price</a>`}</p>
-        <a class="hp-btn hp-btn--brand bl-pick__btn" href="${esc(orderUrl(p, cat.base))}" aria-label="Order ${esc(p.name)}">Order</a>
+        <p class="bl-pick__price">${price ? `<span>${t.from}</span> <b class="num">${esc(price)}</b>` : `<a href="${esc(orderUrl(p, cat.base))}">${t.see}</a>`}</p>
+        <a class="hp-btn hp-btn--brand bl-pick__btn" href="${esc(orderUrl(p, cat.base))}" aria-label="${esc(`${t.order} ${p.name}`)}">${t.order}</a>
       </div>
     </li>`;
   }).join('');
   return `<aside class="bl-reco" aria-labelledby="bl-reco-h">
-  <div class="bl-reco__head"><p class="bl-reco__kick">${icon('star')}Recommended for this topic</p><h2 id="bl-reco-h" class="bl-reco__h">Put this guide into practice</h2></div>
+  <div class="bl-reco__head"><p class="bl-reco__kick">${icon('star')}${t.recoKick}</p><h2 id="bl-reco-h" class="bl-reco__h">${t.recoH}</h2></div>
   <ul class="bl-picks bl-picks--n${picks.length}">${cards}</ul>
-  <p class="bl-reco__note">${icon('info')}Prices from our billing system, in ${esc(cat.currency)}.</p>
+  <p class="bl-reco__note">${icon('info')}${esc(t.priceNote(cat.currency))}</p>
 </aside>`;
 }
 const categoryOf = (cat: Catalog, p: TProduct) => cat.categories.find((c) => c.id === p.categoryId)?.name || 'Plan';
@@ -201,11 +217,12 @@ function trustStrip(cat: Catalog) {
   </div></section>`;
 }
 
-function chips(cats: ReturnType<typeof blogCategories>, active?: string) {
-  if (!cats.length) return '';
-  const a = (label: string, href: string, on: boolean, n?: number) =>
-    `<li><a class="bl-cat${on ? ' is-on' : ''}" href="${esc(href)}"${on ? ' aria-current="page"' : ''}>${esc(label)}${n !== undefined ? `<span class="num">${n}</span>` : ''}</a></li>`;
-  return `<nav class="bl-cats" aria-label="Blog categories"><ul>${a('All articles', '/blog', !active)}${cats.map((c) => a(c.name, `/blog/category/${c.slug}`, active === c.slug, c.count)).join('')}</ul></nav>`;
+function chips(cats: ReturnType<typeof blogCategories>, active?: string, cols: { slug: string; name: string; count: number }[] = [], activeCol?: string) {
+  if (!cats.length && !cols.length) return '';
+  const a = (label: string, href: string, on: boolean, n?: number, cls = '', lang = '') =>
+    `<li><a class="bl-cat${cls}${on ? ' is-on' : ''}" href="${esc(href)}"${on ? ' aria-current="page"' : ''}${lang ? ` lang="${lang}"` : ''}>${esc(label)}${n !== undefined ? `<span class="num">${n}</span>` : ''}</a></li>`;
+  const colList = cols.length ? `<ul class="bl-cols" aria-label="Guide collections">${cols.map((c) => a(c.name, `/blog/${c.slug}`, activeCol === c.slug, c.count, ' bl-cat--col', c.slug === 'arabic' ? 'ar' : '')).join('')}</ul>` : '';
+  return `<nav class="bl-cats" aria-label="Blog categories">${colList}<ul>${a('All articles', '/blog', !active && !activeCol)}${cats.map((c) => a(c.name, `/blog/category/${c.slug}`, active === c.slug, c.count)).join('')}</ul></nav>`;
 }
 
 function pager(cur: number, pages: number, base: string) {
@@ -230,16 +247,21 @@ const cta = () => ctaBand({ id: 'blog-cta', title: 'Ready to put this into pract
   primary: { label: 'See hosting plans', href: '/web-hosting' }, secondary: { label: 'Talk to our team', href: '/contact' } });
 
 /* ------------------------------------------------------------------ index / category */
-async function listing(ctx: PageCtx, categorySlug?: string, tagSlug?: string): Promise<BlogResult> {
-  const [cat, all] = await Promise.all([getCatalog(), getPosts()]);
+async function listing(ctx: PageCtx, categorySlug?: string, tagSlug?: string, collectionSlug?: string): Promise<BlogResult> {
+  const [cat, everything] = await Promise.all([getCatalog(), getPosts()]);
   const site = siteOf(cat);
+  // English listings: Arabic versions have their own collection (/blog/arabic) and hreflang links from each article
+  const all = everything.filter((p) => p.lang !== 'ar');
+  const cols = COLLECTIONS.map((c) => ({ slug: c.slug, name: c.name, lead: c.lead, count: everything.filter(c.match).length, match: c.match })).filter((c) => c.count > 0);
+  const col = collectionSlug ? cols.find((c) => c.slug === collectionSlug) : undefined;
+  if (collectionSlug && !col) return notFound(ctx, cat);
   const cats = blogCategories(all);
   const tag = tagSlug ? blogTags(all).find((t) => t.slug === tagSlug) : undefined;
   if (tagSlug && !tag) return notFound(ctx, cat);
-  const current = categorySlug ? cats.find((c) => c.slug === categorySlug) : tag ? { ...tag, name: `#${tag.name}` } : undefined;
+  const current = col ? { name: col.name, slug: col.slug, count: col.count } : categorySlug ? cats.find((c) => c.slug === categorySlug) : tag ? { ...tag, name: `#${tag.name}` } : undefined;
   if (categorySlug && !current) return notFound(ctx, cat);
-  const posts = tag ? all.filter((p) => p.tagLinks.some((t) => t.slug === tag.slug)) : current ? all.filter((p) => p.categorySlug === current.slug) : all;
-  const base = tag ? `/blog/tag/${tag.slug}` : current ? `/blog/category/${current.slug}` : '/blog';
+  const posts = col ? everything.filter(col.match) : tag ? all.filter((p) => p.tagLinks.some((t) => t.slug === tag.slug)) : current ? all.filter((p) => p.categorySlug === current.slug) : all;
+  const base = col ? `/blog/${col.slug}` : tag ? `/blog/tag/${tag.slug}` : current ? `/blog/category/${current.slug}` : '/blog';
   const pageNo = Math.max(1, parseInt(ctx.query.get('page') || '1', 10) || 1);
 
   // page 1: a featured post (newest featured, else newest) above the grid
@@ -251,8 +273,8 @@ async function listing(ctx: PageCtx, categorySlug?: string, tagSlug?: string): P
 
   const crumbs = current ? [{ label: 'Home', href: '/' }, { label: 'Blog', href: '/blog' }, { label: current.name }] : [{ label: 'Home', href: '/' }, { label: 'Blog' }];
   const title = current ? current.name : BLOG_TITLE;
-  const lead = tag ? `${tag.count} article${tag.count === 1 ? '' : 's'} tagged “${tag.name}” from the Globalhostia team.` : current ? `${current.count} article${current.count === 1 ? '' : 's'} on ${current.name.toLowerCase()} from the Globalhostia team.` : BLOG_LEAD;
-  const hero = pageHero({ eyebrow: tag ? 'Blog tag' : current ? 'Blog category' : 'Globalhostia blog', title, lead, crumbs, network: false, id: 'blog-top' });
+  const lead = col ? col.lead : tag ? `${tag.count} article${tag.count === 1 ? '' : 's'} tagged “${tag.name}” from the Globalhostia team.` : current ? `${current.count} article${current.count === 1 ? '' : 's'} on ${current.name.toLowerCase()} from the Globalhostia team.` : BLOG_LEAD;
+  const hero = pageHero({ eyebrow: col ? 'Guide collection' : tag ? 'Blog tag' : current ? 'Blog category' : 'Globalhostia blog', title, lead, crumbs, network: false, id: 'blog-top' });
 
   const grid = slice.length ? `<div class="bl-grid bl-grid--n${Math.min(slice.length, 3)}">${slice.map((p) => card(p, feat ? 3 : 2)).join('')}</div>` : '';
   const body = posts.length ? `${feat ? featuredCard(feat) : ''}
@@ -261,7 +283,7 @@ async function listing(ctx: PageCtx, categorySlug?: string, tagSlug?: string): P
 
   const main = `${hero}
 <section class="hp-section bl-list" aria-label="Articles"><div class="hp-container">
-  <div class="bl-toolbar">${chips(cats, tag ? undefined : current?.slug)}<a class="bl-rss" href="/blog/rss.xml">${icon('rss')}RSS feed</a></div>
+  <div class="bl-toolbar">${chips(cats, tag || col ? undefined : current?.slug, cols, col?.slug)}<a class="bl-rss" href="/blog/rss.xml">${icon('rss')}RSS feed</a></div>
   ${body}
 </div></section>
 ${roadmapSection(cat, { tint: true })}
@@ -271,7 +293,7 @@ ${cta()}`;
   const listLd = ld({ '@context': 'https://schema.org', '@type': 'Blog', name: `${cat.settings.site_name || 'Globalhostia'} blog`, url: site + base, description: lead,
     blogPost: [...(feat ? [feat] : []), ...slice].map((p) => ({ '@type': 'BlogPosting', headline: p.title, url: site + postPath(p.slug), datePublished: iso(p.date), ...(p.coverImage ? { image: absUrl(site, p.coverImage) } : {}) })) });
   const html = await page({
-    ctx, catalog: cat, path, title: current ? `${current.name} articles` + (pageNo > 1 ? ` (page ${pageNo})` : '') : 'Blog' + (pageNo > 1 ? ` (page ${pageNo})` : ''),
+    ctx, catalog: cat, path, title: col ? (col.slug === 'arabic' ? 'Arabic articles (العربية)' : `${col.name}: hosting and website articles`) + (pageNo > 1 ? ` (page ${pageNo})` : '') : current ? `${current.name} articles` + (pageNo > 1 ? ` (page ${pageNo})` : '') : 'Blog' + (pageNo > 1 ? ` (page ${pageNo})` : ''),
     description: lead, css: ['blog'], js: ['blog'], jsonLd: [listLd, breadcrumbJsonLd(crumbs.map((c, i) => (i === crumbs.length - 1 ? { label: c.label, href: base } : c)), site)],
     headExtra: `<link rel="alternate" type="application/rss+xml" title="${esc(cat.settings.site_name || 'Globalhostia')} blog" href="${esc(site)}/blog/rss.xml">`,
     preload: feat?.coverImage ? [feat.coverImage] : undefined, bodyClass: 'bl-page', body: main,
@@ -281,7 +303,7 @@ ${cta()}`;
 }
 
 /* ------------------------------------------------------------------ article */
-function shareLinks(url: string, title: string) {
+function shareLinks(url: string, title: string, tx: Tx = T.en) {
   const u = encodeURIComponent(url), t = encodeURIComponent(title);
   const items: [string, string, string][] = [
     ['xlogo', 'Share on X', `https://twitter.com/intent/tweet?url=${u}&text=${t}`],
@@ -290,29 +312,40 @@ function shareLinks(url: string, title: string) {
     ['whatsapp', 'Share on WhatsApp', `https://wa.me/?text=${t}%20${u}`],
     ['mail', 'Share by email', `mailto:?subject=${t}&body=${u}`],
   ];
-  return `<div class="bl-share"><span class="bl-share__h">Share</span><ul>${items.map(([ic, label, href]) =>
+  return `<div class="bl-share"><span class="bl-share__h">${tx.share}</span><ul>${items.map(([ic, label, href]) =>
     `<li><a href="${esc(href)}"${href.startsWith('mailto:') ? '' : ' target="_blank" rel="noopener noreferrer"'} aria-label="${esc(label)}" title="${esc(label)}">${icon(ic)}</a></li>`).join('')}
-    <li><button type="button" data-copy="${esc(url)}" aria-label="Copy link" title="Copy link">${icon('copy')}</button></li></ul><span class="bl-share__ok" role="status" aria-live="polite"></span></div>`;
+    <li><button type="button" data-copy="${esc(url)}" aria-label="${tx.copy}" title="${tx.copy}">${icon('copy')}</button></li></ul><span class="bl-share__ok" role="status" aria-live="polite"></span></div>`;
 }
 
-function toc(items: { id: string; text: string }[], o: { mobile?: boolean } = {}) {
+function toc(items: { id: string; text: string }[], o: { mobile?: boolean } = {}, tx: Tx = T.en) {
   if (items.length < 2) return '';
   const list = `<ol>${items.map((t) => `<li><a href="#${esc(t.id)}">${esc(t.text)}</a></li>`).join('')}</ol>`;
   return o.mobile
-    ? `<details class="bl-toc bl-toc--m"><summary>${icon('menu')}In this article<span class="num">${items.length} sections</span>${icon('chev')}</summary>${list}</details>`
-    : `<nav class="bl-toc" aria-label="In this article"><p class="bl-aside-h">In this article</p>${list}</nav>`;
+    ? `<details class="bl-toc bl-toc--m"><summary>${icon('menu')}${tx.inArticle}<span class="num">${items.length} ${tx.sections}</span>${icon('chev')}</summary>${list}</details>`
+    : `<nav class="bl-toc" aria-label="${tx.inArticle}"><p class="bl-aside-h">${tx.inArticle}</p>${list}</nav>`;
 }
 
-function ctaBox(cat: Catalog, picks: TProduct[]) {
+function ctaBox(cat: Catalog, picks: TProduct[], t: Tx = T.en) {
   const rows = picks.slice(0, 2).map((p) => {
     const price = fromText(p, cat.currency);
-    return `<li><a href="/p/${esc(p.slug)}">${icon('server')}<span><b>${esc(p.name)}</b>${price ? `<span class="bl-cta__from">from <b class="num">${esc(price)}</b></span>` : ''}</span>${icon('arrow')}</a></li>`;
+    return `<li><a href="/p/${esc(p.slug)}">${icon('server')}<span><b>${esc(p.name)}</b>${price ? `<span class="bl-cta__from">${t.fromLower} <b class="num">${esc(price)}</b></span>` : ''}</span>${icon('arrow')}</a></li>`;
   }).join('');
   return `<aside class="bl-ctabox" aria-labelledby="bl-cta-a">
   <p class="bl-ctabox__kick">${icon('server')}Globalhostia</p>
-  <h2 id="bl-cta-a">Host it with engineers on call 24/7</h2>
-  <p>Free SSL, daily backups and automatic setup. We help you move in.</p>
-  ${rows ? `<ul>${rows}</ul>` : `<ul><li><a href="/web-hosting">${icon('globe')}<span><b>Web hosting</b></span>${icon('arrow')}</a></li></ul>`}
+  <h2 id="bl-cta-a">${t.ctaH}</h2>
+  <p>${t.ctaP}</p>
+  ${rows ? `<ul>${rows}</ul>` : `<ul><li><a href="/web-hosting">${icon('globe')}<span><b>${t.webHosting}</b></span>${icon('arrow')}</a></li></ul>`}
+</aside>`;
+}
+
+/** Author box at the end of every article (GlobalHostia Team by default), with the last-updated date. */
+function authorBox(post: BlogPost, author: string, initials: string, t: Tx) {
+  const team = /team$|^globalhostia$/i.test(author.trim());
+  return `<aside class="bl-authorbox" aria-labelledby="bl-author-h">
+  <span class="bl-avatar bl-avatar--lg" aria-hidden="true">${esc(initials || 'G')}</span>
+  <div><p class="bl-authorbox__kick" id="bl-author-h">${t.authorH}</p><p class="bl-authorbox__name">${esc(author)}</p>
+  ${team ? `<p class="bl-authorbox__bio">${t.authorP}</p>` : ''}
+  <p class="bl-authorbox__date">${t.lastUpdated}: <time datetime="${esc(iso(post.updatedAt))}">${esc(fmtDate(post.updatedAt, post.lang))}</time></p></div>
 </aside>`;
 }
 
@@ -321,6 +354,11 @@ async function article(ctx: PageCtx, slug: string): Promise<BlogResult> {
   if (!post) return notFound(ctx, cat);
   const site = siteOf(cat);
   const url = site + postPath(post.slug);
+  const t = T[post.lang];
+  const rtl = post.lang === 'ar';
+  // hreflang pair (content engine Arabic versions): only when both versions are live and self-canonical
+  const other = translationOf(all, post);
+  const pair = other && !post.canonical && !other.canonical ? (post.lang === 'en' ? { en: post, ar: other } : { en: other, ar: post }) : null;
   const { html: bodyHtml, toc: tocItems } = renderMarkdown(post.body);
   const live = post.status === 'PUBLISHED' && (!post.publishAt || Date.parse(post.publishAt) <= Date.now());
   const crumbs = [{ label: 'Home', href: '/' }, { label: 'Blog', href: '/blog' }, ...(post.category ? [{ label: post.category, href: `/blog/category/${post.categorySlug}` }] : []), { label: post.title }];
@@ -334,12 +372,12 @@ async function article(ctx: PageCtx, slug: string): Promise<BlogResult> {
   const faqs = faqFromMarkdown(post.body);
   const picks = topPicks(groups, 3);
 
-  const banner = live ? '' : `<div class="bl-preview" role="status">${icon('eye')}<span><b>Preview.</b> ${post.status === 'PUBLISHED' && post.publishAt ? `Scheduled for ${esc(fmtPostDate(post.publishAt))}.` : `This post is ${esc(post.status.toLowerCase())}.`} Only signed-in admins can see this page.</span></div>`;
+  const banner = live ? '' : `<div class="bl-preview" role="status" lang="en" dir="ltr">${icon('eye')}<span><b>Preview.</b> ${post.status === 'PUBLISHED' && post.publishAt ? `Scheduled for ${esc(fmtPostDate(post.publishAt))}.` : `This post is ${esc(post.status.toLowerCase())}.`} Only signed-in admins can see this page.</span></div>`;
 
   const brief = post.excerpt || post.takeaways.length ? `<aside class="bl-brief" aria-labelledby="bl-brief-h">
-      <p class="bl-brief__kick">${icon('book')}<span id="bl-brief-h">What this article explains</span></p>
+      <p class="bl-brief__kick">${icon('book')}<span id="bl-brief-h">${t.explains}</span></p>
       ${post.excerpt ? `<p class="bl-brief__lead">${esc(post.excerpt)}</p>` : ''}
-      ${post.takeaways.length ? `<p class="bl-brief__h">Key takeaways</p><ul class="bl-brief__list">${post.takeaways.map((t) => `<li>${icon('check')}<span>${esc(t)}</span></li>`).join('')}</ul>` : ''}
+      ${post.takeaways.length ? `<p class="bl-brief__h">${t.takeaways}</p><ul class="bl-brief__list">${post.takeaways.map((t) => `<li>${icon('check')}<span>${esc(t)}</span></li>`).join('')}</ul>` : ''}
     </aside>` : '';
 
   const head = `<header class="bl-hero"><div class="hp-container">
@@ -352,8 +390,9 @@ async function article(ctx: PageCtx, slug: string): Promise<BlogResult> {
         <div class="bl-byline">
           <span class="bl-avatar" aria-hidden="true">${esc(initials || 'G')}</span>
           <div><p class="bl-author">${esc(author)}</p>
-          <p class="bl-meta"><time datetime="${esc(iso(post.date))}">${esc(fmtPostDate(post.date))}</time><span aria-hidden="true">·</span><span>${post.readingMinutes} min read</span>${updated ? `<span aria-hidden="true">·</span><span>Updated <time datetime="${esc(iso(post.updatedAt))}">${esc(fmtPostDate(post.updatedAt))}</time></span>` : ''}</p></div>
+          <p class="bl-meta"><time datetime="${esc(iso(post.date))}">${esc(fmtDate(post.date, post.lang))}</time><span aria-hidden="true">·</span><span>${post.readingMinutes} ${t.min}</span>${updated ? `<span aria-hidden="true">·</span><span>${t.updated} <time datetime="${esc(iso(post.updatedAt))}">${esc(fmtDate(post.updatedAt, post.lang))}</time></span>` : ''}</p></div>
         </div>
+        ${other && (live ? other.status === 'PUBLISHED' : true) ? `<a class="bl-langswitch" href="${esc(postPath(other.slug))}" hreflang="${t.otherLang}" lang="${t.otherLang}">${icon('globe')}${t.other}</a>` : ''}
       </div>
       ${brief}
     </div>
@@ -364,12 +403,13 @@ async function article(ctx: PageCtx, slug: string): Promise<BlogResult> {
   const tags = post.tagLinks.length ? `<ul class="bl-tags" aria-label="Tags">${post.tagLinks.map((t) => `<li><a href="/blog/tag/${esc(t.slug)}">${esc(t.name)}</a></li>`).join('')}</ul>` : '';
   const bodySec = `<div class="hp-container bl-layout">
     <div class="bl-main">
-      ${toc(tocItems, { mobile: true })}
-      <div class="bl-prose">${withReco(bodyHtml, recoBlock(cat, picks))}</div>
-      <footer class="bl-foot">${tags}${shareLinks(url, post.title)}</footer>
+      ${toc(tocItems, { mobile: true }, t)}
+      <div class="bl-prose">${withReco(bodyHtml, recoBlock(cat, picks, t))}</div>
+      ${authorBox(post, author, initials, t)}
+      <footer class="bl-foot">${tags}${shareLinks(url, post.title, t)}</footer>
     </div>
     <aside class="bl-aside" aria-label="Article tools">
-      <div class="bl-aside__sticky">${toc(tocItems)}${shareLinks(url, post.title)}${ctaBox(cat, picks)}</div>
+      <div class="bl-aside__sticky">${toc(tocItems, {}, t)}${shareLinks(url, post.title, t)}${ctaBox(cat, picks, t)}</div>
     </aside>
   </div>`;
 
@@ -378,25 +418,31 @@ async function article(ctx: PageCtx, slug: string): Promise<BlogResult> {
     <div class="bl-grid">${related.map((p) => card(p)).join('')}</div>
   </div></section>` : '';
 
-  const main = `<div class="bl-readbar" aria-hidden="true"><span></span></div><article class="bl-article">${head}${coverFig}<div class="bl-body">${bodySec}</div></article>${plansSection(cat, groups)}${trustStrip(cat)}${roadmapSection(cat)}${rel}`;
+  const main = `<div class="bl-readbar" aria-hidden="true"><span></span></div><article class="bl-article"${rtl ? ' lang="ar" dir="rtl"' : ''}>${head}${coverFig}<div class="bl-body">${bodySec}</div></article>${plansSection(cat, groups)}${trustStrip(cat)}${roadmapSection(cat)}${rel}`;
 
   const postLd = ld({
     '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title.slice(0, 110), description: post.seoDescription || post.excerpt,
     ...(image ? { image: [image] } : {}), datePublished: iso(post.date), dateModified: iso(post.updatedAt),
-    author: { '@type': post.author ? 'Person' : 'Organization', name: author }, publisher: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`, logo: { '@type': 'ImageObject', url: `${site}/image/logo-main-black.png` } },
+    ...(rtl ? { inLanguage: 'ar' } : { inLanguage: 'en' }),
+    author: /team$|^globalhostia$/i.test(author.trim()) || !post.author ? { '@type': 'Organization', name: author, url: `${site}/about` } : { '@type': 'Person', name: author }, publisher: { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`, logo: { '@type': 'ImageObject', url: `${site}/image/logo-main-black.png` } },
     mainEntityOfPage: { '@type': 'WebPage', '@id': post.canonical || url }, url, wordCount: post.body.split(/\s+/).length, ...(post.category ? { articleSection: post.category } : {}), ...(post.keywords.length ? { keywords: post.keywords.join(', ') } : {}),
   });
   const headExtra = [
     `<meta property="article:published_time" content="${esc(iso(post.date))}">`, `<meta property="article:modified_time" content="${esc(iso(post.updatedAt))}">`,
     post.category ? `<meta property="article:section" content="${esc(post.category)}">` : '', ...post.tags.map((t) => `<meta property="article:tag" content="${esc(t)}">`),
     `<link rel="alternate" type="application/rss+xml" title="${esc(cat.settings.site_name || 'Globalhostia')} blog" href="${esc(site)}/blog/rss.xml">`,
+    ...(pair && live && pair.en.status === 'PUBLISHED' && pair.ar.status === 'PUBLISHED' ? [
+      `<link rel="alternate" hreflang="en" href="${esc(site + postPath(pair.en.slug))}">`, `<link rel="alternate" hreflang="ar" href="${esc(site + postPath(pair.ar.slug))}">`,
+      `<link rel="alternate" hreflang="x-default" href="${esc(site + postPath(pair.en.slug))}">`] : []),
+    ...(rtl ? ['<meta property="og:locale:alternate" content="ar_AE">', '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">'] : []),
   ].join('');
 
   const html = await page({
     ctx, catalog: cat, path: postPath(post.slug), title: post.seoTitle || post.title, description: post.seoDescription || post.excerpt,
     canonical: post.canonical || undefined, ogType: 'article', ogImage: image || undefined, headExtra, noindex: !live,
     css: ['blog'], js: ['blog'], jsonLd: [postLd, ...(faqs.length ? [faqJsonLd(faqs)] : []), breadcrumbJsonLd(crumbs.map((c, i) => (i === crumbs.length - 1 ? { label: c.label, href: postPath(post.slug) } : c)), site)],
-    preload: post.coverImage ? [post.coverImage] : undefined, bodyClass: 'bl-page bl-page--article', body: main,
+    preload: post.coverImage ? [post.coverImage] : undefined, bodyClass: `bl-page bl-page--article${rtl ? ' bl-page--rtl' : ''}`, body: main,
   });
   return { status: 200, body: html, cache: live };
 }
@@ -415,7 +461,7 @@ async function rss(): Promise<BlogResult> {
   const [cat, posts] = await Promise.all([getCatalog(), getPosts()]);
   const site = siteOf(cat);
   const name = String(cat.settings.site_name || 'Globalhostia');
-  const items = posts.slice(0, 30).map((p) => {
+  const items = posts.filter((p) => p.lang !== 'ar').slice(0, 30).map((p) => {
     const img = absUrl(site, p.coverImage);
     return `<item><title>${xml(p.title)}</title><link>${xml(site + postPath(p.slug))}</link><guid isPermaLink="true">${xml(site + postPath(p.slug))}</guid><pubDate>${new Date(p.date).toUTCString()}</pubDate>${p.category ? `<category>${xml(p.category)}</category>` : ''}<description>${xml(p.excerpt)}</description>${img ? `<enclosure url="${xml(img)}" length="0" type="image/${/\.png$/i.test(img) ? 'png' : /\.webp$/i.test(img) ? 'webp' : 'jpeg'}"/>` : ''}</item>`;
   }).join('\n');
@@ -439,6 +485,7 @@ export async function renderBlog(rest: string[], ctx: PageCtx): Promise<BlogResu
   const r = rest.map((s) => s.toLowerCase());
   if (r.length === 0) return listing(ctx);
   if (r.length === 1 && r[0] === 'rss.xml') return rss();
+  if (r.length === 1 && COLLECTIONS.some((c) => c.slug === r[0])) return listing(ctx, undefined, undefined, r[0]);
   if (r.length === 2 && r[0] === 'category') return listing(ctx, r[1]);
   if (r.length === 2 && r[0] === 'tag') return listing(ctx, undefined, r[1]);
   if (r.length === 1 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(r[0])) return article(ctx, r[0]);

@@ -13,6 +13,8 @@ export type BlogPost = {
   date: string; publishAt: string | null; updatedAt: string; readingMinutes: number;
   coverStyle: CoverStyle; takeaways: string[]; relatedProducts: string[];
   focusKeyword: string; keywords: string[]; tagLinks: { name: string; slug: string }[];
+  /** content engine: article language, guide collection ('' | uae | global) and the English post an Arabic one translates */
+  lang: 'en' | 'ar'; track: string; translationOf: string | null;
 };
 export type CoverStyle = 'branded' | 'plain' | 'hex';
 export const COVER_STYLES: CoverStyle[] = ['branded', 'plain', 'hex'];
@@ -32,6 +34,7 @@ function toPost(r: typeof schema.posts.$inferSelect): BlogPost {
     keywords: [...new Set([r.focusKeyword, ...r.secondaryKeywords.split(','), ...(r.tags || [])].map((k) => String(k || '').trim()).filter(Boolean))].slice(0, 20),
     tagLinks: (r.tags || []).filter((t) => typeof t === 'string' && t.trim()).map((t) => ({ name: t.trim(), slug: categorySlug(t) })).filter((t) => t.slug),
     relatedProducts: (r.relatedProducts || []).filter((x) => typeof x === 'string' && /^(cat|p):[a-z0-9-]+$/.test(x)),
+    lang: r.lang === 'ar' ? 'ar' : 'en', track: r.track === 'uae' || r.track === 'global' ? r.track : '', translationOf: r.translationOf || null,
   };
 }
 
@@ -67,6 +70,20 @@ export async function getPost(slug: string, preview = false): Promise<BlogPost |
   return (await getPosts()).find((p) => p.slug === slug) || null;
 }
 
+/** Guide collections on the blog (content engine tracks + Arabic articles): /blog/uae-guides, /blog/global-guides, /blog/arabic. */
+export const COLLECTIONS = [
+  { slug: 'uae-guides', name: 'UAE guides', lead: 'Practical guides for businesses in the UAE and the GCC: domains, websites, payments and compliance basics.', match: (p: BlogPost) => p.lang === 'en' && p.track === 'uae' },
+  { slug: 'global-guides', name: 'Global guides', lead: 'Hosting, domains, email and website guides for small businesses everywhere.', match: (p: BlogPost) => p.lang === 'en' && p.track === 'global' },
+  { slug: 'arabic', name: 'العربية', lead: 'مقالات وأدلة عملية باللغة العربية من فريق GlobalHostia في دبي.', match: (p: BlogPost) => p.lang === 'ar' },
+] as const;
+export const COLLECTION_SLUGS: string[] = COLLECTIONS.map((c) => c.slug);
+
+/** The other-language version of a post (English ↔ Arabic), when it is visible. */
+export function translationOf(all: BlogPost[], post: BlogPost): BlogPost | null {
+  if (post.lang === 'ar') return all.find((p) => p.id === post.translationOf && p.lang === 'en') || null;
+  return all.find((p) => p.lang === 'ar' && p.translationOf === post.id) || null;
+}
+
 /** Categories that have at least one visible post, by post count. */
 export function blogCategories(posts: BlogPost[]) {
   const m = new Map<string, { name: string; slug: string; count: number }>();
@@ -87,7 +104,7 @@ export function blogTags(posts: BlogPost[]) {
 
 /** FAQ items from a "## FAQ" (or "## Frequently asked questions") section with "### Question" headings. */
 export function faqFromMarkdown(md: string): { q: string; a: string }[] {
-  const m = String(md || '').match(/^##\s+(?:FAQ|FAQs|Frequently asked questions)\s*$([\s\S]*?)(?=^##\s|(?![\s\S]))/im);
+  const m = String(md || '').match(/^##\s+(?:FAQ|FAQs|Frequently asked questions|الأسئلة الشائعة|أسئلة شائعة)\s*$([\s\S]*?)(?=^##\s|(?![\s\S]))/im);
   if (!m) return [];
   return m[1].split(/^###\s+/m).slice(1).map((chunk) => {
     const [q, ...rest] = chunk.split('\n');
@@ -98,7 +115,7 @@ export function faqFromMarkdown(md: string): { q: string; a: string }[] {
 /** Related posts: same category first, then shared tags, then newest. */
 export function relatedPosts(all: BlogPost[], post: BlogPost, n = 3) {
   const tags = new Set(post.tags.map((t) => t.toLowerCase()));
-  return all.filter((p) => p.slug !== post.slug)
+  return all.filter((p) => p.slug !== post.slug && p.lang === post.lang)
     .map((p) => ({ p, s: (p.categorySlug && p.categorySlug === post.categorySlug ? 3 : 0) + p.tags.filter((t) => tags.has(t.toLowerCase())).length }))
     .sort((a, b) => b.s - a.s || Date.parse(b.p.date) - Date.parse(a.p.date)).slice(0, n).map((x) => x.p);
 }

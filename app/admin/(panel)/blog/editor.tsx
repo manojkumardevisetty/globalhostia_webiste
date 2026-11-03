@@ -9,6 +9,8 @@ export type EditorPost = {
   author: string; status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'; publishAt: string; featured: boolean; seoTitle: string; seoDescription: string;
   ogImage: string; canonical: string; updatedAt: string;
   coverStyle: 'branded' | 'plain' | 'hex'; takeaways: string; relatedProducts: string[]; focusKeyword: string; secondaryKeywords: string;
+  /** content engine: '' | uae | global (blog collections) and the article language (Arabic renders right-to-left) */
+  track: '' | 'uae' | 'global'; lang: 'en' | 'ar';
 };
 export type EditorCatalog = { categories: { slug: string; name: string; count: number }[]; products: { slug: string; name: string; category: string }[] };
 
@@ -227,7 +229,7 @@ export default function PostEditor({ post, catalog, categories, authors, siteUrl
         <Section title="Article">
           <div>
             <Label htmlFor="pe-title">Title</Label>
-            <input id="pe-title" name="title" value={f.title} onChange={(e) => setTitle(e.target.value)} required maxLength={200}
+            <input id="pe-title" name="title" dir={f.lang === 'ar' ? 'rtl' : undefined} value={f.title} onChange={(e) => setTitle(e.target.value)} required maxLength={200}
               placeholder="e.g. How to choose between shared hosting and a VPS" className={`${inputCls('title')} h-12 text-[17px] font-semibold`} />
           </div>
           <div>
@@ -264,14 +266,14 @@ export default function PostEditor({ post, catalog, categories, authors, siteUrl
               )}
               <div className={view === 'split' ? 'grid grid-cols-2 divide-x divide-slate-200' : ''}>
                 {view !== 'preview' && (
-                  <textarea ref={ta} value={f.body} onChange={(e) => set('body', e.target.value)} onKeyDown={onKey} aria-labelledby="pe-body-l" spellCheck
+                  <textarea ref={ta} dir={f.lang === 'ar' ? 'rtl' : undefined} value={f.body} onChange={(e) => set('body', e.target.value)} onKeyDown={onKey} aria-labelledby="pe-body-l" spellCheck
                     placeholder={'Start writing…\n\n## A section heading\n\nA paragraph. **Bold**, _italic_ and [links](https://globalhostia.com).\n\n- A list item\n- Another item'}
                     className="block min-h-[560px] w-full resize-y border-0 bg-white p-4 font-mono text-[14px] leading-[1.7] text-slate-800 outline-none" />
                 )}
                 {view !== 'write' && (
                   <div className="relative max-h-[760px] min-h-[560px] overflow-y-auto bg-white p-5" aria-live="polite" aria-busy={previewBusy}>
                     {previewBusy && <span className="absolute right-3 top-3 text-[11px] text-slate-400">Updating…</span>}
-                    {f.body.trim() ? <div className="gh-prose" dangerouslySetInnerHTML={{ __html: previewHtml }} /> : <p className="text-sm text-slate-400">The preview appears here as you write.</p>}
+                    {f.body.trim() ? <div className="gh-prose" dir={f.lang === 'ar' ? 'rtl' : undefined} dangerouslySetInnerHTML={{ __html: previewHtml }} /> : <p className="text-sm text-slate-400">The preview appears here as you write.</p>}
                   </div>
                 )}
               </div>
@@ -442,6 +444,20 @@ export default function PostEditor({ post, catalog, categories, authors, siteUrl
               <datalist id="pe-cats">{categories.map((c) => <option key={c} value={c} />)}</datalist>
               {categories.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{categories.map((c) => (
                 <button key={c} type="button" onClick={() => set('category', c)} className={`rounded-full px-2.5 py-1 text-xs ring-1 ring-inset ${f.category === c ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:ring-slate-400'}`}>{c}</button>))}</div>}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="pe-track">Guide collection</Label>
+                <select id="pe-track" name="track" value={f.track} onChange={(e) => set('track', e.target.value as EditorPost['track'])} className="input">
+                  <option value="">None</option><option value="uae">UAE guides</option><option value="global">Global guides</option>
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="pe-lang">Language</Label>
+                <select id="pe-lang" name="lang" value={f.lang} onChange={(e) => set('lang', e.target.value as EditorPost['lang'])} className="input">
+                  <option value="en">English</option><option value="ar">Arabic (right to left)</option>
+                </select>
+              </div>
             </div>
             <div>
               <Label htmlFor="pe-tags" hint="(comma separated)">Tags</Label>

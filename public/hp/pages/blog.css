@@ -309,3 +309,41 @@
   .bl-fig__zoom:hover img{transform:none}
   .bl-card:hover .bl-card__img img,.bl-feat:hover .bl-feat__img img{transform:none}
 }
+
+/* ================================================ guide collections, author box, language switch (content engine) */
+.bl-cats{display:flex;flex-direction:column;gap:10px}
+.bl-cols{display:flex;flex-wrap:wrap;gap:8px}
+.bl-cat--col{border-color:transparent;background:var(--brand-tint);color:var(--brand-d)}
+.bl-cat--col:hover{border-color:var(--brand)}
+.bl-cat--col[lang=ar]{font-family:"IBM Plex Sans Arabic",var(--body)}
+.bl-langswitch{display:inline-flex;align-items:center;gap:8px;margin-top:18px;min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font:600 14px/1 var(--body);color:var(--ink)}
+.bl-langswitch:hover{border-color:var(--brand);color:var(--brand-d)}
+.bl-langswitch[lang=ar]{font-family:"IBM Plex Sans Arabic",var(--body)}
+.bl-authorbox{display:flex;gap:18px;align-items:flex-start;margin:48px 0 8px;padding:22px 24px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--tint)}
+.bl-avatar--lg{width:56px;height:64px;font-size:18px}
+.bl-authorbox__kick{font:700 12px/1 var(--body);text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.bl-authorbox__name{margin-top:6px;font:800 18px/1.3 var(--head);color:var(--ink)}
+.bl-authorbox__bio{margin-top:6px;font-size:15px;line-height:1.6;color:var(--ink)}
+.bl-authorbox__date{margin-top:8px;font-size:13.5px;color:var(--muted)}
+@media (max-width:560px){.bl-authorbox{padding:18px;gap:14px}.bl-avatar--lg{width:46px;height:52px;font-size:15px}}
+
+/* ================================================ Arabic articles (right to left inside the English site shell) */
+.bl-article[dir=rtl],.bl-card[dir=rtl]{--body:"IBM Plex Sans Arabic",Inter,system-ui,sans-serif;--head:"IBM Plex Sans Arabic",Manrope,system-ui,sans-serif}
+.bl-article[dir=rtl] :is(h1,h2,h3,h4,.bl-title,.bl-prose){letter-spacing:0}
+.bl-article[dir=rtl] .bl-prose{line-height:1.9}
+.bl-article[dir=rtl] .num,.bl-article[dir=rtl] code{unicode-bidi:isolate}
+.bl-article[dir=rtl] .bl-toc ol{border-left:0;border-right:2px solid var(--line)}
+.bl-article[dir=rtl] .bl-toc a{padding:8px 16px 8px 0;margin-left:0;margin-right:-2px;border-left:0;border-right:2px solid transparent}
+.bl-article[dir=rtl] .bl-toc a.is-on{border-right-color:var(--brand)}
+.bl-article[dir=rtl] .bl-toc--m summary span{margin-left:0;margin-right:auto}
+.bl-article[dir=rtl] .bl-prose ul,.bl-article[dir=rtl] .bl-prose ol{padding-right:0}
+.bl-article[dir=rtl] .bl-prose li{padding-left:0;padding-right:30px}
+.bl-article[dir=rtl] .bl-prose ul>li::before{left:auto;right:8px}
+.bl-article[dir=rtl] .bl-prose ol>li::before{left:auto;right:0}
+.bl-article[dir=rtl] .bl-prose blockquote{border-left:0;border-right:4px solid var(--brand);border-radius:var(--r) 0 0 var(--r)}
+.bl-article[dir=rtl] .bl-table th,.bl-article[dir=rtl] .bl-table td{text-align:right}
+.bl-article[dir=rtl] .bl-brief::after{left:auto;right:0}
+.bl-article[dir=rtl] .bl-prose .bl-reco li{padding-right:0}
+.bl-article[dir=rtl] .bl-img__chip{left:auto;right:clamp(14px,2vw,28px)}
+.bl-article[dir=rtl] svg:has(use[href="#i-arrow"]),.bl-article[dir=rtl] svg:has(use[href="#i-right"]),.bl-article[dir=rtl] svg:has(use[href="#i-left"]){transform:scaleX(-1)}
+.bl-article[dir=rtl] .bl-ctabox li a:hover .hp-ico:last-child{transform:scaleX(-1) translateX(3px)}

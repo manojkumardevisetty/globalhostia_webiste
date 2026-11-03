@@ -5,7 +5,7 @@ import { eq, and } from 'drizzle-orm';
 import { db, schema } from './db';
 import { cachedRead } from './lkg';
 import { getSettings } from './settings';
-import { getPosts, blogCategories } from './blog';
+import { getPosts, blogCategories, COLLECTIONS } from './blog';
 import { SITEMAP_EXCLUDE, NOINDEX_SLUGS } from './seo';
 import { ROUTES, THEME_ONLY } from './theme/routes';
 import { getCatalog, productsFor, type Catalog } from './theme/data';
@@ -80,7 +80,9 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
   if (posts.length) {
     const newest = maxDate(...posts.map((p) => p.updatedAt));
     add('/blog', newest);
-    for (const c of blogCategories(posts)) add(`/blog/category/${c.slug}`, newest);
+    for (const c of blogCategories(posts.filter((p) => p.lang !== 'ar'))) add(`/blog/category/${c.slug}`, newest);
+    // guide collections (content engine): UAE guides, Global guides, Arabic articles
+    for (const c of COLLECTIONS) { const ps = posts.filter(c.match); if (ps.length) add(`/blog/${c.slug}`, maxDate(...ps.map((p) => p.updatedAt))); }
     for (const p of posts) if (!p.canonical || p.canonical.startsWith(base)) add(`/blog/${p.slug}`, iso(p.updatedAt));
   }
   const have = new Set(rows.map((r) => r.slug));

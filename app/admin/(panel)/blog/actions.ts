@@ -13,7 +13,7 @@ import { pingChanged } from '@/lib/indexnow';
 export type SaveState = { error?: string; field?: string };
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const RESERVED = new Set(['category', 'rss', 'rss-xml', 'page', 'feed']);
+const RESERVED = new Set(['category', 'tag', 'rss', 'rss-xml', 'page', 'feed', 'uae-guides', 'global-guides', 'arabic']);
 const urlish = (label: string) => z.string().trim().max(2000).refine((v) => !v || /^\//.test(v) || /^https?:\/\/[^\s]+$/i.test(v), `${label} must be a full https:// address or start with /`);
 
 const PostInput = z.object({
@@ -39,6 +39,8 @@ const PostInput = z.object({
   secondaryKeywords: z.string().trim().max(300, 'Secondary keywords are too long (300 characters max)'),
   takeaways: z.array(z.string().trim().min(1).max(200, 'A key takeaway is too long (200 characters max)')).max(8, 'Use 8 key takeaways or fewer'),
   relatedProducts: z.array(z.string().regex(/^(cat|p):[a-z0-9-]+$/, 'Unknown product selection')).max(12, 'Choose 12 products or categories at most'),
+  track: z.enum(['', 'uae', 'global']),
+  lang: z.enum(['en', 'ar']),
 });
 
 /** Create or update a post (used with useActionState: returns an error, or redirects on success). */
@@ -53,6 +55,7 @@ export async function savePost(_prev: SaveState, fd: FormData): Promise<SaveStat
     coverStyle: str(fd, 'coverStyle') || 'branded', focusKeyword: str(fd, 'focusKeyword'), secondaryKeywords: str(fd, 'secondaryKeywords'),
     takeaways: str(fd, 'takeaways').split(/\r?\n/).map((t) => t.replace(/^\s*[-*•]\s*/, '').trim()).filter(Boolean),
     relatedProducts: [...new Set(str(fd, 'relatedProducts').split(',').map((x) => x.trim()).filter(Boolean))],
+    track: str(fd, 'track'), lang: str(fd, 'lang') || 'en',
   });
   if (!parsed.success) {
     const i = parsed.error.issues[0];
@@ -75,6 +78,7 @@ export async function savePost(_prev: SaveState, fd: FormData): Promise<SaveStat
     slug: v.slug, title: v.title, excerpt: v.excerpt, body: v.body, coverImage: v.coverImage, coverAlt: v.coverAlt, category: v.category, tags: v.tags,
     author: v.author, status: v.status, publishAt, featured: v.featured, seoTitle: v.seoTitle, seoDescription: v.seoDescription, ogImage: v.ogImage, canonical: v.canonical,
     coverStyle: v.coverStyle, focusKeyword: v.focusKeyword, secondaryKeywords: v.secondaryKeywords, takeaways: v.takeaways.join('\n'), relatedProducts: v.relatedProducts,
+    track: v.track, lang: v.lang,
   };
   let id = v.id;
   if (old) {
