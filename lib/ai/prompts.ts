@@ -2,6 +2,7 @@
 // (tools + block 1 are cached); block 2 holds per-request facts (date, currency, page, cart) after the breakpoint.
 import 'server-only';
 import { agentData } from '../agents/catalog';
+import { brokerConfig } from '../broker';
 import { policies } from '../agents/policies';
 import { LEARN_PAGES } from '../theme/learn';
 import type { AiSettings } from './settings-core';
@@ -19,10 +20,12 @@ const SALES = `HOW TO SELL:
 1. Understand the need. If the request is vague, ask at most 2 short questions in one message (site type: business site, online shop, WordPress, app; expected traffic or number of sites/mailboxes; budget or billing preference; audience/location such as UAE or India). Then recommend; do not keep interviewing.
 2. Plans: call recommend_plan (or browse_category / compare_plans). The UI shows the best pick and one alternative as cards with first-term and renewal price and an Add to cart button, so do not repeat every spec: write one line on why the best pick fits and one on when to choose the alternative.
 3. Domains: for an exact name call check_domain. When the visitor describes a business or wants ideas, call suggest_domains (it generates names and checks them in one batch; only available names are shown as chips). If their exact name is taken, the UI shows the domain broker card; also offer suggest_domains alternatives.
+3b. Domain broker (important): whenever the visitor says a domain is taken, sold, owned by someone, parked, for sale, or asks you to "get/bring/buy it from the owner", ALWAYS call check_domain for that name (it shows the broker card) and introduce the GlobalHostia Domain Broker service using the BROKER facts below: we contact the owner anonymously, negotiate within their budget, payment is protected, and the domain is transferred to their account; one-time service fee plus a success commission only if we buy it. Ask for their maximum budget, then offer to start the request (broker page link) and 2-3 available alternatives via suggest_domains. Never promise the owner will sell.
 4. Cart: when the visitor wants to buy, call cart_add for each item (plan + billing cycle, domain). The chat cart becomes one checkout link. Suggest at most one relevant add-on from our catalog after a hosting plan (business email, SSL, backups or security if we sell them), via upsells returned by cart_add.
 5. Bundles: quote_bundle prices domain + hosting + email together from live prices.
 6. People: if the visitor wants a human, a custom quote, or the question needs account access, call create_handoff (needs their name and email; ask once) or point to WhatsApp.
-7. Free website migration exists: /free-migration.`;
+7. Free website migration exists: /free-migration.
+8. For any question about a feature, policy, guide or page content that the knowledge below doesn't cover, call search_site before answering; never guess.`;
 
 export async function storeKnowledge(s: AiSettings) {
   let cats = '', pol = '';
@@ -33,7 +36,18 @@ export async function storeKnowledge(s: AiSettings) {
     pol = p.policies.map((x) => `- ${x.title}: ${x.summary}`).join('\n') + `\nFull terms: ${p.source}`;
   } catch { cats = '(catalog temporarily unavailable: use the tools)'; }
   const learn = LEARN_PAGES.map((p) => `- ${p.title}: https://globalhostia.com/${p.section}/${p.slug}`).join('\n');
-  return `STORE CATEGORIES (read live from the catalog; product prices only via tools):\n${cats}\n\nPOLICIES (summary of the Terms & Conditions):\n${pol}\n\nGUIDES AND COMPARISONS ON THE SITE:\n${learn}\n\nOWNER NOTES (support hours, SLAs, escalation):\n${s.knowledge || '-'}`;
+  let catalog = '', broker = '';
+  try {
+    const d = await agentData('USD');
+    catalog = d.products.map((p) => {
+      const pr = p.prices.filter((x) => x.price > 0).map((x) => `${x.label} ${x.price.toFixed(2)}${x.setupFee ? ` +setup ${x.setupFee.toFixed(2)}` : ''}`).join(', ') || (p.availability === 'price_on_request' ? 'price on request' : 'see site');
+      const sp = Object.entries(p.specs).filter(([, v]) => v).slice(0, 10).map(([k, v]) => `${k}: ${v}`).join('; ');
+      return `- ${p.name} [${p.category?.name || p.type}] slug=${p.slug}${p.location ? ` loc=${p.location}` : ''} | ${p.tagline || ''} | ${sp} | features: ${p.features.slice(0, 10).join(', ')} | USD: ${pr} | ${p.url}`;
+    }).join('\n').slice(0, 60000);
+    const b = brokerConfig(d.cat.settings);
+    broker = `BROKER: service fee ${b.feeUsd} USD (one-time, covers owner research + negotiation), success commission ${b.pct}% of the agreed price (minimum ${b.minUsd} USD) only if we buy the domain; anonymous approach; escrow-style protected payment; transfer to the customer's account. Page: ${d.site}/domain-broker`;
+  } catch { catalog = '(full catalog unavailable: use the tools)'; }
+  return `FULL PRODUCT CATALOG (reference for specs and what we sell; USD list prices. For quotes in the visitor's currency and for cart links ALWAYS call the tools, which are authoritative):\n${catalog}\n\n${broker}\n\nSTORE CATEGORIES (read live from the catalog; product prices only via tools):\n${cats}\n\nPOLICIES (summary of the Terms & Conditions):\n${pol}\n\nGUIDES AND COMPARISONS ON THE SITE:\n${learn}\n\nOWNER NOTES (support hours, SLAs, escalation):\n${s.knowledge || '-'}`;
 }
 
 const block = (text: string, cache = false) => ({ type: 'text', text, ...(cache ? { cache_control: { type: 'ephemeral' } } : {}) });

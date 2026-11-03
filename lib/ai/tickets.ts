@@ -22,7 +22,7 @@ import { publicTools } from './tools/public';
 import type { AiSettings } from './settings-core';
 
 const READ_CUSTOMER = customerTools.filter((t) => t.kind === 'read');
-const READ_PUBLIC = publicTools.filter((t) => ['get_policies', 'get_product', 'recommend_plan', 'browse_category'].includes(t.name));
+const READ_PUBLIC = publicTools.filter((t) => ['get_policies', 'get_product', 'recommend_plan', 'browse_category', 'search_site'].includes(t.name));
 const whmcsTime = (s: string) => { const t = Date.parse(String(s || '').replace(' ', 'T') + 'Z'); return Number.isFinite(t) ? t : 0; };
 
 async function claim(t: TicketSummary, activity: string): Promise<string | null> {

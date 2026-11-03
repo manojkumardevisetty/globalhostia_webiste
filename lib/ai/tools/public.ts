@@ -7,6 +7,7 @@ import { recommend, compare, cartLinkFor } from '../../agents/shop';
 import { checkDomain, domainLimit, validDomain } from '../../agents/domain';
 import { callTool } from '../../agents/mcp';
 import { brokerConfig, catalogRate } from '../../broker';
+import { searchSite } from '../site-search';
 import { ToolError, type AiTool, type ToolCtx, type UiEvent } from '../agent';
 
 export interface ShopCtx extends ToolCtx {
@@ -258,6 +259,15 @@ export const publicTools: AiTool<ShopCtx>[] = [
       const known = lines.every((l) => l.price !== null);
       const total = lines.reduce((t, l) => t + (l.price || 0) + l.setup, 0);
       return { text: `${lines.map((l) => `${l.label}: ${l.price === null ? 'see price at checkout' : (l.price + l.setup).toFixed(2)}`).join('; ')}. Total ${known ? total.toFixed(2) : 'partly at checkout'} ${d.currency} (taxes at checkout).`, ui: [{ type: 'bundle', currency: d.currency, lines, total: known ? Math.round(total * 100) / 100 : null }] };
+    },
+  },
+  {
+    name: 'search_site', scope: 'public', kind: 'read',
+    description: 'Full-text search over every page of globalhostia.com (product pages, FAQs, guides, comparisons, policies, about/contact, broker, migration). Use it for any question about features, policies or how things work that is not in your knowledge.',
+    input_schema: S({ query: { type: 'string' } }, ['query']),
+    async run(a) {
+      const hits = await searchSite(str(a.query, 200));
+      return { text: hits.length ? hits.map((h) => `[${h.title}]\n${h.text}`).join('\n---\n') : 'No matching page content.' };
     },
   },
   {
