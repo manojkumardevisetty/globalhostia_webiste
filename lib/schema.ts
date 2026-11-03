@@ -350,3 +350,46 @@ export const dnsZones = pgTable('dns_zones', {
   createdAt: now('created_at'),
 }, (t) => [index('dns_zones_client_idx').on(t.clientId)]);
 export type DnsZone = typeof dnsZones.$inferSelect;
+
+// AI assistant (lib/ai/*): one row per assistant request (model calls summed) or gate decision, for cost, budget caps,
+// rate limits and the usage dashboard. No message text is stored. subject = hashed IP, client#<id>, admin email or ticket#<id>.
+// status: ok | error | offtopic | blocked | greeting | limited | budget | offline. Created by db-setup patch '030-ai'.
+export const aiUsage = pgTable('ai_usage', {
+  id: id(),
+  surface: text('surface').notNull(), // chat | assist | tickets | admin | gate | names
+  model: text('model').notNull().default(''),
+  subject: text('subject').notNull().default(''),
+  status: text('status').notNull().default('ok'),
+  inputTokens: integer('input_tokens').notNull().default(0),
+  outputTokens: integer('output_tokens').notNull().default(0),
+  cacheRead: integer('cache_read').notNull().default(0),
+  cacheWrite: integer('cache_write').notNull().default(0),
+  costUsd: numeric('cost_usd', { precision: 12, scale: 6 }).notNull().default('0'),
+  ms: integer('ms').notNull().default(0),
+  tools: jsonb('tools').$type<string[]>().notNull().default([]),
+  detail: text('detail').notNull().default(''),
+  createdAt: now('created_at'),
+}, (t) => [index('ai_usage_created_idx').on(t.createdAt), index('ai_usage_subject_idx').on(t.subject, t.createdAt)]);
+
+// Support ticket automation (lib/ai/tickets.ts): one row per ticket activity (ticket id + last reply stamp) the assistant
+// looked at, with the classification, decision and draft. Created by db-setup patch '030-ai'.
+export const aiTicketRuns = pgTable('ai_ticket_runs', {
+  id: id(),
+  ticketId: integer('ticket_id').notNull(),
+  tid: text('tid').notNull().default(''),
+  activity: text('activity').notNull(),
+  state: text('state').notNull().default('pending'), // pending | auto_sent | drafted | sent | skipped | error
+  category: text('category').notNull().default(''),
+  sentiment: text('sentiment').notNull().default(''),
+  urgency: text('urgency').notNull().default(''),
+  language: text('language').notNull().default(''),
+  confidence: numeric('confidence', { precision: 4, scale: 3 }),
+  summary: text('summary').notNull().default(''),
+  reasons: jsonb('reasons').$type<string[]>().notNull().default([]),
+  draft: text('draft').notNull().default(''),
+  sentBy: text('sent_by').notNull().default(''),
+  error: text('error').notNull().default(''),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [uniqueIndex('ai_ticket_runs_activity').on(t.ticketId, t.activity), index('ai_ticket_runs_created_idx').on(t.createdAt)]);
+export type AiTicketRun = typeof aiTicketRuns.$inferSelect;

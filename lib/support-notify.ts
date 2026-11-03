@@ -191,6 +191,8 @@ export async function checkTickets(reason = 'manual'): Promise<CheckResult> {
     if (got) await forceRelease();
   }
   if (lastErr) console.warn(`[support-notify] ${reason}: ${lastErr}`);
+  // AI ticket assistant (lib/ai/tickets.ts): classify + draft / auto-reply. Off unless ANTHROPIC_API_KEY is set; never throws.
+  try { const { triageAwaiting } = await import('./ai/tickets'); await triageAwaiting(reason); } catch (e: any) { console.warn('[support-notify] ai triage:', e?.message || e); }
   return { ok: !lastErr, checked, notified, failed, ...(lastErr ? { error: lastErr } : {}) };
 }
 

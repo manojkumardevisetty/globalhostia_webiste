@@ -431,6 +431,23 @@ try {
         server_id text not null, da_user text not null, created_at timestamptz not null default now())`;
       await tx`create index if not exists dns_zones_client_idx on dns_zones (client_id)`;
     },
+    // 30. AI assistant (lib/ai/*): usage/cost log and support-ticket automation decisions. Settings live in settings.ai_settings.
+    '030-ai': async (tx) => {
+      await tx`create table if not exists ai_usage (
+        id text primary key, surface text not null, model text not null default '', subject text not null default '', status text not null default 'ok',
+        input_tokens integer not null default 0, output_tokens integer not null default 0, cache_read integer not null default 0, cache_write integer not null default 0,
+        cost_usd numeric(12,6) not null default 0, ms integer not null default 0, tools jsonb not null default '[]'::jsonb, detail text not null default '',
+        created_at timestamptz not null default now())`;
+      await tx`create index if not exists ai_usage_created_idx on ai_usage (created_at)`;
+      await tx`create index if not exists ai_usage_subject_idx on ai_usage (subject, created_at)`;
+      await tx`create table if not exists ai_ticket_runs (
+        id text primary key, ticket_id integer not null, tid text not null default '', activity text not null, state text not null default 'pending',
+        category text not null default '', sentiment text not null default '', urgency text not null default '', language text not null default '',
+        confidence numeric(4,3), summary text not null default '', reasons jsonb not null default '[]'::jsonb, draft text not null default '',
+        sent_by text not null default '', error text not null default '', created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      await tx`create unique index if not exists ai_ticket_runs_activity on ai_ticket_runs (ticket_id, activity)`;
+      await tx`create index if not exists ai_ticket_runs_created_idx on ai_ticket_runs (created_at)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;
