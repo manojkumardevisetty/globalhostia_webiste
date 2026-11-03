@@ -53,7 +53,10 @@ function aiChatLoader(s: Record<string, any>, currency: string) {
   // nothing loads until the owner has added ANTHROPIC_API_KEY (Vercel env + redeploy): no button that can only say "offline"
   if (!process.env.ANTHROPIC_API_KEY?.trim() && process.env.AI_MOCK !== '1') return '';
   const cfg = JSON.stringify({ cur: currency }).replace(/</g, '\\u003c');
-  return `<script>window.GH_AI=${cfg};addEventListener("load",function(){var go=function(){var l=document.createElement("link");l.rel="stylesheet";l.href="${asset('/hp/ai-chat.css')}";document.head.appendChild(l);var j=document.createElement("script");j.src="${asset('/hp/ai-chat.js')}";j.defer=true;document.head.appendChild(j)};"requestIdleCallback"in window?requestIdleCallback(go,{timeout:5000}):setTimeout(go,3000)})</script>`;
+  // Ctrl+K / Cmd+K before the widget has loaded: load it now and open it expanded (ai-chat.js then takes the key over)
+  return `<script>window.GH_AI=${cfg};(function(){var done=0,go=function(){if(done)return;done=1;var l=document.createElement("link");l.rel="stylesheet";l.href="${asset('/hp/ai-chat.css')}";document.head.appendChild(l);var j=document.createElement("script");j.src="${asset('/hp/ai-chat.js')}";j.defer=true;document.head.appendChild(j)};`
+    + `window.__ghaiKey=function(e){if(!(e.ctrlKey||e.metaKey)||e.altKey||e.shiftKey||String(e.key).toLowerCase()!=="k"||e.defaultPrevented||window.GHChat)return;var t=e.target;if(t&&(t.isContentEditable||(t.closest&&t.closest("[data-own-shortcuts]"))))return;e.preventDefault();window.GH_AI.open="expand";go()};addEventListener("keydown",window.__ghaiKey,true);`
+    + `addEventListener("load",function(){"requestIdleCallback"in window?requestIdleCallback(go,{timeout:5000}):setTimeout(go,3000)})})()</script>`;
 }
 /** Logo: 2x WebP (scripts/build-assets.mjs) with the original PNG as fallback. */
 const logo = (tone: 'black' | 'white', w: number, h: number, lazy = false) =>

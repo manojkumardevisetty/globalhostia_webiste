@@ -19,31 +19,54 @@
 @keyframes ghai-in{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
 body:has(.hp-preview-pill) .ghai-launch{bottom:68px}
 
-/* panel */
-.ghai-panel{position:fixed;right:16px;bottom:16px;z-index:90;width:400px;height:min(640px,calc(100vh - 32px));display:flex;flex-direction:column;background:#fff;border-radius:20px;
-  box-shadow:0 30px 80px -24px rgba(22,33,43,.55),0 0 0 1px rgba(22,33,43,.06);overflow:hidden;transform-origin:bottom right}
+/* keyboard hint on the launcher (desktop hover / focus) */
+.ghai-launch{overflow:visible}
+.ghai-tip{position:absolute;right:0;bottom:calc(100% + 8px);display:inline-flex;align-items:center;gap:6px;padding:6px 8px 6px 10px;border-radius:8px;background:var(--a-ink);color:#e7ebef;
+  font:500 12px/1 var(--a-body);white-space:nowrap;box-shadow:0 8px 20px -10px rgba(22,33,43,.6);opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .15s,transform .15s}
+.ghai-launch:hover .ghai-tip,.ghai-launch:focus-visible .ghai-tip{opacity:1;transform:none}
+.ghai kbd{display:inline-block;padding:3px 6px;border:1px solid rgba(255,255,255,.22);border-radius:6px;background:rgba(255,255,255,.08);font:600 11px/1 var(--a-body);color:inherit;letter-spacing:.02em}
+
+/* panel: full-height side panel on desktop; "Expand" = large centred view; phones = full screen */
+.ghai-scrim{position:fixed;inset:0;z-index:9980;background:rgba(15,23,32,.38)}
+.ghai-scrim[hidden]{display:none}
+.ghai-panel{position:fixed;top:12px;right:12px;bottom:12px;z-index:9981;width:420px;max-width:calc(100vw - 24px);display:flex;flex-direction:column;min-height:0;background:#fff;
+  border:1px solid rgba(22,33,43,.1);border-radius:12px;box-shadow:0 24px 60px -24px rgba(22,33,43,.5);overflow:hidden;transform-origin:right center}
 .ghai-panel[hidden]{display:none}
-@media (prefers-reduced-motion:no-preference){.ghai-panel{animation:ghai-pop .22s cubic-bezier(.2,.7,.2,1) both}}
-@keyframes ghai-pop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
-.ghai-head{display:flex;align-items:center;gap:10px;padding:12px 8px 12px 14px;background:var(--a-ink);color:#fff}
-.ghai-head .ghai-hex{width:40px;height:40px}
+.ghai-panel.is-expanded{top:50%;left:50%;right:auto;bottom:auto;width:min(960px,calc(100vw - 48px));height:min(860px,calc(100vh - 48px));height:min(860px,calc(100dvh - 48px));max-width:none;transform:translate(-50%,-50%);transform-origin:center}
+@media (prefers-reduced-motion:no-preference){.ghai-panel{animation:ghai-slide .22s cubic-bezier(.2,.7,.2,1) both}.ghai-panel.is-expanded{animation:ghai-zoom .2s cubic-bezier(.2,.7,.2,1) both}}
+@keyframes ghai-slide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes ghai-zoom{from{opacity:0;transform:translate(-50%,-50%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%)}}
+.ghai-head{flex:none;display:flex;align-items:center;gap:8px;padding:10px 8px 10px 14px;background:var(--a-ink);color:#fff}
+.ghai-head .ghai-hex{width:36px;height:36px}
 .ghai-title{min-width:0;flex:1}
-.ghai-title b{display:block;font:800 16px/1.2 var(--a-head);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ghai-title b{display:block;font:800 15.5px/1.2 var(--a-head);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ghai-title span{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#c4ccd4;white-space:nowrap}
 .ghai-title span i{flex:none;width:7px;height:7px;border-radius:50%;background:#3ccf8e;box-shadow:0 0 0 3px rgba(60,207,142,.18)}
-.ghai-hbtn{display:inline-grid;place-items:center;width:40px;height:40px;border:0;border-radius:12px;background:transparent;color:#fff;cursor:pointer}
+.ghai-kbd{margin-inline-start:4px;padding:2px 5px!important;font-size:10.5px!important;color:#c4ccd4!important}
+.ghai-hbtn{display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border:0;border-radius:8px;background:transparent;color:#fff;cursor:pointer}
 .ghai-hbtn:hover{background:rgba(255,255,255,.1)}
 .ghai-hbtn:focus-visible{outline:2px solid #fff;outline-offset:-2px}
-.ghai-hbtn svg{width:20px;height:20px}
-.ghai-human{width:auto;height:34px;padding:0 11px;font:600 12.5px/1 var(--a-body);white-space:nowrap;border:1px solid rgba(255,255,255,.22);border-radius:999px}
-
-.ghai-log{flex:1;overflow-y:auto;padding:16px 14px 8px;background:var(--a-bg);scroll-behavior:smooth;overscroll-behavior:contain}
+.ghai-hbtn svg{width:19px;height:19px}
+.ghai-exp svg{width:17px;height:17px}
+.ghai-human{width:36px;height:36px;padding:0;font:600 12.5px/1 var(--a-body);white-space:nowrap}
+.ghai-human__t{display:none}
+.ghai-panel.is-expanded .ghai-human{width:auto;height:32px;gap:6px;display:inline-flex;align-items:center;padding:0 11px 0 9px;border:1px solid rgba(255,255,255,.22)}
+.ghai-panel.is-expanded .ghai-human__t{display:inline}
+.ghai-human__i{display:inline-grid}.ghai-human svg{width:18px;height:18px}
+.ghai-panel.is-expanded .ghai-human svg{width:16px;height:16px}
+.ghai-title span{overflow:hidden}
+.ghai-panel.is-expanded .ghai-log{padding:22px max(20px,calc((100% - 720px) / 2)) 10px}
+.ghai-panel.is-expanded .ghai-form,.ghai-panel.is-expanded .ghai-note{padding-left:max(12px,calc((100% - 720px) / 2));padding-right:max(12px,calc((100% - 720px) / 2))}
+.ghai-note{flex:none;margin:0;padding:6px 14px 0;background:#fff;font-size:12.5px;color:var(--a-muted)}
+.ghai-note[hidden]{display:none}
+.ghai-msg--err .ghai-bub{border-color:#f1c9cf;background:#fffafa}
+.ghai-log{flex:1;min-height:0;overflow-y:auto;padding:16px 14px 8px;background:var(--a-bg);scroll-behavior:smooth;overscroll-behavior:contain}
 .ghai-msg{display:flex;gap:8px;margin:0 0 12px;align-items:flex-end}
 .ghai-msg .ghai-hex{width:26px;height:26px;margin-bottom:2px}
-.ghai-bub{max-width:86%;padding:10px 13px;border-radius:16px;background:#fff;border:1px solid var(--a-line);word-wrap:break-word;overflow-wrap:anywhere}
+.ghai-bub{max-width:86%;padding:10px 13px;border-radius:12px;background:#fff;border:1px solid var(--a-line);word-wrap:break-word;overflow-wrap:anywhere}
 .ghai-msg--me{justify-content:flex-end}
-.ghai-msg--me .ghai-bub{background:var(--a-ink);color:#fff;border-color:var(--a-ink);border-bottom-right-radius:6px}
-.ghai-msg--ai .ghai-bub{border-bottom-left-radius:6px}
+.ghai-msg--me .ghai-bub{background:var(--a-ink);color:#fff;border-color:var(--a-ink);border-bottom-right-radius:4px}
+.ghai-msg--ai .ghai-bub{border-bottom-left-radius:4px}
 .ghai-bub p{margin:0 0 .55em}.ghai-bub p:last-child{margin:0}
 .ghai-bub ul,.ghai-bub ol{margin:.2em 0 .55em;padding-inline-start:1.25em}
 .ghai-bub a{color:var(--a-brand);font-weight:600;text-underline-offset:2px}
@@ -63,7 +86,7 @@ body:has(.hp-preview-pill) .ghai-launch{bottom:68px}
 /* cards */
 .ghai-cards{display:grid;gap:10px;margin:0 0 14px;margin-inline-start:34px}
 .ghai-cards h4{margin:0;font:700 12px/1.3 var(--a-head);letter-spacing:.06em;text-transform:uppercase;color:var(--a-muted)}
-.ghai-card{position:relative;background:#fff;border:1px solid var(--a-line);border-radius:16px;padding:14px 14px 12px}
+.ghai-card{position:relative;background:#fff;border:1px solid var(--a-line);border-radius:12px;padding:14px 14px 12px}
 .ghai-card--best{border-color:var(--a-brand);box-shadow:0 0 0 1px var(--a-brand) inset}
 .ghai-badge{display:inline-block;margin:0 0 6px;padding:3px 9px;border-radius:999px;background:var(--a-tint);color:var(--a-brand-d);font:700 11px/1.3 var(--a-head);letter-spacing:.04em;text-transform:uppercase}
 .ghai-card--best .ghai-badge{background:var(--a-brand);color:#fff}
@@ -79,16 +102,16 @@ body:has(.hp-preview-pill) .ghai-launch{bottom:68px}
 .ghai-why{margin:8px 0 0;font-size:13.5px;color:var(--a-text)}
 .ghai-why::before{content:"";display:inline-block;width:8px;height:8px;margin-inline-end:7px;background:var(--a-brand);clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%)}
 .ghai-row{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
-.ghai-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 16px;border:0;border-radius:12px;background:var(--a-brand);color:#fff;font:700 14px/1 var(--a-head);text-decoration:none;cursor:pointer}
+.ghai-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 16px;border:0;border-radius:10px;background:var(--a-brand);color:#fff;font:700 14px/1 var(--a-head);text-decoration:none;cursor:pointer}
 .ghai-btn:hover{background:var(--a-brand-d)}
 .ghai-btn:focus-visible{outline:3px solid var(--a-ink);outline-offset:2px}
 .ghai-btn--ghost{background:#fff;color:var(--a-ink);border:1px solid var(--a-line)}
 .ghai-btn--ghost:hover{background:var(--a-bg)}
-.ghai-btn--sm{min-height:34px;padding:0 12px;font-size:13px;border-radius:10px}
+.ghai-btn--sm{min-height:34px;padding:0 12px;font-size:13px;border-radius:8px}
 .ghai-btn[disabled]{opacity:.6;cursor:default}
-.ghai-sel{min-height:40px;padding:0 30px 0 10px;border:1px solid var(--a-line);border-radius:12px;background:#fff;font-size:13.5px}
+.ghai-sel{min-height:40px;padding:0 30px 0 10px;border:1px solid var(--a-line);border-radius:8px;background:#fff;font-size:13.5px}
 .ghai-doms{display:flex;flex-wrap:wrap;gap:8px}
-.ghai-dom{display:inline-flex;align-items:center;gap:10px;padding:8px 8px 8px 12px;border:1px solid var(--a-line);border-radius:14px;background:#fff}
+.ghai-dom{display:inline-flex;align-items:center;gap:10px;padding:8px 8px 8px 12px;border:1px solid var(--a-line);border-radius:10px;background:#fff}
 .ghai-dom b{font:700 14px/1.2 var(--a-head);color:var(--a-ink)}
 .ghai-dom small{display:block;font-size:12px;color:var(--a-muted)}
 .ghai-dom--taken{opacity:.75}
@@ -103,7 +126,7 @@ body:has(.hp-preview-pill) .ghai-launch{bottom:68px}
 .ghai-lines tfoot td{font-weight:800;color:var(--a-ink);border-top:2px solid var(--a-ink)}
 
 /* cart bar */
-.ghai-cart{border-top:1px solid var(--a-line);background:#fff;padding:8px 12px}
+.ghai-cart{flex:none;border-top:1px solid var(--a-line);background:#fff;padding:8px 12px}
 .ghai-cart[hidden]{display:none}
 .ghai-cart summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;min-height:40px}
 .ghai-cart summary::-webkit-details-marker{display:none}
@@ -115,15 +138,15 @@ body:has(.hp-preview-pill) .ghai-launch{bottom:68px}
 .ghai-x:hover{background:var(--a-bg);color:var(--a-brand-d)}
 
 /* composer */
-.ghai-form{display:flex;gap:8px;align-items:flex-end;padding:10px 12px 8px;border-top:1px solid var(--a-line);background:#fff}
-.ghai-input{flex:1;min-height:44px;max-height:120px;padding:11px 14px;border:1px solid var(--a-line);border-radius:14px;background:var(--a-bg);resize:none;line-height:1.4}
+.ghai-form{flex:none;display:flex;gap:8px;align-items:flex-end;padding:10px 12px 8px;border-top:1px solid var(--a-line);background:#fff}
+.ghai-input{flex:1;min-height:44px;max-height:120px;padding:11px 14px;border:1px solid var(--a-line);border-radius:10px;background:var(--a-bg);resize:none;line-height:1.4}
 .ghai-input:focus{outline:none;border-color:var(--a-brand);background:#fff;box-shadow:0 0 0 3px rgba(197,56,111,.15)}
-.ghai-send{display:inline-grid;place-items:center;width:44px;height:44px;flex:none;border:0;border-radius:14px;background:var(--a-brand);color:#fff;cursor:pointer}
+.ghai-send{display:inline-grid;place-items:center;width:44px;height:44px;flex:none;border:0;border-radius:10px;background:var(--a-brand);color:#fff;cursor:pointer}
 .ghai-send:hover{background:var(--a-brand-d)}
 .ghai-send:disabled{background:#c9cfd6;cursor:default}
 .ghai-send svg{width:20px;height:20px}
 .ghai-send:focus-visible{outline:3px solid var(--a-ink);outline-offset:2px}
-.ghai-foot{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;padding:0 14px 10px;background:#fff;font-size:11.5px;color:var(--a-muted);text-align:center}
+.ghai-foot{flex:none;display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;padding:0 14px 10px;background:#fff;font-size:11.5px;color:var(--a-muted);text-align:center}
 .ghai-new{border:0;background:none;padding:2px 4px;color:var(--a-brand-d);font:600 11.5px/1.2 var(--a-body);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .ghai-hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0}
 .ghai-count{font-size:11.5px;color:var(--a-muted);align-self:center}
@@ -131,17 +154,21 @@ body:has(.hp-preview-pill) .ghai-launch{bottom:68px}
 /* hand-off form */
 .ghai-hand{display:grid;gap:8px}
 .ghai-hand label{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--a-ink)}
-.ghai-hand input,.ghai-hand textarea{min-height:42px;padding:9px 12px;border:1px solid var(--a-line);border-radius:12px;background:#fff;font-weight:400}
+.ghai-hand input,.ghai-hand textarea{min-height:42px;padding:9px 12px;border:1px solid var(--a-line);border-radius:8px;background:#fff;font-weight:400}
 .ghai-hand input:focus,.ghai-hand textarea:focus{outline:none;border-color:var(--a-brand);box-shadow:0 0 0 3px rgba(197,56,111,.15)}
 .ghai-err{color:#b42318;font-size:13px}
 
 @media (max-width:640px){
-  .ghai-launch{right:12px;bottom:12px;padding:0 16px 0 7px}
-  .ghai-panel{inset:0;right:0;bottom:0;width:100%;height:100%;height:100dvh;border-radius:0}
-  .ghai-head{padding-top:max(14px,env(safe-area-inset-top))}
-  .ghai-foot{padding-bottom:max(10px,env(safe-area-inset-bottom))}
+  .ghai-launch{right:12px;bottom:max(12px,env(safe-area-inset-bottom));padding:0 16px 0 7px}
+  .ghai-tip{display:none}
+  .ghai-panel,.ghai-panel.is-expanded{top:var(--ghai-top,0px);left:0;right:0;bottom:auto;width:100%;max-width:none;height:100vh;height:var(--ghai-vh,100dvh);border:0;border-radius:0;box-shadow:none;transform:none;animation:none}
+  .ghai-head{padding-top:max(10px,env(safe-area-inset-top));padding-left:max(12px,env(safe-area-inset-left));padding-right:max(6px,env(safe-area-inset-right))}
+  .ghai-exp,.ghai-kbd{display:none}
+  .ghai-form{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  .ghai-foot{padding-bottom:max(8px,env(safe-area-inset-bottom))}
   .ghai-bub{max-width:92%}
   .ghai-cards,.ghai-chips,.ghai-tool{margin-inline-start:0}
   .ghai-input{font-size:16px}
 }
 html.ghai-lock,html.ghai-lock body{overflow:hidden}
+html.ghai-lock body{overscroll-behavior:none}

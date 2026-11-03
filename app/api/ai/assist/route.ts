@@ -62,14 +62,17 @@ export async function POST(req: NextRequest) {
   const dyn = `Today: ${new Date().toISOString().slice(0, 10)}. Signed in via ${who.via === 'hosting' ? 'the hosting panel (one hosting account; DNS, mailbox and SSL proposals available)' : 'the account dashboard (DNS proposals for domains managed here; mailboxes and SSL are in Manage hosting)'}. ${contextLine(pc)}`;
   return sse(async (send) => {
     const t0 = Date.now();
+    const ping = setInterval(() => send('', null), 10_000); // SSE keep-alive comment
     let status = 'ok', err = '';
     let r: Awaited<ReturnType<typeof runAgent>> | null = null;
     try {
       r = await runAgent({
         client, model: s.chatModel, system: await assistSystem(s, dyn), tools, messages: trimHistory(hist, s.assist.historyTurns), ctx, maxTokens: s.assist.maxTokens, effort: s.effort,
-        maxIterations: 5, timeoutMs: 40_000, signal: req.signal, onText: (t) => send('text', { t }), onUi: (e) => send('ui', e), onTool: (name) => send('tool', { name }),
+        maxIterations: 5, timeoutMs: 40_000, signal: req.signal, deadline: t0 + (maxDuration - 8) * 1000, onText: (t) => send('text', { t }), onUi: (e) => send('ui', e), onTool: (name) => send('tool', { name }),
       });
-    } catch (e: any) { status = 'error'; err = `${e?.status || ''} ${e?.message || e}`; send('error', { message: 'The assistant hit a problem. Please try again, or open a ticket.' }); }
+    } catch (e: any) { status = 'error'; err = `${e?.status || ''} ${e?.message || e}`; console.warn('[ai] assist', err.slice(0, 200)); send('error', { message: 'The assistant hit a problem. Please try again, or open a ticket.' }); }
+    finally { clearInterval(ping); }
+    if (r && !r.text && r.stop === 'deadline') send('error', { message: 'That took longer than it should. Please try again, or open a ticket.' });
     await logUsage({ surface: 'assist', model: s.chatModel, subject, status, usage: r?.usage, ms: Date.now() - t0, tools: r?.tools, detail: err }, s);
   }, H);
 }

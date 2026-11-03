@@ -76,6 +76,9 @@ export interface AgentOpts<C extends ToolCtx> {
   onTool?: (name: string) => void;
   signal?: AbortSignal;
   timeoutMs?: number;
+  /** epoch ms by which the whole run must have answered (the route's maxDuration minus a margin): per-call timeouts
+   *  shrink to fit, and when little time is left the next round answers without tools instead of starting another lookup */
+  deadline?: number;
 }
 export interface AgentResult { text: string; usage: TokenUsage; tools: string[]; stop: string; iterations: number }
 
@@ -83,7 +86,9 @@ const isThinkingParamError = (e: any) => Number(e?.status) === 400 && /thinking|
 
 /** One model call; streams text when possible. Retries once without thinking/effort params if the model rejects them. */
 async function call(o: AgentOpts<any>, params: any): Promise<any> {
-  const opts = { signal: o.signal, timeout: o.timeoutMs ?? 60_000 };
+  const left = o.deadline ? o.deadline - Date.now() : Infinity;
+  const opts: any = { signal: o.signal, timeout: Math.max(3000, Math.min(o.timeoutMs ?? 60_000, left)) };
+  if (left < 30_000) opts.maxRetries = 0; // a retry after a slow failure would run past the deadline
   const once = async (p: any) => {
     if (o.onText && o.client.messages.stream) {
       const s = o.client.messages.stream(p, opts);
@@ -110,7 +115,10 @@ export async function runAgent<C extends ToolCtx>(o: AgentOpts<C>): Promise<Agen
   const max = o.maxIterations ?? 5;
   let text = '', stop = '', i = 0;
   for (; i < max + 1; i++) {
-    const last = i === max; // final round: answer with what we have, no more tools
+    const left = o.deadline ? o.deadline - Date.now() : Infinity;
+    if (left < 4000) { stop = 'deadline'; break; }
+    // final round (iteration cap, or under ~15s left): answer with what we have, no more tools
+    const last = i === max || (i > 0 && left < 15_000);
     const params: any = {
       model: o.model, max_tokens: o.maxTokens, system: o.system, messages: msgs,
       ...(defs.length ? { tools: defs, tool_choice: { type: last ? 'none' : 'auto' } } : {}),

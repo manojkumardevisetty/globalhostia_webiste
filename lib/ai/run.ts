@@ -97,7 +97,8 @@ export function sse(run: (send: Send) => Promise<void>, headers: Record<string, 
   const enc = new TextEncoder();
   const body = new ReadableStream({
     async start(ctrl) {
-      const send: Send = (event, data) => { try { ctrl.enqueue(enc.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)); } catch { /* client went away */ } };
+      // send('', null) writes an SSE comment (keep-alive) that clients ignore
+      const send: Send = (event, data) => { try { ctrl.enqueue(enc.encode(event ? `event: ${event}\ndata: ${JSON.stringify(data)}\n\n` : `: ping\n\n`)); } catch { /* client went away */ } };
       try { await run(send); } catch (e: any) { console.error('[ai] stream', e?.status || '', e?.message || e); send('error', { message: 'The assistant hit a problem. Please try again, or contact support.' }); }
       send('done', {});
       try { ctrl.close(); } catch { /* closed */ }

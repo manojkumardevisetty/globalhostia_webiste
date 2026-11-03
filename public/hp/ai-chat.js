@@ -1,6 +1,8 @@
 /* GlobalHostia website assistant. Loaded after the page is idle (lib/theme/shell.ts); talks to /api/ai/chat (SSE).
    Plan cards, domain chips and the chat cart come from server-side tools with live catalog prices; the cart is re-priced
-   again at /ai/checkout. Conversation and cart live in sessionStorage only. */
+   again at /ai/checkout. Conversation and cart live in sessionStorage only.
+   Layout: desktop = full-height side panel (Expand toggles a large centred view, remembered per visitor); phones = full
+   screen that follows the visual viewport so the composer stays above the keyboard. Ctrl+K / Cmd+K opens it expanded. */
 (function () {
   "use strict";
   if (window.__ghai) return; window.__ghai = 1;
@@ -8,7 +10,21 @@
   var KEY = "ghai.v1", MAXC = 600;
   var d = document;
   var st = load() || { msgs: [], cart: [], conv: rid(), pass: "" };
-  var busy = false, typedAt = 0, lastFocus = null, cards = {};
+  var busy = false, typedAt = 0, lastFocus = null, cards = {}, queued = "", ctl = null;
+  var EXP_KEY = "ghai.expand", IDLE_MS = 75000;
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  var expanded = lsGet(EXP_KEY) === "1";
+  function phone() { return matchMedia("(max-width:640px)").matches; }
+  /* keyboard hint: Mac / iPadOS with a keyboard -> Cmd K, Windows / Linux / ChromeOS -> Ctrl K, touch-only phones and tablets -> none */
+  var KBD = (function () {
+    var ua = navigator.userAgent || "", plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
+    var fine = matchMedia("(any-pointer:fine)").matches, coarse = matchMedia("(pointer:coarse)").matches;
+    if (/Android|iPhone|iPod/i.test(ua) || /Android|iOS/i.test(plat)) return "";
+    var apple = /Mac|iPad/i.test(plat) || /Macintosh|iPad/.test(ua);
+    if (coarse && !fine) return "";
+    return apple ? "\u2318K" : "Ctrl K";
+  })();
 
   function rid() { var a = new Uint8Array(9); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach(function (_, i) { a[i] = Math.random() * 256; }); return Array.prototype.map.call(a, function (x) { return ("0" + x.toString(16)).slice(-2); }).join(""); }
   function load() { try { return JSON.parse(sessionStorage.getItem(KEY) || "null"); } catch (e) { return null; } }
@@ -26,7 +42,10 @@
   var ICON = {
     close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     send: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h13M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    reset: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    reset: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    person: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    expand: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    collapse: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10h-6V4M4 14h6v6M14 10l7-7M10 14l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
 
   /* minimal Markdown: escape, then links (http(s) or site paths), bold, lists, paragraphs */
@@ -48,46 +67,89 @@
   }
 
   /* ---------------------------------------------------------------- DOM */
-  var launch = el("button", { class: "ghai-launch ghai", type: "button", "aria-haspopup": "dialog", "aria-expanded": "false", onclick: open }, [hex(), el("span", { text: "Ask our AI" })]);
+  var launch = el("button", { class: "ghai-launch ghai", type: "button", "aria-haspopup": "dialog", "aria-expanded": "false", title: KBD ? "Ask our AI (" + KBD + ")" : null, "aria-keyshortcuts": KBD ? "Control+K Meta+K" : null, onclick: function () { open(); } },
+    [hex(), el("span", { class: "ghai-launch__t", text: "Ask our AI" }), KBD ? el("span", { class: "ghai-tip", "aria-hidden": "true" }, ["Open chat ", el("kbd", { text: KBD })]) : null]);
   var log = el("div", { class: "ghai-log", role: "log", "aria-live": "polite", "aria-label": "Conversation" });
   var input = el("textarea", { class: "ghai-input", rows: "1", maxlength: String(MAXC), placeholder: "Ask about hosting, domains or email…", "aria-label": "Your message", dir: "auto" });
   var hp = el("input", { class: "ghai-hp", type: "text", name: "website", tabindex: "-1", autocomplete: "off", "aria-hidden": "true" });
   var sendBtn = el("button", { class: "ghai-send", type: "submit", "aria-label": "Send", html: ICON.send });
   var count = el("span", { class: "ghai-count", "aria-live": "off" });
-  var form = el("form", { class: "ghai-form", onsubmit: function (e) { e.preventDefault(); submit(input.value); } }, [hp, input, sendBtn]);
+  var note = el("p", { class: "ghai-note", role: "status", hidden: true });
+  var form = el("form", { class: "ghai-form", onsubmit: function (e) { e.preventDefault(); send(); } }, [hp, input, sendBtn]);
   var cartBox = el("details", { class: "ghai-cart", hidden: true });
+  var expBtn = el("button", { class: "ghai-hbtn ghai-exp", type: "button", onclick: function () { setExpanded(!expanded, true); input.focus(); } });
+  var scrim = el("div", { class: "ghai-scrim", hidden: true, onclick: function () { close(); } });
   var panel = el("div", { class: "ghai-panel ghai", role: "dialog", "aria-modal": "true", "aria-label": "GlobalHostia assistant", hidden: true }, [
-    el("div", { class: "ghai-head" }, [hex(), el("div", { class: "ghai-title" }, [el("b", { text: "GlobalHostia AI" }), el("span", {}, [el("i"), "AI · live prices"])]),
-      el("button", { class: "ghai-hbtn ghai-human", type: "button", text: "Talk to a person", onclick: function () { handoffForm(); } }),
-      el("button", { class: "ghai-hbtn", type: "button", "aria-label": "Close assistant", html: ICON.close, onclick: close })]),
-    log, cartBox, form,
+    el("div", { class: "ghai-head" }, [hex(), el("div", { class: "ghai-title" }, [el("b", { text: "GlobalHostia AI" }), el("span", {}, [el("i"), "AI · live prices", KBD ? el("kbd", { class: "ghai-kbd", title: "Keyboard shortcut", text: KBD }) : null])]),
+      el("button", { class: "ghai-hbtn ghai-human", type: "button", title: "Talk to a person", "aria-label": "Talk to a person", onclick: function () { handoffForm(); } }, [el("span", { class: "ghai-human__i", html: ICON.person }), el("span", { class: "ghai-human__t", text: "Talk to a person" })]),
+      expBtn,
+      el("button", { class: "ghai-hbtn", type: "button", "aria-label": "Close assistant", title: "Close (Esc)", html: ICON.close, onclick: close })]),
+    log, cartBox, note, form,
     el("div", { class: "ghai-foot" }, [el("span", { text: "AI can make mistakes. Prices are live." }), el("button", { class: "ghai-new", type: "button", text: "New chat", onclick: reset }), count])
   ]);
   input.addEventListener("input", function () { if (!typedAt) typedAt = Date.now(); input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 120) + "px"; var n = input.value.length; count.textContent = n > MAXC - 100 ? n + "/" + MAXC : ""; });
-  input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(input.value); } });
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } });
   panel.addEventListener("keydown", function (e) {
     if (e.key === "Escape") { e.preventDefault(); close(); return; }
     if (e.key !== "Tab") return;
-    var f = panel.querySelectorAll('button:not([disabled]),a[href],textarea,input:not(.ghai-hp),select,summary');
+    var f = [].filter.call(panel.querySelectorAll('button:not([disabled]),a[href],textarea,input:not(.ghai-hp),select,summary'), function (x) { return x.offsetParent !== null; });
     if (!f.length) return;
     var first = f[0], last = f[f.length - 1];
     if (e.shiftKey && d.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && d.activeElement === last) { e.preventDefault(); first.focus(); }
   });
+  d.body.appendChild(scrim);
   d.body.appendChild(launch); d.body.appendChild(panel);
 
-  function open() {
-    lastFocus = d.activeElement; panel.hidden = false; launch.hidden = true; launch.setAttribute("aria-expanded", "true");
-    if (matchMedia("(max-width:640px)").matches) d.documentElement.classList.add("ghai-lock");
-    if (!log.childNodes.length) restore();
-    setTimeout(function () { input.focus(); }, 30);
-    var wa = d.querySelector(".hp-wa"); if (wa) wa.classList.add("is-dodge");
+  function setExpanded(v, remember) {
+    expanded = !!v; if (remember) lsSet(EXP_KEY, expanded ? "1" : "0");
+    panel.classList.toggle("is-expanded", expanded);
+    expBtn.innerHTML = expanded ? ICON.collapse : ICON.expand;
+    expBtn.setAttribute("aria-label", expanded ? "Exit full view" : "Expand to full view");
+    expBtn.title = expanded ? "Exit full view" : "Expand";
+    expBtn.setAttribute("aria-pressed", expanded ? "true" : "false");
+    scrim.hidden = panel.hidden || !expanded || phone();
+    lock();
+  }
+  function lock() { d.documentElement.classList.toggle("ghai-lock", !panel.hidden && (phone() || expanded)); }
+  /* phones: size the sheet to the visual viewport, so the composer sits above the on-screen keyboard */
+  var vv = window.visualViewport;
+  function fit() {
+    if (panel.hidden || !vv || !phone()) { panel.style.removeProperty("--ghai-vh"); panel.style.removeProperty("--ghai-top"); return; }
+    panel.style.setProperty("--ghai-vh", Math.round(vv.height) + "px");
+    panel.style.setProperty("--ghai-top", Math.round(vv.offsetTop) + "px");
+    if (d.activeElement === input) scroll();
+  }
+  if (vv) { vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); }
+  addEventListener("resize", function () { if (!panel.hidden) { fit(); setExpanded(expanded); } });
+  function open(o) {
+    o = o || {};
+    if (o.expand && !phone()) setExpanded(true, false);
+    if (panel.hidden) {
+      lastFocus = d.activeElement; panel.hidden = false; launch.hidden = true; launch.setAttribute("aria-expanded", "true");
+      if (!log.childNodes.length) restore();
+      var wa = d.querySelector(".hp-wa"); if (wa) wa.classList.add("is-dodge");
+    }
+    setExpanded(expanded); fit();
+    setTimeout(function () { input.focus({ preventScroll: true }); scroll(); }, 30);
   }
   function close() {
-    panel.hidden = true; launch.hidden = false; launch.setAttribute("aria-expanded", "false"); d.documentElement.classList.remove("ghai-lock");
+    if (panel.hidden) return;
+    panel.hidden = true; scrim.hidden = true; launch.hidden = false; launch.setAttribute("aria-expanded", "false"); lock();
     var wa = d.querySelector(".hp-wa"); if (wa) wa.classList.remove("is-dodge");
-    (lastFocus && lastFocus.focus ? lastFocus : launch).focus();
+    (lastFocus && lastFocus.focus && d.contains(lastFocus) ? lastFocus : launch).focus({ preventScroll: true });
   }
-  function reset() { st = { msgs: [], cart: [], conv: rid(), pass: st.pass }; save(); log.innerHTML = ""; renderCart(); intro(); input.focus(); }
+  /* Ctrl+K / Cmd+K: open expanded with the input focused; again (or Esc) closes. Leaves editors that own the key alone. */
+  function onKey(e) {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || String(e.key).toLowerCase() !== "k" || e.defaultPrevented) return;
+    var t = e.target;
+    if (t && t !== input && (t.isContentEditable || (t.closest && t.closest("[data-own-shortcuts],.ac-pal,.CodeMirror,.monaco-editor")))) return;
+    e.preventDefault();
+    if (!panel.hidden && (expanded || phone()) && d.activeElement === input) close(); else open({ expand: true });
+  }
+  if (window.__ghaiKey) { removeEventListener("keydown", window.__ghaiKey, true); window.__ghaiKey = null; }
+  addEventListener("keydown", onKey, true);
+  function reset() { if (ctl) try { ctl.abort(); } catch (e) {} queued = ""; showNote(""); st = { msgs: [], cart: [], conv: rid(), pass: st.pass }; save(); log.innerHTML = ""; renderCart(); intro(); input.focus(); }
+  function showNote(t) { note.textContent = t; note.hidden = !t; }
   function scroll() { log.scrollTop = log.scrollHeight; }
 
   function intro() {
@@ -111,7 +173,7 @@
     list.forEach(function (t) {
       box.appendChild(el("button", { class: "ghai-chip", type: "button", text: t, dir: "auto", onclick: function () {
         if (/talk to support|talk to a person|التحدث مع الدعم/i.test(t)) return handoffForm();
-        typedAt = Date.now() - 5000; submit(t);
+        typedAt = Date.now() - 5000; send(t);
       } }));
     });
     log.appendChild(box); scroll();
@@ -230,66 +292,95 @@
   }
   function failBubble(msg, retryText) {
     var b = bubble("ai", msg + " ");
+    b.parentNode.classList.add("ghai-msg--err");
     var row = el("div", { class: "ghai-row" }, [
-      retryText ? el("button", { class: "ghai-btn ghai-btn--sm", type: "button", text: "Try again", onclick: function () { row.remove(); submit(retryText, null, true); } }) : null,
+      retryText ? el("button", { class: "ghai-btn ghai-btn--sm", type: "button", text: "Try again", onclick: function () { if (busy) return; row.remove(); submit(retryText, null, true); } }) : null,
       el("button", { class: "ghai-btn ghai-btn--ghost ghai-btn--sm", type: "button", text: "Talk to a person", onclick: function () { row.remove(); handoffForm(); } })]);
     b.appendChild(row); scroll();
   }
 
   /* ---------------------------------------------------------------- send */
-  async function submit(text, turnstile, again) {
+  /** Composer / chip entry point: while an answer is still coming, the message waits and goes out right after it. */
+  function send(text) {
+    var fromBox = text == null;
+    text = String(fromBox ? input.value : text).trim();
+    if (!text) return;
+    if (busy) {
+      queued = text; showNote("Sending when the current answer finishes…");
+      if (fromBox) { input.value = ""; input.style.height = ""; }
+      return;
+    }
+    submit(text);
+  }
+  function typingRow() { return el("div", { class: "ghai-msg ghai-msg--ai ghai-wait" }, [hex(), el("div", { class: "ghai-bub" }, [el("span", { class: "ghai-typing", role: "img", "aria-label": "Assistant is typing" }, [el("i"), el("i"), el("i")])])]); }
+  async function submit(text, turnstile, again, typedMs) {
     text = String(text || "").trim();
     if (!text || busy) return;
     if (text.length > MAXC) { bubble("ai", "Please keep messages under " + MAXC + " characters."); return; }
-    busy = true; sendBtn.disabled = true;
+    busy = true; sendBtn.disabled = true; showNote("");
     if (again) { st.msgs.push({ role: "user", content: text }); save(); }
-    else if (!turnstile) { bubble("me", text); st.msgs.push({ role: "user", content: text }); save(); input.value = ""; input.style.height = ""; count.textContent = ""; }
-    var typed = typedAt ? Date.now() - typedAt : 0; typedAt = 0;
-    var wait = el("div", { class: "ghai-msg ghai-msg--ai" }, [hex(), el("div", { class: "ghai-bub" }, [el("span", { class: "ghai-typing", "aria-label": "Assistant is typing" }, [el("i"), el("i"), el("i")])])]);
-    log.appendChild(wait); scroll();
-    var reply = { role: "assistant", content: "", ui: [] }, b = null, tools = null, noStream = false;
+    else if (!turnstile) { bubble("me", text); st.msgs.push({ role: "user", content: text }); save(); if (input.value.trim() === text) { input.value = ""; input.style.height = ""; count.textContent = ""; } }
+    var typed = typedMs != null ? typedMs : typedAt ? Date.now() - typedAt : 0, sentAt = Date.now(); typedAt = 0;
+    var wait = typingRow();
+    var waitOn = function () { log.appendChild(wait); scroll(); }; // always the last row while we wait for more
+    var waitOff = function () { if (wait.parentNode) wait.remove(); };
+    waitOn();
+    var reply = { role: "assistant", content: "", ui: [] }, b = null, tools = null, handled = false, done = false, erred = false, resend = 0;
+    var c = ctl = window.AbortController ? new AbortController() : null, idle = 0, timedOut = false;
+    var poke = function () { clearTimeout(idle); idle = setTimeout(function () { timedOut = true; if (c) c.abort(); }, IDLE_MS); };
+    poke();
     try {
-      var r = await fetch("/api/ai/chat", { method: "POST", headers: { "content-type": "application/json", accept: "text/event-stream" }, body: JSON.stringify({
+      var r = await fetch("/api/ai/chat", { method: "POST", signal: c ? c.signal : undefined, headers: { "content-type": "application/json", accept: "text/event-stream" }, body: JSON.stringify({
         messages: st.msgs.map(strip), page: location.pathname, currency: CFG.cur || "", cart: st.cart.map(function (x) { return { key: x.key }; }), conv: st.conv, hp: hp.value, typedMs: typed, pass: st.pass || undefined, turnstile: turnstile }) });
       var ct = r.headers.get("content-type") || "";
-      if (ct.indexOf("text/event-stream") < 0) {
-        noStream = true;
+      if (ct.indexOf("text/event-stream") < 0 || !r.body) {
+        handled = true;
         var j = await r.json().catch(function () { return {}; });
-        wait.remove();
-        if (j.error === "challenge" && j.siteKey) { busy = false; sendBtn.disabled = false; return challenge(j.siteKey, text); }
-        if (j.error === "offline") { st.msgs.pop(); save(); return offline(j); }
-        st.msgs.pop(); save();
-        // our own answers (rate limit, too long) carry a sentence; anything else (proxy page, 5xx) gets plain words + retry
-        var retry = r.status === 429 || r.status >= 500 || !j.message;
-        if (retry && j.error !== "too_long") failBubble(j.message || errText(r.status), text); else bubble("ai", j.message || errText(r.status));
+        waitOff(); st.msgs.pop(); save();
+        if (j.error === "challenge" && j.siteKey) { st.msgs.push({ role: "user", content: text }); save(); busy = false; return challenge(j.siteKey, text); }
+        if (j.error === "offline") return offline(j);
+        // first message sent faster than a person types (pasted): wait a moment and send it again, no error shown
+        if (j.error === "slow_down" && typedMs == null) { resend = typed + (Date.now() - sentAt) + 1000; waitOn(); return; }
+        // our own answers (too long) carry a sentence; rate limits, proxy pages and 5xx get plain words + retry
+        if (j.error === "too_long") bubble("ai", j.message || errText(r.status)); else failBubble(j.message || errText(r.status), text);
         return;
       }
       var rd = r.body.getReader(), dec = new TextDecoder(), buf = "";
       for (;;) {
         var x = await rd.read(); if (x.done) break;
+        poke();
         buf += dec.decode(x.value, { stream: true });
         var parts = buf.split("\n\n"); buf = parts.pop();
         parts.forEach(function (p) {
           var ev = (p.match(/^event: (.*)$/m) || [])[1], data = (p.match(/^data: (.*)$/m) || [])[1];
-          if (!ev || data == null) return;
+          if (!ev || data == null) return; // ": ping" keep-alives and partial events
           var o; try { o = JSON.parse(data); } catch (e) { return; }
-          if (ev === "text") { if (!b) { wait.remove(); b = bubble("ai", ""); } reply.content += o.t; b.innerHTML = md(reply.content); scroll(); }
-          else if (ev === "tool") { if (!tools) { tools = el("div", { class: "ghai-tool", text: "Checking live prices…" }); log.insertBefore(tools, wait.parentNode ? wait : null); } }
-          else if (ev === "ui") { if (wait.parentNode) wait.remove(); b = null; reply.ui.push(o); ui(o); }
-          else if (ev === "meta") { if (o.pass) { st.pass = o.pass; } }
-          else if (ev === "error") { if (wait.parentNode) wait.remove(); bubble("ai", o.message || "Something went wrong."); }
+          if (ev === "text") { if (!o.t) return; if (!b) { waitOff(); b = bubble("ai", ""); } reply.content += o.t; b.innerHTML = md(reply.content); scroll(); }
+          else if (ev === "tool") { b = null; if (!tools) tools = el("div", { class: "ghai-tool", text: "Checking live prices…" }); log.appendChild(tools); waitOn(); }
+          else if (ev === "ui") { b = null; reply.ui.push(o); ui(o); waitOn(); }
+          else if (ev === "meta") { if (o.pass) st.pass = o.pass; }
+          else if (ev === "error") { erred = true; waitOff(); b = null; if (!reply.content && !reply.ui.length) { handled = true; st.msgs.pop(); failBubble(o.message || "Something went wrong on our side.", text); } else failBubble(o.message || "Something went wrong on our side.", null); }
+          else if (ev === "done") done = true;
         });
       }
-    } catch (e) {
-      if (wait.parentNode) wait.remove();
+      waitOff();
       var empty = !reply.content && !reply.ui.length;
-      if (empty) { noStream = true; st.msgs.pop(); }
-      failBubble(navigator.onLine === false ? errText(0) : "The connection dropped before the answer finished.", empty ? text : null);
+      if (!erred && empty) { handled = true; st.msgs.pop(); failBubble("Sorry, no answer came back that time. Please try again.", text); }
+      else if (!erred && !done) failBubble("The answer was cut off before it finished.", null);
+    } catch (e) {
+      waitOff();
+      var none = !reply.content && !reply.ui.length;
+      if (none) { handled = true; st.msgs.pop(); }
+      failBubble(timedOut ? "The assistant is taking too long to answer." : navigator.onLine === false ? errText(0) : "The connection dropped before the answer finished.", none ? text : null);
     }
     finally {
-      if (wait.parentNode) wait.remove(); if (tools && tools.parentNode) tools.remove();
-      if (!noStream) { if (reply.content || reply.ui.length) st.msgs.push(reply); else st.msgs.pop(); }
-      save(); busy = false; sendBtn.disabled = false;
+      clearTimeout(idle); if (ctl === c) ctl = null;
+      waitOff(); if (tools && tools.parentNode) tools.remove();
+      if (!handled) { if (reply.content || reply.ui.length) st.msgs.push(reply); else st.msgs.pop(); }
+      save();
+      if (resend) { log.appendChild(wait); setTimeout(function () { wait.remove(); busy = false; submit(text, null, true, resend); }, 1000); return; }
+      busy = false; sendBtn.disabled = false;
+      if (queued) { var q = queued; queued = ""; showNote(""); setTimeout(function () { submit(q); }, 0); }
     }
   }
   function offline(j) {
@@ -305,6 +396,7 @@
     if (window.turnstile) go(); else { var s = el("script", { src: "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit", async: true }); s.onload = go; d.head.appendChild(s); }
   }
 
-  if (CFG.open || /[?&]assistant=open/.test(location.search)) open();
-  window.GHChat = { open: open, close: close, ask: function (t) { open(); typedAt = Date.now() - 5000; submit(t); } };
+  if ((CFG.open && CFG.open !== "expand") || /[?&]assistant=open/.test(location.search)) open();
+  if (CFG.open === "expand") open({ expand: true });
+  window.GHChat = { open: open, close: close, expand: function () { open({ expand: true }); }, ask: function (t) { open(); typedAt = Date.now() - 5000; send(t); } };
 })();

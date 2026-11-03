@@ -17,7 +17,9 @@
   var ICON = {
     close: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     send: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h13M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    reset: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    reset: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    expand: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    collapse: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 10h-6V4M4 14h6v6M14 10l7-7M10 14l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
 
   /* ---------------------------------------------------------------- strings (English / Arabic) */
@@ -34,7 +36,9 @@
       rate: "Too many messages in a short time. Please wait a minute, then try again.", expired: "Your session expired. Reload the page and try again.",
       unavailable: "The assistant is not available right now. Please try again in a minute, or open a support ticket.", empty: "Done.",
       dnsAdded: "Record added. Most resolvers see the change within the record’s TTL.", ticketOpened: "Ticket #{n} opened. We will reply by email.", viewTicket: "View ticket",
-      mailboxPassword: "Password for the new mailbox", nothing: "Nothing changes until you confirm."
+      mailboxPassword: "Password for the new mailbox", nothing: "Nothing changes until you confirm.",
+      noAnswer: "Sorry, no answer came back that time. Please try again.", slow: "The assistant is taking too long to answer. Please try again.", retry: "Try again",
+      queued: "Sending when the current answer finishes…", expand: "Expand to full view", collapse: "Exit full view"
     },
     ar: {
       title: "اسأل GlobalHostia", sub: "يطّلع على حسابك. أي تغيير يحتاج إلى تأكيدك.", conversation: "المحادثة مع المساعد",
@@ -48,7 +52,9 @@
       rate: "رسائل كثيرة في وقت قصير. انتظر دقيقة ثم حاول مرة أخرى.", expired: "انتهت جلستك. أعد تحميل الصفحة وحاول مرة أخرى.",
       unavailable: "المساعد غير متاح الآن. حاول بعد دقيقة أو افتح تذكرة دعم.", empty: "تم.",
       dnsAdded: "تمت إضافة السجل. ترى معظم الخوادم التغيير خلال مدة TTL الخاصة به.", ticketOpened: "تم فتح التذكرة #{n}. سنرد عليك بالبريد الإلكتروني.", viewTicket: "عرض التذكرة",
-      mailboxPassword: "كلمة مرور صندوق البريد الجديد", nothing: "لن يتغيّر شيء حتى تؤكد."
+      mailboxPassword: "كلمة مرور صندوق البريد الجديد", nothing: "لن يتغيّر شيء حتى تؤكد.",
+      noAnswer: "عذراً، لم تصل إجابة هذه المرة. حاول مرة أخرى.", slow: "يستغرق المساعد وقتاً أطول من المعتاد. حاول مرة أخرى.", retry: "حاول مرة أخرى",
+      queued: "سيتم الإرسال بعد اكتمال الإجابة الحالية…", expand: "توسيع إلى عرض كامل", collapse: "الخروج من العرض الكامل"
     }
   };
   var CARD = {
@@ -209,7 +215,7 @@
     var L = langOf(o.lang), T = strings(L), rtl = L === "ar";
     var endpoint = o.endpoint || ORIGIN + "/api/ai/assist";
     var linkBase = o.linkBase || "";
-    var msgs = [], busy = false, ctx = o.context || {};
+    var msgs = [], busy = false, ctx = o.context || {}, queued = "";
     var uid = "ghas" + (++seq);
     var ctxOf = function () { var c = typeof ctx === "function" ? ctx() : ctx; return Object.assign({}, c || {}, { lang: L }); };
     var log = el("div", { class: "ghas-log", role: "log", "aria-live": "polite", "aria-relevant": "additions text", "aria-label": T.conversation, tabindex: "0" });
@@ -218,7 +224,8 @@
     var btn = el("button", { class: "ghas-send", type: "submit", "aria-label": T.send, html: ICON.send });
     var form = el("form", { class: "ghas-form", onsubmit: function (e) { e.preventDefault(); ask(input.value); } }, [input, btn]);
     var head = el("header", { class: "ghas-head" }, [el("span", { class: "ghas-hex", html: HEX }), el("div", { class: "ghas-ttl" }, [el("b", { id: uid + "-t", text: o.title || T.title }), el("small", { text: T.sub })])].concat(o.actions ? [el("div", { class: "ghas-acts" }, o.actions)] : []));
-    var box = el("section", { class: "ghas", dir: rtl ? "rtl" : "ltr", lang: L, "aria-labelledby": uid + "-t" }, [head, log, live, form, el("p", { class: "ghas-foot", text: T.foot })]);
+    var note = el("p", { class: "ghas-note2", role: "status", hidden: true });
+    var box = el("section", { class: "ghas", dir: rtl ? "rtl" : "ltr", lang: L, "aria-labelledby": uid + "-t" }, [head, log, live, note, form, el("p", { class: "ghas-foot", text: T.foot })]);
     input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(input.value); } });
     input.addEventListener("input", function () { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 120) + "px"; });
     host.appendChild(box);
@@ -284,47 +291,67 @@
       };
       log.appendChild(card); scroll();
     }
-    async function ask(text) {
-      text = String(text || "").trim(); if (!text || busy) return;
-      busy = true; btn.disabled = true;
+    /** while an answer is still coming, a new message waits and goes out right after it (never silently dropped) */
+    function ask(text) {
+      text = String(text || "").trim(); if (!text) return;
+      if (busy) { queued = text; note.textContent = T.queued; note.hidden = false; if (input.value.trim() === text) { input.value = ""; input.style.height = ""; } return; }
+      return run(text);
+    }
+    function failed2(msg, retryText) {
+      var b2 = bubble("ai", msg + " ");
+      if (retryText) { var rb = el("button", { class: "ghas-btn ghas-btn--ghost ghas-retry", type: "button", text: T.retry, onclick: function () { if (busy) return; rb.remove(); run(retryText, true); } }); b2.appendChild(rb); }
+    }
+    async function run(text, again) {
+      busy = true; btn.disabled = true; note.hidden = true; note.textContent = "";
       [].forEach.call(log.querySelectorAll(".ghas-chips"), function (c) { c.remove(); });
-      bubble("me", text); msgs.push({ role: "user", content: text }); input.value = ""; input.style.height = "";
+      if (!again) bubble("me", text); msgs.push({ role: "user", content: text }); if (input.value.trim() === text) { input.value = ""; input.style.height = ""; }
       var wait = el("div", { class: "ghas-msg ghas-msg--ai ghas-wait" }, [el("span", { class: "ghas-hex ghas-hex--sm", html: HEX }), el("div", { class: "ghas-bub" }, [el("span", { class: "ghas-typing", role: "img", "aria-label": T.typing }, [el("i"), el("i"), el("i")])])]);
       log.appendChild(wait); scroll();
       var b = null, reply = "", tool = null, ui = 0, failed = false, erred = false;
       var drop = function () { if (wait.parentNode) wait.remove(); if (tool && tool.parentNode) tool.remove(); };
-      var say = function (t) { drop(); bubble("ai", t); };
+      var say = function (t, retry) { drop(); if (retry) failed2(t, text); else bubble("ai", t); };
+      var waitOn = function () { log.appendChild(wait); scroll(); };
+      var ac = root.AbortController ? new AbortController() : null, idle = 0, slow = false;
+      var poke = function () { clearTimeout(idle); idle = setTimeout(function () { slow = true; if (ac) ac.abort(); }, 75000); };
+      poke();
       try {
         var headers = { "content-type": "application/json", accept: "text/event-stream" };
         if (o.auth && o.auth.type === "hosting") headers.authorization = "GH-Hosting " + (await tokenOf(o.auth));
-        var r = await fetch(endpoint, { method: "POST", headers: headers, credentials: o.auth && o.auth.type === "portal" ? "same-origin" : "omit", body: JSON.stringify({ messages: msgs, context: ctxOf() }) });
+        var r = await fetch(endpoint, { method: "POST", signal: ac ? ac.signal : undefined, headers: headers, credentials: o.auth && o.auth.type === "portal" ? "same-origin" : "omit", body: JSON.stringify({ messages: msgs, context: ctxOf() }) });
         if ((r.headers.get("content-type") || "").indexOf("text/event-stream") < 0) {
           var j = await r.json().catch(function () { return {}; });
           failed = true; msgs.pop();
-          say(r.status === 401 || r.status === 403 ? T.expired : j.message && L === "en" ? j.message : r.status === 429 ? T.rate : T.unavailable);
+          say(r.status === 401 || r.status === 403 ? T.expired : j.message && L === "en" ? j.message : r.status === 429 ? T.rate : T.unavailable, r.status !== 401 && r.status !== 403);
           return;
         }
         var rd = r.body.getReader(), dec = new TextDecoder(), buf = "";
         for (;;) {
           var x = await rd.read(); if (x.done) break;
-          buf += dec.decode(x.value, { stream: true }); var parts = buf.split("\n\n"); buf = parts.pop();
+          poke(); buf += dec.decode(x.value, { stream: true }); var parts = buf.split("\n\n"); buf = parts.pop();
           parts.forEach(function (part) {
             var ev = (part.match(/^event: (.*)$/m) || [])[1], data = (part.match(/^data: (.*)$/m) || [])[1]; if (!ev || data == null) return;
             var v; try { v = JSON.parse(data); } catch (e) { return; }
-            if (ev === "text") { if (!b) { drop(); b = bubble("ai", ""); b.setAttribute("aria-busy", "true"); } reply += v.t; b.innerHTML = md(reply, linkBase); scroll(); }
-            else if (ev === "tool") { if (!tool) { tool = el("p", { class: "ghas-tool", text: T.checking }); log.insertBefore(tool, wait.parentNode ? wait : null); live.textContent = T.checking; scroll(); } }
-            else if (ev === "ui") { drop(); if (b) b.removeAttribute("aria-busy"); b = null; ui++; if (v.type === "proposal") proposal(v); else if (v.type === "chips") chips(v.items || []); }
-            else if (ev === "error") { erred = true; if (b) b.removeAttribute("aria-busy"); say(v.message || T.failed); b = null; }
+            if (ev === "text") { if (!v.t) return; if (!b) { drop(); b = bubble("ai", ""); b.setAttribute("aria-busy", "true"); } reply += v.t; b.innerHTML = md(reply, linkBase); scroll(); }
+            else if (ev === "tool") { if (!tool) { tool = el("p", { class: "ghas-tool", text: T.checking }); log.insertBefore(tool, wait.parentNode ? wait : null); live.textContent = T.checking; } b = null; log.appendChild(tool); waitOn(); }
+            else if (ev === "ui") { drop(); if (b) b.removeAttribute("aria-busy"); b = null; ui++; if (v.type === "proposal") proposal(v); else if (v.type === "chips") chips(v.items || []); waitOn(); }
+            else if (ev === "error") { erred = true; if (b) b.removeAttribute("aria-busy"); say(v.message || T.failed, !reply && !ui); b = null; }
           });
         }
-        if (reply || ui) msgs.push({ role: "assistant", content: reply || "(shown a card)" }); else if (erred) { failed = true; msgs.pop(); } else { say(T.empty); msgs.push({ role: "assistant", content: T.empty }); }
-      } catch (e) { failed = true; msgs.pop(); say(root.navigator && root.navigator.onLine === false ? T.offline : T.dropped); }
-      finally { drop(); if (b) b.removeAttribute("aria-busy"); live.textContent = ""; busy = false; btn.disabled = false; if (o.onAnswer) try { o.onAnswer(!failed); } catch (e) { /* ignore */ } }
+        if (reply || ui) msgs.push({ role: "assistant", content: reply || "(shown a card)" }); else if (erred) { failed = true; msgs.pop(); } else { failed = true; msgs.pop(); say(T.noAnswer, true); }
+      } catch (e) {
+        var none = !reply && !ui; failed = true;
+        if (none) msgs.pop(); else msgs.push({ role: "assistant", content: reply || "(shown a card)" });
+        say(slow ? T.slow : root.navigator && root.navigator.onLine === false ? T.offline : T.dropped, none);
+      }
+      finally {
+        clearTimeout(idle); drop(); if (b) b.removeAttribute("aria-busy"); live.textContent = ""; busy = false; btn.disabled = false; if (o.onAnswer) try { o.onAnswer(!failed); } catch (e) { /* ignore */ }
+        if (queued) { var q = queued; queued = ""; note.hidden = true; setTimeout(function () { run(q); }, 0); }
+      }
     }
     return {
       ask: ask,
       setContext: function (c) { ctx = c || {}; },
-      reset: function () { msgs = []; intro(); },
+      reset: function () { msgs = []; queued = ""; note.hidden = true; intro(); },
       focus: function () { input.focus(); },
       destroy: function () { box.remove(); },
       element: box, input: input,
@@ -339,10 +366,19 @@
     var panel = el("div", { class: "ghas-panel", role: "dialog", "aria-modal": "true" });
     var newBtn = el("button", { class: "ghas-ibtn", type: "button", "aria-label": T.newChat, title: T.newChat, html: ICON.reset, onclick: function () { m.reset(); m.focus(); } });
     var closeBtn = el("button", { class: "ghas-ibtn", type: "button", "aria-label": T.close, title: T.close, html: ICON.close, onclick: function () { close(); } });
+    var EXP = "ghas.expand", expanded = false;
+    try { expanded = root.localStorage.getItem(EXP) === "1"; } catch (e) { /* storage blocked */ }
+    var expBtn = el("button", { class: "ghas-ibtn ghas-exp", type: "button", onclick: function () { setExp(!expanded, true); m.focus(); } });
+    function setExp(v, remember) {
+      expanded = !!v; wrap.classList.toggle("is-expanded", expanded);
+      expBtn.innerHTML = expanded ? ICON.collapse : ICON.expand; expBtn.setAttribute("aria-label", expanded ? T.collapse : T.expand); expBtn.title = expanded ? T.collapse : T.expand; expBtn.setAttribute("aria-pressed", String(expanded));
+      if (remember) try { root.localStorage.setItem(EXP, expanded ? "1" : "0"); } catch (e) { /* storage blocked */ }
+      if (isOpen()) { D.documentElement.classList.remove("ghas-lock", "ghas-on"); D.documentElement.classList.add(small() || expanded ? "ghas-lock" : "ghas-on"); }
+    }
     wrap.appendChild(el("div", { class: "ghas-scrim", onclick: function () { close(); } }));
     wrap.appendChild(panel);
     D.body.appendChild(wrap);
-    var m = mount(panel, Object.assign({}, o, { actions: [newBtn, closeBtn] }));
+    var m = mount(panel, Object.assign({}, o, { actions: [newBtn, expBtn, closeBtn] }));
     panel.setAttribute("aria-labelledby", m.element.getAttribute("aria-labelledby"));
     panel.addEventListener("keydown", function (e) {
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); return; }
@@ -353,13 +389,22 @@
       if (e.shiftKey && D.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && D.activeElement === last) { e.preventDefault(); first.focus(); }
     });
     var small = function () { return root.matchMedia && root.matchMedia("(max-width:640px)").matches; };
+    setExp(expanded, false);
+    /* phones: follow the visual viewport so the composer stays above the on-screen keyboard */
+    var vv = root.visualViewport;
+    function fit() {
+      if (!vv || wrap.hidden || !small()) { panel.style.removeProperty("--ghas-vh"); panel.style.removeProperty("--ghas-top"); return; }
+      panel.style.setProperty("--ghas-vh", Math.round(vv.height) + "px"); panel.style.setProperty("--ghas-top", Math.round(vv.offsetTop) + "px");
+    }
+    if (vv) { vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); }
     function isOpen() { return !wrap.hidden && wrap.classList.contains("is-open"); }
     function open(q) {
       clearTimeout(closing);
       if (!isOpen()) {
         lastFocus = D.activeElement;
         wrap.hidden = false; void wrap.offsetWidth; wrap.classList.add("is-open");
-        D.documentElement.classList.add(small() ? "ghas-lock" : "ghas-on");
+        D.documentElement.classList.add(small() || expanded ? "ghas-lock" : "ghas-on");
+        fit();
         if (o.onOpen) o.onOpen();
       }
       setTimeout(function () { m.focus(); }, 30);
@@ -374,7 +419,7 @@
       var back = lastFocus && D.contains(lastFocus) ? lastFocus : null;
       if (back && back.focus) back.focus({ preventScroll: true });
     }
-    return { open: open, close: close, isOpen: isOpen, toggle: function () { if (isOpen()) close(); else open(); }, ask: function (q) { open(q); }, setContext: m.setContext, reset: m.reset, element: wrap, assistant: m,
+    return { open: open, close: close, isOpen: isOpen, expand: function (v) { setExp(v !== false, false); }, toggle: function () { if (isOpen()) close(); else open(); }, ask: function (q) { open(q); }, setContext: m.setContext, reset: m.reset, element: wrap, assistant: m,
       destroy: function () { close(); wrap.remove(); } };
   }
 

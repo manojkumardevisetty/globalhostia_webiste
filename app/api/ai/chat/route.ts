@@ -26,6 +26,7 @@ async function turnstileOk(secret: string, token: unknown, ip: string) {
 }
 
 export async function POST(req: Request) {
+  const started = Date.now();
   if (!sameSite(req)) return json({ error: 'forbidden' }, 403);
   const s = await aiSettings();
   if (!s.surfaces.chat) return offline('disabled');
@@ -85,14 +86,22 @@ export async function POST(req: Request) {
   return sse(async (send) => {
     if (pass) send('meta', { pass });
     const t0 = Date.now();
+    // keep-alive comments while tools run or the model thinks (proxies drop silent streams; the client resets its idle timer)
+    const ping = setInterval(() => send('', null), 10_000);
     let status = 'ok', err = '';
     let r: Awaited<ReturnType<typeof runAgent>> | null = null;
     try {
       r = await runAgent({
-        client, model: s.chatModel, system: await chatSystem(s, dyn), tools: publicTools, messages: history, ctx, maxTokens: s.chat.maxTokens, effort: s.effort, maxIterations: 4, timeoutMs: 40_000, signal: req.signal,
+        client, model: s.chatModel, system: await chatSystem(s, dyn), tools: publicTools, messages: history, ctx, maxTokens: s.chat.maxTokens, effort: s.effort, maxIterations: 4, timeoutMs: 40_000, signal: req.signal, deadline: started + (maxDuration - 8) * 1000,
         onText: (t) => send('text', { t }), onUi: (e) => send('ui', e), onTool: (name) => send('tool', { name }),
       });
-    } catch (e: any) { status = 'error'; err = `${e?.status || ''} ${e?.message || e}`; send('error', { message: 'The assistant hit a problem. Please try again in a moment, or talk to our team.' }); }
+    } catch (e: any) {
+      status = 'error'; err = `${e?.status || ''} ${e?.message || e}`;
+      console.warn('[ai] chat', err.slice(0, 200), `${Date.now() - t0}ms`);
+      const slow = /timed? ?out|abort/i.test(err);
+      send('error', { message: slow ? 'That took longer than it should. Please try again, or talk to our team.' : 'The assistant hit a problem. Please try again in a moment, or talk to our team.' });
+    } finally { clearInterval(ping); }
+    if (r && !r.text && r.stop === 'deadline') send('error', { message: 'That took longer than it should. Please try again, or talk to our team.' });
     await logUsage({ surface: 'chat', model: s.chatModel, subject, status, usage: r?.usage, ms: Date.now() - t0, tools: r?.tools, detail: err }, s);
   });
 }
