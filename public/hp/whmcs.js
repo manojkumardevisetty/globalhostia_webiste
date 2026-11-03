@@ -678,6 +678,29 @@
     };
     setTimeout(run, 4000); setTimeout(run, 9000); setTimeout(run, 15000);
   }
+
+  // WHMCS untranslated keys + "001 - USD" currency label + domain pricing rows on mobile
+  function textFixes() {
+    var tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n, kill = [];
+    while ((n = tw.nextNode())) {
+      var v = n.nodeValue;
+      if (/\bdomainavailable2\b/.test(v)) { n.nodeValue = v.replace(/\s*\bdomainavailable2\b\s*/g, ' '); continue; }
+      if (/^\s*0\d{2}(\s*-\s*[A-Z]{3})?\s*$/.test(v)) {
+        var pe = n.parentElement; if (!pe || pe.getBoundingClientRect().top > 300) continue;
+        var m = v.match(/[A-Z]{3}/); var code = m ? m[0] : ((document.body.innerHTML.match(/\d[\d,.]*\s(USD|AED|EUR|GBP|INR|SAR|CAD|AUD|SGD|MYR)\b/) || [])[1] || '');
+        n.nodeValue = v.replace(/0\d{2}(\s*-\s*[A-Z]{3})?/, code || 'Currency');
+      }
+    }
+  }
+  function tldRows() {
+    var tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n;
+    while ((n = tw.nextNode())) {
+      if (!/New Price/i.test(n.nodeValue)) continue;
+      var el = n.parentElement, guard = 0;
+      while (el && guard++ < 6 && !(/Transfer/i.test(el.textContent) && /Ren/i.test(el.textContent))) el = el.parentElement;
+      if (el && el.children.length >= 3 && el.children.length <= 6 && !el.classList.contains('gh-tldrow')) el.classList.add('gh-tldrow');
+    }
+  }
   function searchBox() {
     document.querySelectorAll('#inputDomain, input[name="domain"][type="text"], input[name="query"][type="text"]').forEach(function (inp) {
       var g = inp.parentNode, n = 0; while (g && n < 3 && !g.querySelector('button, .btn, [type=submit]')) { g = g.parentNode; n++; }
@@ -706,7 +729,7 @@
     });
   }
 
-  ready(function () { try { curLabel(); setTimeout(curLabel, 1500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  ready(function () { try { curLabel(); setTimeout(curLabel, 1500); textFixes(); setTimeout(textFixes, 1500); setTimeout(textFixes, 4000); tldRows(); setTimeout(tldRows, 2500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
 
 // Support alerts: nudge the site to email the owner after a ticket is opened or replied to.

@@ -747,3 +747,10 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
 #frmDomainChecker .input-group > *, .domain-checker-container .input-group > *, .gh-searchbox > * { border-radius: 0 !important; border: 0 !important; margin: 0 !important; }
 #frmDomainChecker .input-group .btn, .domain-checker-container .input-group .btn, .gh-searchbox .btn, .gh-searchbox button { border-radius: 0 !important; }
 @media (max-width: 480px) { .gh-searchbox input { font-size: 16px !important; min-width: 0; } }
+/* 2026-11-03 domain pricing rows on mobile: name on top, then New / Transfer / Renew as three tidy columns */
+@media (max-width: 760px) {
+  .gh-tldrow { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; align-items: start; padding: 14px 4px !important; }
+  .gh-tldrow > * { width: auto !important; max-width: none !important; min-width: 0 !important; float: none !important; padding: 0 !important; text-align: left !important; font-size: 12.5px !important; line-height: 1.4 !important; white-space: normal !important; }
+  .gh-tldrow > :first-child { grid-column: 1 / -1; font-size: 18px !important; font-weight: 800; }
+  .gh-tldrow img { max-width: 28px; height: auto; vertical-align: middle; margin-right: 6px; }
+}
