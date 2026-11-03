@@ -102,5 +102,12 @@ export function dashboardView(o: {
     <div class="ac-promo__a"><a class="hp-btn hp-btn--light ac-sm" href="/vps-hosting">${icon('cloud')}${esc(t('VPS servers'))}</a><a class="hp-btn hp-btn--outline ac-sm" href="/domains-registration">${icon('globe')}${esc(t('Find a domain'))}</a></div>
   </aside>`;
 
-  return { greeting: `${greet}${first ? `, ${first}` : ''}`, summary, alert: overdue.length > 0 || unpaid.length > 0, statsHtml, body: `<div class="ac-grid"><div class="ac-col">${renewals}${products}${promo}</div><div class="ac-col">${inv}${usage}${tix}</div></div>` };
+  // AI connector (lib/connector/promo.ts): manage this account from Claude or ChatGPT
+  const ai = `<aside class="ac-aic" aria-label="${esc(t('Connected apps'))}" data-reveal style="--i:2">
+    <img src="/icon-192.png" alt="" width="40" height="40" loading="lazy">
+    <div><b>${esc(t('Connect GlobalHostia in Claude or ChatGPT to manage your account by chat.'))}</b><a class="ac-more" href="/account/apps">${esc(t('Connected apps'))}${icon('right')}</a></div>
+    <div class="ac-aic__a"><a class="hp-btn hp-btn--brand ac-sm" href="/connectors#claude">${esc(t('Connect {a}', { a: 'Claude' }))}</a><a class="hp-btn hp-btn--ghost ac-sm" href="/connectors#chatgpt">${esc(t('Connect {a}', { a: 'ChatGPT' }))}</a></div>
+  </aside>`;
+
+  return { greeting: `${greet}${first ? `, ${first}` : ''}`, summary, alert: overdue.length > 0 || unpaid.length > 0, statsHtml, body: `<div class="ac-grid"><div class="ac-col">${renewals}${products}${promo}${ai}</div><div class="ac-col">${inv}${usage}${tix}</div></div>` };
 }

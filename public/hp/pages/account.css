@@ -1192,3 +1192,10 @@ html.ghas-lock .ac-page .hp-wa,html.ghas-on .ac-page .hp-wa{display:none}
    (the assistant stays in the account menu and the Ctrl/⌘+K palette) */
 .ac-page:has(.ac-rwbar,.ac-pfbar:not(.is-js),.ac-pfbar.is-on) :is(.ac-ask,.hp-wa){display:none}
 
+/* AI connector card on the dashboard (lib/portal/views/dashboard.ts) */
+.ac-aic{display:flex;align-items:center;gap:14px 16px;flex-wrap:wrap;padding:18px 20px;border:1px solid var(--line);border-radius:var(--r-lg);background:#fff}
+.ac-aic>img{flex:none;width:40px;height:40px}
+.ac-aic>div:not(.ac-aic__a){flex:1 1 240px;min-width:0}
+.ac-aic b{font:700 16px/1.3 var(--head);color:var(--ink)}
+.ac-aic b{display:block}.ac-aic .ac-more{margin-top:4px}
+.ac-aic__a{display:flex;gap:8px;flex-wrap:wrap}

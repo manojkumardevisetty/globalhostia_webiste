@@ -3,13 +3,15 @@
 // so the reference can never drift from what the server does.
 import 'server-only';
 import { esc } from '../render/util';
-import { pageHero, sectionHead, section, faq, faqJsonLd, breadcrumbJsonLd, ctaBand, ld } from '../theme/ui';
+import { pageHero, sectionHead, section, faq, faqJsonLd, breadcrumbJsonLd, ctaBand, ld, icon, hexIcon } from '../theme/ui';
+import { chatDemo } from '../theme/aiconnect';
 import { SCOPES, CLAUDE_CALLBACKS, CHATGPT_CALLBACK, ACCESS_TTL_S, REFRESH_TTL_S, GRANT_TTL_S } from '../oauth/core';
 import { TOOLS } from './tools';
 import type { ConnectorConfig } from './config-core';
 
 export const PAGE_CSS = `<style>.cn-pg ol,.cn-pg ul.hp-prose{list-style:revert;padding-left:1.3em}.cn-pg ol li{margin:.35em 0}
-.cn-pg .hp-prose a{color:#a6225f;text-decoration:underline;text-underline-offset:2px}
+.cn-pg .hp-prose a,.cn-pg .aic-note a,.cn-pg .aic-steps a{color:#a6225f;text-decoration:underline;text-underline-offset:2px}
+.cn-pg .aic-prompts--3{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}.cn-pg .aic-steps code{font-size:.9em;background:#f1f3f6;border-radius:5px;padding:1px 5px}
 .cn-grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
 .cn-card{border:1px solid #e6e9ee;border-radius:14px;padding:22px 22px 10px;background:#fff;min-width:0}.cn-card h3{margin:0 0 10px;font-size:1.15rem}
 .cn-ex{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));list-style:none;padding:0;margin:0}
@@ -28,47 +30,85 @@ const card = (title: string, html: string) => `<div class="cn-card"><h3>${esc(ti
 const pill = (t: string, k = '') => `<span class="cn-pill${k ? ` cn-pill--${k}` : ''}">${esc(t)}</span>`;
 const days = (s: number) => Math.round(s / 86400);
 
+/** Questions every customer asks that the admin FAQ may not cover (cost, plans): added unless a saved question covers them. */
+export const EXTRA_FAQ = [
+  { re: /\b(cost|price|free|pay for the connector)\b/i, q: 'What does the connector cost?', a: 'Nothing. The connector is free for every GlobalHostia customer. You only need a Claude or ChatGPT plan that lets you add connectors or apps; check their help pages for what your plan includes.' },
+  { re: /\b(plan|plans|which (services|products))\b/i, q: 'Which plans and services does it work with?', a: 'Every GlobalHostia customer account: web hosting, VPS and dedicated servers, domains, business email and SSL. Tools only act on the services and domains in the account you sign in with; DNS, mailbox and free SSL tools need the domain to use GlobalHostia nameservers or hosting.' },
+];
+export function connectorFaq(faqItems: { q: string; a: string }[]) {
+  const extra = EXTRA_FAQ.filter((x) => !faqItems.some((f) => x.re.test(f.q))).map(({ q, a }) => ({ q, a }));
+  // cost and plans first: they are the first two things people want to know
+  return [...extra, ...faqItems];
+}
+
+const urlBox = (url: string, label: string) => `<div class="aic-url"><code>${esc(url)}</code><button type="button" class="aic-copy-btn" data-copy="${esc(url)}" aria-label="${esc(`Copy ${label}`)}">${icon('copy')}<span>Copy</span></button></div>`;
+const cap = (ic: string, title: string, text: string) => `<div class="aic-cap" data-reveal>${hexIcon(ic)}<div><h3>${esc(title)}</h3><p>${esc(text)}</p></div></div>`;
+
 export function connectorsBody(cfg: ConnectorConfig, site: string) {
   const crumbs = [{ label: 'Home', href: '/' }, { label: 'AI connectors' }];
   const p = cfg.pages;
   const hero = pageHero({
-    eyebrow: 'Claude and ChatGPT connector', title: p.headline, crumbs, network: false, lead: p.intro,
+    eyebrow: 'Works with Claude and ChatGPT', title: p.headline, crumbs, network: false, lead: p.intro,
     ctas: [{ label: 'Connect in Claude', href: '#claude', variant: 'brand' }, { label: 'Connect in ChatGPT', href: '#chatgpt', variant: 'ghost' }],
+    trust: ['Free for every customer', 'You approve every permission', 'Disconnect at any time'],
+    visualHtml: chatDemo({ tone: 'dark' }),
   });
+  const caps = section(`<div class="hp-container">${sectionHead({ id: 'can-do', title: 'Your hosting account, one message away', lead: 'Claude or ChatGPT reads your account live and makes the change you ask for, so you skip the control panel for everyday jobs.' })}
+    <div class="aic-caps" data-stagger>
+      ${cap('net', 'DNS records', 'List, add and update A, CNAME, MX and TXT records. Deleting or overwriting a record asks for your confirmation first.')}
+      ${cap('mail', 'Business email', 'Create mailboxes, get IMAP and SMTP settings, and find out why mail lands in spam (SPF, DKIM and DMARC).')}
+      ${cap('globe', 'Domains', 'See expiry dates, switch auto-renew on or off, change nameservers and check whether a name is available.')}
+      ${cap('lock', 'SSL certificates', 'Issue a free SSL certificate for a domain on GlobalHostia hosting, with or without www.')}
+      ${cap('card', 'Invoices and renewals', 'See unpaid invoices and what renews next. Renewal links open on globalhostia.com, where you pay yourself.')}
+      ${cap('headset', 'Support tickets', 'Open a ticket with the details already filled in, read replies and answer them from the chat.')}
+    </div></div>`, { labelledby: 'can-do' });
   const examples = section(`<div class="hp-container">${sectionHead({ id: 'examples', title: 'Ask in plain language', lead: 'A few things customers ask their assistant once GlobalHostia is connected.' })}
-    <ul class="cn-ex">${p.examples.map((e) => `<li>${esc(e)}</li>`).join('')}</ul></div>`, { labelledby: 'examples' });
+    <ul class="aic-prompts aic-prompts--3">${p.examples.map((e) => `<li>${icon('chat')}${esc(e)}</li>`).join('')}</ul></div>`, { labelledby: 'examples', tint: true });
   const connect = section(`<div class="hp-container">${sectionHead({ id: 'connect', title: 'Connect in two minutes', lead: 'You sign in on globalhostia.com and choose what the assistant may do. Your password never goes to the assistant.' })}
-    <div class="cn-grid">
-      <div class="cn-card" id="claude"><h3>Claude (web, desktop and mobile)</h3><ol class="hp-prose">
+    <div class="aic-apps">
+      <div class="aic-app" id="claude"><h3>Claude <small>web, desktop and mobile</small></h3><ol class="aic-steps">
         <li>In Claude, open <b>Customize &gt; Connectors</b> and search for <b>GlobalHostia</b>. If it is not listed yet, choose <b>Add custom connector</b> and paste the URL below.</li>
         <li>Choose <b>Connect</b>. A GlobalHostia window opens: sign in with your account email and password.</li>
         <li>Review the permissions, untick anything you do not want, and choose <b>Allow access</b>.</li>
-        <li>In a chat, turn GlobalHostia on from the <b>+</b> menu and ask away.</li></ol>${code(`${site}/mcp`)}</div>
-      <div class="cn-card" id="chatgpt"><h3>ChatGPT</h3><ol class="hp-prose">
-        <li>In ChatGPT, open <b>Apps</b> and search for <b>GlobalHostia</b>, then choose <b>Connect</b>.</li>
+        <li>In a chat, turn GlobalHostia on from the <b>+</b> menu and ask away.</li></ol>
+        <p class="aic-lbl">Connector URL</p>${urlBox(`${site}/mcp`, 'the Claude connector URL')}</div>
+      <div class="aic-app" id="chatgpt"><h3>ChatGPT</h3><ol class="aic-steps">
+        <li>In ChatGPT, open <b>Apps</b>, search for <b>GlobalHostia</b> and choose <b>Connect</b>.</li>
         <li>If it is not listed yet: <b>Settings &gt; Apps &amp; Connectors &gt; Advanced</b>, turn on developer mode, then <b>Create</b> with the URL below and OAuth authentication.</li>
-        <li>Sign in on globalhostia.com and choose <b>Allow access</b>.</li></ol>${code(`${site}/mcp/chatgpt`)}</div>
-      <div class="cn-card"><h3>Claude Code and other MCP apps</h3><p class="hp-prose">Add the server, then in Claude Code run <code>/mcp</code>, pick <b>globalhostia</b> and choose <b>Authenticate</b>. Your browser opens the GlobalHostia sign-in.</p>${code(`claude mcp add --transport http globalhostia ${site}/mcp`)}
-        <p class="hp-prose">Other apps that only sign in when the server asks at connect time: use <code>${esc(site)}/mcp/auth</code> (same tools, sign-in required up front). Details: <a href="/docs/mcp">developer documentation</a>.</p></div>
-    </div></div>`, { labelledby: 'connect', tint: true });
+        <li>Sign in on globalhostia.com, review the permissions and choose <b>Allow access</b>.</li></ol>
+        <p class="aic-lbl">App URL</p>${urlBox(`${site}/mcp/chatgpt`, 'the ChatGPT app URL')}</div>
+      <div class="aic-app aic-app--wide" id="claude-code"><h3>Claude Code <small>and other MCP apps</small></h3><ol class="aic-steps">
+        <li>Add the server with the command below.</li>
+        <li>Run <code>/mcp</code>, pick <b>globalhostia</b> and choose <b>Authenticate</b>. Your browser opens the GlobalHostia sign-in.</li></ol>
+        ${urlBox(`claude mcp add --transport http globalhostia ${site}/mcp`, 'the Claude Code command')}
+        <p class="hp-prose">Apps that only sign in when the server asks at connect time: use the URL below (same tools, sign-in required up front). Details in the <a href="/docs/mcp">developer documentation</a>.</p>${urlBox(`${site}/mcp/auth`, 'the sign-in-first URL')}</div>
+    </div>
+    <p class="aic-note">${icon('info')}<span><b>Two-factor authentication:</b> accounts with 2FA switched on cannot finish the connector sign-in yet. <a href="/contact">Contact support</a> and we will help you connect.</span></p>
+    </div>`, { labelledby: 'connect' });
   const scopeRows = Object.entries(SCOPES).map(([k, s]) => `<tr><td><b>${esc(s.label)}</b><br><small>${esc(s.detail)}</small></td><td>${s.write ? pill('Change', 'w') : pill('See')}</td></tr>`).join('');
   const perms = section(`<div class="hp-container">${sectionHead({ id: 'permissions', title: 'You decide what it can do', lead: 'The consent page lists every permission in plain words. Untick any you do not want; you can reconnect later to add more.' })}
-    <div class="cn-wrap"><table class="cn-tbl"><thead><tr><th>Permission</th><th>Type</th></tr></thead><tbody>${scopeRows}</tbody></table></div></div>`, { labelledby: 'permissions' });
+    <div class="cn-wrap"><table class="cn-tbl"><thead><tr><th>Permission</th><th>Type</th></tr></thead><tbody>${scopeRows}</tbody></table></div></div>`, { labelledby: 'permissions', tint: true });
   const security = section(`<div class="hp-container">${sectionHead({ id: 'security', title: 'Built to keep your account safe' })}
     <div class="cn-grid">
       ${card('Never payments or passwords', '<p class="hp-prose">Assistants cannot pay, place orders, see card details or service passwords, change your password or delete your account. Renewal and order links open on globalhostia.com, where you review and pay yourself.</p>')}
       ${card('Confirm before anything risky', '<p class="hp-prose">Claude and ChatGPT ask before every change. Deleting DNS records or mailboxes, overwriting a record and changing nameservers also need your explicit confirmation of the exact change.</p>')}
       ${card('Only your account, only what you allowed', `<p class="hp-prose">Every request is checked against the account you signed in with and the permissions you approved. Access tokens last one hour and are stored only as one-way hashes; a connection ends after ${days(GRANT_TTL_S)} days at the latest.</p>`)}
       ${card('Every change recorded, disconnect anytime', '<p class="hp-prose">Each change made through a connector is recorded with the app and time. Disconnect in <a href="/account/apps">your account under Connected apps</a>, and access ends immediately. See our <a href="/privacy-policy">privacy policy</a>.</p>')}
-    </div></div>`, { labelledby: 'security', tint: true });
-  const qs = p.faq;
-  const faqHtml = section(`<div class="hp-container">${sectionHead({ id: 'cn-faq', title: 'Questions', align: 'left' })}${faq(qs, { id: 'cn-faq-list', single: true })}</div>`, { labelledby: 'cn-faq' });
+    </div></div>`, { labelledby: 'security' });
+  const qs = connectorFaq(p.faq);
+  const faqHtml = section(`<div class="hp-container">${sectionHead({ id: 'cn-faq', title: 'Questions', align: 'left' })}${faq(qs, { id: 'cn-faq-list', single: true })}</div>`, { labelledby: 'cn-faq', tint: true });
   const cta = ctaBand({ title: 'Need a hand connecting?', text: `Our team is available around the clock. Email ${p.supportEmail} or open a ticket.`, primary: { label: 'Contact support', href: '/contact' }, secondary: { label: 'Developer documentation', href: '/docs/mcp' } });
   const webApi = ld({ '@context': 'https://schema.org', '@type': 'WebAPI', name: 'GlobalHostia account connector (MCP)', description: p.intro, url: `${site}/connectors`,
     documentation: `${site}/docs/mcp`, termsOfService: `${site}/terms-conditions`, provider: { '@id': `${site}/#organization` }, potentialAction: { '@type': 'ConsumeAction', target: `${site}/mcp` } });
+  const app = ld({ '@context': 'https://schema.org', '@type': 'SoftwareApplication', '@id': `${site}/connectors#app`, name: 'GlobalHostia connector for Claude and ChatGPT',
+    applicationCategory: 'BusinessApplication', operatingSystem: 'Web', url: `${site}/connectors`, description: p.intro,
+    featureList: ['DNS records', 'Business email mailboxes', 'Domain renewals, auto-renew and nameservers', 'Free SSL certificates', 'Invoices and renewal links', 'Support tickets', 'Site and email health checks'],
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free for every GlobalHostia customer' }, publisher: { '@id': `${site}/#organization` } });
+  const webPage = ld({ '@context': 'https://schema.org', '@type': 'WebPage', '@id': `${site}/connectors#webpage`, url: `${site}/connectors`, name: p.headline, description: p.intro,
+    isPartOf: { '@id': `${site}/#website` }, about: { '@id': `${site}/connectors#app` }, inLanguage: 'en' });
   return {
-    crumbs, jsonLd: [breadcrumbJsonLd(crumbs.map((c) => ({ ...c, href: c.href || '/connectors' })), site), faqJsonLd(qs), webApi],
-    body: [PAGE_CSS, '<div class="cn-pg">', hero, examples, connect, perms, security, faqHtml, cta, '</div>'].join('\n'),
+    crumbs, jsonLd: [breadcrumbJsonLd(crumbs.map((c) => ({ ...c, href: c.href || '/connectors' })), site), webPage, app, faqJsonLd(qs), webApi],
+    body: [PAGE_CSS, '<div class="cn-pg">', hero, caps, examples, connect, perms, security, faqHtml, cta, '</div>'].join('\n'),
   };
 }
 

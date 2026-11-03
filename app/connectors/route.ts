@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
   const html = await page({
     ctx: { slug: 'connectors', path: '/connectors', preview: false, query: req.nextUrl.searchParams, route }, catalog: cat, path: '/connectors',
     title: 'Claude & ChatGPT Connector for Your Hosting Account', description: route.description, ogKicker: 'AI connectors', jsonLd: b.jsonLd, body: b.body,
+    css: ['aic'], js: ['aic'],
   });
   return new NextResponse(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cdnCache() } });
 }

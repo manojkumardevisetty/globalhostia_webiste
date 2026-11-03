@@ -97,6 +97,7 @@ export async function buildLlms(full: boolean) {
   L.push(`- [MCP server](${S}/api/mcp): public, read-only Model Context Protocol endpoint (Streamable HTTP, no auth). Tools: recommend_plan, search_products, get_product, compare_plans, list_categories, check_domain, build_cart_link, get_policies, ask. Discovery: ${S}/.well-known/mcp.json`);
   if (full) L.push(...agentEndpoints(S));
   L.push(`- [How to connect your AI assistant](${S}/ai)`);
+  L.push(`- [Account connector for Claude and ChatGPT](${S}/connectors): customers sign in with OAuth and manage their own services, domains, DNS, email, SSL, invoices and tickets (MCP: ${S}/mcp, ChatGPT: ${S}/mcp/chatgpt). Free for every customer. [Setup and tool reference](${S}/docs/mcp)`);
   L.push(`- [Catalog API](${S}/api/catalog): JSON of every category and product with specs and prices per billing cycle (?currency=USD&category=&q=)`);
   L.push(`- [TLD prices API](${S}/api/catalog/tlds): register, transfer and renewal prices`);
   L.push(`- [Domain availability](${S}/api/domain-check?domain=example.com): live check with price and add-to-cart link`);
