@@ -310,12 +310,22 @@ export async function POST(req: NextRequest, ctx: Ctx) {
         dest = fixed[to] || null;
       }
       if (!dest) return fail();
-      const url = await api.createSso(cid, dest);
+      // WHMCS refuses some named destinations (e.g. domain_dns when DNS management is off for that domain): fall back to the page path
+      const FALLBACK: Record<string, string> = {
+        service: `clientarea.php?action=productdetails&id=${id}`, domain: `clientarea.php?action=domaindetails&id=${id}`,
+        domain_dns: `clientarea.php?action=domaindns&domainid=${id}`, domain_contacts: `clientarea.php?action=domaincontacts&domainid=${id}`,
+        home: 'clientarea.php', invoices: 'clientarea.php?action=invoices',
+      };
+      const url = await api.createSso(cid, dest).catch(async (e) => {
+        console.error('[sso] ' + to + ' failed: ' + (e instanceof Error ? e.message : String(e)));
+        if (!FALLBACK[to]) throw e;
+        return api.createSso(cid, { destination: 'sso:custom_redirect', path: FALLBACK[to] });
+      });
       await auditClient('client_sso', sess.email, ip, { to, id });
       const r = NextResponse.redirect(url, 303);
       r.headers.set('cache-control', 'private, no-store');
       return setFlag(r, true);
-    } catch { return fail(); }
+    } catch (e) { console.error('[sso] ' + to + ' gave up: ' + (e instanceof Error ? e.message : String(e))); return fail(); }
   }
 
   /* ---- nameservers ---- */
