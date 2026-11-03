@@ -12,6 +12,8 @@ export interface ServerConfig {
   id: string; name: string; panel: PanelType; url: string; apiUser: string; secret: string; enabled: boolean;
   /** WHMCS server IDs (tblservers.id / GetClientsProducts serverid) and host names / IPs this entry serves. */
   whmcsServerIds: number[]; match: string[];
+  /** Nameserver host names served by this server (besides ns1/ns2.globalhostia.com); used by the portal DNS editor. */
+  nameservers?: string[];
 }
 
 export interface Account { username: string; domain: string; server: ServerConfig }
@@ -83,6 +85,8 @@ export interface HostingProvider {
     password(db: string, user: string, pass: string): Promise<void>;
   };
   ssl?: { issue(domain: string, withWww: boolean): Promise<string> };
+  /** Add / remove a domain (and so its DNS zone) on this account. Used only for the DNS-only account (lib/portal/dns.ts). */
+  zones?: { create(domain: string): Promise<void>; remove(domain: string): Promise<void> };
   usage?(): Promise<Usage>;
   /** Optional per-account probe: caps to drop or add for features the server may not have (e.g. a WordPress manager). */
   detect?(): Promise<Caps>;

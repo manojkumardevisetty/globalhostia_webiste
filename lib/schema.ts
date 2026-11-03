@@ -336,3 +336,17 @@ export const brokerRequests = pgTable('broker_requests', {
   updatedAt: now('updated_at'),
 }, (t) => [index('broker_status_idx').on(t.status, t.createdAt)]);
 export type BrokerRequest = typeof brokerRequests.$inferSelect;
+
+// Portal DNS editor: zones we created on the DNS-only DirectAdmin account for domain-only customers
+// (lib/portal/dns.ts). Only `client_id` may edit the zone; admin can remove it (Admin → Hosting panels).
+// Created by db-setup patch '021-dns-zones'.
+export const dnsZones = pgTable('dns_zones', {
+  id: id(),
+  domain: text('domain').notNull().unique(),
+  whmcsDomainId: integer('whmcs_domain_id'),
+  clientId: integer('client_id').notNull(),
+  serverId: text('server_id').notNull(),
+  daUser: text('da_user').notNull(),
+  createdAt: now('created_at'),
+}, (t) => [index('dns_zones_client_idx').on(t.clientId)]);
+export type DnsZone = typeof dnsZones.$inferSelect;

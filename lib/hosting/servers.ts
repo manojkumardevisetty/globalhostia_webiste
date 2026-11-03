@@ -9,6 +9,7 @@ import { PANEL_TYPES, type PanelType, type ServerConfig } from './types';
 
 export const SERVERS_KEY = 'hosting_servers';
 export const HMAC_KEY = 'hosting_hmac_secret';
+export const DNS_ONLY_KEY = 'hosting_dns_only';
 
 /** What is stored: the sealed secret instead of the secret. */
 export interface StoredServer extends Omit<ServerConfig, 'secret'> { secretEnc: string; updatedAt?: string }
@@ -35,7 +36,8 @@ function envServer(): ServerConfig | null {
   const { DA_URL, DA_USER, DA_LOGIN_KEY } = process.env;
   if (!DA_URL || !DA_USER || !DA_LOGIN_KEY) return null;
   return { id: 'env', name: 'DirectAdmin (env)', panel: 'directadmin', url: normUrl(DA_URL), apiUser: DA_USER, secret: DA_LOGIN_KEY, enabled: true,
-    whmcsServerIds: (process.env.DA_WHMCS_SERVER_IDS || '').split(',').map(Number).filter((n) => n > 0), match: [new URL(DA_URL).hostname] };
+    whmcsServerIds: (process.env.DA_WHMCS_SERVER_IDS || '').split(',').map(Number).filter((n) => n > 0), match: [new URL(DA_URL).hostname],
+    nameservers: (process.env.DA_NAMESERVERS || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean) };
 }
 
 export async function storedServers(): Promise<StoredServer[]> {
@@ -67,7 +69,7 @@ export async function saveServer(input: Omit<ServerConfig, 'secret'> & { secret?
   if (!input.secret && !prev?.secretEnc) throw new Error('Enter the login key / API token');
   const row: StoredServer = {
     id: input.id, name: input.name, panel: input.panel as PanelType, url: normUrl(input.url), apiUser: input.apiUser, enabled: input.enabled,
-    whmcsServerIds: input.whmcsServerIds, match: input.match,
+    whmcsServerIds: input.whmcsServerIds, match: input.match, nameservers: input.nameservers || [],
     secretEnc: input.secret ? seal(input.secret) : prev!.secretEnc, updatedAt: new Date().toISOString(),
   };
   if (i >= 0) list[i] = row; else list.push(row);
@@ -91,5 +93,15 @@ export async function hmacSecret(): Promise<string | null> {
 }
 export const hmacFromEnv = () => !!process.env.HOSTING_HMAC_SECRET;
 export async function setHmacSecret(secret: string) { await writeKey(HMAC_KEY, secret ? seal(secret) : ''); }
+
+/* ---------------- DNS-only account (portal DNS editor for domain-only customers) ---------------- */
+/** A DirectAdmin user (owned by the server's key owner) that holds zones for domains without hosting. */
+export interface DnsOnlyConfig { serverId: string; daUser: string; allowCreate: boolean }
+export async function dnsOnlyConfig(): Promise<DnsOnlyConfig | null> {
+  const v = await readKey<Partial<DnsOnlyConfig>>(DNS_ONLY_KEY).catch(() => undefined);
+  if (!v || typeof v !== 'object' || !v.serverId || !v.daUser) return null;
+  return { serverId: String(v.serverId), daUser: String(v.daUser), allowCreate: v.allowCreate !== false };
+}
+export async function saveDnsOnlyConfig(c: DnsOnlyConfig | null) { await writeKey(DNS_ONLY_KEY, c || {}); }
 
 export { serverFor } from './match';

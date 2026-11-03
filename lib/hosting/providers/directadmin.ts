@@ -389,6 +389,14 @@ export function directAdmin(acct: Account): HostingProvider {
     remove: async (path) => { await post('CMD_API_FILE_MANAGER', { action: 'protect', path, name: 'Protected' }); },
   };
 
+  // DNS-only account (portal DNS editor): adding the domain creates its zone with the server's default records.
+  // Documented legacy form: action=create, domain, ubandwidth/uquota=unlimited, ssl/cgi/php=ON|OFF. Delete: delete,
+  // confirmed, select0. Both use CMD_API_DOMAIN, already on the key's command list (PHP selector).
+  P.zones = {
+    create: async (domain) => { await post('CMD_API_DOMAIN', { action: 'create', domain, ubandwidth: 'unlimited', uquota: 'unlimited', ssl: 'OFF', cgi: 'OFF', php: 'OFF' }); },
+    remove: async (domain) => { await post('CMD_API_DOMAIN', { delete: 'yes', confirmed: 'yes', select0: domain }); },
+  };
+
   P.wordpress = { list: async () => { const j = await jsonApi(s, u, '/api/wordpress/locations'); const a = Array.isArray(j) ? j : j?.locations || j?.data || []; if (a[0]) console.log('[hosting] wp keys', JSON.stringify(Object.keys(a[0])), a[0]?.wordpress ? JSON.stringify(Object.keys(a[0].wordpress)) : ''); return parseWpSites(j); } };
 
   return P;

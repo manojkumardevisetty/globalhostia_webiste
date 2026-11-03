@@ -424,6 +424,13 @@ try {
       await tx`update settings set value = jsonb_set(case when jsonb_typeof(value) = 'object' then value else '{}'::jsonb end, '{seen}',
         (select coalesce(jsonb_agg(slug order by slug), '[]'::jsonb) from categories)) where key = 'site_links'`;
     },
+    // 21. Portal DNS editor: zones created on the DNS-only DirectAdmin account, owned by one WHMCS client each.
+    '021-dns-zones': async (tx) => {
+      await tx`create table if not exists dns_zones (
+        id text primary key, domain text not null unique, whmcs_domain_id integer, client_id integer not null,
+        server_id text not null, da_user text not null, created_at timestamptz not null default now())`;
+      await tx`create index if not exists dns_zones_client_idx on dns_zones (client_id)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

@@ -798,6 +798,16 @@
       legal.map(function (a) { return '<a href="' + esc(a.getAttribute('href')) + '">' + esc(a.textContent.trim()) + '</a>'; }).join('') + '</span></div>';
     sec.style.display = 'none'; sec.parentNode.insertBefore(d, sec);
   }
+  // white-label the control-panel login button: "Log in to DirectAdmin/cPanel/Plesk" -> "Open advanced console"
+  function consoleBtn() {
+    [].forEach.call(document.querySelectorAll('input[type=submit], input[type=button], button, a.btn'), function (b) {
+      var t = (b.value || b.textContent || '').trim();
+      if (!/^log ?in to (directadmin|cpanel|plesk|webmail)$/i.test(t) || b.dataset.ghc2) return;
+      b.dataset.ghc2 = 1; var label = /webmail/i.test(t) ? 'Open webmail' : 'Open advanced console';
+      if (b.tagName === 'INPUT') b.value = label; else b.textContent = label;
+      b.classList.add('gh-console-btn'); b.title = 'Full hosting control panel for advanced settings';
+    });
+  }
   // Gravatar avatars: our logo as the default instead of Gravatar's blue icon; a "Change photo" link in the account menu
   function avatars() {
     var def = encodeURIComponent('https://globalhostia.com/icon-192.png');
@@ -864,7 +874,7 @@
     });
   }
 
-  ready(function () { try { footerCredit(); footerCompact(); } catch (e) {} try { avatars(); setTimeout(avatars, 1200); } catch (e) {} try { curLabel(); setTimeout(curLabel, 1500); textFixes(); setTimeout(textFixes, 1500); setTimeout(textFixes, 4000); tldRows(); setTimeout(tldRows, 2500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { compactHero(); setTimeout(compactHero, 800); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  ready(function () { try { footerCredit(); footerCompact(); consoleBtn(); setTimeout(consoleBtn, 1500); } catch (e) {} try { avatars(); setTimeout(avatars, 1200); } catch (e) {} try { curLabel(); setTimeout(curLabel, 1500); textFixes(); setTimeout(textFixes, 1500); setTimeout(textFixes, 4000); tldRows(); setTimeout(tldRows, 2500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { compactHero(); setTimeout(compactHero, 800); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
 
 // Support alerts: nudge the site to email the owner after a ticket is opened or replied to.
@@ -1040,7 +1050,7 @@
     api('session').then(function (s) {
       S.session = s;
       S.domain = s.domains.indexOf(s.domain) >= 0 ? s.domain : s.domains[0] || '';
-      $('[data-sub]').innerHTML = esc(s.domain || s.username) + ' <span aria-hidden="true">·</span> ' + esc(s.panelLabel) + (s.server ? ' <span aria-hidden="true">·</span> ' + esc(s.server) : '');
+      $('[data-sub]').innerHTML = esc(s.domain || s.username) + (s.server ? ' <span aria-hidden="true">·</span> ' + esc(s.server) : '');
       var sel = $('[data-domsel]');
       [].forEach.call(document.querySelectorAll('.ghh .nice-select'), function (n) { n.remove(); });
       sel.innerHTML = s.domains.map(function (d) { return '<option' + (d === S.domain ? ' selected' : '') + '>' + esc(d) + '</option>'; }).join('');

@@ -1167,3 +1167,6 @@ button.ghh-fname { cursor: pointer; } button.ghh-fname:hover { color: var(--gh-b
 .ghh-dd__list li[aria-selected="true"] { font-weight: 700; color: #a6225f; }
 .ghh-dd__list li[aria-selected="true"]::before { content: ""; position: absolute; left: 11px; top: 50%; width: 10px; height: 11px; margin-top: -5.5px; background: linear-gradient(135deg,#c5386f,#e0517f,#fdd700); clip-path: polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); }
 @media (max-width: 640px) { .ghh-dd { min-width: 0; width: 100%; } .ghh-dd__list { left: 0; right: 0; } }
+/* advanced console button (white-labelled panel login) */
+.gh-console-btn { background: #fff !important; background-image: none !important; color: var(--gh-ink, #16212b) !important; border: 1.5px solid var(--gh-line, #e3e7ec) !important; border-radius: 12px !important; padding: 12px 22px !important; font: 600 15px Inter, sans-serif !important; box-shadow: none !important; transition: border-color .15s, color .15s; }
+.gh-console-btn:hover { border-color: var(--gh-brand, #c5386f) !important; color: var(--gh-brand, #c5386f) !important; }
