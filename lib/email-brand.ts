@@ -15,7 +15,7 @@
 // - Only standard WHMCS merge fields in bodies. Ticket subjects keep "[Ticket ID: {$ticket_id}]"
 //   so email piping still matches replies to tickets.
 
-export const EMAIL_DESIGN_VERSION = 'gh-email v1';
+export const EMAIL_DESIGN_VERSION = 'gh-email v2-mono';
 
 export const BRAND = {
   name: 'GlobalHostia',
@@ -27,7 +27,7 @@ export const BRAND = {
   phone: '+971 50 734 1578',
   whatsapp: 'https://wa.me/971507341578',
   logoOnDark: 'https://globalhostia.com/email/logo-on-dark@2x.png',
-  logoOnLight: 'https://globalhostia.com/image/logo-main-black.png',
+  logoOnLight: 'https://globalhostia.com/email/logo-tile@2x.png',
 } as const;
 
 const CA = BRAND.clientArea;
@@ -45,12 +45,13 @@ export const LINKS = {
 };
 
 // Theme tokens from public/hp/theme.css ("Hostpen Modern").
+// v2: clean monochrome. Black/grey on white, no accent colours, so every client (and every dark-mode inversion) stays readable.
 const C = {
-  ink: '#23313d', deep: '#16212b', deep2: '#1c2a36', brand: '#c5386f', brandD: '#a6225f', brandL: '#e14c7f', gold: '#fdd700',
-  tint: '#f6f7f9', line: '#e6e9ee', line2: '#d5dae1', muted: '#5a6774', white: '#ffffff', ok: '#16a34a', wa: '#1f9d55',
+  ink: '#222222', deep: '#111111', deep2: '#1a1a1a', brand: '#111111', brandD: '#111111', brandL: '#555555', gold: '#111111',
+  tint: '#f5f5f5', line: '#e5e5e5', line2: '#d4d4d4', muted: '#666666', white: '#ffffff', ok: '#111111', wa: '#111111',
 };
-// Dark palette (checked for >= 4.5:1 body-text contrast).
-const D = { page: '#0b1116', head: '#0f171e', card: '#16212b', panel: '#1c2a36', line: '#2b3a47', text: '#e9edf1', mute: '#a9b4bf', link: '#f27ea8', faint: '#8794a1' };
+// Dark palette (mono, >= 4.5:1 contrast).
+const D = { page: '#111111', head: '#111111', card: '#1a1a1a', panel: '#222222', line: '#333333', text: '#eeeeee', mute: '#b3b3b3', link: '#ffffff', faint: '#9a9a9a' };
 
 const FONT_HEAD = `Manrope,'Segoe UI',Roboto,Helvetica,Arial,sans-serif`;
 const FONT_BODY = `Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif`;
@@ -69,11 +70,15 @@ const DARK_RULES: Rule[] = [
   ['.gh-panel, .gh-panel td', `background-color:${D.panel} !important; border-color:${D.line} !important;`],
   ['.gh-quote', `background-color:${D.panel} !important; border-color:${C.brandL} !important;`],
   ['.gh-hr', `border-color:${D.line} !important;`],
-  ['.gh-code', `background-color:${D.head} !important; color:${C.gold} !important; border-color:${D.line} !important;`],
+  ['.gh-code', `background-color:${D.head} !important; color:${D.text} !important; border-color:${D.line} !important;`],
+  ['.gh-btn td', `background-color:#ffffff !important; border-color:#ffffff !important;`],
+  ['.gh-btn a, .gh-btn span', `color:#111111 !important;`],
+  ['.gh-badge', `background-color:${D.panel} !important; color:${D.text} !important;`],
+  ['.gh-head', `border-color:${D.line} !important;`],
   ['.gh-btn-ghost td', `border-color:${D.line} !important; background-color:transparent !important;`],
   ['.gh-btn-ghost a', `color:${D.text} !important;`],
   ['.gh-foot, .gh-foot p, .gh-foot td', `color:${D.faint} !important;`],
-  ['.gh-foot a', `color:#c9d2da !important;`],
+  ['.gh-foot a', `color:#dddddd !important;`],
   ['.gh-help-title', `color:#ffffff !important;`],
 ];
 
@@ -109,7 +114,7 @@ a[x-apple-data-detectors], #MessageViewBody a { color: inherit !important; text-
 .gh-panel { background-color: ${C.tint}; border: 1px solid ${C.line}; border-radius: 12px; margin: 0 0 20px; }
 .gh-k { color: ${C.muted}; font-size: 14px; padding: 7px 12px 7px 0; vertical-align: top; white-space: nowrap; }
 .gh-v { color: ${C.deep}; font-size: 15px; font-weight: 600; padding: 7px 0; vertical-align: top; word-break: break-word; }
-.gh-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; background-color: ${C.gold}; color: ${C.deep}; font-size: 12px; font-weight: 700; }
+.gh-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; background-color: #eeeeee; color: ${C.deep}; font-size: 12px; font-weight: 700; }
 /* Legacy / editor classes so older template bodies inherit the brand */
 .gh-content a.button, .gh-content a.btn, .gh-content a.btn-primary { display: inline-block; padding: 12px 22px; background-color: ${C.brand}; color: #ffffff !important; border-radius: 8px; text-decoration: none; }
 #templateContainer, #templateBody, .bodyContent { background-color: transparent; border: 0; width: 100%; }
@@ -173,13 +178,12 @@ export function globalHeader(): string {
 <tr><td align="center" class="gh-outer" style="padding:28px 12px;">
 <!--[if mso]><table role="presentation" align="center" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
 <table role="presentation" align="center" width="100%" cellpadding="0" cellspacing="0" border="0" class="gh-wrap" style="width:100%;max-width:600px;margin:0 auto;">
-<tr><td class="gh-head" bgcolor="${C.deep}" style="background-color:${C.deep};padding:22px 32px;border-radius:14px 14px 0 0;">
+<tr><td class="gh-head" bgcolor="#ffffff" style="background-color:#ffffff;padding:22px 32px;border-radius:14px 14px 0 0;border-bottom:1px solid ${C.line};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td align="left" valign="middle"><a href="${BRAND.site}" target="_blank" style="text-decoration:none;"><img class="gh-logo" src="${BRAND.logoOnDark}" width="176" alt="${BRAND.name}" style="display:block;width:176px;max-width:176px;height:auto;border:0;color:#ffffff;font:700 20px ${FONT_HEAD};"></a></td>
-<td align="right" valign="middle" style="font-family:${FONT_BODY};font-size:13px;line-height:1;"><a href="${LINKS.clientArea}" target="_blank" style="color:${C.gold};font-weight:600;text-decoration:none;white-space:nowrap;">Client area &rarr;</a></td>
+<td align="left" valign="middle"><a href="${BRAND.site}" target="_blank" style="text-decoration:none;"><img class="gh-logo gh-logo-l" src="${BRAND.logoOnLight}" width="176" alt="${BRAND.name}" style="display:block;width:176px;max-width:176px;height:auto;border:0;color:#ffffff;font:700 20px ${FONT_HEAD};"></a></td>
+<td align="right" valign="middle" style="font-family:${FONT_BODY};font-size:13px;line-height:1;"><a href="${LINKS.clientArea}" target="_blank" class="gh-link" style="color:${C.deep};font-weight:600;text-decoration:none;white-space:nowrap;">Client area &rarr;</a></td>
 </tr></table>
 </td></tr>
-<tr><td height="4" bgcolor="${C.brand}" style="background-color:${C.brand};height:4px;line-height:4px;font-size:0;mso-line-height-rule:exactly;">&nbsp;</td></tr>
 <tr><td class="gh-card gh-content gh-pad" bgcolor="#ffffff" style="background-color:#ffffff;padding:36px 40px 12px;font-family:${FONT_BODY};font-size:16px;line-height:1.6;color:${C.ink};">
 `;
 }
@@ -187,17 +191,23 @@ export function globalHeader(): string {
 export function globalFooter(): string {
   return `
 </td></tr>
-<tr><td class="gh-card gh-help" bgcolor="#ffffff" style="background-color:#ffffff;padding:0 40px 34px;border-radius:0 0 14px 14px;">
+<tr><td class="gh-card gh-help" bgcolor="#ffffff" style="background-color:#ffffff;padding:0 40px 26px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="gh-panel" style="background-color:${C.tint};border:1px solid ${C.line};border-radius:12px;">
 <tr><td style="padding:18px 20px;font-family:${FONT_BODY};">
 <p class="gh-help-title" style="margin:0 0 4px;font-family:${FONT_HEAD};font-size:16px;font-weight:700;color:${C.deep};">Need a hand? We're here 24/7.</p>
 <p class="gh-muted" style="margin:0 0 14px;font-size:14px;line-height:1.5;color:${C.muted};">Real engineers, not bots. Message us on WhatsApp or open a ticket and we'll reply fast.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td class="gh-stack gh-stack-gap" valign="top" style="padding:0 8px 0 0;">${button(BRAND.whatsapp, 'Chat on WhatsApp', 'wa')}</td>
-<td class="gh-stack" valign="top" style="padding:0;">${button(LINKS.ticket, 'Open a support ticket', 'ghost')}</td>
+<td class="gh-stack gh-stack-gap" valign="top" style="padding:0 8px 0 0;">${button(BRAND.whatsapp, 'WhatsApp us', 'wa')}</td>
+<td class="gh-stack" valign="top" style="padding:0;">${button(LINKS.ticket, 'Open a ticket', 'ghost')}</td>
 <td class="gh-stack" width="99%" style="font-size:0;line-height:0;">&nbsp;</td>
 </tr></table>
 </td></tr></table>
+</td></tr>
+<tr><td class="gh-card" bgcolor="#ffffff" style="background-color:#ffffff;padding:0 40px 30px;border-radius:0 0 14px 14px;">
+<p class="gh-help-title" style="margin:0 0 10px;font-family:${FONT_HEAD};font-size:15px;font-weight:700;color:${C.deep};">Everything for your business online</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+${[['Domains', 'Find your name', LINKS.domainsSite], ['Web hosting', 'Fast, secure, 24/7', LINKS.hosting], ['Business email', 'you@yourbrand.com', `${BRAND.site}/google-workspace`], ['VPS & servers', 'Full control', LINKS.vps]].map(([t, d, u]) => `<td class="gh-stack" width="25%" valign="top" style="padding:0 8px 10px 0;font-family:${FONT_BODY};"><a href="${u}" target="_blank" class="gh-link" style="color:${C.deep};font-weight:700;font-size:14px;text-decoration:none;">${t} &rarr;</a><br><span class="gh-muted" style="font-size:12.5px;color:${C.muted};">${d}</span></td>`).join('')}
+</tr></table>
 </td></tr>
 <tr><td class="gh-foot" align="center" style="padding:26px 32px 34px;font-family:${FONT_BODY};font-size:12.5px;line-height:1.7;color:${C.muted};text-align:center;">
 <p style="margin:0 0 10px;">
