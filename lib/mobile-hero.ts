@@ -51,7 +51,7 @@ export const DEFAULT_SLIDES: HeroSlide[] = [
     headline: 'Get a .com for only {price:.com}/1st yr', fallback: 'Find the perfect .com for your business', offerTld: '.com',
     ctaLabel: 'Claim your .com', ctaHref: '/domains-registration',
     finePrint: '.com renews at {renew:.com}/yr.',
-    media: 'gradient', gradient: 'raspberry', art: 'cube', imageUrl: '', videoUrl: '', posterUrl: '', scrim: 30, start: '', end: '',
+    media: 'image', gradient: 'raspberry', art: 'none', imageUrl: '/hp/img/hero-domains.jpg', videoUrl: '', posterUrl: '', scrim: 55, start: '', end: '',
   },
   {
     id: 'hosting', enabled: true,
@@ -65,7 +65,7 @@ export const DEFAULT_SLIDES: HeroSlide[] = [
     headline: 'Business email from {from:email}', fallback: 'Business email on your own domain', offerTld: '',
     ctaLabel: 'Get business email', ctaHref: '/google-workspace',
     finePrint: 'Professional mailboxes or Google Workspace, set up for you.',
-    media: 'gradient', gradient: 'midnight', art: 'mail', imageUrl: '', videoUrl: '', posterUrl: '', scrim: 30, start: '', end: '',
+    media: 'image', gradient: 'midnight', art: 'none', imageUrl: '/hp/img/email-office.jpg', videoUrl: '', posterUrl: '', scrim: 55, start: '', end: '',
   },
 ];
 
