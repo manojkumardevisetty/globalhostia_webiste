@@ -57,9 +57,12 @@ export async function haikuGate(client: AnthropicLike, s: AiSettings, text: stri
 export async function gate(s: AiSettings, surface: string, subject: string, history: Msg[]): Promise<Canned | null> {
   const text = history[history.length - 1].content;
   const prev = [...history].reverse().find((m) => m.role === 'assistant')?.content || '';
-  const st = strikeState(await strikes(subject), Date.now(), { perWindow: s.gate.perWindow, windowMs: s.gate.windowMin * 60_000, cooldownMs: s.gate.cooldownMin * 60_000, dailyMax: s.gate.dailyBlock });
-  if (st.state !== 'ok') { await logUsage({ surface, subject, status: 'blocked', detail: st.state }, s); return canned(text, 'blocked'); }
   const v = prefilter(text, { hasContext: !!prev, extraOff: s.gate.extraOff, extraOn: s.gate.extraOn });
+  // A clear business question (hosting/domain words or a domain name) always gets through, even during an off-topic
+  // cooldown: the cooldown exists to stop credit burn on unrelated chat, not to lock out a real customer.
+  const clearlyOurs = v.kind === 'on' && v.reason !== 'follow-up';
+  const st = strikeState(await strikes(subject), Date.now(), { perWindow: s.gate.perWindow, windowMs: s.gate.windowMin * 60_000, cooldownMs: s.gate.cooldownMin * 60_000, dailyMax: s.gate.dailyBlock });
+  if (st.state !== 'ok' && !clearlyOurs) { await logUsage({ surface, subject, status: 'blocked', detail: st.state }, s); return canned(text, 'blocked'); }
   if (v.kind === 'greeting') { await logUsage({ surface, subject, status: 'greeting' }, s); return canned(text, 'greeting', 'greeting'); }
   if (v.kind === 'on') return null;
   if (v.kind === 'ambiguous' && s.gate.haiku) {
