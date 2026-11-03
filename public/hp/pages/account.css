@@ -773,7 +773,8 @@ details.ac-rwg>summary .ac-rwg__sum{margin-left:auto}
 }
 @media (max-width:960px){
   .ac-tabbar{grid-template-columns:repeat(6,1fr)}
-  .ac-rwbar{bottom:calc(70px + env(safe-area-inset-bottom))}
+  .ac-rwbar{bottom:calc(70px + env(safe-area-inset-bottom));grid-template-columns:minmax(0,1fr)}
+  .ac-rwbar__a{justify-content:flex-start}
 }
 @media (max-width:640px){
   .ac-rwg .ac-card__head{flex-wrap:wrap;padding:12px 16px;gap:6px 12px;min-height:0}
@@ -1181,9 +1182,13 @@ html.ghas-lock .ac-ask,html.ghas-on .ac-ask{display:none}
 .ac-page:not(.ac-page--guest) .hp-wa{left:auto;right:auto;inset-inline-end:20px;bottom:20px;width:52px;padding:0;justify-content:center}
 .ac-page:not(.ac-page--guest) .hp-wa__lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 .ac-page:has(.ac-ask:not([hidden])) .hp-wa{bottom:84px}
+@media (min-width:961px){ .ac-page:has(.ac-ask:not([hidden])) .hp-footer{padding-bottom:88px} }
 @media (max-width:960px){
   .ac-page:not(.ac-page--guest) .hp-wa{inset-inline-end:14px;bottom:calc(76px + env(safe-area-inset-bottom));width:48px;min-width:48px;min-height:48px}
   .ac-page:has(.ac-ask:not([hidden])) .hp-wa{bottom:calc(134px + env(safe-area-inset-bottom))}
 }
 html.ghas-lock .ac-page .hp-wa,html.ghas-on .ac-page .hp-wa{display:none}
+/* a sticky selection bar (renewals, domain bulk actions) owns the bottom of the screen: the floating buttons step aside
+   (the assistant stays in the account menu and the Ctrl/⌘+K palette) */
+.ac-page:has(.ac-rwbar,.ac-pfbar:not(.is-js),.ac-pfbar.is-on) :is(.ac-ask,.hp-wa){display:none}
 
