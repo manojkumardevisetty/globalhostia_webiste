@@ -742,3 +742,8 @@ form[action*="addfunds"] .nice-select { float: none !important; width: 100% !imp
   #primaryLookupResult .alert, #primaryIndividualResult { padding: 18px !important; }
   #domainBundle.domain-bundle-card { padding: 18px !important; }
 }
+/* 2026-11-03: domain search box — one rounded pill, no white corners behind the button */
+#frmDomainChecker .input-group, #frmDomainChecker .input-group-box, .domain-checker-container .input-group, .gh-searchbox { border-radius: 16px !important; overflow: hidden !important; background: #fff !important; box-shadow: 0 18px 40px -22px rgba(0,0,0,.6); }
+#frmDomainChecker .input-group > *, .domain-checker-container .input-group > *, .gh-searchbox > * { border-radius: 0 !important; border: 0 !important; margin: 0 !important; }
+#frmDomainChecker .input-group .btn, .domain-checker-container .input-group .btn, .gh-searchbox .btn, .gh-searchbox button { border-radius: 0 !important; }
+@media (max-width: 480px) { .gh-searchbox input { font-size: 16px !important; min-width: 0; } }

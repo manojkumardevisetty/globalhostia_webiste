@@ -656,6 +656,13 @@
     };
     setTimeout(run, 4000); setTimeout(run, 9000); setTimeout(run, 15000);
   }
+  function searchBox() {
+    document.querySelectorAll('#inputDomain, input[name="domain"][type="text"], input[name="query"][type="text"]').forEach(function (inp) {
+      var g = inp.parentNode, n = 0; while (g && n < 3 && !g.querySelector('button, .btn, [type=submit]')) { g = g.parentNode; n++; }
+      if (!g || g.tagName === 'FORM' && g.querySelectorAll('input[type=text]').length > 1) return;
+      if (g.querySelectorAll('button, .btn, [type=submit]').length > 2) return; g.classList.add('gh-searchbox');
+    });
+  }
   function bundleGlass() {
     var run = function () { document.querySelectorAll('#domainBundle, .domain-bundle-card').forEach(function (card) {
       card.querySelectorAll('*').forEach(function (el) {
@@ -677,7 +684,7 @@
     });
   }
 
-  ready(function () { try { curLabel(); setTimeout(curLabel, 1500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
+  ready(function () { try { curLabel(); setTimeout(curLabel, 1500); } catch (e) {} try { bundleGlass(); } catch (e) {} try { searchBox(); } catch (e) {} try { if (document.querySelector('.spotlight-tld')) spotTaken(); } catch (e) {} try { if (document.querySelector('#DomainSearchResults, #primaryLookupResult, .domain-checker-container')) brokerCta(); } catch (e) {} try { cartIcons(); } catch (e) {} try { cartOffers(); } catch (e) {} try { connectLinks(); } catch (e) {} try { setTimeout(clientFixes, 600); setTimeout(clientFixes, 2000); } catch (e) {} try { whatsapp(); } catch (e) {} try { promos(); } catch (e) {} try { domainPage(); } catch (e) {} try { suggestPager(); } catch (e) {} try { compare(); } catch (e) {} try { storeMega(); } catch (e) {} try { domainStep(); } catch (e) {} try { configure(); } catch (e) {} try { cartView(); } catch (e) {} try { checkout(); } catch (e) {} try { homepage(); } catch (e) {} try { blogHub(); } catch (e) {} try { groupedNav(); } catch (e) {} try { promo(); } catch (e) {} try { catBanner(); } catch (e) {} try { enhanceListing(); } catch (e) {} });
 })();
 
 // Support alerts: nudge the site to email the owner after a ticket is opened or replied to.
