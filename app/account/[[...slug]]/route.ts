@@ -35,6 +35,7 @@ import { parseSubscription, parseCategories, PUSH_CATEGORIES } from '@/lib/porta
 import { paletteItems, forgetPalette } from '@/lib/portal/palette';
 import { dnsRecord, InputError } from '@/lib/hosting/validate';
 import { PanelError } from '@/lib/hosting/types';
+import { scrubMessage } from '@/lib/ux/errors';
 import { loadServers } from '@/lib/hosting/servers';
 import { serverFor } from '@/lib/hosting/match';
 
@@ -737,7 +738,9 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     try { plan = (await resolveZone(cid, d, ns)).plan; } catch { return again(t('We could not reach the DNS server right now. Please try again.'), 'zone', 503); }
     const fail = (e: unknown, scope: NonNullable<DnsView['err']>['scope'], rid?: string, f?: DnsForm) => {
       const msg = e instanceof InputError || e instanceof DnsError ? e.message
-        : e instanceof PanelError ? (e.status === 400 ? t('The DNS server refused the change: {m}', { m: e.message }) : e.message)
+        : e instanceof PanelError ? (e.status === 504 || e.status === 408 ? t('The DNS server took too long to answer. Please try again in a moment.')
+          : e.status >= 500 && e.status !== 501 ? t('We could not reach the DNS server right now. Please try again.')
+          : t('The DNS server refused the change: {m}', { m: scrubMessage(e.message) || t('check the values and try again') }))
         : t('That change could not be saved. Please try again.');
       if (!(e instanceof InputError)) console.error('[portal-dns]', op, zone, e instanceof Error ? e.message : e);
       return again(msg, scope, e instanceof InputError ? 422 : 502, rid, f);
@@ -778,7 +781,7 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       try { r = dnsRecord(input(form), zone); } catch (e) { return fail(e, 'add', undefined, form); }
       try { await p.dns.add(zone, r); } catch (e) { await audit('add.failed', { record: r, ...via }); return fail(e, 'add', undefined, form); }
       await audit('add', { record: r, ...via });
-      return go(req, `${back}?ok=dns_added#dns`);
+      return go(req, `${back}?ok=dns_added&hl=${encodeURIComponent(`${r.type}:${r.name}`)}#dns`);
     }
     if (op === 'edit' || op === 'delete') {
       const rid = str('id', 2000);
@@ -798,7 +801,7 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       try { r = dnsRecord(input(f), zone); } catch (e) { return fail(e, 'edit', rid, f); }
       try { await p.dns.edit(zone, old, r); } catch (e) { await audit('edit.failed', { old: oldInfo, record: r, ...via }); return fail(e, 'edit', rid, f); }
       await audit('edit', { old: oldInfo, record: r, ...via });
-      return go(req, `${back}?ok=dns_updated#dns`);
+      return go(req, `${back}?ok=dns_updated&hl=${encodeURIComponent(`${r.type}:${r.name}`)}#dns`);
     }
     if (op === 'template') {
       const key = str('template', 20) as TemplateKey;

@@ -5,7 +5,7 @@
 import { page } from '../../theme/shell';
 import { breadcrumbs } from '../../theme/ui';
 import type { PageCtx } from '../../theme/index';
-import { esc, icon, initials, t, type Nav } from './kit';
+import { esc, icon, initials, okMark, errMark, t, type Nav } from './kit';
 import { clientStrings, isRtl, lang } from '../i18n';
 
 export type Viewer = { name: string; email: string; clientId: number; csrf: string };
@@ -107,8 +107,12 @@ export async function frame(o: {
   crumbs?: { label: string; href?: string }[]; headAction?: string; heroExtra?: string;
 }) {
   const v = o.viewer;
-  const f = FLASH()[o.query.get('ok') || o.query.get('err') || ''];
-  const flash = f ? `<div class="ac-flash ac-flash--${f[1]}" role="${f[1] === 'ok' ? 'status' : 'alert'}">${icon(f[1] === 'ok' ? 'check' : 'alert')}<span>${esc(f[0])}</span></div>` : '';
+  const fk = o.query.get('ok') || o.query.get('err') || '';
+  const f = FLASH()[fk];
+  // failures that a retry may not fix get a way to reach a person; a stale form gets a fresh page
+  const help = f?.[1] === 'err' && ['sso', 'failed', 'autorenew_failed', 'push_bad', 'push_unavailable'].includes(fk)
+    ? ` <a class="ac-flash__a" href="/account/support/new">${esc(t('Contact support'))}</a>` : f?.[1] === 'err' && fk === 'csrf' ? ` <a class="ac-flash__a" href="${esc(o.path)}">${esc(t('Reload the page'))}</a>` : '';
+  const flash = f ? `<div class="ac-flash ac-flash--${f[1]}" role="${f[1] === 'ok' ? 'status' : 'alert'}" data-flash="${esc(fk)}">${f[1] === 'ok' ? okMark() : errMark()}<span>${esc(f[0])}${help}</span></div>` : '';
   const crumbs: { label: string; href?: string }[] = [{ label: t('Home'), href: '/' }];
   if (o.active === 'dashboard' && !o.crumbs?.length) crumbs.push({ label: t('My account') });
   else crumbs.push({ label: t('My account'), href: '/account' }, ...(o.crumbs?.length ? o.crumbs : [{ label: o.title }]));

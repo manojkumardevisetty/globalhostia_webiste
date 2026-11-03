@@ -472,16 +472,52 @@
   W.addEventListener("appinstalled", installedUi);
   if (iosSheet) iosSheet.addEventListener("click", function (e) { if (e.target === iosSheet) iosSheet.close(); });
 
+  /* ------------------------------------------------------------ after a change: point at what changed
+     DNS add/edit (?hl=TYPE:name), bulk domain actions (data-fx-done ids), auto-renew switches (#rw-d-<id>). The
+     one-off query keys are then dropped from the address bar so a reload does not replay the message. */
+  (function () {
+    var q; try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    var hit = [];
+    var hl = q.get("hl");
+    if (hl && hl.indexOf(":") > 0) {
+      var ty = hl.slice(0, hl.indexOf(":")).toUpperCase(), nm = hl.slice(hl.indexOf(":") + 1).toLowerCase();
+      [].slice.call(D.querySelectorAll('.ac-dns__rec[data-rt="' + ty.replace(/[^A-Z]/g, "") + '"]')).forEach(function (r) {
+        var rn = r.getAttribute("data-rn") || "";
+        if (rn === nm || rn === nm.replace(/\.$/, "") || rn.split(".")[0] === nm) hit.push(r);
+      });
+    }
+    var res = D.querySelector("[data-fx-done]");
+    if (res) (res.getAttribute("data-fx-done") || "").split(" ").filter(Boolean).forEach(function (id) { var r = D.querySelector('[data-pf-row][data-id="' + id.replace(/\D/g, "") + '"]'); if (r) hit.push(r); });
+    var ok = q.get("ok") || "";
+    if (/^autorenew_(on|off)$/.test(ok) && /^#rw-[ds]-\d+$/.test(location.hash)) {
+      var li = D.getElementById(location.hash.slice(1));
+      if (li) { hit.push(li); var sw = li.querySelector(".ac-switch"); if (sw) sw.classList.add("is-just"); }
+    }
+    hit.slice(0, 50).forEach(function (r) { r.classList.add("ac-hl"); setTimeout(function () { r.classList.remove("ac-hl"); }, 2800); });
+    if (hit[0] && hit[0].scrollIntoView && !location.hash) hit[0].scrollIntoView({ block: "center" });
+    var drop = ["ok", "err", "hl"].filter(function (k) { return q.has(k); });
+    if (drop.length && W.history && history.replaceState) {
+      drop.forEach(function (k) { q.delete(k); });
+      var s = q.toString();
+      try { history.replaceState(history.state, "", location.pathname + (s ? "?" + s : "") + location.hash); } catch (e) { /* ignore */ }
+    }
+  })();
+
   /* ------------------------------------------------------------ web push */
   var pb = D.querySelector("[data-ac-push]");
   if (pb) {
     var key = pb.getAttribute("data-key"), stEl = pb.querySelector("[data-ac-push-state]"), tg = pb.querySelector("[data-ac-push-toggle]"), msg = pb.querySelector("[data-ac-push-msg]"), dot = pb.querySelector("[data-ac-push-dot]");
-    var say = function (t) { if (!msg) return; msg.textContent = t || ""; msg.hidden = !t; };
+    var say = function (t) { if (!msg) return; msg.textContent = t || ""; msg.hidden = !t; if (t) msg.setAttribute("role", "alert"); };
+    var oops = function () { return navigator.onLine === false ? L("You seem to be offline. Check your connection and try again.") : L("Something went wrong. Please try again."); };
     var supported = "serviceWorker" in navigator && "PushManager" in W && "Notification" in W && !!key;
     var post = function (fields) {
       var fd = new FormData(); fd.append("csrf", csrf());
       for (var k in fields) fd.append(k, fields[k]);
-      return fetch("/account/settings", { method: "POST", body: fd, credentials: "same-origin", headers: { "x-ac-fetch": "1", accept: "application/json" } }).then(function (r) { return r.json(); });
+      return fetch("/account/settings", { method: "POST", body: fd, credentials: "same-origin", headers: { "x-ac-fetch": "1", accept: "application/json" } }).then(function (r) {
+        // a stale form (403 csrf) or an expired session: a fresh page fixes it, so reload instead of a dead end
+        if (r.status === 403 || r.status === 401) { W.location.reload(); throw new Error("reload"); }
+        return r.json();
+      });
     };
     var b64 = function (s) { var p = "=".repeat((4 - (s.length % 4)) % 4), raw = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")), out = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; };
     var current = null;
@@ -511,7 +547,7 @@
         if (current && Notification.permission === "granted") {
           var ep = current.endpoint;
           current.unsubscribe().catch(function () { return true; }).then(function () { return post({ op: "push_unsubscribe", endpoint: ep }); })
-            .then(function () { W.location.href = "/account/settings?ok=push_off"; }).catch(function () { say(L("Something went wrong. Please try again.")); done(); });
+            .then(function () { W.location.href = "/account/settings?ok=push_off"; }).catch(function () { say(oops()); done(); });
           return;
         }
         Notification.requestPermission().then(function (perm) {
@@ -519,7 +555,7 @@
           return navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(key) }); })
             .then(function (sub) { return post({ op: "push_subscribe", sub: JSON.stringify(sub) }).then(function (j) { if (!j.ok) throw new Error(j.key); }); })
             .then(function () { W.location.href = "/account/settings?ok=push_on"; });
-        }).catch(function () { say(L("Something went wrong. Please try again.")); done(); });
+        }).catch(function () { say(oops()); done(); });
       });
     }
   }

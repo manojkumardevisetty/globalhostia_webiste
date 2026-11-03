@@ -5,7 +5,7 @@
 // still work (server-side filtering, confirmation page for nameserver changes).
 import { RENEW_WINDOW, daysBadge, renewAllDomainsButton } from './renewals';
 import { dnsSection, type DnsView } from './dns';
-import { card, daysUntil, dl, empty, esc, fmtDate, icon, money, pill, ssoButton, btn, fieldErr, invalid, t } from './kit';
+import { card, daysUntil, dl, empty, esc, fmtDate, icon, money, pill, ssoButton, btn, fieldErr, invalid, okMark, t } from './kit';
 import { tn } from '../i18n';
 import {
   expiryTone, filterQuery, isFiltered, matches, sortRows, summarize, toRows, eligible, BULK_MAX,
@@ -47,7 +47,7 @@ function bulkPanel(r: BulkResult, rows: PortfolioRow[]) {
     r.skipped.length ? `<li>${icon('info')}<span><b>${esc(tn(r.skipped.length, '{n} already set', '{n} already set'))}:</b> ${list(r.skipped)}</span></li>` : '',
     ...r.failed.map((f) => `<li class="is-bad">${icon('alert')}<span><b class="ac-mono">${esc(name(f.id))}</b>: ${esc(reasonText(f.reason))}</span></li>`),
   ].join('');
-  return `<div class="ac-alert ac-alert--${tone} ac-pf__res" role="${tone === 'ok' ? 'status' : 'alert'}"><div><b>${esc(actionLabel(r.action))}</b><ul>${lines}</ul></div></div>`;
+  return `<div class="ac-alert ac-alert--${tone} ac-pf__res" role="${tone === 'ok' ? 'status' : 'alert'}" data-fx-done="${r.done.join(' ')}">${tone === 'ok' ? okMark() : ''}<div><b>${esc(actionLabel(r.action))}</b><ul>${lines}</ul></div></div>`;
 }
 
 function rowHtml(r: PortfolioRow, o: { csrf: string; cur: string; invoices?: Map<number, number>; ns?: Map<number, string[] | null>; nsKind?: Map<number, NsKind>; f: Filter }) {

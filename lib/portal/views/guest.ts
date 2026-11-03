@@ -1,6 +1,6 @@
 // Signed-out views (sign in, password reset) in the theme's auth split layout (same as /sign-in).
 import { breadcrumbs, hexIcon } from '../../theme/ui';
-import { esc, icon, t } from './kit';
+import { esc, icon, okMark, errMark, t } from './kit';
 import { lang } from '../i18n';
 
 export type LoginState = { email?: string; error?: 'invalid' | 'locked' | 'down' | 'tfa' | 'noclient' | 'origin'; next?: string; secureUrl: string; reset?: boolean; signedOut?: boolean };
@@ -15,13 +15,15 @@ const ERR = (): Record<NonNullable<LoginState['error']>, string> => ({
 });
 
 /** Email + password form posting to /account/login. Shared by /account/login and the theme's /sign-in page. */
-export function signInForm(o: { email?: string; next?: string; autofocusPw?: boolean } = {}) {
+export function signInForm(o: { email?: string; next?: string; autofocusPw?: boolean; invalid?: boolean } = {}) {
+  // wrong email/password: both fields are marked invalid and point at the message above the form
+  const bad = o.invalid ? ' aria-invalid="true" aria-describedby="au-err"' : '';
   return `<form class="au-form" method="post" action="/account/login" novalidate data-ac-busy>
       ${o.next ? `<input type="hidden" name="next" value="${esc(o.next)}">` : ''}
       <label class="au-label" for="au-email">${esc(t('Email address'))}</label>
-      <div class="au-field">${icon('mail')}<input class="hp-input" id="au-email" name="email" type="email" autocomplete="username" inputmode="email" spellcheck="false" required placeholder="you@company.com" value="${esc(o.email || '')}"></div>
+      <div class="au-field">${icon('mail')}<input class="hp-input" id="au-email" name="email" type="email" autocomplete="username" inputmode="email" spellcheck="false" required placeholder="you@company.com" value="${esc(o.email || '')}"${bad}></div>
       <div class="ac-lrow"><label class="au-label" for="au-pass">${esc(t('Password'))}</label><a href="/account/forgot">${esc(t('Forgot password?'))}</a></div>
-      <div class="au-field ac-pw">${icon('lock')}<input class="hp-input" id="au-pass" name="password" type="password" autocomplete="current-password" required${o.autofocusPw ? ' autofocus' : ''}>
+      <div class="au-field ac-pw">${icon('lock')}<input class="hp-input" id="au-pass" name="password" type="password" autocomplete="current-password" required${o.autofocusPw ? ' autofocus' : ''}${bad}>
         <button type="button" class="ac-pw__t" data-ac-pw aria-label="${esc(t('Show password'))}" data-show="${esc(t('Show password'))}" data-hide="${esc(t('Hide password'))}" aria-pressed="false">${icon('eye')}</button></div>
       <button class="hp-btn hp-btn--brand hp-btn--block hp-btn--lg" type="submit">${esc(t('Sign in'))}</button>
     </form>`;
@@ -75,15 +77,15 @@ const SIGNIN_ITEMS = (): [string, string, string][] => [
 
 export function loginView(s: LoginState) {
   const tfa = s.error === 'tfa';
-  const alert = s.error && !tfa ? `<div class="ac-alert ac-alert--err" role="alert">${icon('alert')}<span>${esc(ERR()[s.error])}</span></div>`
+  const alert = s.error && !tfa ? `<div class="ac-alert ac-alert--err" role="alert" id="au-err">${errMark()}<span>${esc(ERR()[s.error])}</span></div>`
     : tfa ? `<div class="ac-alert ac-alert--info" role="alert">${icon('lock')}<span>${t('Your account uses two-step verification. <a href="{u}">Continue on our secure sign-in page</a> to enter your code.', { u: esc(s.secureUrl) })}</span></div>`
-    : s.signedOut ? `<div class="ac-alert ac-alert--ok" role="status">${icon('check')}<span>${esc(t('You have signed out.'))}</span></div>` : '';
+    : s.signedOut ? `<div class="ac-alert ac-alert--ok" role="status">${okMark()}<span>${esc(t('You have signed out.'))}</span></div>` : '';
   return split({
     path: '/account/login', crumb: t('Sign in'), statement: t('Everything you host, in one place.'), lead: t('Manage services, pay invoices and talk to our engineers from your account.'), items: SIGNIN_ITEMS(),
     card: `<h1 class="au-h1" id="au-h1">${esc(t('Sign in'))}</h1>
       <p class="au-sub">${esc(t('Use the email address and password on your Globalhostia account.'))}</p>
       ${alert ? `<div class="ac-gap">${alert}</div>` : ''}
-      ${signInForm({ email: s.email, next: s.next, autofocusPw: !!s.email && !!s.error })}
+      ${signInForm({ email: s.email, next: s.next, autofocusPw: !!s.email && !!s.error, invalid: s.error === 'invalid' || s.error === 'noclient' })}
       <div class="au-links"><a href="/account/forgot">${esc(t('Forgot your password?'))}</a><a href="/sign-up">${esc(t('Create an account'))}</a></div>
       <p class="au-secure">${icon('lock')}<span>${t('You stay signed in for up to 8 hours on this device. Use <b>Sign out</b> in the account menu on shared computers.')}</span></p>`,
   });
@@ -92,15 +94,15 @@ export function loginView(s: LoginState) {
 export function forgotView(s: { email?: string; sent?: boolean; error?: 'origin' | 'invalid' }) {
   const card = s.sent
     ? `<h1 class="au-h1" id="au-h1">${esc(t('Check your email'))}</h1>
-      <div class="ac-gap"><div class="ac-alert ac-alert--ok" role="status">${icon('check')}<span>${t('If <b>{e}</b> is on an account, we have sent a link to reset your password. It can take a few minutes. Check your spam folder too.', { e: esc(s.email || t('that address')) })}</span></div></div>
+      <div class="ac-gap"><div class="ac-alert ac-alert--ok ac-alert--fx" role="status">${okMark()}<span>${t('If <b>{e}</b> is on an account, we have sent a link to reset your password. It can take a few minutes. Check your spam folder too.', { e: esc(s.email || t('that address')) })}</span></div></div>
       <a class="hp-btn hp-btn--brand hp-btn--block hp-btn--lg" href="/account/login">${esc(t('Back to sign in'))}</a>
       <div class="au-links"><a href="/account/forgot">${esc(t('Send another link'))}</a><a href="/help-center">${esc(t('Contact support'))}</a></div>`
     : `<h1 class="au-h1" id="au-h1">${esc(t('Reset your password'))}</h1>
       <p class="au-sub">${esc(t("Enter the email address on your account and we'll send you a link to choose a new password."))}</p>
-      ${s.error ? `<div class="ac-gap"><div class="ac-alert ac-alert--err" role="alert">${icon('alert')}<span>${esc(s.error === 'invalid' ? t('Enter a valid email address.') : t('Your form expired. Please try again.'))}</span></div></div>` : ''}
+      ${s.error ? `<div class="ac-gap"><div class="ac-alert ac-alert--err" role="alert" id="au-err">${errMark()}<span>${esc(s.error === 'invalid' ? t('Enter a valid email address.') : t('Your form expired. Please try again.'))}</span></div></div>` : ''}
       <form class="au-form" method="post" action="/account/forgot" novalidate data-ac-busy>
         <label class="au-label" for="au-email">${esc(t('Email address'))}</label>
-        <div class="au-field">${icon('mail')}<input class="hp-input" id="au-email" name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" required placeholder="you@company.com" value="${esc(s.email || '')}"></div>
+        <div class="au-field">${icon('mail')}<input class="hp-input" id="au-email" name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" required placeholder="you@company.com" value="${esc(s.email || '')}"${s.error === 'invalid' ? ' aria-invalid="true" aria-describedby="au-err" autofocus' : ''}></div>
         <button class="hp-btn hp-btn--brand hp-btn--block hp-btn--lg" type="submit">${icon('key')}${esc(t('Send reset link'))}</button>
       </form>
       <div class="au-links"><a href="/account/login">${esc(t('Back to sign in'))}</a><a href="/help-center">${esc(t('Contact support'))}</a></div>`;

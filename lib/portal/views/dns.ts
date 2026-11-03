@@ -4,7 +4,7 @@
 import type { DnsRecord } from '../../hosting/types';
 import { TEMPLATES, dnsHostName, type ZonePlan } from '../../hosting/dns-plan';
 import type { DnsState } from '../dns';
-import { card, esc, hexIcon, icon, t } from './kit';
+import { card, esc, hexIcon, icon, okMark, t } from './kit';
 import { tn } from '../i18n';
 
 export const DNS_OK: Record<string, string> = {
@@ -50,7 +50,7 @@ const nameCell = (n: string, zone: string) => n === '@'
   : `<span class="ac-dns__n"><b>${esc(n)}</b><small>.${esc(zone)}</small></span>`;
 const hidden = (k: string, v: string) => `<input type="hidden" name="${k}" value="${esc(v)}">`;
 const alert = (tone: 'ok' | 'err' | 'warn' | 'info', text: string, ic = tone === 'ok' ? 'check' : tone === 'info' ? 'info' : 'alert') =>
-  `<div class="ac-alert ac-alert--${tone}" role="${tone === 'ok' || tone === 'info' ? 'status' : 'alert'}">${icon(ic)}<span>${text}</span></div>`;
+  `<div class="ac-alert ac-alert--${tone}" role="${tone === 'ok' || tone === 'info' ? 'status' : 'alert'}">${tone === 'ok' ? okMark() : icon(ic)}<span>${text}</span></div>`;
 
 function ttlSelect(id: string, val?: string | number) {
   const v = Number(val) || 3600;
@@ -101,7 +101,7 @@ function recordRows(o: DnsView, zone: string, recs: DnsRecord[]) {
     const del = r.readonly ? '' : `<tr class="ac-dns__panel ac-dns__panel--del" id="del-${k}"${delOpen ? '' : ' hidden'}><td colspan="6">
       ${formOpen(o, 'delete', hidden('id', r.id) + hidden('confirm', 'yes'))}<p>${icon('alert')}<span>${t('Delete the <b>{t}</b> record for <b class="ac-mono">{n}</b>? Services using it stop resolving once caches expire.', { t: esc(r.type), n: esc(r.name === '@' ? zone : `${r.name}.${zone}`) })}</span></p>
         <div class="ac-dns__btns"><button class="hp-btn hp-btn--danger ac-sm" type="submit">${esc(t('Delete record'))}</button><a class="hp-btn hp-btn--ghost ac-sm" href="#rec-${k}" data-dns-close="del-${k}">${esc(t('Keep it'))}</a></div></form></td></tr>`;
-    return `<tr class="ac-dns__rec${r.readonly ? ' is-ro' : ''}" id="rec-${k}" data-rt="${esc(r.type)}">
+    return `<tr class="ac-dns__rec${r.readonly ? ' is-ro' : ''}" id="rec-${k}" data-rt="${esc(r.type)}" data-rn="${esc(String(r.name).toLowerCase())}">
       <td data-l="${esc(t('Type'))}">${typePill(r.type)}</td>
       <th scope="row" data-l="${esc(t('Name'))}">${nameCell(r.name, zone)}</th>
       <td data-l="${esc(t('Value'))}" class="ac-dns__v"><span class="ac-mono" title="${esc(val)}">${esc(val)}</span>${srvMeta}${r.type === 'TXT' && val.length > 40 ? `<button type="button" class="ac-copy" data-copy="${esc(val)}" aria-label="${esc(t('Copy value'))}">${icon('copy')}<span>${esc(t('Copy'))}</span></button>` : ''}</td>

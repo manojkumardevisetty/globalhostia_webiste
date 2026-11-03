@@ -108,6 +108,14 @@ export const CLIENT_KEYS = [
   'Install GlobalHostia', 'Installed', 'Invoice #{n}', 'Due {d}', 'Expires {d}', 'Copied', 'Copy',
   'Turn notifications on', 'Turn notifications off', 'Change nameservers for {n} domains?', 'Ticket #{n}',
   'On iPhone and iPad, install the app first (Share → Add to Home Screen), then turn notifications on from the app.', 'Tickets',
+  // feedback kit (public/hp/fx.js reads these from the page's dictionary; English copy mirrors lib/ux/errors.ts)
+  'You seem to be offline. Check your connection and try again.', 'This is taking longer than usual. Please try again in a moment.',
+  'Too many attempts in a short time. Please wait a minute, then try again.', 'Your session expired. Reload the page and sign in again to continue.',
+  'This action is not allowed from this page. Reload the page and try again.', 'Please check the highlighted fields and try again.',
+  'We could not find what you were looking for. It may have been moved or removed.',
+  'This service is busy right now. Your websites and email keep running. Please try again in a few minutes.',
+  'Something went wrong on our side. Please try again in a minute.', 'Try again', 'Close',
+  'Still stuck? Message us on WhatsApp', 'Still stuck? Contact our team',
 ] as const;
 
 export function clientStrings(): Record<string, string> {
@@ -154,6 +162,20 @@ export const AR: Record<string, ArEntry> = {
   'Test notification sent.': 'تم إرسال إشعار تجريبي.', 'No device received the test. Turn notifications on for this device first.': 'لم يستلم أي جهاز الإشعار التجريبي. فعّل الإشعارات على هذا الجهاز أولًا.',
   'Something went wrong. Please try again.': 'حدث خطأ ما. يُرجى المحاولة مرة أخرى.', 'Notifications are not available yet. Please check back soon.': 'الإشعارات غير متاحة بعد. يُرجى المحاولة لاحقًا.',
   'Notifications are on for this device.': 'الإشعارات مفعّلة على هذا الجهاز.', 'Notifications are off for this device.': 'الإشعارات متوقفة على هذا الجهاز.', 'Saved.': 'تم الحفظ.',
+  // ---- feedback kit (fx.js), flash help links, DNS server errors
+  'You seem to be offline. Check your connection and try again.': 'يبدو أنك غير متصل بالإنترنت. تحقّق من اتصالك ثم حاول مرة أخرى.',
+  'This is taking longer than usual. Please try again in a moment.': 'يستغرق هذا وقتًا أطول من المعتاد. يُرجى المحاولة مرة أخرى بعد قليل.',
+  'Too many attempts in a short time. Please wait a minute, then try again.': 'محاولات كثيرة خلال وقت قصير. يُرجى الانتظار دقيقة ثم المحاولة مرة أخرى.',
+  'Your session expired. Reload the page and sign in again to continue.': 'انتهت جلستك. أعد تحميل الصفحة وسجّل الدخول مرة أخرى للمتابعة.',
+  'This action is not allowed from this page. Reload the page and try again.': 'هذا الإجراء غير مسموح من هذه الصفحة. أعد تحميل الصفحة ثم حاول مرة أخرى.',
+  'Please check the highlighted fields and try again.': 'يُرجى مراجعة الحقول المحددة ثم المحاولة مرة أخرى.',
+  'We could not find what you were looking for. It may have been moved or removed.': 'تعذّر العثور على ما تبحث عنه. ربما تم نقله أو إزالته.',
+  'This service is busy right now. Your websites and email keep running. Please try again in a few minutes.': 'هذه الخدمة مشغولة الآن. مواقعك وبريدك يعملان كالمعتاد. يُرجى المحاولة مرة أخرى بعد بضع دقائق.',
+  'Something went wrong on our side. Please try again in a minute.': 'حدث خطأ من جهتنا. يُرجى المحاولة مرة أخرى بعد دقيقة.',
+  'Still stuck? Message us on WhatsApp': 'ما زالت المشكلة قائمة؟ راسلنا عبر واتساب', 'Still stuck? Contact our team': 'ما زالت المشكلة قائمة؟ تواصل مع فريقنا',
+  'Reload the page': 'أعد تحميل الصفحة',
+  'The DNS server took too long to answer. Please try again in a moment.': 'استغرق خادم DNS وقتًا طويلًا للرد. يُرجى المحاولة مرة أخرى بعد قليل.',
+  'check the values and try again': 'تحقّق من القيم ثم حاول مرة أخرى',
   // ---- kit, shared
   'Free': 'مجاني', 'One-time': 'لمرة واحدة', '—': '—', "We couldn't load {what} right now": 'تعذّر تحميل {what} الآن',
   'Our billing system did not respond. Your services are not affected. Try again in a moment.': 'لم يستجب نظام الفوترة. خدماتك لم تتأثر. حاول مرة أخرى بعد قليل.',
