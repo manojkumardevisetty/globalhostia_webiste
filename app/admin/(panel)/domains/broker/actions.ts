@@ -77,6 +77,9 @@ export async function saveBrokerSettings(fd: FormData) {
   await setSetting('broker_name', str(fd, 'broker_name').slice(0, 60));
   await setSetting('broker_title', str(fd, 'broker_title').slice(0, 80));
   await setSetting('broker_photo', photo);
+  const team = str(fd, 'broker_team').split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 20);
+  for (const l of team) { const ph = (l.split('|')[2] || '').trim(); if (ph && !/^(https:\/\/|\/)[^\s"'<>]{1,500}$/.test(ph)) fail(BASE, `Broker team photo must be an https:// or /path URL: ${ph.slice(0, 60)}`); }
+  await setSetting('broker_team', team.join('\n'));
   await audit(s, 'update', 'settings', 'broker', { fee, pct, min, pid, dept });
   done(BASE, 'Broker settings saved');
 }
