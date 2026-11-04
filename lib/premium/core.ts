@@ -48,7 +48,7 @@ export interface PremiumConfig {
 
 export const DEFAULT_PREMIUM: PremiumConfig = {
   enabled: true,
-  feed: { enabled: false, tlds: ['.com', '.ai', '.io', '.net', '.co', '.ae'], minPrice: 100, maxPrice: 25000, keywords: [], exclude: [], maxCount: 60, pages: 3 },
+  feed: { enabled: true, tlds: ['.com', '.ai', '.io', '.net', '.co', '.ae'], minPrice: 100, maxPrice: 25000, keywords: [], exclude: [], maxCount: 60, pages: 3 },
   pricing: { mode: 'markup', markupPct: 15, markupFixed: 0, feePct: 15, feeMin: 100 },
   registry: { enabled: true, markupPct: 0 },
   home: { position: 'after-domain', title: 'Premium domains for sale', max: 16 },
@@ -77,7 +77,7 @@ export function normalizePremium(raw: unknown): PremiumConfig {
   return {
     enabled: r.enabled !== false,
     feed: {
-      enabled: f.enabled === true,
+      enabled: typeof f.enabled === 'boolean' ? f.enabled : d.feed.enabled,
       tlds: Array.isArray(f.tlds) || typeof f.tlds === 'string' ? list(f.tlds, 30, normTld) : d.feed.tlds,
       minPrice: num(f.minPrice, d.feed.minPrice, 0, 1e8), maxPrice: num(f.maxPrice, d.feed.maxPrice, 0, 1e8),
       keywords: list(f.keywords, 30, normWord), exclude: list(f.exclude, 30, normWord),

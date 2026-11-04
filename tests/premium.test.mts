@@ -17,9 +17,9 @@ import {
 } from '../lib/premium/core.ts';
 
 /* ---------------------------------------------------------------- config + money */
-test('config: defaults (feed off, page on), clamps and cleans', () => {
+test('config: defaults (feed on, page on), clamps and cleans', () => {
   const d = normalizePremium(undefined);
-  assert.equal(d.enabled, true); assert.equal(d.feed.enabled, false); assert.equal(d.pricing.mode, 'markup'); assert.equal(d.home.position, 'after-domain');
+  assert.equal(d.enabled, true); assert.equal(d.feed.enabled, true); assert.equal(normalizePremium({ feed: { enabled: false } }).feed.enabled, false); assert.equal(d.pricing.markupPct, 15); assert.equal(d.pricing.mode, 'markup'); assert.equal(d.home.position, 'after-domain');
   const c = normalizePremium(JSON.stringify({ feed: { enabled: true, tlds: 'com, .AI,bad tld!!', maxCount: 9999, keywords: ['Cloud', ''] }, pricing: { mode: 'fee', feePct: 500 }, proxyUrl: 'http://insecure', home: { position: 'nope' } }));
   assert.deepEqual(c.feed.tlds, ['.com', '.ai']); assert.equal(c.feed.maxCount, 300); assert.deepEqual(c.feed.keywords, ['cloud']);
   assert.equal(c.pricing.mode, 'fee'); assert.equal(c.pricing.feePct, 100); assert.equal(c.proxyUrl, ''); assert.equal(c.home.position, 'after-domain');
