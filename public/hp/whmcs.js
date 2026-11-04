@@ -3289,3 +3289,27 @@
     })();
   });
 })();
+
+/* Knowledgebase "How-to videos": WHMCS strips <video> from article HTML and keeps only the fallback
+   "Download the video" link (docs/whmcs/kb-help-videos.sql). Turn that link back into a player with poster and
+   EN/AR captions served from globalhostia.com/help/videos (CORS allows my.globalhostia.com). */
+(function () {
+  function kbVideos() {
+    [].forEach.call(document.querySelectorAll('.gh-kb a[href*="globalhostia.com/help/videos/"][href$=".mp4"]'), function (a) {
+      if (a.dataset.ghv) return; a.dataset.ghv = '1';
+      var src = a.getAttribute('href'), base = src.replace(/\.mp4$/, '');
+      var ar = /^ar/i.test(document.documentElement.lang || '') || document.documentElement.dir === 'rtl';
+      var v = document.createElement('video');
+      v.controls = true; v.preload = 'none'; v.setAttribute('playsinline', ''); v.crossOrigin = 'anonymous';
+      v.poster = base + '.jpg'; v.style.cssText = 'width:100%;max-width:820px;aspect-ratio:16/9;border-radius:10px;background:#0f1820;display:block;margin:6px 0 10px';
+      var s = document.createElement('source'); s.src = src; s.type = 'video/mp4'; v.appendChild(s);
+      [['en', 'English'], ['ar', 'العربية']].forEach(function (t) {
+        var tr = document.createElement('track'); tr.kind = 'captions'; tr.srclang = t[0]; tr.label = t[1]; tr.src = base + '.' + t[0] + '.vtt';
+        if ((t[0] === 'ar') === ar) tr.default = true; v.appendChild(tr);
+      });
+      a.parentNode.insertBefore(v, a);
+      a.textContent = ar ? 'تنزيل الفيديو' : 'Download the video'; a.style.fontSize = '.85em';
+    });
+  }
+  if (document.readyState !== 'loading') kbVideos(); else document.addEventListener('DOMContentLoaded', kbVideos);
+})();
