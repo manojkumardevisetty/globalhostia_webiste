@@ -25,7 +25,7 @@ export default async function Whmcs({ searchParams }: { searchParams: Promise<Re
   const ok = whmcsConfigured();
   return (
     <>
-      <PageHeader title="WHMCS Integration Center" desc="WHMCS is the source of truth for prices, billing, provisioning, orders and customers. Content and design live here." />
+      <PageHeader title="WHMCS Integration Center" desc="WHMCS is the source of truth for prices, billing, provisioning, orders and customers. Content and design live here." actions={<Link className="btn btn-secondary" href="/admin/whmcs/vps">VPS Automation →</Link>} />
       <Flash sp={sp} />
       <div className="grid gap-6 lg:grid-cols-3">
         <Card title="Connection" className="lg:col-span-1">
