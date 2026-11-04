@@ -111,6 +111,9 @@ export const ROUTES: Record<string, RouteDef> = {
   'premium-domains': { kind: 'premium', title: 'Premium domains for sale', description: 'Hand-picked premium domain names for sale, with the price shown upfront. Request a name and we confirm it, send a secure invoice and move it to your account.',
     seoTitle: 'Premium Domains for Sale: Short, Brandable Names',
     meta: 'Buy a premium domain name with the price shown upfront: short, brandable .com, .ai, .io and .ae names. We confirm, invoice securely and transfer it to you.' },
+  'sell-domains': { kind: 'sell', title: 'Sell your domain', description: 'List a domain from your GlobalHostia account in our premium domains marketplace. You set the price; our broker team handles buyers, escrow and the transfer.',
+    seoTitle: 'Sell Your Domain Name: List It in Our Premium Marketplace',
+    meta: 'Sell a domain registered with GlobalHostia in our premium marketplace: $15 per domain a year, optional Featured placement, buyers and escrow handled by our broker.' },
   'data-centers': { kind: 'datacenters', title: 'Data centers and network locations', description: 'Where our hosting, VPS and dedicated servers run, and a live test of the round-trip time from your browser to our network.' },
   'web-hosting-dubai': { kind: 'uae', title: 'Web Hosting in Dubai', description: 'Web hosting from a Dubai-based company: NVMe plans with free SSL, prices in AED, a price-locked renewal and support by WhatsApp and ticket around the clock.', categories: H },
   'vps-uae': { kind: 'uae', title: 'VPS Hosting UAE', description: 'Linux and Windows VPS for UAE businesses: dedicated vCPU and RAM, NVMe storage, root access and engineers on WhatsApp 24/7. Live prices in AED or USD.', categories: ['hostiavps', 'high-performance-vps'] },
@@ -127,7 +130,7 @@ export const ROUTES: Record<string, RouteDef> = {
 };
 
 /** Pages that only exist in the Hostpen theme: always rendered by it, whatever the site theme (like /blog). */
-export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-broker', 'premium-domains']);
+export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-broker', 'premium-domains', 'sell-domains']);
 for (const v of VS_SLUGS) THEME_ONLY.add(v); // GlobalHostia vs <host> pages
 
 /**

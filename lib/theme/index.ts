@@ -39,6 +39,7 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   category: () => import('./pages/category'),
   store: () => import('./pages/store'),
   premium: () => import('./pages/premium'),
+  sell: () => import('./pages/sell'),
 };
 
 /** Returns themed HTML, or null when this URL isn't part of the theme (caller falls back to the original theme). */

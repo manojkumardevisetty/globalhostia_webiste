@@ -23,6 +23,9 @@ const PAGES = [
   // premium domains (lib/premium): 'rtl' = Arabic right-to-left stress without signing in; PREMIUM_DETAIL = a listed name
   ['premium', '/premium-domains'], ['premium-detail', process.env.PREMIUM_DETAIL || '/premium-domains/atlas.test'], ['home-hostpen', '/?theme=hostpen'],
   ['premium-ar', '/premium-domains', 'rtl'], ['premium-detail-ar', process.env.PREMIUM_DETAIL || '/premium-domains/atlas.test', 'rtl'],
+  // sell your domain (lib/sell, lib/portal/views/sell.ts, lib/theme/pages/sell.ts)
+  ['sell-domains', '/sell-domains'], ['sell-domains-ar', '/sell-domains', 'rtl'],
+  ['acc-sell', '/account/sell', 'auth'], ['acc-sell-new', '/account/sell/new', 'auth'], ['acc-sell-ar', '/account/sell', 'ar'], ['acc-sell-new-ar', '/account/sell/new', 'ar'],
 ];
 
 /** Runs in the page: returns a list of findings. */

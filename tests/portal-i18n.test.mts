@@ -9,7 +9,7 @@ import { AR, CLIENT_KEYS, DYNAMIC_KEYS, t, tn, withLocale, intlTag, moneyTag, cl
 const ROOT = path.resolve(import.meta.dirname, '..');
 const SOURCES = [
   ...fs.readdirSync(path.join(ROOT, 'lib/portal/views')).map((f) => `lib/portal/views/${f}`),
-  'lib/portal/push.ts', 'lib/portal/palette.ts', 'app/account/[[...slug]]/route.ts', 'app/account/unsubscribe/route.ts',
+  'lib/portal/push.ts', 'lib/portal/palette.ts', 'lib/portal/sell-handler.ts', 'app/account/[[...slug]]/route.ts', 'app/account/unsubscribe/route.ts',
   'app/account/apps/route.ts', 'app/oauth/authorize/route.ts', 'lib/connector/consent-view.ts',
 ];
 const LIT = `'((?:[^'\\\\]|\\\\.)*)'|"((?:[^"\\\\]|\\\\.)*)"`;

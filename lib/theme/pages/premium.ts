@@ -18,6 +18,8 @@ import {
   PREMIUM_PATH, LENGTHS, SORTS, SORT_LABEL, applyFilter, categoriesOf, layoutFor, readFilter, cleanDomain, fmtMoney, type PItem, type PremiumConfig,
 } from '../../premium/core';
 import { card, domainHtml, itemHref, priceText, sourceLabel } from '../../premium/view';
+import { sellBand } from './sell';
+import { normalizeSell, SELL_KEY } from '../../sell/core';
 
 type Cat = Awaited<ReturnType<typeof getCatalog>>;
 
@@ -138,9 +140,10 @@ async function listing(ctx: PageCtx, cat: Cat, items: PItem[], cfg: PremiumConfi
   if (await feedStale(cfg).catch(() => false)) { try { after(() => refreshFeed('page').then(() => undefined)); } catch { /* not in a request */ } }
   return page({
     ctx, catalog: cat, path: PREMIUM_PATH, title: ctx.route.title, description: ctx.route.description,
-    css: ['pdm', 'premium'], js: ['premium'], noindex: filtered, canonical: `${site}${PREMIUM_PATH}`,
+    css: ['pdm', 'premium', 'sell'], js: ['premium'], noindex: filtered, canonical: `${site}${PREMIUM_PATH}`,
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(fq), list],
-    body: [hero, trustStrip(s), body, howSec(), brokerBand(b), faqSec, cta].join('\n'),
+    // "Sell your domain with us" (lib/theme/pages/sell.ts, customer listings via /account/sell)
+    body: [hero, trustStrip(s), body, howSec(), sellBand(normalizeSell((s as any)[SELL_KEY])), brokerBand(b), faqSec, cta].join('\n'),
   });
 }
 

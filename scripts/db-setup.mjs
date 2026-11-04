@@ -614,6 +614,28 @@ try {
       await tx`alter table broker_requests add column if not exists kind text not null default 'broker'`;
       await tx`alter table broker_requests add column if not exists listing jsonb`;
     },
+    // 38. "Sell your domain" (lib/sell/*): customer listings, one open listing per domain.
+    '038-seller-listings': async (tx) => {
+      await tx`create table if not exists seller_listings (
+        id text primary key, ref text not null unique, domain text not null, client_id integer not null, whmcs_domain_id integer,
+        status text not null default 'draft', price numeric(14,2), currency text not null default 'USD', min_offer numeric(14,2),
+        accept_offers boolean not null default true, description text not null default '', category text not null default '',
+        tags jsonb not null default '[]'::jsonb, featured boolean not null default false, featured_state text not null default '',
+        featured_invoice_id integer, invoice_id integer, order_id integer, fee_method text not null default '', fee_amount numeric(14,2),
+        fee_currency text not null default '', featured_fee_amount numeric(14,2), pending jsonb, flags jsonb not null default '[]'::jsonb,
+        reject_reason text not null default '', hidden_reason text not null default '', admin_note text not null default '',
+        listed_until timestamptz, featured_until timestamptz, renew_invoice_id integer, renew_state text not null default '',
+        renew_featured boolean not null default false, reminders jsonb not null default '[]'::jsonb,
+        terms_at timestamptz, terms_ip text not null default '', paid_at timestamptz, approved_at timestamptz, approved_by text not null default '',
+        last_check_at timestamptz, warned_at timestamptz, created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      await tx`create index if not exists seller_listings_client_idx on seller_listings (client_id)`;
+      await tx`create index if not exists seller_listings_status_idx on seller_listings (status)`;
+      await tx`create index if not exists seller_listings_domain_idx on seller_listings (domain)`;
+      await tx`create unique index if not exists seller_listings_open_domain on seller_listings (domain) where status in ('draft','awaiting_payment','in_review','live','expired','suspended')`;
+      await tx`create index if not exists seller_listings_rinvoice_idx on seller_listings (renew_invoice_id)`;
+      await tx`create index if not exists seller_listings_invoice_idx on seller_listings (invoice_id)`;
+      await tx`create index if not exists seller_listings_finvoice_idx on seller_listings (featured_invoice_id)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

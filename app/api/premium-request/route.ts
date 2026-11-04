@@ -13,6 +13,7 @@ import { premiumItems, premiumConfig } from '@/lib/premium/store';
 import { checkToken } from '@/lib/premium/token';
 import { cleanDomain, fmtMoney, PREMIUM_PATH } from '@/lib/premium/core';
 import { transport, getListingItem } from '@/lib/premium/dynadot';
+import { liveListingFor, notifySellerOfRequest } from '@/lib/sell/store';
 
 export const dynamic = 'force-dynamic';
 
@@ -97,7 +98,9 @@ export async function POST(req: NextRequest) {
     try { const t = await transport(cfg); const r = t.mode === 'none' ? null : await getListingItem(t, item.listingId); live = r ? { amount: r.amount, currency: r.currency } : null; } catch { live = 'unknown'; }
   }
   const price = intent === 'buy' ? item.price : f.offer!;
-  const listing = { source: item.source, owned: item.owned, listedPrice: item.price, currency: item.currency, minOffer: item.minOffer, intent, base: item.base ?? null, fee: item.fee ?? null,
+  // customer listing ("Sell your domain", lib/sell): internal reference for the broker; the seller is emailed below without the buyer's identity
+  const seller = item.source === 'own' && !item.owned ? await liveListingFor(domain) : null;
+  const listing = { ...(seller ? { seller: { ref: seller.ref, clientId: seller.clientId } } : {}), source: item.source, owned: item.owned, listedPrice: item.price, currency: item.currency, minOffer: item.minOffer, intent, base: item.base ?? null, fee: item.fee ?? null,
     listingId: item.listingId || null, liveCheck: live === 'unknown' ? 'not checked' : live ? `${live.amount} ${live.currency}` : 'not found (may be sold)' };
 
   let ref = newRef();
@@ -131,9 +134,9 @@ export async function POST(req: NextRequest) {
         const message = [
           `Premium domain purchase request (reference ${ref}).`, '',
           `Domain: ${domain}`, `Request: ${intent === 'buy' ? `Buy now at ${fmtMoney(item.price!, item.currency)}` : `Offer of ${fmtMoney(f.offer!, item.currency)}${item.price !== null ? ` (listed at ${fmtMoney(item.price, item.currency)})` : ''}`}`,
-          `Listing: ${item.source === 'dynadot' ? `Dynadot marketplace, listing ${item.listingId || '?'}${item.base !== undefined ? `, Dynadot price ${fmtMoney(item.base)} + broker fee ${fmtMoney(item.fee!)}` : ''}; live check: ${listing.liveCheck}` : item.owned ? 'own domain' : 'brokered for a third party'}`,
+          `Listing: ${seller ? `customer listing ${seller.ref} (seller: WHMCS client #${seller.clientId}; the seller is notified without the buyer's details)` : item.source === 'dynadot' ? `Dynadot marketplace, listing ${item.listingId || '?'}${item.base !== undefined ? `, Dynadot price ${fmtMoney(item.base)} + broker fee ${fmtMoney(item.fee!)}` : ''}; live check: ${listing.liveCheck}` : item.owned ? 'own domain' : 'brokered for a third party'}`,
           `Name: ${f.name}`, `Email: ${f.email}`, `Phone / WhatsApp: ${f.phone || '-'}`, '', 'Message:', f.notes || '-', '',
-          'Next steps: confirm availability and price with the customer, create the invoice in WHMCS (Billing → Create Invoice), and after payment buy/push or transfer the domain to the customer.',
+          seller ? 'Next steps (customer listing): confirm the buyer, agree the price with the seller, collect payment via escrow/invoice, then move the domain between the two WHMCS accounts (Domains → Move to another client). Pay the seller manually minus any commission.' : 'Next steps: confirm availability and price with the customer, create the invoice in WHMCS (Billing → Create Invoice), and after payment buy/push or transfer the domain to the customer.',
         ].join('\n');
         const r = await whmcs<{ id?: number; tid?: string }>('OpenTicket', { deptid, subject: `Premium domain request: ${domain}`.slice(0, 200), message, name: f.name, email: f.email, priority: 'High', markdown: false });
         ticket = String(r.tid || r.id || '');
@@ -141,6 +144,7 @@ export async function POST(req: NextRequest) {
       }
     } catch (e: any) { ticketError = String(e?.message || e).slice(0, 300); }
   }
+  if (seller) await notifySellerOfRequest(domain, { intent, amount: price === null ? '' : fmtMoney(price, item.currency), brokerRef: ref });
   await db.insert(schema.auditLogs).values({ userEmail: 'website-form', action: 'premium_request', entity: 'broker_request', entityId: ref,
     detail: { ip: ipKey, ok: true, domain, intent, ticket, ...(ticketError ? { ticketError } : {}) } as any }).catch(() => {});
   return reply(200, { ok: true, ref });

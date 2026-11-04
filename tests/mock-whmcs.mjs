@@ -83,6 +83,7 @@ const tickets = {
 let nextTicket = 9000;
 const orders = [{ id: 501, ordernum: '8812', date: '2026-10-30 10:00:00', name: 'Test Client', amount: '5.99', paymentmethod: 'stripe', paymentstatus: 'Paid', status: 'Pending', userid: 7 }];
 const sentEmails = [];
+const calls = [];
 const departments = [{ id: 1, name: 'Technical Support' }, { id: 2, name: 'Billing' }, { id: 3, name: 'Sales' }];
 const cid = (p, k = 'clientid') => Number(p[k] || 7);
 const listInvoices = (uid) => Object.values(invoices).filter((i) => i.userid === uid);
@@ -216,8 +217,53 @@ const portal = {
 
 const handlers = {
   WhmcsDetails: () => ({ whmcs: { version: '8.10.1-release.1' } }),
-  GetProducts: () => ({ totalresults: products.length, products: { product: products } }),
-  GetCurrencies: () => ({ totalresults: 1, currencies: { currency: [{ id: 1, code: 'USD', prefix: '$', suffix: ' USD', default: 1 }] } }),
+  GetProducts: (p) => { const l = p.pid ? products.filter((x) => String(x.pid) === String(p.pid)) : products; return { totalresults: l.length, products: { product: l } }; },
+  // rates relative to the default currency (USD); sell-your-domain fees convert with these (lib/sell/core.ts convertUsd)
+  GetCurrencies: () => ({ totalresults: 3, currencies: { currency: [{ id: 1, code: 'USD', prefix: '$', suffix: ' USD', rate: '1.00000', default: 1 }, { id: 2, code: 'AED', prefix: '', suffix: ' AED', rate: '3.67250', default: 0 }, { id: 3, code: 'EUR', prefix: '€', suffix: ' EUR', rate: '0.92000', default: 0 }] } }),
+  GetPaymentMethods: () => ({ totalresults: 2, paymentmethods: { paymentmethod: [{ module: 'stripe', displayname: 'Card' }, { module: 'banktransfer', displayname: 'Bank transfer' }] } }),
+  // AddOrder / CreateInvoice for seller listing fees: one invoice per call, in the client's currency; calls are recorded
+  AddOrder: (p) => {
+    const c = clients[Number(p.clientid)] || err('Client ID Not Found');
+    if (!p.paymentmethod) err('Payment method is required');
+    const cur = c.currency_code || 'USD';
+    const lines = [];
+    for (let i = 0; p[`pid[${i}]`] !== undefined; i++) {
+      const pr = products.find((x) => String(x.pid) === String(p[`pid[${i}]`])) || err(`Product ID ${p[`pid[${i}]`]} Not Found`);
+      const amt = pr.pricing?.[cur]?.monthly;
+      if (amt === undefined) err(`No pricing for ${cur}`);
+      lines.push({ type: 'Hosting', relid: 7000 + i, description: `${pr.name} - ${p[`domain[${i}]`] || ''}`, amount: amt });
+    }
+    if (!lines.length) err('No items');
+    const id = 9500 + Object.keys(invoices).filter((k) => Number(k) >= 9500).length;
+    const total = lines.reduce((a, l) => a + Number(l.amount), 0).toFixed(2);
+    invoices[id] = { invoiceid: id, id, userid: c.id, date: day(0), duedate: day(0), subtotal: total, total, balance: total, status: 'Unpaid', currencycode: cur, items: { item: lines } };
+    const o = { id: 600 + orders.length, ordernum: String(9000 + orders.length), date: now(), name: c.firstname, amount: total, paymentmethod: p.paymentmethod, paymentstatus: 'Unpaid', status: 'Pending', userid: c.id, invoiceid: id };
+    orders.push(o);
+    calls.push({ action: 'AddOrder', ...p });
+    return { orderid: o.id, invoiceid: id, serviceids: lines.map((l) => l.relid).join(',') };
+  },
+  CreateInvoice: (p) => {
+    const c = clients[Number(p.userid)] || err('Client ID Not Found');
+    const lines = [];
+    for (let i = 1; p[`itemdescription${i}`] !== undefined; i++) lines.push({ type: '', relid: 0, description: p[`itemdescription${i}`], amount: Number(p[`itemamount${i}`]).toFixed(2), taxed: p[`itemtaxed${i}`] === 'true' ? 1 : 0 });
+    if (!lines.length) err('No items');
+    const id = 9500 + Object.keys(invoices).filter((k) => Number(k) >= 9500).length;
+    const total = lines.reduce((a, l) => a + Number(l.amount), 0).toFixed(2);
+    invoices[id] = { invoiceid: id, id, userid: c.id, date: p.date || day(0), duedate: p.duedate || day(0), subtotal: total, total, balance: total, status: p.status || 'Unpaid', currencycode: c.currency_code || 'USD', paymentmethod: p.paymentmethod, items: { item: lines } };
+    calls.push({ action: 'CreateInvoice', ...p });
+    return { invoiceid: id, status: invoices[id].status };
+  },
+  UpdateInvoice: (p) => { const i = invoices[Number(p.invoiceid)] || err('Invoice ID Not Found'); if (p.status) i.status = p.status; calls.push({ action: 'UpdateInvoice', ...p }); return { invoiceid: i.invoiceid }; },
+  MockCalls: () => ({ calls }),
+  MockSetClient: (p) => { const c = clients[Number(p.id)] || err('Client ID Not Found'); for (const k of ['currency_code', 'currency', 'defaultgateway']) if (p[k] !== undefined) c[k] = k === 'currency' ? Number(p[k]) : p[k]; return {}; },
+  MockSetDomain: (p) => { const d = Object.values(domains).flat().find((x) => x.id === Number(p.id)) || err('Domain ID Not Found'); for (const k of ['status', 'expirydate']) if (p[k] !== undefined) d[k] = p[k]; if (p.remove === '1') { for (const l of Object.values(domains)) { const i = l.indexOf(d); if (i >= 0) l.splice(i, 1); } } return {}; },
+  MockFeeProducts: () => {
+    for (const [pid, name, usd, aed] of [[950, 'Premium listing fee', '15.00', '55.00'], [951, 'Featured listing', '50.00', '185.00']]) {
+      if (products.some((x) => x.pid === pid)) continue;
+      products.push({ pid, gid: 9, type: 'other', name, description: '', module: '', paytype: 'onetime', hidden: 1, pricing: { USD: { prefix: '$', suffix: ' USD', msetupfee: '0.00', monthly: usd }, AED: { prefix: '', suffix: ' AED', msetupfee: '0.00', monthly: aed } } });
+    }
+    return { pids: [950, 951] };
+  },
   GetTLDPricing: () => ({ currency: { code: 'USD' }, pricing: {
     com: { register: { 1: '13.65' }, transfer: { 1: '13.65' }, renew: { 1: '13.99' } }, net: { register: { 1: '8.29' }, transfer: { 1: '11.29' }, renew: { 1: '11.29' } },
     org: { register: { 1: '8.65' }, transfer: { 1: '8.65' }, renew: { 1: '12.65' } }, shop: { register: { 1: '1.20' }, transfer: { 1: '25.00' }, renew: { 1: '29.00' } },
@@ -228,7 +274,7 @@ const handlers = {
   // reminders: emails "sent" through WHMCS are kept in memory; Mock* actions let tests inspect / change state
   SendEmail: (p) => { if (!clients[Number(p.id)]) err('Client ID Not Found'); sentEmails.push({ id: Number(p.id), customtype: p.customtype, subject: p.customsubject, message: p.custommessage, at: Date.now() }); return {}; },
   MockSentEmails: () => ({ emails: sentEmails }),
-  MockReset: () => { sentEmails.length = 0; orders.splice(1); for (const k of Object.keys(invoices)) if (Number(k) >= 9500) delete invoices[k]; return {}; },
+  MockReset: () => { sentEmails.length = 0; calls.length = 0; orders.splice(1); for (const k of Object.keys(invoices)) if (Number(k) >= 9500) delete invoices[k]; return {}; },
   MockAddOrder: (p) => { const o = { id: 600 + orders.length, ordernum: String(9000 + orders.length), date: new Date().toISOString().slice(0, 19).replace('T', ' '), name: 'x', amount: '1.00', paymentstatus: 'Unpaid', status: 'Pending', userid: Number(p.userid) }; orders.push(o); return { orderid: o.id }; },
   MockAddInvoice: (p) => { const id = 9500 + Object.keys(invoices).filter((k) => Number(k) >= 9500).length; invoices[id] = { invoiceid: id, id, userid: Number(p.userid), invoicenum: '', date: day(Number(p.due) - 7), duedate: day(Number(p.due)), subtotal: p.total, total: p.total, balance: p.total, status: 'Unpaid', currencycode: 'USD', items: { item: [{ id: 1, type: 'Hosting', relid: Number(p.relid || 0), description: p.desc || 'Service', amount: p.total }] } }; return { invoiceid: id }; },
   MockPayInvoice: (p) => { const i = invoices[Number(p.invoiceid)] || err('Invoice ID Not Found'); i.status = 'Paid'; i.balance = '0.00'; return {}; },

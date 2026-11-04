@@ -9,13 +9,14 @@ import { cachedRead } from '../lkg';
 import { getSettings, setSetting } from '../settings';
 import { normalizePremium, mergeItems, feedAllows, brandable, registryPrice, PREMIUM_KEY, type PremiumConfig, type PItem, type OwnRow, type FeedRow } from './core';
 import { transport, getListings, searchPrices, adviceFor } from './dynadot';
+import { liveSellerRows } from '../sell/store';
 
 export const STATE_KEY = 'premium_state';
 export type FeedState = { at?: string; ok?: boolean; mode?: string; read?: number; kept?: number; pages?: number; error?: string; advice?: string; by?: string; lock?: number };
 
 // Local development only (never in production builds): PREMIUM_FIXTURE=<file.json> with { config, own, feed } renders
 // clearly-labelled TEST data for screenshots and layout checks without touching a database.
-type Fixture = { config?: unknown; own?: OwnRow[]; feed?: FeedRow[] };
+type Fixture = { config?: unknown; own?: OwnRow[]; feed?: FeedRow[]; sellers?: OwnRow[] };
 function fixture(): Fixture | null {
   if (process.env.NODE_ENV === 'production' || !process.env.PREMIUM_FIXTURE) return null;
   try { return JSON.parse(readFileSync(process.env.PREMIUM_FIXTURE, 'utf8')) as Fixture; } catch { return null; }
@@ -32,7 +33,7 @@ export async function premiumConfig(): Promise<PremiumConfig> {
 export const premiumItems = cachedRead('premium-items', async (): Promise<PItem[]> => {
   const cfg = await premiumConfig();
   const fx = fixture();
-  if (fx) return mergeItems(fx.own || [], fx.feed || [], cfg);
+  if (fx) return mergeItems([...(fx.own || []), ...(fx.sellers || [])], fx.feed || [], cfg);
   let own: OwnRow[] = [], feed: FeedRow[] = [];
   try {
     own = (await db.select().from(schema.premiumDomains).orderBy(desc(schema.premiumDomains.featured), asc(schema.premiumDomains.domain)).limit(2000)) as OwnRow[];
@@ -40,7 +41,9 @@ export const premiumItems = cachedRead('premium-items', async (): Promise<PItem[
   } catch (e: any) {
     if (!/premium_(domains|feed)|does not exist/i.test(String(e?.message))) throw e;
   }
-  return mergeItems(own, feed, cfg);
+  // customer listings ("Sell your domain", lib/sell): live ones, as brokered rows; the owner's own row wins on a clash
+  const sellers = await liveSellerRows().catch(() => [] as OwnRow[]);
+  return mergeItems([...own, ...sellers], feed, cfg);
 }, { revalidate: 3600, fallback: () => [] });
 
 export async function feedState(): Promise<FeedState> {

@@ -365,6 +365,56 @@ export const premiumDomains = pgTable('premium_domains', {
   updatedAt: now('updated_at'),
 }, (t) => [index('premium_domains_status_idx').on(t.status)]);
 export type PremiumDomain = typeof premiumDomains.$inferSelect;
+// "Sell your domain": customer listings (lib/sell/*, /account/sell, Admin → Premium domains → Seller submissions).
+// client_id is internal (never shown publicly). One open listing per domain (partial unique index). Created by db-setup
+// patch '038-seller-listings'.
+export const sellerListings = pgTable('seller_listings', {
+  id: id(),
+  ref: text('ref').notNull().unique(),
+  domain: text('domain').notNull(),
+  clientId: integer('client_id').notNull(),
+  whmcsDomainId: integer('whmcs_domain_id'),
+  status: text('status').notNull().default('draft'), // draft | awaiting_payment | in_review | live | expired | rejected | suspended | sold | withdrawn
+  price: numeric('price', { precision: 14, scale: 2 }),
+  currency: text('currency').notNull().default('USD'),
+  minOffer: numeric('min_offer', { precision: 14, scale: 2 }),
+  acceptOffers: boolean('accept_offers').notNull().default(true),
+  description: text('description').notNull().default(''),
+  category: text('category').notNull().default(''),
+  tags: jsonb('tags').$type<string[]>().notNull().default([]),
+  featured: boolean('featured').notNull().default(false),
+  featuredState: text('featured_state').notNull().default(''), // '' | requested (draft) | awaiting_payment | paid
+  featuredInvoiceId: integer('featured_invoice_id'),
+  invoiceId: integer('invoice_id'),
+  orderId: integer('order_id'),
+  feeMethod: text('fee_method').notNull().default(''), // order | invoice
+  feeAmount: numeric('fee_amount', { precision: 14, scale: 2 }),
+  feeCurrency: text('fee_currency').notNull().default(''),
+  featuredFeeAmount: numeric('featured_fee_amount', { precision: 14, scale: 2 }),
+  pending: jsonb('pending').$type<{ description?: string; category?: string; tags?: string[] } | null>(),
+  flags: jsonb('flags').$type<string[]>().notNull().default([]),
+  rejectReason: text('reject_reason').notNull().default(''),
+  hiddenReason: text('hidden_reason').notNull().default(''),
+  adminNote: text('admin_note').notNull().default(''),
+  // one paid year from approval; Featured runs until featured_until (= listed_until); renewal invoice and reminder keys
+  listedUntil: timestamp('listed_until', { withTimezone: true }),
+  featuredUntil: timestamp('featured_until', { withTimezone: true }),
+  renewInvoiceId: integer('renew_invoice_id'),
+  renewState: text('renew_state').notNull().default(''), // '' | awaiting_payment
+  renewFeatured: boolean('renew_featured').notNull().default(false),
+  reminders: jsonb('reminders').$type<string[]>().notNull().default([]),
+  termsAt: timestamp('terms_at', { withTimezone: true }),
+  termsIp: text('terms_ip').notNull().default(''),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  approvedBy: text('approved_by').notNull().default(''),
+  lastCheckAt: timestamp('last_check_at', { withTimezone: true }),
+  warnedAt: timestamp('warned_at', { withTimezone: true }),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [index('seller_listings_client_idx').on(t.clientId), index('seller_listings_status_idx').on(t.status), index('seller_listings_domain_idx').on(t.domain)]);
+export type SellerListing = typeof sellerListings.$inferSelect;
+
 export const premiumFeed = pgTable('premium_feed', {
   domain: text('domain').primaryKey(),
   listingId: text('listing_id').notNull().default(''),

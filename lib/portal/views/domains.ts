@@ -201,6 +201,7 @@ export function domainDetailView(o: { csrf: string; d: any; cur: string; ns: str
     <li>${icon('database')}<div><b>${esc(t('DNS records'))}</b><small>${esc(t('A, AAAA, CNAME, MX, TXT and SRV records.'))}</small></div><a class="hp-btn hp-btn--ghost ac-sm" href="#dns">${esc(t('Manage'))}</a></li>
     <li>${icon('users')}<div><b>${esc(t('Contact information'))}</b><small>${esc(t('Registrant, admin and technical contacts.'))}</small></div>${ssoButton(o.csrf, 'domain_contacts', d.id, t('View'), { sm: true })}</li>
     <li>${icon('key')}<div><b>${esc(t('Transfer code and lock'))}</b><small>${esc(t('Get the EPP code or change the registrar lock.'))}</small></div>${ssoButton(o.csrf, 'domain', d.id, t('View'), { sm: true })}</li>
+    ${editable ? `<li>${icon('tag')}<div><b>${esc(t('Sell this domain'))}</b><small>${esc(t('List it in our premium domains marketplace.'))}</small></div><a class="hp-btn hp-btn--ghost ac-sm" href="/account/sell/new?id=${esc(d.id)}">${esc(t('List for sale'))}</a></li>` : ''}
   </ul>`, { id: 'ac-dm-h', flush: true });
 
   return `<div class="ac-grid ac-grid--detail"><div class="ac-col">${card(t('Nameservers'), nsForm, { id: 'ac-ns-h' })}</div><div class="ac-col">${overview}${more}</div></div>${o.health || ''}${o.dns ? dnsSection({ ...o.dns, csrf: o.csrf, d }) : ''}`;

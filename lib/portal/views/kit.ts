@@ -10,7 +10,7 @@ export { esc, icon, hexIcon, t };
 export const okMark = () => '<span class="ac-mk ac-mk--ok" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" focusable="false"><path class="ac-mk__fill" d="M12 1.8 20.8 6.9v10.2L12 22.2 3.2 17.1V6.9z"/><path class="ac-mk__hex" d="M12 1.8 20.8 6.9v10.2L12 22.2 3.2 17.1V6.9z" pathLength="100"/><path class="ac-mk__tick" d="m8 12.3 2.8 2.8L16.3 9.6" pathLength="100"/></svg></span>';
 export const errMark = () => '<span class="ac-mk ac-mk--err" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" focusable="false"><path class="ac-mk__fill" d="M12 1.8 20.8 6.9v10.2L12 22.2 3.2 17.1V6.9z"/><path class="ac-mk__bang" d="M12 7.5v5.5M12 16.3v.2"/></svg></span>';
 
-export type Nav = 'dashboard' | 'services' | 'domains' | 'renewals' | 'billing' | 'support' | 'profile' | 'team' | 'settings';
+export type Nav = 'dashboard' | 'services' | 'domains' | 'renewals' | 'billing' | 'support' | 'sell' | 'profile' | 'team' | 'settings';
 
 export const validDate = (s: unknown) => !!s && !/^0000/.test(String(s)) && !Number.isNaN(Date.parse(String(s).slice(0, 10)));
 export function fmtDate(s: unknown) {

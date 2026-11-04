@@ -43,6 +43,7 @@ import { PanelError } from '@/lib/hosting/types';
 import { scrubMessage } from '@/lib/ux/errors';
 import { loadServers } from '@/lib/hosting/servers';
 import { serverFor } from '@/lib/hosting/match';
+import { sellGet, sellPost, type SellCtx } from '@/lib/portal/sell-handler';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -197,6 +198,9 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     }
     return json({ error: 'not_found' }, 404);
   }
+
+  /* sell your domains (lib/portal/sell-handler.ts): /account/sell, /account/sell/new, /account/sell/<id> */
+  if (a === 'sell' && c === undefined) return sellGet(await sellCtx(req, sess, v, path, q), segs, q);
 
   if (c !== undefined && !(a === 'support' && b === 'new')) return notFound('page', '/account', 'dashboard');
 
@@ -377,6 +381,14 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   return notFound('page', '/account', 'dashboard');
 }
 
+/** Context for the sell pages: the signed-in client, the frame and the response helpers. */
+async function sellCtx(req: NextRequest, sess: ClientSession, v: Viewer, path: string, q: URLSearchParams): Promise<SellCtx> {
+  return {
+    cid: sess.clientId, email: sess.email, ip: clientIp(req), csrf: v.csrf, whmcsBase: await secureBase(),
+    F: (o) => frame({ ...o, viewer: v, path, query: q }), html, go: (to) => go(req, to),
+  };
+}
+
 /** Domain detail with its DNS section (nameservers read live from the registry, zone resolved per request). */
 async function domainPage(F: (o: any) => Promise<string>, csrf: string, cur: string, cid: number, d: any, dns: Omit<DnsView, 'csrf' | 'd' | 'st'>, status = 200, healthKey?: string | null) {
   let ns: string[] | null = null;
@@ -475,6 +487,9 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const cid = sess.clientId;
   const v = viewerOf(sess);
   const F = (o: any) => frame({ ...o, viewer: v, path, query: q });
+
+  /* ---- sell your domains: create, pay, edit, Featured, renew, withdraw (ownership re-checked per action) ---- */
+  if (segs[0] === 'sell' && segs.length <= 2) return sellPost(await sellCtx(req, sess, v, path, q), segs, fd);
 
   if (segs[0] === 'logout') {
     await auditClient('client_logout', sess.email, ip);

@@ -62,6 +62,10 @@ export default async function PremiumDomains({ searchParams }: { searchParams: P
           <Link href="/admin/premium-domains?import=1#import" className="btn btn-secondary">Import my domains</Link>
           <a href="/premium-domains" target="_blank" className="btn btn-primary">View page</a>
         </>} />
+      <nav className="mb-6 flex gap-1 border-b border-slate-200 text-sm" aria-label="Premium domains sections">
+        <Link href="/admin/premium-domains" aria-current="page" className="-mb-px border-b-2 border-brand-600 px-3 py-2 font-semibold text-slate-900">Listings &amp; feed</Link>
+        <Link href="/admin/premium-domains/sellers" className="-mb-px border-b-2 border-transparent px-3 py-2 text-slate-500 hover:text-slate-900">Seller submissions</Link>
+      </nav>
       <Flash sp={sp} />
       {missing && <div className="mb-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">The premium tables do not exist yet. They are created by the next deploy (db-setup patch 036-premium-domains).</div>}
 
