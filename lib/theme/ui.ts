@@ -524,13 +524,14 @@ export function logosStrip(o: { label?: string; names?: string[] } = {}) {
 
 export type DC = [string, number, number];
 /** Animated datacenter map (dark panel). dcs: [label, lat, lon][]; hq likewise. */
-export function dcMap(o: { title?: string; caption?: string; dcs?: DC[]; hq?: DC; legend?: [string, string] } = {}) {
+export function dcMap(o: { title?: string; caption?: string; dcs?: DC[]; hq?: DC; legend?: [string, string]; /** heading level of the title (default 3; 2 right under a page h1) */ level?: 2 | 3 } = {}) {
+  const hl = `h${o.level || 3}`;
   const dcs = o.dcs || [['USA', 39, -77], ['Brazil', -23.5, -46.6], ['Algeria (EU)', 36.7, 3.1], ['South Africa', -26.2, 28], ['India', 19, 72.8], ['Russia', 55.7, 37.6]];
   const hq = o.hq || ['Dubai', 25.2, 55.3];
   const names = dcs.map((d) => d[0]);
   const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names.join('');
   return `<figure class="hp-panel-dark hp-dcmap" data-reveal>
-  <h3>${esc(o.title || 'Our datacenter network')}</h3><figcaption class="hp-cap">${esc(o.caption || `${dcs.length} datacenters, managed from our headquarters in ${hq[0]}.`)}</figcaption>
+  <${hl} class="hp-dcmap__t">${esc(o.title || 'Our datacenter network')}</${hl}><figcaption class="hp-cap">${esc(o.caption || `${dcs.length} datacenters, managed from our headquarters in ${hq[0]}.`)}</figcaption>
   <div class="hp-dcmap__stage" data-dcmap data-dcs="${esc(JSON.stringify(dcs))}" data-hq="${esc(JSON.stringify(hq))}" role="img" aria-label="${esc(`World map with datacenters in ${list}, each linked to ${hq[0]}`)}"><canvas aria-hidden="true"></canvas></div>
   <div class="hp-legend" aria-hidden="true"><span><i></i>${esc(o.legend?.[0] || 'Datacenter')}</span><span><i class="is-gold"></i>${esc(o.legend?.[1] || `${hq[0]} headquarters`)}</span></div>
 </figure>`;
@@ -591,7 +592,8 @@ export type Slide = { kicker: string; title: string; text: string; image: string
 const BLANK_SRC = '<source media="(max-width: 767px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==">';
 /** `desktopOnly`: phones get the mobile hero card instead (lib/theme/mobile-hero.ts): the section is hidden up to 767px
  *  and its images resolve to a 1px blank there, so phones never download them. */
-export function heroSlider(slides: Slide[], o: { label?: string; interval?: number; desktopOnly?: boolean } = {}) {
+export function heroSlider(slides: Slide[], o: { label?: string; interval?: number; desktopOnly?: boolean; /** false: every slide title is an h2 (the page has its own h1) */ h1?: boolean } = {}) {
+  const lvl = (i: number) => (i || o.h1 === false ? 'h2' : 'h1');
   const pic = (h: string) => (o.desktopOnly ? h.replace('<picture>', '<picture>' + BLANK_SRC) : h);
   return `<section class="hp-hero${o.desktopOnly ? ' hp-hero--desk' : ''}" data-hero-slider data-network${o.interval ? ` data-interval="${o.interval}"` : ''} aria-roledescription="carousel" aria-label="${esc(o.label || 'Featured products')}">
   <div class="hp-hero__hex" aria-hidden="true"></div>
@@ -599,7 +601,7 @@ export function heroSlider(slides: Slide[], o: { label?: string; interval?: numb
     ${pic(picture({ src: s.image, className: 'hp-slide__img', width: s.imageW, height: s.imageH, priority: !i, deferred: !!i }))}
     <div class="hp-container hp-slide__inner"><div class="hp-hcard">
       <span class="hp-kicker"><i aria-hidden="true"></i>${esc(s.kicker)}</span>
-      <${i ? 'h2' : 'h1'} data-words>${esc(s.title)}</${i ? 'h2' : 'h1'}>
+      <${lvl(i)} data-words>${esc(s.title)}</${lvl(i)}>
       <p>${esc(s.text)}</p>
       <div class="hp-actions">${s.ctas.map(button).join('')}</div>
       ${s.fromHtml ? `<div class="hp-from">${s.fromHtml}</div>` : ''}

@@ -72,7 +72,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     crumbs, eyebrow: 'Network and locations', title: 'Choose where your servers run',
     lead: locs.length ? `Our plans run in ${locs.length} location${locs.length > 1 ? 's' : ''}: ${list}. Pick the one closest to your visitors, then test the connection from your own browser.` : 'Pick the location closest to your visitors when you order, then test the connection from your own browser.',
     ctas: [{ label: 'Test from your browser', href: '#speed', icon: 'gauge' }, { label: 'Help me choose a plan', href: '/plan-finder', variant: 'ghost' }],
-    visualHtml: locs.length ? dcMap({ title: 'Where our plans are hosted', caption: `${locs.length} hosting location${locs.length > 1 ? 's' : ''} in the current catalog, operated from our headquarters in Dubai.`,
+    visualHtml: locs.length ? dcMap({ level: 2, title: 'Where our plans are hosted', caption: `${locs.length} hosting location${locs.length > 1 ? 's' : ''} in the current catalog, operated from our headquarters in Dubai.`,
       dcs: locs.filter((l) => l.geo).map((l) => [l.name, l.geo!.ll[0], l.geo!.ll[1]] as DC), hq: ['Dubai', 25.2, 55.3], legend: ['Hosting location', 'Dubai headquarters'] }) : undefined,
     network: false,
   });

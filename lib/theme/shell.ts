@@ -3,7 +3,7 @@ import { esc } from '../render/util';
 import { money } from '../pricing';
 import type { PageCtx } from './index';
 import { getCatalog, whmcsLinks, availableCurrencies, productsFor, type Catalog } from './data';
-import { itemListLd, offerCatalogLd } from '../agents/ld';
+import { itemListLd, offerCatalogNode } from '../agents/ld';
 import { mdPath } from '../agents/markdown';
 import { CURRENCY_LABEL } from '../currency';
 import { getMenu, footerColumns, type ThemeMenu } from './menu';
@@ -16,7 +16,7 @@ import { leadForm } from './lead';
 import { aiPromo, withAiMenu, navLink, drawerRow, utilPill, itemBadge } from './aiconnect';
 import type { AiPromo } from '../connector/promo';
 import { trackingHead, consentLink } from '../tracking';
-import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta, blogListingDescription } from '../seo';
+import { ROBOTS_INDEX, ROBOTS_NOINDEX, NOINDEX_SLUGS, ICON_LINKS, seoTitle, seoDescription, ogImageUrl, siteJsonLd, verificationMeta, blogListingDescription, socialMeta, isNoindexQuery, sectionKicker, bareTitle, BRAND } from '../seo';
 
 export type PageOpts = {
   title: string; description: string; path: string; body: string; ctx: PageCtx;
@@ -30,8 +30,18 @@ export type PageOpts = {
   ogType?: string;
   /** trusted extra <head> markup (e.g. article:published_time meta) */
   headExtra?: string;
-  /** small label above the title on the generated OG image (e.g. product category) */
+  /** small label above the title on the generated OG image (e.g. product category; default: the section label) */
   ogKicker?: string;
+  /** real "from" price for the generated OG image (product pages, from the catalog) */
+  ogPrice?: string;
+  /** declared size of a custom ogImage (omitted: no width/height tags; the generated image is always 1200×630) */
+  ogImageSize?: [number, number];
+  /** page language for og:locale and the generated OG image ('ar': Arabic, right to left) */
+  lang?: 'en' | 'ar';
+  /** the page has a version in the other language (hreflang pair): og:locale:alternate */
+  altLang?: boolean;
+  /** extra properties for the page's one Organization node (lib/seo.ts siteJsonLd) */
+  orgExtra?: Record<string, unknown>;
   /** false: no website pre-sales chat (signed-in account pages use the customer assistant instead) */
   aiChat?: boolean;
 };
@@ -192,7 +202,9 @@ export async function page(o: PageOpts): Promise<string> {
   // a plan page whose categories have no live plans only shows "Plans are being updated": keep it out of the
   // index until plans are back (a soft 404 otherwise). The sitemap leaves it out too (lib/sitemap.ts).
   const emptyListing = !!r.categories?.length && !!o.path && o.path !== '/' && !productsFor(cat, r.categories).length;
-  const noindex = preview || o.noindex || NOINDEX_SLUGS.has(o.ctx.slug) || emptyListing;
+  // A/B previews (?ab=), per-variant CDN copies (?_ab=), theme and CMS previews: the canonical already names the clean
+  // URL, and these copies also stay out of the index (lib/seo.ts NOINDEX_PARAMS)
+  const noindex = preview || o.noindex || NOINDEX_SLUGS.has(o.ctx.slug) || emptyListing || isNoindexQuery(o.ctx.query);
   const css = (o.css || []).map(safeKey).filter(Boolean);
   const js = (o.js || []).map(safeKey).filter(Boolean);
   // drop empty FAQPage blocks (pages with no FAQ items) so structured data stays valid
@@ -205,10 +217,15 @@ export async function page(o: PageOpts): Promise<string> {
     const l = itemListLd(cat, productsFor(cat, routeCats), o.ctx.route.title || o.title, canonical);
     if (l) lds.push(l);
   }
-  if (o.ctx.route?.kind === 'home') { const oc = offerCatalogLd(cat); if (oc) lds.push(oc); }
-  const og = o.ogImage ? new URL(o.ogImage, site + '/').toString()
-    : isHome ? `${site}/og/default.png` : ogImageUrl(site, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.ogKicker, ASSET_V);
-  const ogAlt = isHome && !o.ogImage ? 'GlobalHostia: web hosting, VPS and dedicated servers' : o.title;
+  // home: the OfferCatalog joins the one Organization node of the site graph (siteJsonLd), not a second Organization
+  const orgExtra = { ...(o.ctx.route?.kind === 'home' ? (() => { const oc = offerCatalogNode(cat); return oc ? { hasOfferCatalog: oc } : {}; })() : {}), ...(o.orgExtra || {}) };
+  // Open Graph image: a custom one, the home snapshot (public/og/default.png), or a page-specific generated card
+  // (title + section kicker + real "from" price on product pages; Arabic pages right to left), 1200×630, immutable URL
+  const custom = o.ogImage ? new URL(o.ogImage, site + '/').toString() : '';
+  const og = custom || (isHome ? `${site}/og/default.png`
+    : ogImageUrl(site, bareTitle(o.title), { kicker: sectionKicker(r.kind, o.path, o.ogKicker), price: o.ogPrice, lang: o.lang }));
+  const ogAlt = isHome && !custom ? 'GlobalHostia: web hosting, VPS and dedicated servers' : `${bareTitle(o.title)} | ${BRAND}`;
+  const size = custom ? o.ogImageSize : [1200, 630];
 
   return withCurrency(`<!DOCTYPE html>
 <html lang="en">
@@ -220,9 +237,7 @@ export async function page(o: PageOpts): Promise<string> {
 <meta name="robots" content="${noindex ? ROBOTS_NOINDEX : ROBOTS_INDEX}">
 <link rel="canonical" href="${esc(canonical)}">
 ${noindex ? '' : `<link rel="alternate" type="text/markdown" href="${esc(site + mdPath(o.path || '/'))}">`}
-<meta property="og:type" content="${esc(o.ogType || 'website')}"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:locale" content="en_AE"><meta property="og:url" content="${esc(canonical)}"><meta property="og:title" content="${esc(fullTitle)}"><meta property="og:description" content="${esc(description)}">
-<meta property="og:image" content="${esc(og)}">${o.ogImage ? '' : '<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'}<meta property="og:image:alt" content="${esc(ogAlt)}">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(fullTitle)}"><meta name="twitter:description" content="${esc(description)}"><meta name="twitter:image" content="${esc(og)}"><meta name="twitter:image:alt" content="${esc(ogAlt)}">
+${socialMeta({ url: canonical, title: fullTitle, description, image: og, imageAlt: ogAlt, imageWidth: size?.[0] || 0, imageHeight: size?.[1] || 0, type: o.ogType, lang: o.lang, alternate: o.altLang })}
 ${o.headExtra || ''}
 ${verificationMeta(s)}
 ${trackingHead(s.tracking)}
@@ -235,7 +250,7 @@ ${FONT_PRELOADS}
 ${hasPromo(promo) ? `<link rel="stylesheet" href="${asset('/hp/promo.css')}">` : ''}
 ${css.map((k) => `<link rel="stylesheet" href="${asset(`/hp/pages/${k}.css`)}">`).join('\n')}
 <script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("hp-mo")</script>
-${siteJsonLd(s, cat.base)}
+${siteJsonLd(s, cat.base, orgExtra)}
 ${lds.join('\n')}
 ${s.custom_css ? `<style id="gh-custom">${String(s.custom_css).replace(/<\/style/gi, '<\\/style')}</style>` : ''}
 </head>

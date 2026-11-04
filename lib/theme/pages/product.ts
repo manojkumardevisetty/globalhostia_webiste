@@ -12,7 +12,7 @@ import { ogImageUrl, fitDescription } from '../../seo';
 import { productTitle, nounOf, inLoc } from '../../seo-product';
 import { trustStrip } from '../growth';
 import {
-  pageHero, sectionHead, planCards, faq, faqJsonLd, ctaBand, breadcrumbJsonLd, ld, icon, hexIcon, available, type IconName, VAT_NOTE,
+  pageHero, sectionHead, planCards, faq, faqJsonLd, ctaBand, breadcrumbJsonLd, ld, icon, hexIcon, available, type IconName, VAT_NOTE, fromText,
 } from '../ui';
 
 type Kind = 'server' | 'ssl' | 'hosting' | 'email' | 'other';
@@ -429,7 +429,9 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
     '@context': 'https://schema.org', '@type': 'Product', name, description: lead || `${name} by Globalhostia`, sku: p.whmcsPid ? String(p.whmcsPid) : p.slug,
     brand: { '@type': 'Brand', name: cat.settings.site_name || 'Globalhostia' }, category: catLabel, url: `${site}/p/${p.slug}`,
   };
-  product.image = ogImageUrl(site, name, catLabel);
+  // the social card shows the real "from" price from the catalog (none when the plan has no price)
+  const ogPrice = fromText(p, currency).replace(/\s*\/\s*month$/, '/mo').replace(/\s*\/\s*year$/, '/yr') || undefined;
+  product.image = ogImageUrl(site, name, { kicker: catLabel, price: ogPrice });
   if (cs.length) {
     const seller = { '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia' };
     const availability = /^(out|sold ?out)$/i.test((p.badge || '').trim()) ? 'https://schema.org/OutOfStock' : /pre-?order/i.test(p.badge || '') ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock';
@@ -448,7 +450,7 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
     ctx, catalog: cat, path: `/p/${p.slug}`,
     title: productTitle(name, catRow?.name || route?.title || '', String(cat.settings.site_name || 'Globalhostia')),
     description: productDescription(p, name, kind, catRow?.name || route?.title || '', specs, currency),
-    css: ['product'], js: ['product'], ogKicker: catLabel, noindex: !productBySlug(cat, ctx.slug),
+    css: ['product'], js: ['product'], ogKicker: catLabel, ogPrice, noindex: !productBySlug(cat, ctx.slug),
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(qs), ld(product)],
     body: [hero, tilesHtml, trustStrip(cat.settings), main, relatedHtml, faqHtml, cta].join('\n'),
   });

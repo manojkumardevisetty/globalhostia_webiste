@@ -476,7 +476,7 @@ main{display:block}
 
 /* Bar chart + datacenter map (dark panels) */
 .hp-panel-dark{background:var(--deep-2);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);padding:24px 24px 20px;margin:0}
-.hp-panel-dark h3{color:#fff;font-size:18px}
+.hp-panel-dark h3,.hp-dcmap__t{color:#fff;font-size:18px}
 .hp-cap{font-size:14px;color:var(--on-dark-mute);margin-top:4px}
 .hp-bars{position:relative;display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:16px;height:270px;margin-top:28px;padding-top:28px;border-bottom:1px solid rgba(255,255,255,.25)}
 .hp-bars::before{content:"";position:absolute;left:0;right:0;top:28px;bottom:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 25%);pointer-events:none}

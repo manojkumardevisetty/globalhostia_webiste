@@ -56,8 +56,9 @@ function media(s: ResolvedSlide, i: number) {
 
 /** The sticky domain search bar shown under the phone header. Submits to the same WHMCS domain search as every other form. */
 export function mobileSearch(base: string, title: string) {
+  // title '' = the page prints its own <h1> (the home page: one visually hidden h1 for every width)
   return `<div class="hp-mtop">
-  <h1 class="sr-only hp-mtop__h">${esc(title)}</h1>
+  ${title ? `<h1 class="sr-only hp-mtop__h">${esc(title)}</h1>` : ''}
   <form class="hp-msearch" action="${esc(base)}/cart.php" method="get" role="search" aria-label="Domain search" data-domain-form>
     <input type="hidden" name="a" value="add"><input type="hidden" name="domain" value="register">
     <label class="sr-only" for="m-domain-q">Domain name</label>

@@ -181,7 +181,7 @@ export async function frame(o: {
 </div>${aiOn ? `<button type="button" class="ac-ask" data-ac-ask aria-haspopup="dialog" hidden>${AI_HEX}<span>${esc(t('Ask GlobalHostia'))}</span></button>` : ''}${overlays()}<script type="application/json" id="ac-i18n">${JSON.stringify(clientStrings()).replace(/</g, '\\u003c')}</script>`;
 
   return localize(await page({
-    ctx: ctxFor(o.path, o.query, o.title), path: o.path, title: `${o.title} · ${t('My account')}`, description: 'Your Globalhostia account.',
+    ctx: ctxFor(o.path, o.query, o.title), path: o.path, title: `${o.title} · ${t('My account')}`, description: 'Your GlobalHostia account: hosting, domains, invoices, DNS, email and support tickets in one place.',
     css: ['account'], js: ['account'], bodyClass: `ac-page${isRtl() ? ' ac-rtl' : ''}`, noindex: true, body, headExtra: headExtra(),
     // signed in, the customer assistant replaces the website's pre-sales chat
     aiChat: !aiOn,
@@ -191,7 +191,9 @@ export async function frame(o: {
 /** Signed-out pages (login, forgot): same shell, theme auth split layout. */
 export async function guestFrame(o: { path: string; query: URLSearchParams; title: string; body: string }) {
   return localize(await page({
-    ctx: ctxFor(o.path, o.query, o.title), path: o.path, title: o.title, description: 'Sign in to manage your Globalhostia services.',
+    ctx: ctxFor(o.path, o.query, o.title), path: o.path, title: lang() === 'ar' ? `${o.title}: منطقة عملاء GlobalHostia` : `${o.title}: GlobalHostia client area`,
+    description: lang() === 'ar' ? 'سجّل الدخول إلى منطقة عملاء GlobalHostia لإدارة الاستضافة والنطاقات والفواتير وسجلات DNS والبريد وتذاكر الدعم.'
+      : 'Sign in to the GlobalHostia client area to manage your hosting, domains, invoices, DNS, email and support tickets.',
     css: ['auth', 'account'], js: ['auth', 'account'], bodyClass: `ac-page ac-page--guest au-page${isRtl() ? ' ac-rtl' : ''}`, noindex: true, body: o.body, headExtra: headExtra(),
   }));
 }

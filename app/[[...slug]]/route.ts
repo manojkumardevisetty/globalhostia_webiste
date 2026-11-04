@@ -81,6 +81,12 @@ async function render(req: NextRequest, ctx: { params: Promise<{ slug?: string[]
   after(() => kickContent(req.nextUrl.origin, 'page')); // content engine: publish scheduled posts on time, draft the day's articles (≤ every 10 min)
   if (segs.length && /\.md$/i.test(segs[segs.length - 1]) && segs[segs.length - 1].length > 3) return markdown(req, segs);
   const path = '/' + segs.join('/');
+  // one URL per page: /Web-Hosting → /web-hosting (every page slug is lower case; the query string is kept)
+  if (/[A-Z]/.test(path)) {
+    const u = new URL(path.toLowerCase(), req.url);
+    for (const [k, v] of req.nextUrl.searchParams) if (!['_cur', '_ab', '_abd'].includes(k)) u.searchParams.append(k, v); // middleware's internal keys stay internal
+    return NextResponse.redirect(u, 301);
+  }
   const r = (await redirectMap())[path.toLowerCase()];
   if (r) return NextResponse.redirect(new URL(r[0], req.url), r[1]);
   const pr = PSEO_REDIRECTS[path.slice(1).toLowerCase()];

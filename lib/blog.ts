@@ -74,7 +74,7 @@ export async function getPost(slug: string, preview = false): Promise<BlogPost |
 export const COLLECTIONS = [
   { slug: 'uae-guides', name: 'UAE guides', lead: 'Practical guides for businesses in the UAE and the GCC: domains, websites, payments and compliance basics.', match: (p: BlogPost) => p.lang === 'en' && p.track === 'uae' },
   { slug: 'global-guides', name: 'Global guides', lead: 'Hosting, domains, email and website guides for small businesses everywhere.', match: (p: BlogPost) => p.lang === 'en' && p.track === 'global' },
-  { slug: 'arabic', name: 'العربية', lead: 'مقالات وأدلة عملية باللغة العربية من فريق GlobalHostia في دبي.', match: (p: BlogPost) => p.lang === 'ar' },
+  { slug: 'arabic', name: 'العربية', lead: 'مقالات وأدلة عملية باللغة العربية من فريق GlobalHostia في دبي عن الاستضافة والخوادم والنطاقات والبريد الإلكتروني للأعمال.', match: (p: BlogPost) => p.lang === 'ar' },
 ] as const;
 export const COLLECTION_SLUGS: string[] = COLLECTIONS.map((c) => c.slug);
 

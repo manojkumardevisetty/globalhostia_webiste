@@ -10,6 +10,10 @@ import { breadcrumbs, breadcrumbJsonLd, sectionHead, icon, link, ld, button } fr
 import { waLink } from '../growth';
 import { HELP_GROUPS, frameUrl, helpPath, type HelpGroup } from '../../help/topics';
 import { helpTopics, clock, isoDuration, type HelpView } from '../../help/view';
+import { seoDescription } from '../../seo';
+
+/** "How to <task>" for the <title>, or the task alone when that would pass 60 characters with the brand dropped. */
+const howTo = (title: string) => { const h = `How to ${title.charAt(0).toLowerCase()}${title.slice(1)}`; return h.length <= 60 ? h : title; };
 
 const thumb = (t: HelpView) => t.kind === 'video' ? t.media.poster : frameUrl(t.frames?.[0]?.src || '');
 
@@ -124,7 +128,7 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
   if (video) lds.push(ld({ '@context': 'https://schema.org', ...video }));
 
   return page({
-    ctx: { ...ctx, route: { ...ctx.route, title: t.title, description: t.summary, seoTitle: `How to ${t.title.charAt(0).toLowerCase()}${t.title.slice(1)}`, meta: `${t.summary} ${t.kind === 'video' ? 'Short captioned video' : 'Illustrated steps'} with the steps written out in English and Arabic.`.slice(0, 160) } },
+    ctx: { ...ctx, route: { ...ctx.route, title: t.title, description: t.summary, seoTitle: howTo(t.title), meta: seoDescription(`${t.summary} ${t.kind === 'video' ? 'Short captioned video' : 'Illustrated steps'} with the steps written out in English and Arabic.`) } },
     catalog: cat, path: helpPath(t.slug), title: t.title, description: t.summary,
     css: ['help'], js: ['help'], jsonLd: lds, body,
   });

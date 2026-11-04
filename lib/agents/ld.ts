@@ -34,6 +34,15 @@ export function itemListLd(cat: Catalog, ps: TProduct[], name: string, url: stri
 
 /** Organization.hasOfferCatalog for the home page: one sub-catalog per category with its priced products. */
 export function offerCatalogLd(cat: Catalog) {
+  const node = offerCatalogNode(cat);
+  if (!node) return '';
+  const site = siteOf(cat);
+  return tag({ '@context': 'https://schema.org', '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`, hasOfferCatalog: node });
+}
+
+/** The home page's OfferCatalog, for Organization.hasOfferCatalog of the site graph (lib/seo.ts siteJsonLd orgExtra),
+ *  so a page carries one Organization node. null when no category has priced products. */
+export function offerCatalogNode(cat: Catalog): Record<string, unknown> | null {
   const site = siteOf(cat);
   const subs = cat.categories.filter((c) => !isMachineName(c.slug, c.name)).map((c) => {
     const items = categoryProducts(cat, c.slug).map((p) => {
@@ -44,7 +53,6 @@ export function offerCatalogLd(cat: Catalog) {
     const path = categoryPath(c.slug, cat);
     return { '@type': 'OfferCatalog', name: prettyName(c.name), ...(path ? { url: site + path } : {}), itemListElement: items };
   }).filter(Boolean);
-  if (!subs.length) return '';
-  return tag({ '@context': 'https://schema.org', '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`,
-    hasOfferCatalog: { '@type': 'OfferCatalog', name: 'GlobalHostia hosting, servers and domains', itemListElement: subs } });
+  if (!subs.length) return null;
+  return { '@type': 'OfferCatalog', name: 'GlobalHostia hosting, servers and domains', itemListElement: subs };
 }

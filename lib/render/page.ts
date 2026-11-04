@@ -8,7 +8,7 @@ import { renderProducts, type RProduct, type RCategory } from './products';
 import { domainSearchForm, domainResults, tldTable, faq } from './domains';
 import { esc, tokens } from './util';
 import { compileDesign } from '../design';
-import { ICON_LINKS, ROBOTS_NOINDEX, NOINDEX_SLUGS, siteJsonLd, verificationMeta, ogImageUrl, siteUrl } from '../seo';
+import { ICON_LINKS, ROBOTS_NOINDEX, NOINDEX_SLUGS, siteJsonLd, verificationMeta, ogImageUrl, siteUrl, seoTitle, seoDescription, descriptionFor, socialMeta, isNoindexQuery, bareTitle, BRAND, cleanJsonLd } from '../seo';
 
 async function loadPage(slug: string, preview: boolean) {
   const [page] = await db.select().from(schema.pages).where(eq(schema.pages.slug, slug)).limit(1);
@@ -81,27 +81,32 @@ export async function renderPage(slug: string, opts: { preview: boolean; query: 
     parts.push(opts.preview ? `<!-- section ${sec.id} (${esc(sec.type)}) -->\n${h}` : h);
   }
 
-  const url = `${(s.site_url || '').replace(/\/$/, '')}${slug === 'index' ? '/' : '/' + slug}`;
-  const title = page.seoTitle || page.title;
-  const ogImg = page.ogImage || (slug === 'index' ? `${siteUrl(s)}/og/default.png` : ogImageUrl(siteUrl(s), page.title || title));
+  const url = `${siteUrl(s)}${slug === 'index' ? '/' : '/' + slug}`;
+  // same rules as the theme shell (lib/theme/shell.ts): "Page | GlobalHostia" within 60 characters, a 70–160 character
+  // description (generated from the title when the page has none), page-specific 1200×630 OG image
+  const title = seoTitle(page.seoTitle || page.title, BRAND);
+  const description = page.seoDescription?.trim() ? seoDescription(page.seoDescription) : descriptionFor(page.title || title);
+  const ogImg = page.ogImage ? new URL(page.ogImage, siteUrl(s) + '/').toString() : slug === 'index' ? `${siteUrl(s)}/og/default.png` : ogImageUrl(siteUrl(s), bareTitle(page.title || title), { kicker: BRAND });
+  const noindex = NOINDEX_SLUGS.has(slug) || isNoindexQuery(opts.query) || opts.preview;
   const seo = `<title>${esc(title)}</title>
-<meta name="description" content="${esc(page.seoDescription)}" />${page.seoKeywords ? `\n<meta name="keywords" content="${esc(page.seoKeywords)}" />` : ''}
+<meta name="description" content="${esc(description)}" />${page.seoKeywords ? `\n<meta name="keywords" content="${esc(page.seoKeywords)}" />` : ''}
 <link rel="canonical" href="${esc(url)}" />
-${NOINDEX_SLUGS.has(slug) ? `<meta name="robots" content="${ROBOTS_NOINDEX}" />\n` : ''}<meta property="og:type" content="website" /><meta property="og:locale" content="en_AE" /><meta property="og:url" content="${esc(url)}" /><meta property="og:title" content="${esc(title)}" /><meta property="og:description" content="${esc(page.seoDescription)}" /><meta property="og:image" content="${esc(ogImg)}" />
-<meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="${esc(title)}" /><meta name="twitter:description" content="${esc(page.seoDescription)}" /><meta name="twitter:image" content="${esc(ogImg)}" />
+${noindex ? `<meta name="robots" content="${ROBOTS_NOINDEX}" />\n` : ''}${socialMeta({ url, title, description, image: ogImg, imageAlt: `${bareTitle(page.title || title)} | ${BRAND}`, ...(page.ogImage ? { imageWidth: 0, imageHeight: 0 } : {}) })}
 `;
   const previewBar = opts.preview ? `<div class="gh-preview-bar"><span>Preview — ${esc(page.status)}${page.status !== 'PUBLISHED' ? ' (not public)' : ''}. Hidden sections are outlined.</span><a href="/admin/pages/${page.id}">Back to editor →</a></div>` : '';
-  return dedupeHead(shell({ page, blocks, s, vars, seo, body: parts.join('\n'), extra: previewBar, look: opts.query.get('look') || undefined }), seo);
+  return cleanJsonLd(dedupeHead(shell({ page, blocks, s, vars, seo, body: parts.join('\n'), extra: previewBar, look: opts.query.get('look') || undefined }), seo));
 }
 
 /**
  * Imported template head blocks carry their own <title>, canonical (often relative, e.g. href="/") and og:url.
  * Keep only the tags this renderer writes (in `seo`), so every page has exactly one title, canonical and og:url.
  */
-function dedupeHead(html: string, seo: string) {
-  const ours = new Set((seo.match(/<title>[\s\S]*?<\/title>|<link rel="canonical"[^>]*>|<meta property="og:url"[^>]*>|<meta name="description"[^>]*>/g) || []));
+export function dedupeHead(html: string, seo: string) {
+  // also the Open Graph / Twitter tags and robots: the imported blocks' copies would duplicate or contradict ours
+  const TAGS = /<title>[\s\S]*?<\/title>\s*|<link[^>]+rel=["']canonical["'][^>]*>\s*|<meta[^>]+(?:property|name)=["'](?:og:[^"']+|twitter:[^"']+|description|robots)["'][^>]*>\s*/gi;
+  const ours = new Set((seo.match(new RegExp(TAGS.source, 'gi')) || []).map((t) => t.trim()));
   const seen = new Set<string>();
-  return html.replace(/<title>[\s\S]*?<\/title>\s*|<link[^>]+rel=["']canonical["'][^>]*>\s*|<meta[^>]+property=["']og:url["'][^>]*>\s*|<meta[^>]+name=["']description["'][^>]*>\s*/gi, (m) => {
+  return html.replace(TAGS, (m) => {
     const t = m.trim();
     if (!ours.has(t) || seen.has(t)) return '';
     seen.add(t);

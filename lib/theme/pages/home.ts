@@ -87,12 +87,13 @@ export default async function render(ctx: PageCtx): Promise<string> {
       ctas: [{ label: 'Search for a domain', href: '#domain-q', attrs: 'data-focus-domain' }, { label: 'SSL certificates', href: '/ssl-certificate', variant: 'ghost' }],
       fromHtml: cheapTld ? `${esc(cheapTld.tld)} domains from <b class="num">${esc(money(cheapTld.register!, prefix))}</b> for the first year` : undefined,
     },
-  ], { desktopOnly: true });
+  ], { desktopOnly: true, h1: false });
   // phones (up to 767px): sticky domain search + the admin-managed hero card (Admin > Marketing > Mobile hero)
   const mHero = mobileHero(cat);
   // AI connector promotion (Admin > AI connectors > Website promotion): phone pill under the hero card, section below
   const ai = aiPromo(cat.settings);
-  const mTop = mobileSearch(base, ctx.route.title) + mHero.html + mobilePill(ai);
+  // one <h1> for every width: the desktop slider (hidden on phones) and the phone hero (hidden on desktop) use h2s
+  const mTop = `<h1 class="sr-only">${esc(ctx.route.title)}</h1>` + mobileSearch(base, '') + mHero.html + mobilePill(ai);
 
   /* ---------------- domain search ---------------- */
   const domain = `<section class="hp-domain" aria-labelledby="domain-q-h"><div class="hp-container">${domainSearch({ tlds, base, moreHref: '/domains-registration', prefix })}${brokerCard(cat.settings)}</div></section>`;

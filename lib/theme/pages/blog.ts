@@ -7,6 +7,7 @@ import { page } from '../shell';
 import { pageHero, breadcrumbs, breadcrumbJsonLd, ctaBand, icon, hexIcon, button, link, ld, available, fromText, planCards, plansNote, sectionHead, ICON_NAMES, faqJsonLd } from '../ui';
 import { getPosts, getPost, blogCategories, relatedPosts, postPath, absUrl, fmtPostDate, roadmapFrom, trustPointsFrom, blogTags, faqFromMarkdown, COLLECTIONS, translationOf, type BlogPost } from '../../blog';
 import { renderMarkdown } from '../../markdown';
+import { blogListingDescription } from '../../seo';
 
 export type BlogResult = { status: number; body: string; type?: string; cache?: boolean };
 
@@ -293,9 +294,11 @@ ${cta()}`;
   const listLd = ld({ '@context': 'https://schema.org', '@type': 'Blog', name: `${cat.settings.site_name || 'Globalhostia'} blog`, url: site + base, description: lead,
     blogPost: [...(feat ? [feat] : []), ...slice].map((p) => ({ '@type': 'BlogPosting', headline: p.title, url: site + postPath(p.slug), datePublished: iso(p.date), ...(p.coverImage ? { image: absUrl(site, p.coverImage) } : {}) })) });
   const html = await page({
-    ctx, catalog: cat, path, title: col ? (col.slug === 'arabic' ? 'Arabic articles (العربية)' : `${col.name}: hosting and website articles`) + (pageNo > 1 ? ` (page ${pageNo})` : '') : current ? `${current.name} articles` + (pageNo > 1 ? ` (page ${pageNo})` : '') : 'Blog' + (pageNo > 1 ? ` (page ${pageNo})` : ''),
-    description: lead, css: ['blog'], js: ['blog'], jsonLd: [listLd, breadcrumbJsonLd(crumbs.map((c, i) => (i === crumbs.length - 1 ? { label: c.label, href: base } : c)), site)],
+    ctx, catalog: cat, path, title: col ? (col.slug === 'arabic' ? 'Arabic articles (العربية)' : `${col.name}: hosting and website articles`) + (pageNo > 1 ? ` (page ${pageNo})` : '') : current ? `${current.name} articles and guides` + (pageNo > 1 ? ` (page ${pageNo})` : '') : 'Blog' + (pageNo > 1 ? ` (page ${pageNo})` : ''),
+    // the short generated lead ("3 articles on email…") becomes a full-length meta description (lib/seo.ts)
+    description: col?.slug === 'arabic' ? lead : blogListingDescription(lead, current ? current.name.replace(/^#/, '') : 'Blog'), css: ['blog'], js: ['blog'], jsonLd: [listLd, breadcrumbJsonLd(crumbs.map((c, i) => (i === crumbs.length - 1 ? { label: c.label, href: base } : c)), site)],
     headExtra: `<link rel="alternate" type="application/rss+xml" title="${esc(cat.settings.site_name || 'Globalhostia')} blog" href="${esc(site)}/blog/rss.xml">`,
+    ...(col?.slug === 'arabic' ? { lang: 'ar' as const, ogKicker: 'المدونة' } : {}),
     preload: feat?.coverImage ? [feat.coverImage] : undefined, bodyClass: 'bl-page', body: main,
     noindex: (tag && tag.count < 3) || !posts.length ? true : undefined, // thin tag pages and empty listings stay out of the index
   });
@@ -434,13 +437,17 @@ async function article(ctx: PageCtx, slug: string): Promise<BlogResult> {
     ...(pair && live && pair.en.status === 'PUBLISHED' && pair.ar.status === 'PUBLISHED' ? [
       `<link rel="alternate" hreflang="en" href="${esc(site + postPath(pair.en.slug))}">`, `<link rel="alternate" hreflang="ar" href="${esc(site + postPath(pair.ar.slug))}">`,
       `<link rel="alternate" hreflang="x-default" href="${esc(site + postPath(pair.en.slug))}">`] : []),
-    ...(rtl ? ['<meta property="og:locale:alternate" content="ar_AE">', '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+    ...(rtl ? ['<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
       '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">'] : []),
   ].join('');
 
+  const paired = !!(pair && live && pair.en.status === 'PUBLISHED' && pair.ar.status === 'PUBLISHED');
+  // social card: the generated 1200×630 image (title + category) unless the editor set an OG image of its own;
+  // cover images are page-width photos of other sizes, so they stay in the article and its BlogPosting markup only
   const html = await page({
     ctx, catalog: cat, path: postPath(post.slug), title: post.seoTitle || post.title, description: post.seoDescription || post.excerpt,
-    canonical: post.canonical || undefined, ogType: 'article', ogImage: image || undefined, headExtra, noindex: !live,
+    canonical: post.canonical || undefined, ogType: 'article', ogImage: post.ogImage ? absUrl(site, post.ogImage) : undefined,
+    ogKicker: post.category || (rtl ? 'المدونة' : 'Blog'), lang: rtl ? 'ar' : 'en', altLang: paired, headExtra, noindex: !live,
     css: ['blog'], js: ['blog'], jsonLd: [postLd, ...(faqs.length ? [faqJsonLd(faqs)] : []), breadcrumbJsonLd(crumbs.map((c, i) => (i === crumbs.length - 1 ? { label: c.label, href: postPath(post.slug) } : c)), site)],
     preload: post.coverImage ? [post.coverImage] : undefined, bodyClass: `bl-page bl-page--article${rtl ? ' bl-page--rtl' : ''}`, body: main,
   });

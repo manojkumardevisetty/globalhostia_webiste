@@ -36,7 +36,7 @@ export function fitDescription(base: string, extras: string[], min = 140, max = 
 export function blogListingDescription(desc: string, title: string) {
   const t = desc.replace(/\s+/g, ' ').trim();
   if (t.length >= 120) return t;
-  const cat = title.replace(/\s*\(page \d+\)$/i, '').replace(/\s+articles$/i, '').trim();
+  const cat = title.replace(/\s*\(page \d+\)$/i, '').replace(/\s+articles( and guides)?$/i, '').trim();
   const topic = !cat || /^blog$/i.test(cat) ? 'web hosting, VPS, servers, domains and email' : cat.toLowerCase().replace(/\s+guides?$/, '') || 'web hosting';
   return fitDescription(t, [
     `Practical guides, tutorials and tips on ${topic} for site owners and developers, written by the engineers who run GlobalHostia.`,
@@ -98,18 +98,120 @@ export function seoDescription(d: string | undefined, fallback = DEFAULT_DESCRIP
   return cut.slice(0, Math.max(cut.lastIndexOf(' '), 120)).replace(/[\s,;:.-]+$/, '') + '…';
 }
 
-/** Dynamic Open Graph image URL for a page. */
-export function ogImageUrl(site: string, title: string, kicker?: string, v?: string) {
-  const q = new URLSearchParams({ title: title.slice(0, 90) });
-  if (kicker) q.set('kicker', kicker.slice(0, 40));
-  if (v) q.set('v', v);
+/** Brand name for og:site_name, Organization and image alts (public branding is always "GlobalHostia"). */
+export const BRAND = 'GlobalHostia';
+
+/**
+ * Design version of the /og images (app/og/route.tsx). Bump it when the image layout changes: every og:image URL
+ * then changes, so the immutable CDN / social-network copies are fetched again.
+ */
+export const OG_VERSION = '3';
+
+/** Short stable hash (FNV-1a, base 36) — works in Node and the edge runtime. */
+export function shortHash(s: string) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(36);
+}
+
+export type OgImageOpts = {
+  /** small label above the title (section or product category) */ kicker?: string;
+  /** line next to the gold bar (default: the data-centre regions) */ sub?: string;
+  /** real "from" price of a product, e.g. "$2.99/mo" (only when it comes from the catalog) */ price?: string;
+  /** 'ar' renders right to left with the Arabic font */ lang?: 'en' | 'ar';
+};
+
+/**
+ * Dynamic Open Graph image URL for a page: /og?title=…&kicker=…&v=<hash>. The version is a hash of the design
+ * version and every parameter, so the image is cached as immutable and the URL changes whenever its content does.
+ * `opts` may also be a plain kicker string (older call sites).
+ */
+export function ogImageUrl(site: string, title: string, opts?: string | OgImageOpts, _v?: string) {
+  const o: OgImageOpts = typeof opts === 'string' ? { kicker: opts } : opts || {};
+  const q = new URLSearchParams({ title: ogClean(title, 90) });
+  if (o.kicker) q.set('kicker', ogClean(o.kicker, 40));
+  if (o.sub) q.set('sub', ogClean(o.sub, 60));
+  if (o.price) q.set('price', ogClean(o.price, 24));
+  if (o.lang === 'ar') q.set('lang', 'ar');
+  q.set('v', shortHash(`${OG_VERSION}|${q.toString()}`));
   return `${site}/og?${q.toString()}`;
+}
+const ogClean = (v: string, max: number) => String(v || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max);
+
+/** Section label printed above the title on a page's OG image, by theme route kind (lib/theme/routes.ts). */
+const KICKER: Record<string, string> = {
+  hosting: 'Web hosting', wordpress: 'WordPress hosting', reseller: 'Reseller hosting', vps: 'VPS hosting', cloud: 'Cloud servers', servers: 'Servers',
+  dedicated: 'Dedicated servers', forex: 'Forex VPS', domains: 'Domains', aedomains: '.ae domains', tld: 'Domains', premium: 'Premium domains', broker: 'Domain broker',
+  sell: 'Sell your domain', ssl: 'SSL certificates', email: 'Business email', store: 'Business services', projects: 'Project management', blog: 'Blog',
+  learn: 'Guides', vs: 'Compare', help: 'Help centre', contact: 'Contact', datacenters: 'Data centres', migration: 'Free migration', planfinder: 'Plan finder',
+  uae: 'UAE hosting', usecase: 'Hosting for', location: 'Locations', category: 'Plans', ai: 'AI connectors', auth: 'Account', product: 'Plan', landing: 'Offer',
+};
+const KICKER_AR: Record<string, string> = { ar: 'GlobalHostia بالعربية' };
+/** OG kicker for a page: the explicit one, else its section label. */
+export function sectionKicker(kind: string | undefined, path: string, explicit?: string) {
+  if (explicit) return explicit;
+  if (/^\/(connectors|docs\/mcp|ai)(\/|$)/.test(path)) return 'AI connectors';
+  if (/^\/help(-center)?(\/|$)/.test(path)) return 'Help centre';
+  if (/^\/compare(\/|$)/.test(path)) return 'Compare';
+  return KICKER[kind || ''] || KICKER_AR[kind || ''] || '';
+}
+
+/** Visible title without a trailing " | Brand" suffix (the generated OG image prints the brand itself). */
+export const bareTitle = (t: string) => String(t || '').replace(/\s*\|\s*[^|]*$/, '').trim() || String(t || '').trim();
+
+export type SocialMeta = {
+  /** absolute canonical URL (og:url) */ url: string;
+  /** full <title> text */ title: string;
+  description: string;
+  /** absolute image URL */ image: string;
+  imageAlt: string;
+  /** declared size and type; default 1200×630 PNG (the /og generator and public/og/default.png); 0 = unknown, omitted */
+  imageWidth?: number; imageHeight?: number; imageType?: string;
+  /** og:type (default "website") */ type?: string;
+  /** 'ar' → og:locale ar_AE */ lang?: 'en' | 'ar';
+  /** the page also exists in the other language (hreflang pair) → og:locale:alternate */ alternate?: boolean;
+};
+
+/** Open Graph + Twitter card tags for one page. Every renderer uses this, so no page misses a tag. */
+export function socialMeta(m: SocialMeta) {
+  const e = esc;
+  const locale = m.lang === 'ar' ? 'ar_AE' : 'en_AE';
+  const other = m.lang === 'ar' ? 'en_AE' : 'ar_AE';
+  // 0 = size unknown (a custom image): no width/height tags rather than a wrong size
+  const w = m.imageWidth ?? 1200, h = m.imageHeight ?? 630;
+  const type = m.imageType || (/\.jpe?g(\?|$)/i.test(m.image) ? 'image/jpeg' : /\.webp(\?|$)/i.test(m.image) ? 'image/webp' : 'image/png');
+  return `<meta property="og:type" content="${e(m.type || 'website')}"><meta property="og:site_name" content="${BRAND}"><meta property="og:locale" content="${locale}">${m.alternate ? `<meta property="og:locale:alternate" content="${other}">` : ''}`
+    + `<meta property="og:url" content="${e(m.url)}"><meta property="og:title" content="${e(m.title)}"><meta property="og:description" content="${e(m.description)}">\n`
+    + `<meta property="og:image" content="${e(m.image)}"><meta property="og:image:secure_url" content="${e(m.image)}"><meta property="og:image:type" content="${e(type)}">${w && h ? `<meta property="og:image:width" content="${w}"><meta property="og:image:height" content="${h}">` : ''}<meta property="og:image:alt" content="${e(m.imageAlt)}">\n`
+    + `<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${e(m.title)}"><meta name="twitter:description" content="${e(m.description)}"><meta name="twitter:image" content="${e(m.image)}"><meta name="twitter:image:alt" content="${e(m.imageAlt)}">`;
+}
+
+/**
+ * Query parameters that make a URL a non-canonical variant which must stay out of the index even though the
+ * canonical already points at the clean URL: A/B previews (?ab=), the internal per-variant CDN keys (?_ab=, ?_abd=),
+ * theme previews and CMS previews.
+ */
+export const NOINDEX_PARAMS = ['ab', '_ab', '_abd', 'theme', 'preview'];
+export const isNoindexQuery = (q: URLSearchParams | null | undefined) => !!q && NOINDEX_PARAMS.some((k) => q.has(k));
+
+/** "Page title" + optional hint → a meta description of 70–160 characters (used where a page has none). */
+export function descriptionFor(title: string, text?: string) {
+  const t = bareTitle(title);
+  const base = String(text || '').replace(/\s+/g, ' ').trim();
+  if (base.length >= 70) return seoDescription(base);
+  const lead = base ? `${base.replace(/[.\s]+$/, '')}.` : `${t} from GlobalHostia.`;
+  return seoDescription(fitDescription(lead, [
+    'NVMe web hosting, VPS and dedicated servers in Dubai, Europe, the USA and Asia, with free SSL and 24/7 support.',
+    'Web hosting, VPS, domains and email from GlobalHostia in Dubai, with free SSL and 24/7 support.',
+    'Hosting, servers and domains with 24/7 support from GlobalHostia in Dubai.',
+  ], 70, 160));
 }
 
 const json = (o: unknown) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`;
 
-/** Organization + WebSite graph, emitted on every public page. */
-export function siteJsonLd(s: Partial<Settings>, whmcsBase: string) {
+/** Organization + WebSite graph, emitted on every public page (the only Organization node on a page: page modules
+ *  reference it by @id; `orgExtra` adds properties such as the home page's hasOfferCatalog to it). */
+export function siteJsonLd(s: Partial<Settings>, whmcsBase: string, orgExtra?: Record<string, unknown>) {
   const site = siteUrl(s);
   const name = 'GlobalHostia';
   const alt = String(s.site_name || '').trim();
@@ -128,6 +230,7 @@ export function siteJsonLd(s: Partial<Settings>, whmcsBase: string) {
     // the site footer states the company is in Dubai, UAE
     address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' },
     ...(links.length ? { sameAs: links } : {}),
+    ...(orgExtra || {}),
   };
   const website: Record<string, unknown> = {
     '@type': 'WebSite', '@id': `${site}/#website`, name, ...(alt && alt !== name ? { alternateName: alt } : {}), url: `${site}/`, inLanguage: 'en',
@@ -137,6 +240,27 @@ export function siteJsonLd(s: Partial<Settings>, whmcsBase: string) {
     website.potentialAction = { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${base}/cart.php?a=add&domain=register&query={search_term_string}` }, 'query-input': 'required name=search_term_string' };
   }
   return json({ '@context': 'https://schema.org', '@graph': [org, website] });
+}
+
+/**
+ * Structured data hygiene for pages that include imported template blocks (lib/render/page.ts): drop JSON-LD blocks
+ * that are not valid JSON, FAQPage blocks without questions, and extra Organization nodes for the site (the site
+ * graph from siteJsonLd is the one Organization of a page).
+ */
+export function cleanJsonLd(html: string) {
+  const hasGraph = /"@graph":\[\{"@type":"Organization"/.test(html);
+  return html.replace(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>\s*/gi, (m, body: string) => {
+    let j: any;
+    try { j = JSON.parse(body); } catch { return ''; }
+    const typesOf = (n: any): string[] => [].concat(n?.['@type'] || []);
+    const nodes: any[] = [];
+    const walk = (x: any) => { if (Array.isArray(x)) x.forEach(walk); else if (x && typeof x === 'object') { nodes.push(x); if (x['@graph']) walk(x['@graph']); } };
+    walk(j);
+    if (nodes.some((n) => typesOf(n).includes('FAQPage') && !(Array.isArray(n.mainEntity) ? n.mainEntity.length : n.mainEntity))) return '';
+    // a template's own top-level Organization next to the site graph's
+    if (hasGraph && !j['@graph'] && !Array.isArray(j) && typesOf(j).includes('Organization')) return '';
+    return m;
+  });
 }
 
 /** Favicon / manifest links shared by every renderer. */

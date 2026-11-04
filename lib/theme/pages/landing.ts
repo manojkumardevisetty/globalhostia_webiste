@@ -14,7 +14,7 @@ import { trustStrip, waLink } from '../growth';
 import { leadForm } from '../lead';
 import { withCurrency, asset, FONT_PRELOADS } from '../shell';
 import { trackingHead, consentLink } from '../../tracking';
-import { ROBOTS_INDEX, ROBOTS_NOINDEX, ICON_LINKS, seoTitle, seoDescription, verificationMeta } from '../../seo';
+import { ROBOTS_INDEX, ROBOTS_NOINDEX, ICON_LINKS, seoTitle, seoDescription, verificationMeta, socialMeta, ogImageUrl, siteJsonLd, descriptionFor, bareTitle, BRAND } from '../../seo';
 import type { LandingPage } from '../../schema';
 
 const UNIT: Record<string, string> = { monthly: '/ month', quarterly: '/ quarter', semiannually: '/ 6 months', annually: '/ year', biennially: '/ 2 years', triennially: '/ 3 years', onetime: 'one-time' };
@@ -101,7 +101,7 @@ export async function renderLanding(slug: string, o: { path: string; preview: bo
   const wa = waLink(s, `Hello ${siteName}, I saw your offer "${lp.headline}" (${canonical}) and have a question.`);
   const cta = esc(lp.ctaLabel || 'Order now');
   const title = lp.seoTitle || lp.headline;
-  const description = seoDescription(lp.seoDescription || lp.subheadline);
+  const description = descriptionFor(title, seoDescription(lp.seoDescription || lp.subheadline));
   const eyebrow = r.kind === 'product' ? r.label : r.kind === 'tld' ? `${r.tld} domains` : r.label;
   const priceLine = (cls = '') => r.kind !== 'none' && r.price
     ? `<p class="lp-price ${cls}"><span class="lp-price__from">${r.kind === 'product' && r.pool.length > 1 && !lp.productSlug ? 'From' : r.kind === 'tld' ? 'Register for' : 'Only'}</span> <b class="num">${esc(r.price.amount)}</b> <span class="lp-price__unit">${esc(r.price.unit)}</span></p>`
@@ -179,17 +179,20 @@ export async function renderLanding(slug: string, o: { path: string; preview: bo
     offers: { '@type': 'Offer', price: r.price.price.toFixed(2), priceCurrency: cat.currency, availability: 'https://schema.org/InStock', url: r.orderHref } }) : '';
   const year = new Date().getFullYear();
   const company = 'GlobalHostia';
+  const fullTitle = seoTitle(title, BRAND);
+  // social card: the offer headline with its live price (none when the catalog has no price for it)
+  const ogImg = ogImageUrl(site, bareTitle(title), { kicker: r.kind !== 'none' ? r.label : 'Offer', price: r.kind !== 'none' && r.price ? `${r.price.amount} ${r.price.unit}`.replace(/\s*\/\s*month$/, '/mo').replace(/\s*\/\s*year$/, '/yr') : undefined });
 
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(seoTitle(title, siteName))}</title>
+<title>${esc(fullTitle)}</title>
 <meta name="description" content="${esc(description)}">
 <meta name="robots" content="${noindex ? ROBOTS_NOINDEX : ROBOTS_INDEX}">
 <link rel="canonical" href="${esc(canonical)}">
-<meta property="og:type" content="website"><meta property="og:site_name" content="${esc(siteName)}"><meta property="og:url" content="${esc(canonical)}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:image" content="${esc(site)}/og/default.png">
+${socialMeta({ url: canonical, title: fullTitle, description, image: ogImg, imageAlt: `${bareTitle(title)} | ${BRAND}` })}
 ${verificationMeta(s)}
 ${trackingHead(s.tracking)}
 <meta name="theme-color" content="#16212b">
@@ -197,6 +200,7 @@ ${ICON_LINKS}
 ${FONT_PRELOADS}
 <link rel="stylesheet" href="${asset('/hp/theme.css')}">
 <link rel="stylesheet" href="${asset('/hp/pages/lp.css')}">
+${siteJsonLd(s, cat.base)}
 ${productLd}
 ${faqs.length ? faqJsonLd(faqs) : ''}
 </head>

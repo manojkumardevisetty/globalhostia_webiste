@@ -391,17 +391,17 @@ export default async function render(ctx: PageCtx): Promise<string | null> {
   // WebPage in Arabic (Organization/WebSite come from the shell; same @id, so search engines join them)
   const webPage = ld({ '@context': 'https://schema.org', '@type': 'WebPage', '@id': `${site}${path}#webpage`, url: site + path, name: c.seoTitle, description: c.meta, inLanguage: 'ar',
     isPartOf: { '@id': `${site}/#website` }, publisher: { '@id': `${site}/#organization` }, ...(c.keywords.length ? { keywords: c.keywords.join('، ') } : {}) });
-  const orgAr = def.kind === 'home' ? ld({ '@context': 'https://schema.org', '@type': 'Organization', '@id': `${site}/#organization`, name: 'GlobalHostia', url: `${site}/`,
-    description: c.meta, address: { '@type': 'PostalAddress', addressLocality: 'دبي', addressCountry: 'AE' }, areaServed: ['AE', 'SA', 'QA', 'KW', 'BH', 'OM'] }) : '';
+  // home: Arabic description and the Gulf markets served, merged into the page's one Organization node (shell siteJsonLd)
+  const orgAr = def.kind === 'home' ? { description: c.meta, areaServed: ['AE', 'SA', 'QA', 'KW', 'BH', 'OM'] } : undefined;
   // the route's title/description become the page's Arabic SEO title and meta (shell uses route.seoTitle/meta)
   const route = { ...ctx.route, title: c.title, description: c.meta, seoTitle: c.seoTitle, meta: c.meta, categories: def.categories };
   // a plan page with no live plans is noindex (shell.ts); hreflang only joins indexable pages
   const indexable = !built.noindex && !(def.categories?.length && !productsFor(cat, def.categories).length);
   const html = await page({
-    ctx: { ...ctx, route }, catalog: cat, path, title: c.title, description: c.meta, ogKicker: 'GlobalHostia',
+    ctx: { ...ctx, route }, catalog: cat, path, title: c.title, description: c.meta, ogKicker: 'GlobalHostia بالعربية', lang: 'ar', altLang: indexable,
     css: ['ar', ...(built.css || [])], js: built.js, noindex: built.noindex, bodyClass: 'ar-page',
-    headExtra: `${indexable ? hreflangLinks(site, def) : ''}<meta property="og:locale:alternate" content="en_AE">${FONT}`,
-    jsonLd: [webPage, orgAr, breadcrumbJsonLd(crumbs, site), faqs.length ? faqJsonLd(faqs) : '', ...(built.ld || [])].filter(Boolean),
+    headExtra: `${indexable ? hreflangLinks(site, def) : ''}${FONT}`,
+    jsonLd: [webPage, breadcrumbJsonLd(crumbs, site), faqs.length ? faqJsonLd(faqs) : '', ...(built.ld || [])].filter(Boolean), orgExtra: orgAr,
     body: built.body,
   });
   return arabizeHtml(html, { links, enPath: def.en });

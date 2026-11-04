@@ -5,7 +5,7 @@ import { eq, and } from 'drizzle-orm';
 import { db, schema } from './db';
 import { cachedRead } from './lkg';
 import { getSettings } from './settings';
-import { getPosts, blogCategories, COLLECTIONS } from './blog';
+import { getPosts, blogCategories, COLLECTIONS, translationOf, postPath } from './blog';
 import { SITEMAP_EXCLUDE, NOINDEX_SLUGS } from './seo';
 import { ROUTES, THEME_ONLY } from './theme/routes';
 import { getCatalog, productsFor, type Catalog } from './theme/data';
@@ -121,6 +121,17 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
   // hreflang pairs: both versions listed (so both answer 200 and are indexable) → each gets en, ar and x-default
   for (const d of AR_DEFS) {
     const en = out.find((e) => e.loc === base + (d.en === '/' ? '/' : d.en)), ar = out.find((e) => e.loc === base + arPathOf(d));
+    if (!en || !ar) continue;
+    const alts = [{ lang: 'en', href: en.loc }, { lang: 'ar', href: ar.loc }, { lang: 'x-default', href: en.loc }];
+    en.alternates = alts; ar.alternates = alts;
+  }
+  // blog articles with an Arabic version (content engine): the same en/ar/x-default set the article pages print
+  // (lib/theme/pages/blog.ts: both live and self-canonical)
+  for (const p of posts) {
+    if (p.lang !== 'en' || p.canonical) continue;
+    const other = translationOf(posts, p);
+    if (!other || other.canonical) continue;
+    const en = out.find((e) => e.loc === base + postPath(p.slug)), ar = out.find((e) => e.loc === base + postPath(other.slug));
     if (!en || !ar) continue;
     const alts = [{ lang: 'en', href: en.loc }, { lang: 'ar', href: ar.loc }, { lang: 'x-default', href: en.loc }];
     en.alternates = alts; ar.alternates = alts;

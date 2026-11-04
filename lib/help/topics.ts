@@ -277,7 +277,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     ],
     frames: [{ src: 'register-a-domain-1' }, { src: 'register-a-domain-2' }, { src: 'register-a-domain-3' }, { src: 'register-a-domain-4' }],
     keywords: 'register domain buy domain search name .com .ae price checkout',
-    related: [['Domain registration', '/domains-registration'], ['Domain prices', '/domains-pricing'], ['Transfer a domain', '/help/transfer-a-domain']] },
+    related: [['Domain registration', '/domains-registration'], ['Domain prices', '/domains-registration#pricing'], ['Transfer a domain', '/help/transfer-a-domain']] },
   { slug: 'buy-hosting', group: 'ordering', kind: 'walkthrough', where: 'Website and checkout', whereAr: 'الموقع وصفحة الدفع',
     title: 'Buy a hosting plan', titleAr: 'شراء خطة استضافة',
     summary: 'Compare plans, choose a billing period, attach a domain and check out.',
