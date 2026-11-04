@@ -25,6 +25,12 @@ export type QualityInput = {
   site?: string; // https://globalhostia.com
   /** the topic category needs official sources (UAE rules, tech news explainers): no official link → fail */
   needsSources?: boolean;
+  /**
+   * news analysis of a real event (category infra-news): sourced from reputable reports rather than official
+   * documentation only (2+ linked sources pass, 1 warns, none fails), and naming the organisations involved is allowed
+   * (competitor names warn instead of failing; the owner checks the wording)
+   */
+  news?: boolean;
 };
 
 /* ------------------------------------------------------------------ text helpers */
@@ -122,6 +128,8 @@ export const FORBIDDEN: Claim[] = [
   { re: /\b(studies|study|research|survey|surveys|a report) (show|shows|found|finds|suggests?|reveal(s|ed)?)\b|\baccording to (a|one|recent) (study|survey|report)\b|\bexperts (say|agree)\b/i, label: 'appeal to an unnamed study/survey/expert', status: 'fail' },
   { re: /\b(trusted by|used by|chosen by|serving)\s+[\d,.]+\s*(k|\+)?\s*(customers|businesses|clients|websites|users)\b|\b\d[\d,.]*\+?\s+(happy|satisfied) (customers|clients)\b/i, label: 'customer-count claim', status: 'fail' },
   { re: /^\s*>\s*["“][^"”]{10,}["”]\s*[-—–]\s*\S+/m, label: 'quote attributed to a person (possible testimonial)', status: 'fail' },
+  // brand voice (lib/content/prompts.ts RULES): GlobalHostia is positioned as a premium managed partner, not on price
+  { re: /\b(cheap|cheaper|budget|affordable|low[- ]cost|bargain)\s+(web\s+|wordpress\s+|shared\s+|cloud\s+|business\s+)?(hosting|host|vps|servers?|plans?|domains?|email)\b/i, label: 'price-led wording ("cheap/budget/affordable hosting"): off brand voice', status: 'warn' },
   { re: /\b(always|never) (goes|go) down\b|\bzero downtime\b|\bunlimited\s+(cpu|ram|resources)\b/i, label: 'absolute performance claim', status: 'warn' },
 ];
 
@@ -280,14 +288,16 @@ export function runQualityChecks(q: QualityInput): Check[] {
   const text = plainText(q.body);
   const low = ` ${text.toLowerCase()} `;
   const comp = COMPETITORS.filter((c) => new RegExp(`(^|[^a-z0-9])${c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`, 'i').test(low));
-  out.push(ck('competitors', 'No competitor names', comp.length ? 'fail' : 'pass', comp.join(', ')));
+  out.push(ck('competitors', 'No competitor names', comp.length ? (q.news ? 'warn' : 'fail') : 'pass', comp.length && q.news ? `${comp.join(', ')} (news: only as reported by the sources)` : comp.join(', ')));
   for (const f of FORBIDDEN) {
     const m = q.body.match(f.re) || `${q.h1}\n${mt}\n${md}`.match(f.re);
     if (m) out.push(ck(`claim-${FORBIDDEN.indexOf(f)}`, `No ${f.label}`, f.status, `“${m[0].trim().slice(0, 80)}”`));
   }
   if (!FORBIDDEN.some((f) => f.re.test(q.body) || f.re.test(`${q.h1}\n${mt}\n${md}`))) out.push(ck('claims', 'No forbidden claims (#1, guaranteed, superlatives, unnamed studies)', 'pass'));
   const official = external.filter((l) => officialHost(l.href));
-  out.push(ck('sources', 'Facts cite an official source (linked)', official.length ? 'pass' : q.needsSources ? 'fail' : 'warn',
+  if (q.news) out.push(ck('sources', 'News facts cite their sources (linked)', external.length >= 2 ? 'pass' : external.length ? 'warn' : 'fail',
+    external.length ? `${external.length} linked source${external.length === 1 ? '' : 's'} to verify` : 'A news article must link the reports it is based on'));
+  else out.push(ck('sources', 'Facts cite an official source (linked)', official.length ? 'pass' : q.needsSources ? 'fail' : 'warn',
     official.length ? `${official.length} official reference${official.length === 1 ? '' : 's'}` : q.needsSources ? 'This topic needs at least one official source link (government, standard or vendor documentation)' : 'No official reference linked: add one where the article states facts'));
   if (lang === 'en' && kw) {
     const kd = keywordDensity(q.body, kw);

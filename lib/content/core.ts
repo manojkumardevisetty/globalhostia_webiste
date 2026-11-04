@@ -58,7 +58,7 @@ export type ContentSettings = {
   publishTimes: string[];
   jitterMin: number; // ± minutes around each publish time (deterministic per day, so times never repeat to the minute)
   minGapHours: number; // minimum hours between two publishes
-  tracks: Track[]; // tracks the autopilot rotates through (each day gets both when it has 2+ posts)
+  tracks: Track[]; // tracks the autopilot uses (both on: about 1 slot in 10 on the UAE track, see trackForSlot)
   categories: string[]; // enabled topic categories (CATEGORIES ids)
   clusterCooldownDays: number; // the same narrow topic cluster is not reused within this many days
   minQualityScore: number; // 0–100: autopilot publishes only drafts at or above this score and with no failed check
@@ -79,7 +79,11 @@ export type ContentSettings = {
   seedKeywords: string[];
   /** settings schema version: saved settings older than 2 get the daily-cadence defaults (autopilot on, cap raised) */
   v: number;
+  /** topic-mix version: a category list saved before 1 gets the categories added with it (infra-news) switched on */
+  mixV?: number;
 };
+/** Categories added by topic-mix version 1: switched on in category lists saved before it. */
+export const MIX_V1_ADDED = ['infra-news'];
 export const SETTINGS_VERSION = 2;
 /** Default cap: about 55 English articles a month cost ≈ $4–5 at the default prices; $12 leaves ≥30% headroom even when
  *  every article also gets an Arabic version (≈ $9.5 for 55), plus retries after failed gates. */
@@ -104,7 +108,8 @@ export function normalizeContent(raw: unknown): ContentSettings {
   const times = [...new Set(list(r.publishTimes).map(timeToMin).filter((m) => m >= 0))].sort((a, c) => a - c).slice(0, 10).map(minToTime);
   const ppd = r.postsPerDay === null || r.postsPerDay === undefined || r.postsPerDay === '' ? null : Math.round(n(r.postsPerDay, -1, -1, 10));
   const tracks = (Array.isArray(r.tracks) ? r.tracks : d.tracks).filter((t: unknown): t is Track => t === 'uae' || t === 'global');
-  const cats = (Array.isArray(r.categories) ? r.categories : []).map(String).filter((c: string) => CATEGORY_IDS.has(c));
+  const saved = (Array.isArray(r.categories) ? r.categories : []).map(String).filter((c: string) => CATEGORY_IDS.has(c));
+  const cats = saved.length && !(Number(r.mixV) >= 1) ? [...saved, ...MIX_V1_ADDED] : saved;
   const cap = n(r.monthlyCapUsd, d.monthlyCapUsd, 0, 10_000);
   return {
     enabled: b(r.enabled, d.enabled),
@@ -133,15 +138,19 @@ export function normalizeContent(raw: unknown): ContentSettings {
     seedKeywords: (Array.isArray(r.seedKeywords) ? r.seedKeywords : String(r.seedKeywords || '').split(/\r?\n|,/))
       .map((x: unknown) => String(x).trim()).filter((x: string) => x.length >= 2 && x.length <= 80).slice(0, 60),
     v: SETTINGS_VERSION,
+    mixV: 1,
   };
 }
 
 /* ------------------------------------------------------------------ topic categories */
-export type Category = { id: string; label: string; tracks: Track[]; blog: string; brief: string; needsSources?: boolean };
+export type Category = { id: string; label: string; tracks: Track[]; blog: string; brief: string; needsSources?: boolean;
+  /** timely news: ideas and drafts come from a web search at generation time, sourced, recent; no story → the slot is skipped */ news?: boolean };
 /** Broad categories the autopilot rotates through so consecutive articles are unrelated. */
 export const CATEGORIES: Category[] = [
   { id: 'hosting', label: 'Web hosting', tracks: ['uae', 'global'], blog: 'Hosting guides', brief: 'choosing, running and troubleshooting web hosting and WordPress sites' },
-  { id: 'domains', label: 'Domains', tracks: ['uae', 'global'], blog: 'Domains', brief: 'domain names, DNS, registration, transfers, renewals and brand protection' },
+  { id: 'domains', label: 'Domains', tracks: ['uae', 'global'], blog: 'Domains', brief: 'domain names for businesses: naming a brand, choosing a TLD (.com, .net, .io, .ai, .ae and others), registration, transfers, renewals, buying and selling premium domains, DNS and brand protection' },
+  { id: 'infra-news', label: 'Global internet & infrastructure news', tracks: ['global'], blog: 'Internet news', needsSources: true, news: true,
+    brief: 'one real, recent event (found by web search, sourced) in global internet infrastructure: subsea cables and outages, data-centre builds and AI compute, cloud and CDN outages and their lessons, ICANN, new gTLD and registry policy changes, major DNS or BGP incidents, big ransomware attacks or breaches with lessons for businesses, AI regulation and data-residency laws, data-centre energy and cooling; told as what happened, why it matters for a business website, domain or email, and what to do' },
   { id: 'email', label: 'Business email', tracks: ['uae', 'global'], blog: 'Email', brief: 'business email, deliverability, mailbox management and email etiquette for teams' },
   { id: 'security', label: 'Security', tracks: ['uae', 'global'], blog: 'Security', brief: 'website and small-business cyber security, SSL, passwords, backups, phishing' },
   { id: 'ai-tools', label: 'AI tools for business', tracks: ['uae', 'global'], blog: 'AI for business', brief: 'practical, honest use of AI tools in small businesses (writing, support, analysis), with limits and privacy cautions; no hype' },
@@ -175,9 +184,9 @@ export function inferCategory(text: string): string {
   return 'hosting';
 }
 /** Category and narrow topic cluster are kept as a tag at the start of the idea's rationale: "[cat:email|cl:dmarc reports] …". */
-export function tagRationale(cat: string, cluster: string, text: string) {
+export function tagRationale(cat: string, cluster: string, text: string, max = 400) {
   const cl = String(cluster || '').toLowerCase().replace(/[|\]\[]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
-  return `[cat:${cat}${cl ? `|cl:${cl}` : ''}] ${String(text || '').replace(/^\[cat:[^\]]*\]\s*/, '')}`.slice(0, 400);
+  return `[cat:${cat}${cl ? `|cl:${cl}` : ''}] ${String(text || '').replace(/^\[cat:[^\]]*\]\s*/, '')}`.slice(0, max);
 }
 export function readTags(rationale: string): { category: string; cluster: string; text: string } {
   const m = String(rationale || '').match(/^\[cat:([a-z-]+)(?:\|cl:([^\]]*))?\]\s*/);
@@ -299,8 +308,16 @@ export const postsInMonth = (key: string, cs: Pick<ContentSettings, 'monthlyTarg
 };
 export type DaySlot = { at: Date; track: Track; index: number; key: string };
 const LATEST_MIN = 22 * 60 + 30; // nothing after 22:30 Dubai
+/** Share of autopilot slots on the UAE track when both tracks are on (the rest is the global track): 1 slot in UAE_EVERY. */
+export const UAE_EVERY = 10;
+/** Track of the n-th slot of the calendar (n = day number × 3 + slot index): UAE for 1 slot in UAE_EVERY, else global. */
+export function trackForSlot(n: number, tracks: Track[]): Track {
+  if (tracks.length === 1) return tracks[0];
+  if (!tracks.includes('uae') || !tracks.includes('global')) return tracks[((n % tracks.length) + tracks.length) % tracks.length];
+  return ((n % UAE_EVERY) + UAE_EVERY) % UAE_EVERY === 0 ? 'uae' : 'global';
+}
 /** Publish slots of a Dubai day: spread over the configured times, at least minGapHours apart where the day allows it,
- *  ±jitterMin minutes (stable per day), tracks alternating (both tracks every day with 2+ posts; single posts alternate by day). */
+ *  ±jitterMin minutes (stable per day); about 1 slot in UAE_EVERY on the UAE track, the rest global (trackForSlot). */
 export function dailySlots(key: string, cs: Pick<ContentSettings, 'monthlyTarget' | 'postsPerDay' | 'publishTimes' | 'jitterMin' | 'minGapHours' | 'tracks'>): DaySlot[] {
   const count = postsForDay(key, cs);
   if (count <= 0) return [];
@@ -319,7 +336,7 @@ export function dailySlots(key: string, cs: Pick<ContentSettings, 'monthlyTarget
   const tracks = cs.tracks.length ? cs.tracks : TRACKS;
   const [y, mo, d] = key.split('-').map(Number);
   const off = dayNumber(key);
-  return mins.map((m, i) => ({ at: dubaiTime(y, mo, d, Math.floor(Math.max(0, Math.min(m, 24 * 60 - 1)) / 60), Math.max(0, Math.min(m, 24 * 60 - 1)) % 60), track: tracks[(off + i) % tracks.length], index: i, key }));
+  return mins.map((m, i) => ({ at: dubaiTime(y, mo, d, Math.floor(Math.max(0, Math.min(m, 24 * 60 - 1)) / 60), Math.max(0, Math.min(m, 24 * 60 - 1)) % 60), track: trackForSlot(off * 3 + i, tracks), index: i, key }));
 }
 /** Half the distance to the neighbouring slot: an idea planned within it belongs to the slot. */
 export function slotWindowMs(slots: DaySlot[], i: number) {
@@ -399,7 +416,19 @@ export function diversityCheck(c: TopicRef, refs: TopicRef[], o: { now: Date | n
   }
   return { ok: true };
 }
-/** Category for the next slot: enabled for the track, never the same as the previous article, least recently used first. */
+/**
+ * Editorial mix of the autopilot (owner's targets): domains ~40% (naming, TLD choice, transfers, premium domain buying
+ * and selling, DNS, brand protection), global internet & infrastructure news ~25%, hosting / security / how-to and the
+ * other categories ~25%, the UAE track ~10% (dailySlots). Shares are measured over the last MIX_WINDOW categorised
+ * articles of every track.
+ */
+export const MIX_TARGETS: Record<string, number> = { domains: 0.4, 'infra-news': 0.25 };
+export const DOMAIN_SHARE = MIX_TARGETS.domains;
+export const MIX_WINDOW = 20;
+/**
+ * Category for the next slot: enabled for the track, never the same as the previous article. A MIX_TARGETS category
+ * below its share comes first (the one furthest below); otherwise the least recently used of the other categories.
+ */
 export function pickCategory(o: { track: Track; enabled: string[]; recent: { category: string; at: Date | string | number }[]; avoid?: string[]; seed?: string }): string | null {
   const ok = CATEGORIES.filter((c) => c.tracks.includes(o.track) && (!o.enabled.length || o.enabled.includes(c.id)));
   if (!ok.length) return null;
@@ -408,7 +437,13 @@ export function pickCategory(o: { track: Track; enabled: string[]; recent: { cat
   const lastUse = (id: string) => { const r = sorted.find((x) => x.category === id); return r ? new Date(r.at).getTime() : -Infinity; };
   const pool = ok.filter((c) => c.id !== last && !(o.avoid || []).includes(c.id));
   const from = pool.length ? pool : ok;
-  return [...from].sort((a, b) => lastUse(a.id) - lastUse(b.id) || hash01(`${o.seed || ''}${a.id}`) - hash01(`${o.seed || ''}${b.id}`))[0].id;
+  const window = sorted.slice(0, MIX_WINDOW);
+  const share = (id: string) => (window.length ? window.filter((r) => r.category === id).length / window.length : 0);
+  const behind = from.filter((c) => MIX_TARGETS[c.id] && share(c.id) < MIX_TARGETS[c.id])
+    .sort((a, b) => (MIX_TARGETS[b.id] - share(b.id)) - (MIX_TARGETS[a.id] - share(a.id)));
+  if (behind.length) return behind[0].id;
+  const rest = from.filter((c) => !MIX_TARGETS[c.id]);
+  return [...(rest.length ? rest : from)].sort((a, b) => lastUse(a.id) - lastUse(b.id) || hash01(`${o.seed || ''}${a.id}`) - hash01(`${o.seed || ''}${b.id}`))[0].id;
 }
 
 /* ------------------------------------------------------------------ budget */

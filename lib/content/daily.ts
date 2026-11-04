@@ -10,6 +10,7 @@ import {
   addDays, categoryOf, dailySlots, dayKey, diversityCheck, inferCategory, matchSlots, monthKey, passesGate, pickCategory, qualityScore, readTags, wantArabicNext,
   type DaySlot, type Track,
 } from './core';
+import { isRecentEvent, readNewsTag } from './prompts';
 import {
   SYSTEM, approve, budgetGate, generateDraft, generateIdeas, notifyDrafts, recordDuePublished, reconcile, runManual, schedule, selectAutoSchedule, topicRefs,
   type CronResult,
@@ -67,8 +68,11 @@ export async function runDaily(o: { deadlineMs?: number; trigger?: string; force
           if (idea || slot.at.getTime() < now + MIN_LEAD_MS || attempts(slot) >= MAX_ATTEMPTS) continue;
           if (Date.now() > deadline || (gate = await budgetGate())) break;
           const sameDay = planned.filter((i) => i.plannedFor && dayKey(i.plannedFor) === key).map((i) => readTags(i.rationale).category).filter(Boolean);
+          // one news search per day: after a miss the day's other slots (and retries) use the other categories
+          if ([...events, ...st.events].some((e) => e.kind === 'skipped' && String(e.reason || '').startsWith(NEWS_MISS) && e.slotAt && dayKey(e.slotAt) === key)) sameDay.push('infra-news');
           const recent = refs.filter((r) => r.category).map((r) => ({ category: r.category!, at: r.at || 0 }));
           const picked = await fillSlot(slot, { enabled: cs.categories, recent, sameDay, refs, backlog, cooldownDays: cs.clusterCooldownDays, seeds: cs.seedKeywords });
+          if (picked === NEWS_MISS) { events.push({ at: new Date().toISOString(), kind: 'skipped', slotAt: slot.at.toISOString(), reason: `${NEWS_MISS}: no recent event with searchable sources was found, so no news article was written; the slot is retried with another topic.` }); continue; }
           if (!picked) { events.push({ at: new Date().toISOString(), kind: 'skipped', slotAt: slot.at.toISOString(), reason: 'No new topic passed the no-repeat rules this time; retrying on the next run.' }); continue; }
           try {
             await approve(picked.id, SYSTEM, slot.at);
@@ -156,20 +160,25 @@ async function capReached(gate: string, res: CronResult, events: DailyEvent[]) {
   if (sent.ok) await patchDaily({ capNotified: month });
 }
 
-/** Pick a topic for a slot: a backlog idea of the chosen category that passes the no-repeat rules, else fresh AI ideas. */
+const NEWS_MISS = 'No solid news story';
+/** Pick a topic for a slot: a backlog idea of the chosen category that passes the no-repeat rules, else fresh AI ideas.
+ *  NEWS_MISS when the news category was chosen and no sourced, recent story was found (the slot is skipped, never filler). */
 async function fillSlot(slot: DaySlot, c: {
   enabled: string[]; recent: { category: string; at: Date | string | number }[]; sameDay: string[]; refs: Awaited<ReturnType<typeof topicRefs>>; backlog: Idea[]; cooldownDays: number; seeds: string[];
-}): Promise<Idea | null> {
+}): Promise<Idea | null | typeof NEWS_MISS> {
   const tried: string[] = [];
   for (let round = 0; round < 2; round++) {
     const cat = pickCategory({ track: slot.track, enabled: c.enabled, recent: c.recent, avoid: [...c.sameDay, ...tried], seed: `${slot.key}#${slot.index}` });
     if (!cat) return null;
     tried.push(cat);
+    const news = !!categoryOf(cat)?.news;
     const passes = (i: Idea) => {
       const t = readTags(i.rationale);
       return diversityCheck({ title: i.title, primaryKeyword: i.primaryKeyword, slug: i.slug, cluster: t.cluster }, c.refs.filter((r) => r.id !== i.id), { now: slot.at, cooldownDays: c.cooldownDays }).ok;
     };
-    const fromBacklog = c.backlog.filter((i) => i.track === slot.track && (readTags(i.rationale).category || inferCategory(`${i.title} ${i.primaryKeyword} ${i.target}`)) === cat && passes(i))
+    // a news idea from the backlog only while its event is still recent
+    const fresh = (i: Idea) => !news || isRecentEvent(readNewsTag(readTags(i.rationale).text).eventDate, dayKey(slot.at));
+    const fromBacklog = c.backlog.filter((i) => i.track === slot.track && (readTags(i.rationale).category || inferCategory(`${i.title} ${i.primaryKeyword} ${i.target}`)) === cat && passes(i) && fresh(i))
       .sort((a, b) => b.priority - a.priority)[0];
     if (fromBacklog) { c.backlog.splice(c.backlog.indexOf(fromBacklog), 1); return fromBacklog; }
     try {
@@ -179,6 +188,8 @@ async function fillSlot(slot: DaySlot, c: {
         if (fresh[0]) { c.backlog.push(...fresh.slice(1)); return fresh[0]; }
       }
     } catch { /* next category */ }
+    // news: no solid, sourced, recent story → skip this slot (never filler), and no second news attempt today
+    if (news) return NEWS_MISS;
   }
   return null;
 }

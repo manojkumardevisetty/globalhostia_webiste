@@ -17,12 +17,17 @@ import {
   capBlock, categoryOf, diversityCheck, inferCategory, nextDailySlot, postsInMonth, readTags, tagRationale, type Category, type TopicRef,
 } from './core';
 import { runQualityChecks, summarize, type Check } from './quality';
-import { arabicWith, draftArticle, generateIdeasWith, reviewWith, rewriteSectionWith, type CallUsage } from './prompts';
+import { arabicWith, draftArticle, generateIdeasWith, generateNewsIdeasWith, newsTag, readNewsTag, reviewWith, rewriteSectionWith, type CallUsage, type RawIdea } from './prompts';
 import { addCost, blogCategoryFor, contentSettings, contentSpend, freeSlug, getIdea, inventory, listIdeas, resolveTarget, updateIdea, type Idea, type Inventory } from './store';
 
 export const AUTHOR = 'GlobalHostia Team';
 export const SYSTEM: Session = { uid: 'system', email: 'content-engine@cron', name: 'Content engine', role: 'OWNER' };
 export class EngineError extends Error {}
+
+/** Article length: news analyses are shorter (about half to three quarters of the usual range), so formats and lengths vary. */
+function wordRange(cs: { minWords: number; maxWords: number }, category: Category | null) {
+  return category?.news ? { min: Math.max(500, Math.round(cs.minWords * 0.55)), max: Math.max(900, Math.round(cs.maxWords * 0.7)) } : { min: cs.minWords, max: cs.maxWords };
+}
 
 /* ------------------------------------------------------------------ AI plumbing */
 async function clientOrThrow() {
@@ -89,17 +94,21 @@ export async function generateIdeas(o: { track: Track; count?: number; seeds?: s
   const existing = [...inv.existing, ...ideas.filter((i) => i.state !== 'rejected').map((i) => ({ path: `idea:${i.id}`, title: i.title, slug: i.slug }))];
   const now = Date.now();
   const recentClusters = [...new Set(refs.filter((r) => r.cluster && Math.abs(now - new Date(r.at || 0).getTime()) <= Math.max(14, cs.clusterCooldownDays) * 86_400_000).map((r) => r.cluster!))];
-  let out;
+  let out: { ideas: (RawIdea & { eventDate?: string; sources?: string[] })[]; usage: CallUsage };
+  // news category: the chat model searches the web for real recent events; only sourced, recent stories come back
+  const news = !!o.category?.news;
+  const model = news ? s.chatModel : s.fastModel;
   try {
-    out = await generateIdeasWith(c, s.fastModel, {
-      track: o.track, count: Math.min(20, Math.max(3, o.count || 12)), targets: inv.targets, seeds, today: today(),
+    const args = {
+      track: o.track, count: news ? 3 : Math.min(20, Math.max(3, o.count || 12)), targets: inv.targets, seeds, today: today(),
       existing: o.category ? [] : existing.map((e) => ({ title: e.title, path: e.path.startsWith('idea:') ? '(planned idea)' : e.path })),
       seasonal: seasonalHints(o.track, monthKey(Date.now()), o.category ? 2 : 4),
       category: o.category || null, previousTitles: refs.map((r) => r.title), recentClusters,
-    });
+    };
+    out = news ? await generateNewsIdeasWith(c, model, args) : await generateIdeasWith(c, model, args);
   } catch (e: any) {
-    await log(null, 'ideas', { model: s.fastModel, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, ms: 0 }, 'error', String(e?.message || e).slice(0, 200));
-    throw new EngineError('The idea generator did not answer. Try again in a minute.');
+    await log(null, 'ideas', { model, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, ms: 0 }, 'error', String(e?.message || e).slice(0, 200));
+    throw new EngineError(news ? 'The news search did not answer (is web search enabled for the API key?). Try again later.' : 'The idea generator did not answer. Try again in a minute.');
   }
   await log(null, 'ideas', out.usage, 'ok', `${o.track}${o.category ? ` ${o.category.id}` : ''} ${out.ideas.length}`);
   const slugs = new Set(ideas.map((i) => i.slug));
@@ -114,7 +123,10 @@ export async function generateIdeas(o: { track: Track; count?: number; seeds?: s
     const cat = o.category?.id || '';
     const [row] = await db.insert(schema.contentIdeas).values({
       track: o.track, title: r.title, primaryKeyword: r.primaryKeyword, secondaryKeywords: r.secondaryKeywords, intent: r.intent, country: r.audienceCountry,
-      target: r.target, slug, priority: r.priority, rationale: cat || r.cluster ? tagRationale(cat || inferCategory(`${r.title} ${r.primaryKeyword}`), r.cluster, `${r.rationale}${r.angle ? ` Angle: ${r.angle}` : ''}`) : r.rationale,
+      target: r.target, slug, priority: r.priority,
+      // news: event date and the searched source URLs travel with the idea to the draft step (before "Angle:", which runs to the end)
+      rationale: cat || r.cluster ? tagRationale(cat || inferCategory(`${r.title} ${r.primaryKeyword}`), r.cluster,
+        `${r.rationale}${r.sources?.length ? ` ${newsTag(r.eventDate || '', r.sources)}` : ''}${r.angle ? ` Angle: ${r.angle}` : ''}`, r.sources?.length ? 1500 : 400) : r.rationale,
       source: 'ai', state: 'idea',
       overlap: hit && overlapLevel(hit.score) === 'warn' ? `Related: ${hit.page.title} (${hit.page.path.startsWith('idea:') ? 'another idea' : hit.page.path})` : '',
     }).returning({ id: schema.contentIdeas.id });
@@ -211,10 +223,14 @@ export async function generateDraft(id: string, by: Session) {
     const target = resolveTarget(inv, idea.target);
     const tags = readTags(idea.rationale);
     const angle = (tags.text.match(/Angle:\s*(.+)$/)?.[1] || '').trim();
+    const category = categoryOf(tags.category);
+    const nt = readNewsTag(tags.text);
+    if (category?.news && !nt.sources.length) throw new EngineError('This news idea has no searched sources: generate a new news idea instead.');
+    const len = wordRange(cs, category);
     const out = await draftArticle(c, s.chatModel, {
       idea: { title: idea.title, primaryKeyword: idea.primaryKeyword, secondaryKeywords: idea.secondaryKeywords, intent: idea.intent, track: idea.track as Track, country: idea.country, slug: idea.slug,
-        angle, category: categoryOf(tags.category) },
-      target, links: inv.links, minWords: cs.minWords, maxWords: cs.maxWords, today: today(),
+        angle, category },
+      target, links: inv.links, minWords: len.min, maxWords: len.max, today: today(), sources: nt.sources, eventDate: nt.eventDate,
     }).catch(async (e) => { await log(id, 'draft', { model: s.chatModel, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, ms: 0 }, 'error', String(e?.message || e).slice(0, 200)); throw e; });
     await log(id, 'draft', out.usage);
     const row = postRowFromDraft(idea, inv, out.draft, out.body);
@@ -308,17 +324,19 @@ export async function runChecks(id: string, o: { ai: boolean }): Promise<Check[]
   const others = await db.select({ slug: schema.posts.slug, title: schema.posts.title, body: schema.posts.body }).from(schema.posts)
     .where(and(ne(schema.posts.id, en.id), eq(schema.posts.lang, 'en'))).limit(300);
   const known = new Set(inv.knownPaths);
+  const category = categoryOf(readTags(idea.rationale).category);
+  const len = wordRange(cs, category);
   const checks = runQualityChecks({
     body: en.body, h1: en.title, metaTitle: en.seoTitle || en.title, metaDescription: en.seoDescription || en.excerpt, slug: en.slug, primaryKeyword: idea.primaryKeyword,
-    secondaryKeywords: idea.secondaryKeywords, track: idea.track, lang: 'en', minWords: cs.minWords, maxWords: cs.maxWords, knownPaths: known, existing: others,
-    catalogPrices: inv.catalogPrices, site: inv.site, needsSources: !!categoryOf(readTags(idea.rationale).category)?.needsSources,
+    secondaryKeywords: idea.secondaryKeywords, track: idea.track, lang: 'en', minWords: len.min, maxWords: len.max, knownPaths: known, existing: others,
+    catalogPrices: inv.catalogPrices, site: inv.site, needsSources: !!category?.needsSources, news: !!category?.news,
   });
   if (o.ai && !(await budgetGate())) {
     const c = await aiClient();
     if (c) {
       try {
         const s = await aiSettings();
-        const r = await reviewWith(c, s.fastModel, { title: en.title, body: en.body, track: idea.track });
+        const r = await reviewWith(c, s.fastModel, { title: en.title, body: en.body, track: category?.news ? `${idea.track} (news analysis of a real event: naming the organisations involved is allowed; flag any fact that is not backed by a linked source)` : idea.track });
         await log(id, 'review', r.usage);
         if (!r.issues.length) checks.push({ id: 'ai-review', label: 'AI review: no fabricated facts, legal overreach or claims found', status: 'pass', detail: '' });
         r.issues.forEach((x, i) => checks.push({ id: `ai-${i}`, label: `AI review: ${x.type}`, status: x.severity, detail: `${x.quote ? `“${x.quote}” — ` : ''}${x.note}` }));
@@ -330,7 +348,7 @@ export async function runChecks(id: string, o: { ai: boolean }): Promise<Check[]
     const [ar] = await db.select().from(schema.posts).where(eq(schema.posts.id, idea.arPostId));
     if (ar) {
       const arc = runQualityChecks({ body: ar.body, h1: ar.title, metaTitle: ar.seoTitle || ar.title, metaDescription: ar.seoDescription || ar.excerpt, slug: ar.slug, primaryKeyword: '',
-        track: idea.track, lang: 'ar', minWords: Math.round(cs.minWords * 0.7), maxWords: Math.round(cs.maxWords * 1.4), knownPaths: known, catalogPrices: inv.catalogPrices, site: inv.site });
+        track: idea.track, lang: 'ar', minWords: Math.round(len.min * 0.7), maxWords: Math.round(len.max * 1.4), knownPaths: known, catalogPrices: inv.catalogPrices, site: inv.site, news: !!category?.news });
       for (const c of arc.filter((x) => ['meta-title', 'meta-desc', 'links-broken', 'dup-headings', 'competitors', 'prices', 'faq', 'words'].includes(x.id) || x.id.startsWith('claim-')))
         checks.push({ ...c, id: `ar-${c.id}`, label: `Arabic: ${c.label}` });
     }

@@ -359,8 +359,9 @@ test('ideas and review calls with a mocked client', async () => {
 /* ------------------------------------------------------------------ daily cadence, topic diversity, gates, cost */
 import {
   postsForDay, postsInMonth, dailySlots, matchSlots, slotStatus, nextDailySlot, dayKey, diversityCheck, pickCategory, qualityScore, passesGate, tagRationale, readTags,
-  inferCategory, estimateMonthlyCost, capBlock, DEFAULT_CAP_USD, CATEGORIES, SETTINGS_VERSION,
+  inferCategory, estimateMonthlyCost, capBlock, DEFAULT_CAP_USD, CATEGORIES, SETTINGS_VERSION, addDays, trackForSlot, MIX_TARGETS,
 } from '../lib/content/core.ts';
+import { generateNewsIdeasWith, draftArticle as draftNews, draftPrompt, isRecentEvent, newsTag, readNewsTag } from '../lib/content/prompts.ts';
 import { keywordDensity, repetition } from '../lib/content/quality.ts';
 
 const CS = normalizeContent(null);
@@ -378,20 +379,23 @@ test('daily cadence: 50 a month spread as 1–2 a day, exact monthly total; fixe
   assert.equal(postsInMonth('2026-11', { monthlyTarget: 0, postsPerDay: null }), 0);
 });
 
-test('daily slots: natural times (±jitter, stable per day), ≥ min gap, both tracks on 2-post days', () => {
+test('daily slots: natural times (±jitter, stable per day), ≥ min gap, about 1 in 10 on the UAE track', () => {
   const two = { ...CS, postsPerDay: 2 };
   const a = dailySlots('2026-11-05', two), b = dailySlots('2026-11-05', two);
   assert.deepEqual(a.map((s) => s.at.toISOString()), b.map((s) => s.at.toISOString()), 'deterministic');
   assert.equal(a.length, 2);
   assert.ok(Math.abs(mins(a[0].at) - 9 * 60) <= 20 && Math.abs(mins(a[1].at) - 18 * 60) <= 20, a.map((s) => toDubaiLocal(s.at)).join());
-  assert.deepEqual(new Set(a.map((s) => s.track)), new Set(['uae', 'global']));
   const other = dailySlots('2026-11-06', two);
   assert.notEqual(mins(a[0].at), mins(other[0].at), 'times move day to day');
   const three = dailySlots('2026-11-05', { ...CS, postsPerDay: 3 });
   for (let i = 1; i < 3; i++) assert.ok(three[i].at.getTime() - three[i - 1].at.getTime() >= 4 * 3600_000, 'min gap 4 h');
-  assert.ok(new Set(three.map((s) => s.track)).size === 2);
-  const one = [0, 1, 2, 3].map((k) => dailySlots(`2026-11-1${k}`, { ...CS, postsPerDay: 1 })[0].track);
-  assert.ok(one.includes('uae') && one.includes('global'), 'single-post days alternate');
+  // track mix: about 10% UAE, 90% global, for 1, 2 and 3 posts a day
+  for (const ppd of [1, 2, 3]) {
+    const all = Array.from({ length: 60 }, (_, d) => dailySlots(addDays('2026-11-01', d), { ...CS, postsPerDay: ppd })).flat();
+    const uae = all.filter((s) => s.track === 'uae').length / all.length;
+    assert.ok(uae >= 0.05 && uae <= 0.15, `${ppd}/day: UAE share ${uae.toFixed(2)}`);
+  }
+  assert.equal(trackForSlot(0, ['uae', 'global']), 'uae'); assert.equal(trackForSlot(1, ['uae', 'global']), 'global'); assert.equal(trackForSlot(7, ['uae']), 'uae');
   const many = dailySlots('2026-11-05', { ...CS, postsPerDay: 6 });
   assert.equal(many.length, 6); assert.ok(many.every((s, i) => !i || s.at > many[i - 1].at));
   assert.equal(dailySlots('2026-11-05', { ...CS, tracks: ['global'], postsPerDay: 2 }).every((s) => s.track === 'global'), true);
@@ -417,8 +421,9 @@ test('slots pair with planned ideas; status per slot; next free slot', () => {
   assert.equal(slotStatus({ id: 'h', state: 'draft_ready', plannedFor: null, checks: [{ status: 'fail' }] }, slots[1].at, now), 'held');
   const next = nextDailySlot({ cs, planned: ideas, now: new Date('2026-11-05T00:00:00Z') })!;
   assert.equal(next.at.toISOString(), slots[1].at.toISOString(), 'first slot taken → the 18:00 one');
-  const g = nextDailySlot({ cs, track: slots[0].track, planned: ideas, now: new Date('2026-11-05T00:00:00Z') })!;
-  assert.equal(g.track, slots[0].track); assert.equal(dayKey(g.at), '2026-11-06');
+  const g = nextDailySlot({ cs, track: 'uae', planned: ideas, now: new Date('2026-11-05T00:00:00Z') })!;
+  assert.equal(g.track, 'uae'); assert.ok(g.at > slots[1].at, 'the next UAE slot is on a later day');
+  assert.equal(dailySlots(dayKey(g.at), cs).find((x) => x.at.getTime() === g.at.getTime())?.track, 'uae');
 });
 
 test('topic dedupe: same keyword, slug, near-duplicate title, close keyword and cluster cooldown are rejected', () => {
@@ -446,7 +451,11 @@ test('category rotation: never the same twice in a row, least recently used firs
   const used: string[] = [];
   let r = [...recent];
   for (let i = 0; i < 12; i++) { const c = pickCategory({ track: 'uae', enabled: all, recent: r, seed: String(i) })!; assert.notEqual(c, r[0]?.category); used.push(c); r = [{ category: c, at: `2026-11-${20 + i}` }, ...r]; }
-  assert.ok(new Set(used).size >= 10, `rotates broadly: ${used.join(',')}`);
+  assert.ok(new Set(used).size >= 7, `rotates broadly: ${used.join(',')}`);
+  // domains-first mix: about 40% of articles are about domains, never two in a row
+  const dom = used.filter((c) => c === 'domains').length;
+  assert.ok(dom >= 4 && dom <= 6, `domains share ${dom}/12: ${used.join(',')}`);
+  assert.ok(!used.some((c, i) => c === 'domains' && used[i - 1] === 'domains'), 'domains never twice in a row');
   assert.equal(pickCategory({ track: 'uae', enabled: ['developers'], recent: [] }), null, 'developers is global-only');
   assert.equal(pickCategory({ track: 'global', enabled: ['email', 'domains'], recent: [{ category: 'email', at: 1 }], avoid: ['domains'] }), 'domains', 'falls back when everything is avoided');
   assert.deepEqual(readTags(tagRationale('email', 'Email Authentication', 'Why. Angle: x')), { category: 'email', cluster: 'email authentication', text: 'Why. Angle: x' });
@@ -502,4 +511,84 @@ test('cost: default cap covers ~55 articles with ≥30% headroom; the engine sto
   assert.ok(half.month * 1.3 <= DEFAULT_CAP_USD, `55 with half Arabic: $${half.month}`);
   assert.equal(capBlock(3, 12), null);
   assert.match(capBlock(12, 12)!, /used up/); assert.match(capBlock(0, 0)!, /set to 0/);
+});
+
+
+test('topic mix on the global track: domains ~40%, infra news ~25%, never the same twice in a row', () => {
+  const all = CATEGORIES.map((c) => c.id);
+  const used: string[] = [];
+  let r: { category: string; at: string }[] = [];
+  for (let i = 0; i < 60; i++) { const c = pickCategory({ track: 'global', enabled: all, recent: r, seed: String(i) })!; used.push(c); r = [{ category: c, at: addDays('2026-11-01', i) }, ...r]; }
+  const share = (id: string) => used.filter((c) => c === id).length / used.length;
+  assert.ok(Math.abs(share('domains') - MIX_TARGETS.domains) <= 0.06, `domains ${share('domains')}`);
+  assert.ok(Math.abs(share('infra-news') - MIX_TARGETS['infra-news']) <= 0.06, `news ${share('infra-news')}`);
+  assert.ok(used.every((c, i) => !i || c !== used[i - 1]), 'never twice in a row');
+  assert.ok(new Set(used).size >= 8, 'the other categories still rotate');
+  assert.ok(!used.includes('uae-business'));
+  // UAE track: no news category there
+  assert.notEqual(pickCategory({ track: 'uae', enabled: all, recent: [{ category: 'domains', at: 1 }] }), 'infra-news');
+});
+
+test('settings: a category list saved before the news track gets infra-news once; later choices stick', () => {
+  const old = normalizeContent({ v: SETTINGS_VERSION, categories: ['domains', 'email'] });
+  assert.deepEqual(old.categories, ['domains', 'email', 'infra-news']); assert.equal(old.mixV, 1);
+  assert.deepEqual(normalizeContent({ ...old, categories: ['domains', 'email'] }).categories, ['domains', 'email'], 'owner switched it off after the migration');
+  assert.ok(normalizeContent(null).categories.includes('infra-news'));
+});
+
+function searchClient(replies: any[]) {
+  const calls: any[] = [];
+  return { calls, messages: { async create(params: any) { calls.push(params); return replies.shift(); } } };
+}
+
+test('news ideas: web search tool, only recent events with sources the search really returned', async () => {
+  const idea = (title: string, eventDate: string, sources: string[]) => ({ title, primaryKeyword: title.toLowerCase().slice(0, 30), secondaryKeywords: ['a b c'], intent: 'informational', audienceCountry: 'Global',
+    target: 'page:/domains-registration', slug: 'x', priority: 60, rationale: 'r', cluster: 'subsea cables', angle: 'what happened, why it matters, what to do', eventDate, sources });
+  const c = searchClient([
+    { stop_reason: 'pause_turn', usage: { input_tokens: 10, output_tokens: 5 }, content: [{ type: 'server_tool_use', name: 'web_search' }, { type: 'web_search_tool_result', content: [{ type: 'web_search_result', url: 'https://www.example-news.com/cable-cut' }] }] },
+    { stop_reason: 'end_turn', usage: { input_tokens: 20, output_tokens: 50 }, content: [
+      { type: 'text', text: 'I found these.', citations: [{ url: 'https://registry.example.org/notice' }] },
+      { type: 'text', text: JSON.stringify({ ideas: [
+        idea('Red Sea cable cuts slow traffic between Europe and Asia', '2026-10-28', ['https://www.example-news.com/cable-cut/', 'https://made-up.example/x']),
+        idea('Registry changes renewal rules for a popular TLD', '2026-11-01', ['https://registry.example.org/notice']),
+        idea('An old outage from last year that is not news', '2025-06-01', ['https://www.example-news.com/cable-cut']),
+        idea('A story with only an invented source link', '2026-11-02', ['https://invented.example/story']),
+      ] }) },
+    ] },
+  ]);
+  const out = await generateNewsIdeasWith(c, 'claude-sonnet-5-5', { track: 'global', count: 3, targets: [{ ref: 'page:/domains-registration', label: 'Domains', path: '/domains-registration' }], existing: [], seasonal: [], seeds: [], today: '2026-11-04',
+    category: CATEGORIES.find((x) => x.id === 'infra-news')! });
+  assert.equal(c.calls.length, 2, 'pause_turn is continued');
+  assert.equal(c.calls[0].tools[0].type, 'web_search_20250305'); assert.ok(!c.calls[0].output_config, 'no structured output with server tools');
+  assert.match(c.calls[0].system[0].text, /web_search tool first/); assert.match(c.calls[0].system[0].text, /return \{"ideas": \[\]\}/);
+  assert.deepEqual(out.ideas.map((i) => i.title), ['Red Sea cable cuts slow traffic between Europe and Asia', 'Registry changes renewal rules for a popular TLD']);
+  assert.deepEqual(out.ideas[0].sources, ['https://www.example-news.com/cable-cut/'], 'a URL the search never returned is dropped');
+  assert.equal(out.usage.input, 30);
+  assert.ok(isRecentEvent('2026-10-20', '2026-11-04')); assert.ok(!isRecentEvent('2026-10-01', '2026-11-04')); assert.ok(!isRecentEvent('2026-11-09', '2026-11-04')); assert.ok(!isRecentEvent('soon', '2026-11-04'));
+  const tag = `Why. ${newsTag('2026-10-28', ['https://a.example/x', 'https://b.example/y.html'])} Angle: x`;
+  assert.deepEqual(readNewsTag(tag), { eventDate: '2026-10-28', sources: ['https://a.example/x', 'https://b.example/y.html'] });
+  // an empty list = no solid story
+  const none = searchClient([{ stop_reason: 'end_turn', usage: {}, content: [{ type: 'text', text: '{"ideas": []}' }] }]);
+  assert.equal((await generateNewsIdeasWith(none, 'm', { track: 'global', count: 3, targets: [], existing: [], seasonal: [], seeds: [], today: '2026-11-04' })).ideas.length, 0);
+});
+
+test('news draft: web search, sources in the prompt, news structure rules; quality accepts sourced news', async () => {
+  const c = searchClient([{ stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 }, content: [{ type: 'text', text: JSON.stringify(DRAFT) }] }]);
+  await draftNews(c, 'm', { idea: { title: 'Cable cuts', primaryKeyword: 'subsea cable cut', secondaryKeywords: [], intent: 'informational', track: 'global', country: 'Global', slug: 'cable', category: CATEGORIES.find((x) => x.id === 'infra-news')! },
+    target: { ref: 'page:/domains-registration', label: 'Domains', path: '/domains-registration' }, links: [], minWords: 600, maxWords: 1400, today: '2026-11-04', sources: ['https://www.example-news.com/cable-cut'], eventDate: '2026-10-28' });
+  assert.equal(c.calls[0].tools[0].name, 'web_search');
+  assert.match(c.calls[0].system[0].text, /NEWS ARTICLE RULES/); assert.match(c.calls[0].system[0].text, /what to do now/);
+  assert.match(c.calls[0].messages[0].content, /SOURCES[\s\S]*example-news\.com\/cable-cut/); assert.match(c.calls[0].messages[0].content, /EVENT DATE: 2026-10-28/);
+  const body = 'Intro.\n\n## What happened\n\nA cut was reported by [Example News](https://www.example-news.com/a) and [the operator](https://operator.example/b).\n\n## Why it matters\n\nText.\n\n## What to do now\n\nText.\n\n## Frequently asked questions\n\n### Q?\n\nA.\n';
+  const q = runQualityChecks({ body, h1: 'Cable cuts', metaTitle: 'Cable cuts', metaDescription: 'x', slug: 'cable', primaryKeyword: '', knownPaths: [], news: true, needsSources: true });
+  assert.equal(q.find((x) => x.id === 'sources')?.status, 'pass');
+  const q2 = runQualityChecks({ body: body.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'), h1: 'Cable cuts', metaTitle: 'Cable cuts', metaDescription: 'x', slug: 'cable', primaryKeyword: '', knownPaths: [], news: true, needsSources: true });
+  assert.equal(q2.find((x) => x.id === 'sources')?.status, 'fail', 'news without linked sources fails');
+});
+
+test('brand voice: prompts lead with quality, never price; quality flags price-led wording', () => {
+  const p = draftPrompt({ idea: { title: 't', primaryKeyword: 'k', secondaryKeywords: [], intent: 'informational', track: 'global', country: 'Global', slug: 't' }, target: null, links: [], minWords: 1, maxWords: 2, today: 'x' }).system;
+  assert.match(p, /premium, practical and business-focused/); assert.match(p, /do not call GlobalHostia or its plans "cheap"/);
+  const q = runQualityChecks({ body: 'Intro.\n\nWe offer cheap hosting for everyone.\n', h1: 'x', metaTitle: 'x', metaDescription: 'x', slug: 'x', primaryKeyword: '', knownPaths: [] });
+  assert.ok(q.some((x) => x.label.includes('price-led wording') && x.status === 'warn'));
 });

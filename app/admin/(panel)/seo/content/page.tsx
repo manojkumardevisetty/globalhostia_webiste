@@ -395,7 +395,7 @@ function SettingsTab({ cs, canEdit, est, budget }: { cs: Awaited<ReturnType<type
           <div className="mt-4 flex flex-wrap gap-2">
             {(['uae', 'global'] as Track[]).map((t) => <span key={t} className="min-w-[180px] flex-1">{chk('tracks', cs.tracks.includes(t), TRACK_LABEL[t], t === 'uae' ? 'UAE / GCC readers' : 'Readers anywhere', t)}</span>)}
           </div>
-          <p className="mt-2 text-xs text-slate-400">With both tracks on, every day with two or more articles gets one of each; single-article days alternate.</p>
+          <p className="mt-2 text-xs text-slate-400">With both tracks on, about 1 article in 10 is on the UAE track and the rest on the global track. Topic mix: domains about 40%, global internet &amp; infrastructure news about 25%, the other categories the rest.</p>
         </Card>
         <Card title="Topic categories">
           <p className="mb-3 text-xs text-slate-500">The autopilot rotates through the ticked categories (least recently used first, never the same category twice in a row).</p>
