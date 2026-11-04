@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifySession, COOKIE } from './lib/auth';
 import { COUNTRY_CURRENCY, CUR_COOKIE, isCode } from './lib/currency';
 import { wantsMarkdown, mdPath } from './lib/agents/markdown';
+import { abAssign, AB_PARAM, AB_DRAFT_PARAM, AB_HEADER, AB_DRAFT_HEADER, AB_COOKIE_MAX_AGE } from './lib/abtest/edge';
 
 // Public pages: pick the visitor's currency (cookie → country) and pass it on as x-gh-cur.
 // The URL is rewritten with ?_cur=XXX so the CDN caches one copy per currency.
@@ -36,7 +37,19 @@ export async function middleware(req: NextRequest) {
       res.cookies.set(CUR_COOKIE, cur, { path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' });
       return res;
     }
-    return NextResponse.rewrite(url, { request: { headers } });
+    // A/B tests (lib/abtest/edge.ts): non-control variants render from ?_ab= (own CDN copy); bots always get the control
+    url.searchParams.delete(AB_PARAM); url.searchParams.delete(AB_DRAFT_PARAM);
+    const ab = await abAssign(req, async () => !!(await verifySession(req.cookies.get(COOKIE)?.value))).catch(() => null);
+    if (ab) url.searchParams.delete('ab');
+    // the renderer reads the x-gh-ab* headers (like x-gh-cur); ?_ab= only gives each variant its own CDN cache key
+    headers.delete(AB_HEADER); headers.delete(AB_DRAFT_HEADER);
+    if (ab?.param) {
+      url.searchParams.set(AB_PARAM, ab.param); headers.set(AB_HEADER, ab.param);
+      if (ab.draft) { url.searchParams.set(AB_DRAFT_PARAM, '1'); headers.set(AB_DRAFT_HEADER, '1'); }
+    }
+    const res = NextResponse.rewrite(url, { request: { headers } });
+    for (const c of ab?.cookies || []) res.cookies.set(c.name, c.value, { path: '/', maxAge: AB_COOKIE_MAX_AGE, sameSite: 'lax', secure: req.nextUrl.protocol === 'https:', httpOnly: c.httpOnly, ...(c.domain ? { domain: c.domain } : {}) });
+    return res;
   }
   if (pathname === '/admin/login') return NextResponse.next();
   const s = await verifySession(req.cookies.get(COOKIE)?.value);

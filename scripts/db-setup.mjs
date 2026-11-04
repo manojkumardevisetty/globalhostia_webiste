@@ -636,6 +636,31 @@ try {
       await tx`create index if not exists seller_listings_invoice_idx on seller_listings (invoice_id)`;
       await tx`create index if not exists seller_listings_finvoice_idx on seller_listings (featured_invoice_id)`;
     },
+    // 39. A/B tests (lib/abtest/*): daily counts per experiment and variant, cart-session tags for order attribution, counted
+    // orders. Seeds two example experiments as drafts (never started automatically); texts use claims the pages already make.
+    '039-ab-tests': async (tx) => {
+      await tx`create table if not exists ab_daily (day date not null, exp text not null, variant text not null,
+        views integer not null default 0, visitors integer not null default 0, cta integer not null default 0, carts integer not null default 0,
+        orders integer not null default 0, revenue jsonb not null default '{}'::jsonb, primary key (day, exp, variant))`;
+      await tx`create index if not exists ab_daily_exp_idx on ab_daily (exp, day)`;
+      await tx`create table if not exists ab_carts (sk text primary key, client_id integer, currency_id integer not null default 0, ab text not null, updated_at timestamptz not null default now())`;
+      await tx`create index if not exists ab_carts_client_idx on ab_carts (client_id, updated_at)`;
+      await tx`create table if not exists ab_orders (order_id integer primary key, ab text not null, amount numeric(14,2), currency text not null default '', created_at timestamptz not null default now())`;
+      const at = new Date().toISOString();
+      const seed = [
+        { id: 'hosting-hero-1', name: 'Web hosting hero headline', target: 'hosting', paths: ['/web-hosting'], status: 'draft', metric: 'cart',
+          notes: 'Does leading with what every plan includes (free SSL, daily backups, free migration: all stated on the page) sell better than the location message?',
+          variants: [{ name: 'Control: location headline', weight: 50, set: {} },
+            { name: 'Included extras headline', weight: 50, set: { 'hero.title': 'Web hosting with free SSL, daily backups and free migration' } }],
+          startAt: '', endAt: '', createdAt: at, startedAt: '', stoppedAt: '', winner: '' },
+        { id: 'hosting-plan-layout-1', name: 'Hosting plan layout: cards vs table', target: 'hosting', paths: ['/web-hosting', '/shared-hosting'], status: 'draft', metric: 'cart',
+          notes: 'Same plans and prices; only the presentation changes. Start after the headline test (one test per page at a time).',
+          variants: [{ name: 'Control: plan cards', weight: 50, set: {} },
+            { name: 'Comparison table', weight: 50, set: { 'plans.layout': 'table' } }],
+          startAt: '', endAt: '', createdAt: at, startedAt: '', stoppedAt: '', winner: '' },
+      ];
+      await tx`insert into settings (key, value) values ('ab_experiments', ${JSON.stringify(seed)}::jsonb) on conflict (key) do nothing`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

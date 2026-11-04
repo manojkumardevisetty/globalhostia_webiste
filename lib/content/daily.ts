@@ -7,7 +7,7 @@
 import 'server-only';
 import { emailOwner } from '../support-notify';
 import {
-  addDays, categoryOf, dailySlots, dayKey, diversityCheck, inferCategory, matchSlots, monthKey, passesGate, pickCategory, qualityScore, readTags,
+  addDays, categoryOf, dailySlots, dayKey, diversityCheck, inferCategory, matchSlots, monthKey, passesGate, pickCategory, qualityScore, readTags, wantArabicNext,
   type DaySlot, type Track,
 } from './core';
 import {
@@ -72,10 +72,15 @@ export async function runDaily(o: { deadlineMs?: number; trigger?: string; force
           if (!picked) { events.push({ at: new Date().toISOString(), kind: 'skipped', slotAt: slot.at.toISOString(), reason: 'No new topic passed the no-repeat rules this time; retrying on the next run.' }); continue; }
           try {
             await approve(picked.id, SYSTEM, slot.at);
+            // Arabic mix (Content engine → Settings, default 1 in 5): the Arabic version is drafted with the English one
+            const recentAr = planned.filter((i) => i.approvedBy === SYSTEM.email && i.plannedFor)
+              .sort((a, b) => new Date(b.plannedFor!).getTime() - new Date(a.plannedFor!).getTime()).map((i) => !!i.wantArabic);
+            const ar = !picked.wantArabic && wantArabicNext(recentAr, cs.arabicShare);
+            if (ar) await updateIdea(picked.id, { wantArabic: true });
             res.autoApproved.push(picked.id);
             const t = readTags(picked.rationale);
             refs.unshift({ title: picked.title, primaryKeyword: picked.primaryKeyword, slug: picked.slug, category: t.category, cluster: t.cluster, at: slot.at, where: 'planned' });
-            planned = [...planned, { ...picked, state: 'approved', plannedFor: slot.at }];
+            planned = [...planned, { ...picked, state: 'approved', plannedFor: slot.at, approvedBy: SYSTEM.email, wantArabic: picked.wantArabic || ar }];
           } catch (e: any) { res.failed.push({ id: picked.id, error: String(e?.message || e).slice(0, 200) }); }
         }
       }

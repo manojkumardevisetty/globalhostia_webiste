@@ -3040,6 +3040,9 @@
     var tries = 0;
     (function wait() {
       if (!W.GH_CART) { if (++tries < 10) setTimeout(wait, 300); return; }
+      // A/B tests: tag this signed cart with the variants seen on globalhostia.com (gh_abv), so the order webhook can count it
+      var abv = cookie('gh_abv');
+      if (abv && W.GH_CART.token && /^[a-z0-9.~-]{3,400}$/.test(abv)) try { fetch(ORIGIN + '/api/ab/cart', { method: 'POST', mode: 'cors', credentials: 'omit', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: W.GH_CART.token, ab: abv }), keepalive: true }).catch(function () {}); } catch (e) {}
       fetch(API + '?config=1', { mode: 'cors', credentials: 'omit' }).then(function (r) { return r.json(); }).catch(function () { return {}; }).then(function (cfg) {
         if (W.GH_CART.client && cfg.cart) post({});
         if (/a=checkout/.test(location.search)) try { checkout(cfg || {}); } catch (e) {}

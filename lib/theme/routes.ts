@@ -5,6 +5,7 @@
 // Legacy alias URLs (/aws-pro-*, /vps-2) are 301-redirected to their main page: see lib/aliases.mjs.
 import { LEARN_PAGES, LEARN_SECTIONS, LEARN_SLUGS, learnPath, type LearnSection } from './learn';
 import { COMPETITORS, VS_SLUGS, vsSlug } from '../compare/competitors';
+import { AR_DEFS, arPathOf } from '../i18n/ar-pages';
 
 export type RouteDef = { kind: string; title: string; description: string; categories?: string[]; seoTitle?: string; meta?: string };
 
@@ -132,6 +133,13 @@ export const ROUTES: Record<string, RouteDef> = {
 /** Pages that only exist in the Hostpen theme: always rendered by it, whatever the site theme (like /blog). */
 export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-broker', 'premium-domains', 'sell-domains']);
 for (const v of VS_SLUGS) THEME_ONLY.add(v); // GlobalHostia vs <host> pages
+// Arabic section /ar, /ar/<english-slug> (lib/i18n/ar-pages.ts, rendered by lib/theme/pages/ar.ts; a page switched off
+// in Admin → Arabic pages answers 404 and is left out of the sitemap)
+for (const d of AR_DEFS) {
+  const slug = arPathOf(d).slice(1);
+  ROUTES[slug] = { kind: 'ar', title: d.copy.title, description: d.copy.meta, seoTitle: d.copy.seoTitle, meta: d.copy.meta, ...(d.categories ? { categories: d.categories } : {}) };
+  THEME_ONLY.add(slug);
+}
 
 /**
  * Programmatic SEO pages (lib/theme/pseo.ts): /domains/<tld>, /locations/<loc>, /<type>/<loc>, /hosting-for[/<usecase>],

@@ -5,6 +5,7 @@ import { page } from '@/lib/theme/shell';
 import { getCatalog } from '@/lib/theme/data';
 import { connectorConfig } from '@/lib/connector/config';
 import { connectorsBody } from '@/lib/connector/pages';
+import { withArabicSwitch } from '@/lib/i18n/ar-chrome';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,5 +19,5 @@ export async function GET(req: NextRequest) {
     title: 'Claude & ChatGPT Connector for Your Hosting Account', description: route.description, ogKicker: 'AI connectors', jsonLd: b.jsonLd, body: b.body,
     css: ['aic'], js: ['aic'],
   });
-  return new NextResponse(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cdnCache() } });
+  return new NextResponse(withArabicSwitch(html, { path: '/connectors', site, overrides: cat.settings.ar_pages }), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cdnCache() } });
 }

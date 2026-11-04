@@ -13,6 +13,7 @@ import { sellerInvoicePaid, sellerTick } from '@/lib/sell/store';
 import { limiter } from '@/lib/agents/http';
 import { db, schema } from '@/lib/db';
 import { eq } from 'drizzle-orm';
+import { orderPlaced } from '@/lib/abtest/store';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -38,6 +39,8 @@ export async function POST(req: NextRequest) {
     const cid = Number(e.cid) > 0 ? Number(e.cid) : null;
     const email = typeof e.email === 'string' && EMAIL_RE.test(e.email) ? e.email.toLowerCase() : '';
     const orderId = Number(e.orderid) > 0 ? Number(e.orderid) : undefined;
+    // A/B tests: count the order (and its WHMCS total) for the variants this cart session was tagged with (lib/abtest/store.ts)
+    after(() => orderPlaced({ orderId, sk: typeof e.sk === 'string' && /^[a-f0-9]{16,64}$/.test(e.sk) ? e.sk : '', cid }).then(() => undefined, (x) => console.warn('[abtest] order', x?.message || x)));
     const closed = await cartsOrdered(cid, email, orderId);
     // guest cart of this browser session (the guest just became a client)
     if (typeof e.sk === 'string' && /^[a-f0-9]{16,64}$/.test(e.sk)) {

@@ -1,0 +1,111 @@
+/* Arabic pages (/ar/*, lib/theme/pages/ar.ts): Arabic font, right-to-left fixes for the shared theme, and the few
+   components only the Arabic pages use. Loaded only on <html lang="ar" dir="rtl">; theme.css is not changed. */
+
+/* IBM Plex Sans Arabic, self-hosted (public/hp/fonts, from @fontsource/ibm-plex-sans-arabic, OFL). Arabic range only,
+   so Latin text (brand names, cPanel, prices) keeps Inter / Manrope from theme.css. */
+@font-face{font-family:"IBM Plex Sans Arabic";font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:"IBM Plex Sans Arabic";font-style:normal;font-weight:600;font-display:swap;src:url(../fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:"IBM Plex Sans Arabic";font-style:normal;font-weight:700 800;font-display:swap;src:url(../fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+
+html[lang="ar"]{
+  --head:"IBM Plex Sans Arabic","Manrope",system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;
+  --body:"IBM Plex Sans Arabic","Inter",system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;
+}
+html[lang="ar"] body,html[lang="ar"] button,html[lang="ar"] input,html[lang="ar"] select,html[lang="ar"] textarea{font-family:var(--body)}
+html[lang="ar"] h1,html[lang="ar"] h2,html[lang="ar"] h3,html[lang="ar"] h4,html[lang="ar"] .hp-btn,html[lang="ar"] .hp-nav__btn{font-family:var(--head)}
+/* Arabic script: no negative tracking (it breaks joined letters), a little more line height */
+html[lang="ar"] :is(h1,h2,h3,h4,h5,.hp-h2,.hp-hline,.hp-kicker,.hp-btn,.hp-badge,.hp-tag,.hp-lbl,b,strong,small){letter-spacing:0!important}
+html[lang="ar"] body{line-height:1.75}
+html[lang="ar"] :is(h1,h2,h3){line-height:1.35}
+html[lang="ar"] .hp-kicker,html[lang="ar"] .hp-lbl,html[lang="ar"] .hp-badge{text-transform:none}
+
+/* off-screen honeypots: on the right side, which a right-to-left page cannot scroll to */
+html[dir="rtl"] .gh-lead__hp{left:auto!important;right:-9999px!important}
+html[dir="rtl"] .mg-hp{left:auto!important;right:-9999px}
+html[dir="rtl"] body{overflow-x:clip}
+
+/* drawer slides in from the right edge in both directions; keep its close button on the outer edge */
+html[dir="rtl"] .hp-drawer__sheet{right:auto;left:0;transform:translateX(-100%)}
+html[dir="rtl"] .hp-drawer.is-open .hp-drawer__sheet{transform:none}
+
+/* arrows and chevrons point the reading direction */
+html[dir="rtl"] :is(.hp-link,.hp-btn,.ar-tile,.hp-mega-link,.hp-crumbs) .hp-ico:last-child{transform:scaleX(-1)}
+html[dir="rtl"] .hp-acc__pm .hp-ico,html[dir="rtl"] .hp-nav__btn .hp-ico{transform:none}
+
+/* text alignment for blocks theme.css sets to the left */
+html[dir="rtl"] :is(.hp-sec-head--left,.hp-split-head,.hp-acc__q,.hp-acc__a,.hp-feat li,.hp-plan,.hp-fitem,.mg-form,.mg-side,.ae-req,.hp-dpanel){text-align:right}
+html[dir="rtl"] .hp-feat li{padding-left:0}
+html[dir="rtl"] .hp-acc__q{flex-direction:row}
+/* Latin-only values (domains, emails, phone numbers, URLs, prices) keep left-to-right order inside Arabic lines */
+html[dir="rtl"] :is(span,b,a,em,small,strong).num,html[dir="rtl"] code{direction:ltr;unicode-bidi:isolate}
+html[dir="rtl"] [dir="ltr"]{unicode-bidi:isolate}
+/* domain extensions (.com, .ae) read left to right */
+html[dir="rtl"] :is(.ar-ltr,.hp-tld b,.ar-pd b,.ae-price__tld){direction:ltr;unicode-bidi:isolate}
+html[dir="rtl"] .hp-dfield input,html[dir="rtl"] input[type="email"],html[dir="rtl"] input[type="tel"],html[dir="rtl"] input[inputmode="url"]{text-align:right}
+html[dir="rtl"] .hp-dfield input:not(:placeholder-shown){direction:ltr;text-align:left}
+
+/* domain search under an inner-page hero (the home hero of theme.css leaves room for the overlap; these do not) */
+.ar-dsearch{margin-top:28px}
+
+/* utility bar language link */
+.hp-u-lang[data-lang-switch]{color:inherit;text-decoration:none}
+.hp-u-lang[data-lang-switch] b{font-family:"IBM Plex Sans Arabic","Inter",sans-serif}
+.hp-drawer__lang a{font-weight:600}
+
+/* ------------------------------------------------------------------ components of the Arabic pages */
+.ar-tiles{list-style:none;margin:0;padding:0;display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.ar-tile{display:flex;align-items:center;gap:14px;height:100%;padding:20px;border:1px solid var(--line,#e6e9ee);border-radius:16px;background:#fff;color:inherit;text-decoration:none;transition:border-color .2s,box-shadow .2s,transform .2s}
+.ar-tile:hover{border-color:var(--brand,#c5386f);box-shadow:0 10px 28px rgba(22,33,43,.08);transform:translateY(-2px)}
+.ar-tile:focus-visible{outline:3px solid var(--gold,#fdd700);outline-offset:2px}
+.ar-tile__t{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.ar-tile__t b{font-size:17px}
+.ar-tile__t span{font-size:14px;color:var(--muted,#5b6773)}
+.ar-tile__t em{font-style:normal;font-size:14px;color:var(--ink,#16212b);margin-top:4px}
+.ar-tile > .hp-ico{flex:none;opacity:.6}
+
+.ar-rel{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:center;padding:8px 0 32px}
+.ar-relwrap{padding-top:0}
+
+.ar-table-wrap{position:relative;overflow-x:auto;max-width:100%;min-width:0;border:1px solid var(--line,#e6e9ee);border-radius:14px;background:#fff}
+.ar-table{width:100%;border-collapse:collapse;font-size:15px;min-width:560px}
+.ar-table th,.ar-table td{padding:12px 16px;text-align:right;border-bottom:1px solid var(--line,#eef0f3);white-space:nowrap}
+.ar-table thead th{background:var(--tint,#f6f7f9);font-weight:600;font-size:14px}
+.ar-table tbody th{font-weight:700;text-align:right}
+.ar-table tr:last-child th,.ar-table tr:last-child td{border-bottom:0}
+.ar-note{display:flex;gap:8px;align-items:flex-start;margin:14px 0 0;font-size:14px;color:var(--muted,#5b6773)}
+.ar-note .hp-ico{flex:none;margin-top:4px}
+
+.ar-idn,.ar-pd{list-style:none;margin:0;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))}
+.ar-idn li,.ar-pd a{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;border:1px solid var(--line,#e6e9ee);border-radius:12px;background:#fff;color:inherit;text-decoration:none;min-width:0}
+.ar-pd a b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ar-pd a:hover{border-color:var(--brand,#c5386f)}
+.ar-pd em{font-style:normal;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--gold,#fdd700);color:#16212b}
+.ar-more{text-align:center;margin:24px 0 0;display:flex;flex-wrap:wrap;gap:12px 20px;justify-content:center;align-items:center}
+
+.ar-fees{list-style:none;margin:0;padding:0;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}
+.ar-fees li{padding:22px;border-radius:16px;background:#fff;border:1px solid var(--line,#e6e9ee)}
+.ar-fees span{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--muted,#5b6773)}
+.ar-fees b{display:block;font-size:30px;margin:6px 0}
+.ar-fees p{margin:0;font-size:15px}
+
+.ar-urls{display:grid;gap:12px}
+.ar-url{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:14px 16px;border:1px solid var(--line,#e6e9ee);border-radius:12px;background:#fff}
+.ar-url span{font-weight:600;min-width:160px}
+.ar-url code{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px;background:var(--tint,#f6f7f9);padding:6px 10px;border-radius:8px;text-align:left}
+
+.ar-chan{list-style:none;margin:0;padding:0;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.ar-chan a{display:flex;gap:14px;align-items:center;padding:18px;border-radius:16px;background:#fff;border:1px solid var(--line,#e6e9ee);color:inherit;text-decoration:none;height:100%}
+.ar-chan a:hover{border-color:var(--brand,#c5386f)}
+.ar-chan span{display:flex;flex-direction:column;min-width:0}
+.ar-chan small{color:var(--muted,#5b6773);font-size:13px}
+.ar-chan b{overflow-wrap:anywhere}
+.ar-quick{padding:28px 0}
+
+.ar-office{max-width:860px}
+.ar-facts{display:grid;gap:0;margin:20px 0;border:1px solid var(--line,#e6e9ee);border-radius:14px;overflow:hidden;background:#fff}
+.ar-facts div{display:grid;grid-template-columns:minmax(120px,220px) 1fr;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line,#eef0f3)}
+.ar-facts div:last-child{border-bottom:0}
+.ar-facts dt{font-weight:600;color:var(--muted,#5b6773)}
+.ar-facts dd{margin:0}
+.ar-aeprice{min-width:min(100%,300px)}
+@media (max-width:600px){.ar-facts div{grid-template-columns:1fr;gap:2px}.ar-url span{min-width:0}}

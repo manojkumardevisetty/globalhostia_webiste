@@ -18,6 +18,7 @@ import { ALIAS_PATHS, HUB_PATH } from '@/lib/store/config';
 import { storeRedirect } from '@/lib/store/view';
 import { errorPage } from '@/lib/ux/error-page';
 import { renderNotFound } from '@/lib/theme/pages/notfound';
+import { withArabicSwitch } from '@/lib/i18n/ar-chrome';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,23 +118,27 @@ async function render(req: NextRequest, ctx: { params: Promise<{ slug?: string[]
     } });
   }
 
+  // English page ↔ Arabic equivalent (lib/i18n/ar-pages.ts): hreflang pair + language switcher; /ar pages do it themselves
+  const site = String(s.site_url || 'https://globalhostia.com').replace(/\/$/, '');
+  const sw = (h: string) => withArabicSwitch(h, { path, site, overrides: s.ar_pages });
+
   // Site theme: Admin > Design "Site theme". ?theme=hostpen previews it, ?theme=original previews the old one.
   const tq = req.nextUrl.searchParams.get('theme');
   const themed = (tq ? tq === 'hostpen' : s.site_theme === 'hostpen') || (segs.length <= 2 && segs.length > 0 && THEME_ONLY.has(segs.join('/').toLowerCase())) || !!dynamicRoute(segs);
   if (themed) {
     const out = await renderTheme(segs, { path, preview, query: req.nextUrl.searchParams });
-    if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'), isShort(path));
+    if (out) return html(sw(out), 200, !preview && !req.nextUrl.searchParams.has('domain'), isShort(path));
   }
 
   if (segs[0] === 'p' && segs.length === 2) {
     const out = await renderProductPage(segs[1].toLowerCase(), preview);
-    if (out) return html(out, 200, !preview, isShort(path));
+    if (out) return html(sw(out), 200, !preview, isShort(path));
   }
   const slug = segs.length ? segs.join('/').toLowerCase() : 'index';
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
   const opts = { preview, query: req.nextUrl.searchParams, ip, path };
   const out = await renderPage(slug, opts);
-  if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'), isShort(path));
+  if (out) return html(sw(out), 200, !preview && !req.nextUrl.searchParams.has('domain'), isShort(path));
   // branded 404 (search + popular pages) with the site theme; the original theme's CMS "404" page otherwise
   if (s.site_theme === 'hostpen' || tq === 'hostpen') {
     const themed = await renderNotFound({ slug, path, preview: false, query: req.nextUrl.searchParams, route: { kind: 'content', title: 'Page not found', description: '' } }).catch((e) => { console.error('[page] 404 render failed:', (e as Error)?.message || e); return null; });

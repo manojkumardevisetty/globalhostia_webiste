@@ -13,8 +13,10 @@ import { pseoPaths } from './theme/pseo';
 import { storePaths } from './store/view';
 import { ALIAS_SLUGS } from './aliases.mjs';
 import { isHiddenVs } from './compare/competitors';
+import { AR_DEFS, arPage, arPathOf } from './i18n/ar-pages';
 
-export type SitemapEntry = { loc: string; lastmod: string };
+/** alternates: hreflang versions of the page (English ↔ Arabic pairs, lib/i18n/ar-pages.ts), emitted as xhtml:link. */
+export type SitemapEntry = { loc: string; lastmod: string; alternates?: { lang: string; href: string }[] };
 
 const iso = (d: Date | string | number) => new Date(d).toISOString();
 const maxDate = (...ds: (string | number | Date | null | undefined)[]) => {
@@ -64,9 +66,11 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
 
   const out: SitemapEntry[] = [];
   const seen = new Set<string>();
+  // Arabic pages switched off in Admin → Arabic pages answer 404
+  const arOff = new Set(AR_DEFS.filter((d) => !arPage(d, s.ar_pages).copy.enabled).map(arPathOf));
   const add = (path: string, lastmod: string) => {
     const loc = base + path;
-    if (seen.has(loc) || isHiddenVs(path, s)) return; // competitor pages hidden in admin answer 404
+    if (seen.has(loc) || isHiddenVs(path, s) || arOff.has(path)) return; // competitor pages hidden in admin answer 404
     seen.add(loc); out.push({ loc, lastmod });
   };
 
@@ -110,6 +114,13 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
     const { premiumItems, premiumConfig } = await import('./premium/store');
     if ((await premiumConfig()).enabled) for (const i of await premiumItems()) add(`/premium-domains/${i.domain}`, i.updatedAt || themeMod);
   } catch { /* tables not created yet */ }
+  // hreflang pairs: both versions listed (so both answer 200 and are indexable) → each gets en, ar and x-default
+  for (const d of AR_DEFS) {
+    const en = out.find((e) => e.loc === base + (d.en === '/' ? '/' : d.en)), ar = out.find((e) => e.loc === base + arPathOf(d));
+    if (!en || !ar) continue;
+    const alts = [{ lang: 'en', href: en.loc }, { lang: 'ar', href: ar.loc }, { lang: 'x-default', href: en.loc }];
+    en.alternates = alts; ar.alternates = alts;
+  }
   return out;
 }
 
@@ -125,6 +136,7 @@ export function staticSitemapEntries(base = 'https://globalhostia.com'): Sitemap
 const xmlEsc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export function sitemapXml(entries: SitemapEntry[]) {
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries
-    .map((e) => `<url><loc>${xmlEsc(e.loc)}</loc><lastmod>${e.lastmod}</lastmod></url>`).join('\n')}\n</urlset>\n`;
+  const xhtml = entries.some((e) => e.alternates?.length) ? ' xmlns:xhtml="http://www.w3.org/1999/xhtml"' : '';
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${xhtml}>\n${entries
+    .map((e) => `<url><loc>${xmlEsc(e.loc)}</loc><lastmod>${e.lastmod}</lastmod>${(e.alternates || []).map((a) => `<xhtml:link rel="alternate" hreflang="${a.lang}" href="${xmlEsc(a.href)}"/>`).join('')}</url>`).join('\n')}\n</urlset>\n`;
 }

@@ -35,7 +35,7 @@ export default async function ContentEngine({ searchParams }: { searchParams: Pr
   const perArticle = estimateArticleCost(ai.prices, { chat: ai.chatModel, fast: ai.fastModel });
   const perArticleAr = estimateArticleCost(ai.prices, { chat: ai.chatModel, fast: ai.fastModel }, true);
   const monthArticles = postsInMonth(monthKey(Date.now()), cs) || cs.perMonth.uae + cs.perMonth.global;
-  const monthEst = estimateMonthlyCost(ai.prices, { chat: ai.chatModel, fast: ai.fastModel }, { articles: monthArticles, arabicShare: cs.arabicDefault ? 0.5 : 0 });
+  const monthEst = estimateMonthlyCost(ai.prices, { chat: ai.chatModel, fast: ai.fastModel }, { articles: monthArticles, arabicShare: cs.arabicShare });
   const count = (st: string) => ideas.filter((i) => i.state === st).length;
   const waiting = ideas.filter((i) => i.state === 'draft_ready' || i.state === 'in_review');
 
@@ -410,6 +410,7 @@ function SettingsTab({ cs, canEdit, est, budget }: { cs: Awaited<ReturnType<type
             {chk('autoDraft', cs.autoDraft, 'Write drafts automatically', 'Needed for the autopilot.')}
             {chk('notify', cs.notify, 'Email me about drafts held for review', 'Sent through WHMCS to the same account as the support alerts.')}
             {chk('arabicDefault', cs.arabicDefault, 'Suggest an Arabic version for UAE articles', 'You still switch it on per article.')}
+            {num('arabicShare', Math.round(cs.arabicShare * 100), 'Autopilot: articles that also get an Arabic version (%)', { min: 0, max: 100, step: 5, hint: '20 = 1 in 5 articles. The Arabic version is written with the English draft, published with it (hreflang pair) and counts towards the monthly cap; 0 turns it off.' })}
           </div>
         </Card>
         <Card title="Quality gates (Google helpful-content safety)">

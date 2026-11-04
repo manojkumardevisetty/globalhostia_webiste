@@ -1,0 +1,4 @@
+/* A/B test variants (lib/abtest). Loaded only by pages rendering a non-default plan layout.
+   The comparison-table layout reuses the plan list (ui.ts listView): keep its "Show more plans" bar hidden while the
+   list fits on one page (.hp-plist__more sets display:flex in theme.css, which otherwise overrides [hidden]). */
+.hp-plist__more[hidden]{display:none}

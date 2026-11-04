@@ -172,7 +172,7 @@ export async function saveSettingsAction(fd: FormData) {
   const v = normalizeContent({
     ...cur, enabled: bool(fd, 'enabled'), perMonth: { uae: str(fd, 'perUae') || cur.perMonth.uae, global: str(fd, 'perGlobal') || cur.perMonth.global }, autoDraft: bool(fd, 'autoDraft'), draftLeadDays: str(fd, 'draftLeadDays') || cur.draftLeadDays,
     autoPublish: bool(fd, 'autoPublish'), perRun: str(fd, 'perRun') || cur.perRun, minWords: str(fd, 'minWords'), maxWords: str(fd, 'maxWords'), publishHour: str(fd, 'publishHour') || cur.publishHour,
-    notify: bool(fd, 'notify'), arabicDefault: bool(fd, 'arabicDefault'), monthlyCapUsd: str(fd, 'monthlyCapUsd'), seedKeywords: str(fd, 'seedKeywords'),
+    notify: bool(fd, 'notify'), arabicDefault: bool(fd, 'arabicDefault'), arabicShare: str(fd, 'arabicShare') === '' ? cur.arabicShare : Number(str(fd, 'arabicShare')) / 100, monthlyCapUsd: str(fd, 'monthlyCapUsd'), seedKeywords: str(fd, 'seedKeywords'),
     monthlyTarget: str(fd, 'monthlyTarget'), postsPerDay: ppd === '' ? null : ppd, publishTimes: str(fd, 'publishTimes'), jitterMin: str(fd, 'jitterMin'), minGapHours: str(fd, 'minGapHours'),
     tracks: fd.getAll('tracks').map(String), categories: fd.getAll('categories').map(String), clusterCooldownDays: str(fd, 'clusterCooldownDays'), minQualityScore: str(fd, 'minQualityScore'),
     v: SETTINGS_VERSION,

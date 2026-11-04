@@ -7,6 +7,7 @@ import { money } from '../../pricing';
 import { getCatalog, pricedTlds, currencyPrefix, domainCartUrl, type TTld } from '../data';
 import { page } from '../shell';
 import { trustStrip, brokerCard } from '../growth';
+import { abForPage } from '../../abtest/page';
 import {
   breadcrumbs, breadcrumbJsonLd, domainSearch, sectionHead, splitHead, featureGrid, faq, faqJsonLd, ctaBand, ld, icon, link, trustRow,
 } from '../ui';
@@ -45,6 +46,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   const crumbs = [{ label: 'Home', href: '/' }, { label: ctx.route.title }];
   const isSearch = ctx.slug === 'aws-pro-domains-search';
+  const ab = await abForPage(cat.settings, ctx, 'domains'); // A/B test variant or promoted copy (lib/abtest)
   const q = (ctx.query.get('q') || ctx.query.get('query') || '').slice(0, 80);
 
   /* ---------------- hero ---------------- */
@@ -56,8 +58,8 @@ export default async function render(ctx: PageCtx): Promise<string> {
   <div class="hp-container">
     <div class="hp-hero__copy dom-hero__copy">
       ${breadcrumbs(crumbs)}
-      <h1 id="dom-h1" data-words>${esc(isSearch ? 'Search for your domain name' : 'Find the name your business will be known by.')}</h1>
-      <p class="hp-lead">${esc(`${tlds.length ? `Search ${tlds.length} extensions${cheapest ? `, from ${m(cheapest.register)} for the first year` : ''}. ` : ''}Every price below shows what you pay today and what the renewal costs, so there are no surprises in year two.`)}</p>
+      <h1 id="dom-h1" data-words>${esc(isSearch ? 'Search for your domain name' : ab.text('hero.title', 'Find the name your business will be known by.'))}</h1>
+      <p class="hp-lead">${esc(ab.text('hero.lead', `${tlds.length ? `Search ${tlds.length} extensions${cheapest ? `, from ${m(cheapest.register)} for the first year` : ''}. ` : ''}Every price below shows what you pay today and what the renewal costs, so there are no surprises in year two.`, { count: String(tlds.length), from: cheapest ? m(cheapest.register) : '' }))}</p>
       <div class="dom-search">${domainSearch({ tlds: search, base, title: '', id: 'domain-q', max: 5, prefix, value: q,
         typing: ['yourbrand.com', 'freshbakery.shop', 'launchpad.io', 'studio.live', 'greenleaf.org', 'nextidea.ai'],
         note: `First-year prices in ${currency}. Pick an extension, or type the full name like yourbrand.net.` })}</div>
@@ -166,7 +168,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     <p class="dom-faq-more">${link('More answers in the help center', '/help-center')}</p>
   </div></section>`;
 
-  const cta = ctaBand({ id: 'cta', title: 'Your name is waiting', text: 'Search now and register in minutes. Add hosting and email whenever you are ready.',
+  const cta = ctaBand({ id: 'cta', title: ab.text('cta.title', 'Your name is waiting'), text: 'Search now and register in minutes. Add hosting and email whenever you are ready.',
     primary: { label: 'Search for a domain', href: '#domain-q', attrs: 'data-focus-domain' }, secondary: { label: 'Transfer a domain', href: '#transfer' } });
 
   const offers = tlds.length ? ld({ '@context': 'https://schema.org', '@type': 'OfferCatalog', name: 'Domain registration', url: `${site}/${ctx.slug}`,
@@ -174,9 +176,9 @@ export default async function render(ctx: PageCtx): Promise<string> {
       itemOffered: { '@type': 'Service', name: `${t.tld} domain name` } })) }) : '';
 
   return page({
-    ctx, catalog: cat, path: `/${ctx.slug}`, title: ctx.route.title, description: ctx.route.description, css: ['domains'], js: ['domains'],
+    ctx, catalog: cat, path: `/${ctx.slug}`, title: ctx.route.title, description: ctx.route.description, css: ['domains'], js: ['domains', ab.js],
     preload: [{ src: '/hp/img/hero-domains.jpg', sizes: HERO_BG_SIZES }],
     jsonLd: [breadcrumbJsonLd(crumbs.map((c) => ({ ...c, href: c.href || `/${ctx.slug}` })), site), faqJsonLd(faqs), offers].filter(Boolean),
-    body: [hero, trustStrip(cat.settings), grid, transfer, included, faqSec, cta].join('\n'),
+    body: (ab.layout<string>('page.layout', 'default') === 'pricing-first' ? [hero, grid, trustStrip(cat.settings), transfer, included, faqSec, cta] : [hero, trustStrip(cat.settings), grid, transfer, included, faqSec, cta]).join('\n'),
   });
 }

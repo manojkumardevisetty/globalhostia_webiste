@@ -37,14 +37,32 @@ async function readBody(req: NextRequest): Promise<{ data: Input; json: boolean 
   return { data, json: false };
 }
 
+// Arabic form (/ar/free-migration posts with ?lang=ar): messages in Arabic and the no-JS redirect back to the Arabic page
+const AR: Record<string, string> = {
+  'Something went wrong': 'حدث خطأ ما',
+  'Please enter your name.': 'يرجى إدخال اسمك.',
+  'Please enter a valid email address.': 'يرجى إدخال بريد إلكتروني صحيح.',
+  'Use digits only, with your country code (for example +971 50 000 0000).': 'استخدم الأرقام فقط مع رمز الدولة (مثلاً ‎+971 50 000 0000).',
+  'Please enter the address of the site to move, for example example.com.': 'يرجى إدخال عنوان الموقع المراد نقله، مثلاً example.com.',
+  'Choose at least one thing to move.': 'اختر عنصراً واحداً على الأقل لنقله.',
+  'Please check the highlighted fields.': 'يرجى مراجعة الحقول المحددة.',
+  'Too many requests from your connection. Please wait a few minutes, or contact us on WhatsApp.': 'طلبات كثيرة من اتصالك. يرجى الانتظار بضع دقائق، أو التواصل معنا على واتساب.',
+  'Too many requests from your connection. Please try again later, or contact us on WhatsApp.': 'طلبات كثيرة من اتصالك. يرجى المحاولة لاحقاً، أو التواصل معنا على واتساب.',
+  'Online requests are unavailable right now. Please email or WhatsApp us and we will start your migration.': 'الطلبات عبر الإنترنت غير متاحة حالياً. راسلنا بالبريد الإلكتروني أو على واتساب وسنبدأ نقل موقعك.',
+  'We could not open your request right now. Please try again in a minute, or contact us by WhatsApp or email.': 'تعذّر فتح طلبك الآن. يرجى المحاولة بعد دقيقة، أو التواصل معنا عبر واتساب أو البريد الإلكتروني.',
+};
+
 export async function POST(req: NextRequest) {
   const { data, json } = await readBody(req);
+  const ar = req.nextUrl.searchParams.get('lang') === 'ar';
+  const tr = (m: string) => (ar ? AR[m] || m : m);
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown';
   const ipKey = createHash('sha256').update(`${ip}|${process.env.AUTH_SECRET || 'gh'}`).digest('hex').slice(0, 24);
   const reply = (status: number, body: { ok: boolean; ticket?: string; error?: string; fields?: Record<string, string> }) => {
+    if (ar) body = { ...body, ...(body.error ? { error: tr(body.error) } : {}), ...(body.fields ? { fields: Object.fromEntries(Object.entries(body.fields).map(([k, v]) => [k, tr(v)])) } : {}) };
     if (json) return NextResponse.json(body, { status, headers: { 'cache-control': 'no-store' } });
-    const u = new URL('/free-migration', req.url);
-    if (body.ok && body.ticket) u.searchParams.set('ticket', body.ticket); else u.searchParams.set('error', body.error || 'Something went wrong');
+    const u = new URL(ar ? '/ar/free-migration' : '/free-migration', req.url);
+    if (body.ok && body.ticket) u.searchParams.set('ticket', body.ticket); else u.searchParams.set('error', body.error || tr('Something went wrong'));
     return NextResponse.redirect(u, 303);
   };
 
@@ -88,7 +106,7 @@ export async function POST(req: NextRequest) {
     if (!deptid) throw new Error('No support department found in WHMCS');
     const host = f.site.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
     const message = [
-      'A visitor requested a free website migration from the website form.',
+      `A visitor requested a free website migration from the ${ar ? 'Arabic (/ar/free-migration)' : 'website'} form.${ar ? ' They used the Arabic page: reply in Arabic if you can.' : ''}`,
       '',
       `Name: ${f.name}`, `Email: ${f.email}`, `Phone / WhatsApp: ${f.phone || '-'}`,
       `Site to move: ${f.site}`, `Current host: ${f.host || '-'}`, `Control panel: ${f.panel || '-'}`,

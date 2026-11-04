@@ -11,6 +11,7 @@ import { FAMILY_IDS } from '../theme/sitelinks';
 import { policies as termsPolicies } from './policies';
 import { getSettings } from '../settings';
 import { visibleCompetitors, vsPath } from '../compare/competitors';
+import { enabledArDefs, arPathOf } from '../i18n/ar-pages';
 
 /** Extra agent endpoints listed in llms-full.txt (data only; the llms routes and their caching live elsewhere). */
 export function agentEndpoints(S: string) {
@@ -192,6 +193,14 @@ export async function buildLlms(full: boolean) {
   L.push(`- [System status](${S}/status-page)`);
   L.push(`- [Blog](${S}/blog)`);
   L.push('');
+  // Arabic section (lib/i18n/ar-pages.ts): the Arabic equivalent of each page, with the searches it answers
+  const ar = enabledArDefs((await getSettings().catch(() => ({} as Record<string, unknown>)) as any)?.ar_pages);
+  if (ar.length) {
+    L.push('## Arabic pages (العربية)', '');
+    L.push('Modern Standard Arabic versions of the main pages for the UAE and GCC, with the same live prices as the English pages.', '');
+    for (const p of ar) L.push(`- [${md(p.copy.seoTitle)}](${S}${arPathOf(p)}): ${md(p.copy.meta)} English: ${S}${p.en === '/' ? '/' : p.en}`);
+    L.push('');
+  }
   L.push('## Optional', '');
   L.push(`- [Terms and conditions](${S}/terms-conditions)`);
   L.push(`- [Privacy policy](${S}/privacy-policy)`);

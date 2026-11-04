@@ -8,6 +8,7 @@ import { money } from '../../pricing';
 import { getCatalog, productsFor, minFrom, fromPrice, orderUrl, deriveSpecs, currencyPrefix, type TProduct } from '../data';
 import { page } from '../shell';
 import { trustStrip } from '../growth';
+import { abForPage } from '../../abtest/page';
 import {
   pageHero, sectionHead, splitHead, planCards, plansNote, specTable, featureGrid, faq, faqJsonLd, ctaBand, breadcrumbJsonLd,
   icon, ld, link, fromText, available,
@@ -40,6 +41,8 @@ function capacity(p: TProduct, re: RegExp): number | null {
 const WEB_RE = /(unlimited|\d+)\s*websites?/i;
 const MAIL_RE = /(unlimited|\d+)\s*email/i;
 const SPACE_RE = /(unlimited|\d+\s*GB)\s*(?:of\s*)?(?:space|storage|NVMe|SSD)/i;
+/** A/B plan layout variants (lib/abtest/core.ts 'plans.layout'): table = searchable comparison rows with order buttons. */
+const planLayout = (v: string): { layout?: 'list'; highlight?: false } => (v === 'table' ? { layout: 'list' } : v === 'plain' ? { highlight: false } : {});
 const capText = (n: number | null, one: string, many: string) => (n === null ? '' : n === Infinity ? `Unlimited ${many}` : `${n} ${n === 1 ? one : many}`);
 
 /* ------------------------------------------------------------------ world dots (same land mask as the shared datacenter map) */
@@ -67,6 +70,8 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const all = productsFor(cat, ctx.route.categories);
   const products = available(all);
   const shared = ctx.slug === 'shared-hosting';
+  const ab = await abForPage(cat.settings, ctx, 'hosting'); // A/B test variant or promoted copy (lib/abtest)
+  const layout = ab.layout<string>('plans.layout', 'cards');
   const from = minFrom(products, currency);
 
   // locations in data order, each with its plans (cheapest first)
@@ -124,11 +129,11 @@ export default async function render(ctx: PageCtx): Promise<string> {
   const locList = locNames.length > 1 ? `${locNames.slice(0, -1).join(', ')} or ${locNames[locNames.length - 1]}` : locNames[0] || '';
   const hero = pageHero({
     crumbs, eyebrow: shared ? 'Shared hosting' : 'Web hosting',
-    title: shared ? 'Shared hosting that puts your site near your visitors' : 'Web hosting, close to the people who visit your site',
-    lead: shared
+    title: ab.text('hero.title', shared ? 'Shared hosting that puts your site near your visitors' : 'Web hosting, close to the people who visit your site'),
+    lead: ab.text('hero.lead', shared
       ? `Your site shares a tuned, NVMe-backed server with other accounts, so you pay a fraction of a private server and we handle the upkeep. Host it in ${locList || 'the region you choose'}.`
-      : `Pick a datacenter${locList ? ` in ${locList}` : ''}, choose a plan that fits how many sites and mailboxes you run, and we handle the servers, security patches and backups.`,
-    ctas: [{ label: 'See plans and prices', href: '#plans' }, { label: 'Help me choose', href: '#finder', variant: 'ghost' }],
+      : `Pick a datacenter${locList ? ` in ${locList}` : ''}, choose a plan that fits how many sites and mailboxes you run, and we handle the servers, security patches and backups.`, { locations: locList || 'the region you choose' }),
+    ctas: [{ label: ab.text('hero.cta', 'See plans and prices'), href: '#plans' }, { label: 'Help me choose', href: '#finder', variant: 'ghost' }],
     fromHtml: from ? `Plans from <b class="num">${esc(money(from.price, from.prefix || prefix))}</b> ${from.cycle === 'monthly' ? 'a month' : from.cycle === 'annually' ? 'a year' : ''}, with free SSL on every plan` : undefined,
     visualHtml: picker || undefined,
   });
@@ -171,8 +176,8 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   /* ---------------- plans ---------------- */
   const plans = `<section class="hp-section" id="plans" aria-labelledby="plans-h"><div class="hp-container">
-    ${sectionHead({ id: 'plans-h', title: shared ? 'Shared hosting plans' : 'Web hosting plans', lead: 'The same three plan sizes in every location. Choose the datacenter, then the size. Every plan includes free SSL and daily and weekly backups.' })}
-    ${planCards(all, { currency, base, locationTabs: true, groupLabel: 'Hosting location', id: 'ho-plans',
+    ${sectionHead({ id: 'plans-h', title: ab.text('plans.title', shared ? 'Shared hosting plans' : 'Web hosting plans'), lead: 'The same three plan sizes in every location. Choose the datacenter, then the size. Every plan includes free SSL and daily and weekly backups.' })}
+    ${planCards(all, { currency, base, locationTabs: true, groupLabel: 'Hosting location', id: 'ho-plans', ...planLayout(layout),
       emptyTitle: 'Hosting plans are being updated', emptyText: 'Our hosting plans are being refreshed right now. Tell us what you need and we will set it up for you.' })}
     ${plansNote(currency, `<span class="hp-pf-links">${link('Help me choose: plan finder', '/plan-finder')}${link('Domain prices', '/domains-registration')}</span>`)}
   </div></section>`;
@@ -229,7 +234,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     ${faq(faqs, { id: 'ho-faq', single: true })}
   </div></section>`;
 
-  const cta = ctaBand({ id: 'cta', title: 'Put your website where your visitors are', text: 'Choose a location and a plan, and your hosting is ready in minutes. Migration and SSL are on us.',
+  const cta = ctaBand({ id: 'cta', title: ab.text('cta.title', 'Put your website where your visitors are'), text: 'Choose a location and a plan, and your hosting is ready in minutes. Migration and SSL are on us.',
     primary: { label: 'Choose a plan', href: '#plans' }, secondary: { label: 'Talk to sales', href: '/contact' } });
 
   /* ---------------- structured data ---------------- */
@@ -242,7 +247,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
 
   return page({
     ctx, catalog: cat, path: `/${ctx.slug}`, title: ctx.route.title, description: ctx.route.description,
-    css: ['hosting'], js: ['hosting'],
+    css: layout === 'table' ? ['hosting', 'ab'] : ['hosting'], js: ['hosting', ab.js],
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(faqs), ...offers.map((o) => ld(o))],
     body: [hero, trustStrip(cat.settings), finder, plans, compare, included, migrate, faqSec, cta].join('\n'),
   });

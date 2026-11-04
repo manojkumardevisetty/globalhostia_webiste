@@ -73,6 +73,8 @@ export type ContentSettings = {
   publishHour: number; // Asia/Dubai (manual approvals without a daily cadence)
   notify: boolean;
   arabicDefault: boolean;
+  /** autopilot: share of articles that also get an Arabic version (0–1; 0.2 = 1 in 5), within the monthly cap */
+  arabicShare: number;
   monthlyCapUsd: number; // content-engine spend cap on top of the AI assistant caps
   seedKeywords: string[];
   /** settings schema version: saved settings older than 2 get the daily-cadence defaults (autopilot on, cap raised) */
@@ -86,7 +88,7 @@ export const DEFAULT_CONTENT: ContentSettings = {
   enabled: true, monthlyTarget: 50, postsPerDay: null, publishTimes: ['09:00', '13:30', '18:00'], jitterMin: 20, minGapHours: 4,
   tracks: ['uae', 'global'], categories: [], clusterCooldownDays: 14, minQualityScore: 80,
   perMonth: { uae: 4, global: 4 }, autoDraft: true, draftLeadDays: 7, autoPublish: true, perRun: 2,
-  minWords: 1200, maxWords: 2000, publishHour: 9, notify: true, arabicDefault: false, monthlyCapUsd: DEFAULT_CAP_USD, seedKeywords: [], v: SETTINGS_VERSION,
+  minWords: 1200, maxWords: 2000, publishHour: 9, notify: true, arabicDefault: false, arabicShare: 0.2, monthlyCapUsd: DEFAULT_CAP_USD, seedKeywords: [], v: SETTINGS_VERSION,
 };
 const n = (v: unknown, d: number, lo: number, hi: number) => { const x = typeof v === 'number' ? v : typeof v === 'string' && v.trim() ? Number(v) : NaN; return Number.isFinite(x) ? Math.min(hi, Math.max(lo, Math.round(x * 100) / 100)) : d; };
 const b = (v: unknown, d: boolean) => (typeof v === 'boolean' ? v : v === 'true' || v === 'on' ? true : v === 'false' ? false : d);
@@ -126,6 +128,7 @@ export function normalizeContent(raw: unknown): ContentSettings {
     publishHour: Math.round(n(r.publishHour, d.publishHour, 0, 23)),
     notify: b(r.notify, d.notify),
     arabicDefault: b(r.arabicDefault, d.arabicDefault),
+    arabicShare: n(r.arabicShare, d.arabicShare, 0, 1),
     monthlyCapUsd: legacy ? Math.max(cap, d.monthlyCapUsd) : cap,
     seedKeywords: (Array.isArray(r.seedKeywords) ? r.seedKeywords : String(r.seedKeywords || '').split(/\r?\n|,/))
       .map((x: unknown) => String(x).trim()).filter((x: string) => x.length >= 2 && x.length <= 80).slice(0, 60),
@@ -410,6 +413,19 @@ export function pickCategory(o: { track: Track; enabled: string[]; recent: { cat
 
 /* ------------------------------------------------------------------ budget */
 /** Why the content engine must stop spending (null = keep going). */
+/**
+ * Autopilot Arabic mix: does the next article get an Arabic version? `recent` = wantArabic of the latest autopilot
+ * articles, newest first. Spaced evenly: one Arabic version every round(1 / share) articles (0.2 → 1 in 5, 0.5 →
+ * every other one), and never a burst to "catch up" after the share is raised. The Arabic draft itself still passes
+ * budgetGate(), so the monthly cap always wins.
+ */
+export function wantArabicNext(recent: boolean[], share: number): boolean {
+  if (!(share > 0)) return false;
+  if (share >= 1) return true;
+  const gap = Math.max(1, Math.round(1 / share));
+  return !recent.slice(0, gap - 1).some(Boolean);
+}
+
 export function capBlock(spentUsd: number, capUsd: number): string | null {
   if (capUsd <= 0) return 'The content engine budget is set to 0 (Content engine → Settings).';
   if (spentUsd >= capUsd) return `This month's content engine budget ($${capUsd}) is used up.`;
