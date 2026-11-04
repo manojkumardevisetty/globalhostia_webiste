@@ -105,7 +105,7 @@ export async function saveConfig(fd: FormData) {
   const cfg = normalizePremium({
     enabled: bool(fd, 'enabled'), source: n('source'), proxyUrl: n('proxy_url'), cacheHours: n('cache_hours'),
     feed: { enabled: bool(fd, 'feed_enabled'), tlds: n('feed_tlds').split(/[\s,]+/).map(normTld).filter(Boolean), minPrice: n('feed_min'), maxPrice: n('feed_max'),
-      keywords: n('feed_keywords'), exclude: n('feed_exclude'), maxCount: n('feed_max_count'), pages: n('feed_pages') },
+      keywords: n('feed_keywords'), exclude: n('feed_exclude'), maxCount: n('feed_max_count'), pages: n('feed_pages'), brandable: bool(fd, 'feed_brandable') },
     pricing: { mode: n('pricing_mode'), markupPct: n('markup_pct'), markupFixed: n('markup_fixed'), feePct: n('fee_pct'), feeMin: n('fee_min') },
     registry: { enabled: bool(fd, 'registry_enabled'), markupPct: n('registry_markup') },
     home: { position: (HOME_POSITIONS as readonly string[]).includes(n('home_position')) ? n('home_position') : 'after-domain', title: n('home_title'), max: n('home_max') },

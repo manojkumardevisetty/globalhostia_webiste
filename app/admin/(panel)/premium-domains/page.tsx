@@ -107,8 +107,9 @@ export default async function PremiumDomains({ searchParams }: { searchParams: P
                 <Field label="Min price (USD)"><input name="feed_min" defaultValue={cfg.feed.minPrice} inputMode="decimal" className="input" /></Field>
                 <Field label="Max price (USD)" hint="0 = no limit"><input name="feed_max" defaultValue={cfg.feed.maxPrice} inputMode="decimal" className="input" /></Field>
                 <Field label="Exclude words"><input name="feed_exclude" defaultValue={cfg.feed.exclude.join(', ')} className="input" /></Field>
-                <Field label="Max names shown"><input name="feed_max_count" defaultValue={cfg.feed.maxCount} inputMode="numeric" className="input" /></Field>
-                <Field label="Pages to read (100 each)" hint="per refresh"><input name="feed_pages" defaultValue={cfg.feed.pages} inputMode="numeric" className="input" /></Field>
+                <Field label="Max names shown" hint="up to 2000"><input name="feed_max_count" defaultValue={cfg.feed.maxCount} inputMode="numeric" className="input" /></Field>
+                <Field label="Pages to read (100 each)" hint="per refresh, up to 20"><input name="feed_pages" defaultValue={cfg.feed.pages} inputMode="numeric" className="input" /></Field>
+                <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="feed_brandable" defaultChecked={cfg.feed.brandable} /> Brandable names only (letters, 3–12 characters, no digits or hyphens)</label>
                 <Field label="Refresh after (hours)" hint="also refreshed by the daily cron"><input name="cache_hours" defaultValue={cfg.cacheHours} inputMode="numeric" className="input" /></Field>
               </fieldset>
               <fieldset className="grid gap-3 rounded-lg border border-slate-200 p-3 sm:col-span-2 sm:grid-cols-2">

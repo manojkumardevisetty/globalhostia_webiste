@@ -32,7 +32,7 @@ export type PricingMode = 'markup' | 'fee';
 export interface PremiumConfig {
   /** /premium-domains is live (else 404 → no, an elegant broker-first page; see the page module) */
   enabled: boolean;
-  feed: { enabled: boolean; tlds: string[]; minPrice: number; maxPrice: number; keywords: string[]; exclude: string[]; maxCount: number; pages: number };
+  feed: { enabled: boolean; tlds: string[]; minPrice: number; maxPrice: number; keywords: string[]; exclude: string[]; maxCount: number; pages: number; brandable: boolean };
   /** markup: our price = Dynadot × (1 + pct) + fixed. fee: Dynadot price shown plus a broker fee max(pct × price, min). */
   pricing: { mode: PricingMode; markupPct: number; markupFixed: number; feePct: number; feeMin: number };
   /** registry premium prices on a domain search: shown with this markup (match WHMCS → Domain Pricing → Premium Domains) */
@@ -48,7 +48,7 @@ export interface PremiumConfig {
 
 export const DEFAULT_PREMIUM: PremiumConfig = {
   enabled: true,
-  feed: { enabled: true, tlds: ['.com', '.ai', '.io', '.net', '.co', '.ae'], minPrice: 100, maxPrice: 25000, keywords: [], exclude: [], maxCount: 60, pages: 10 },
+  feed: { enabled: true, tlds: [], minPrice: 0, maxPrice: 0, keywords: [], exclude: [], maxCount: 2000, pages: 20, brandable: false },
   pricing: { mode: 'markup', markupPct: 15, markupFixed: 0, feePct: 15, feeMin: 100 },
   registry: { enabled: true, markupPct: 0 },
   home: { position: 'after-domain', title: 'Premium domains for sale', max: 16 },
@@ -81,7 +81,8 @@ export function normalizePremium(raw: unknown): PremiumConfig {
       tlds: Array.isArray(f.tlds) || typeof f.tlds === 'string' ? list(f.tlds, 30, normTld) : d.feed.tlds,
       minPrice: num(f.minPrice, d.feed.minPrice, 0, 1e8), maxPrice: num(f.maxPrice, d.feed.maxPrice, 0, 1e8),
       keywords: list(f.keywords, 30, normWord), exclude: list(f.exclude, 30, normWord),
-      maxCount: Math.round(num(f.maxCount, d.feed.maxCount, 0, 300)), pages: Math.round(num(f.pages, d.feed.pages, 1, 20)),
+      maxCount: Math.round(num(f.maxCount, d.feed.maxCount, 0, 2000)), pages: Math.round(num(f.pages, d.feed.pages, 1, 20)),
+      brandable: typeof f.brandable === 'boolean' ? f.brandable : d.feed.brandable,
     },
     pricing: {
       mode: p.mode === 'fee' ? 'fee' : 'markup',
