@@ -69,7 +69,7 @@ export async function refreshFeed(by = 'system'): Promise<FeedState> {
   await saveState({ ...prev, lock: Date.now() });
   const t = await transport(cfg);
   try {
-    const { items, pages } = await getListings(t, cfg.feed.pages);
+    const { items, pages } = await getListings(t, cfg.feed.pages, cfg.feed.startPage, cfg.feed.step);
     const keep = items.filter((l) => (!cfg.feed.brandable || brandable(l.domain)) && feedAllows(l, cfg.feed)).slice(0, Math.min(Math.max(cfg.feed.maxCount * 3, 30), 2000));
     await db.transaction(async (tx) => {
       await tx.delete(schema.premiumFeed);

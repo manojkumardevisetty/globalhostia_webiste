@@ -32,7 +32,8 @@ export type PricingMode = 'markup' | 'fee';
 export interface PremiumConfig {
   /** /premium-domains is live (else 404 → no, an elegant broker-first page; see the page module) */
   enabled: boolean;
-  feed: { enabled: boolean; tlds: string[]; minPrice: number; maxPrice: number; keywords: string[]; exclude: string[]; maxCount: number; pages: number; brandable: boolean };
+  feed: { enabled: boolean; tlds: string[]; minPrice: number; maxPrice: number; keywords: string[]; exclude: string[]; maxCount: number; pages: number; brandable: boolean;
+    minLen: number; maxLen: number; noDigits: boolean; noHyphens: boolean; startsWith: string[]; endsWith: string[]; startPage: number; step: number };
   /** markup: our price = Dynadot × (1 + pct) + fixed. fee: Dynadot price shown plus a broker fee max(pct × price, min). */
   pricing: { mode: PricingMode; markupPct: number; markupFixed: number; feePct: number; feeMin: number };
   /** registry premium prices on a domain search: shown with this markup (match WHMCS → Domain Pricing → Premium Domains) */
@@ -48,7 +49,7 @@ export interface PremiumConfig {
 
 export const DEFAULT_PREMIUM: PremiumConfig = {
   enabled: true,
-  feed: { enabled: true, tlds: [], minPrice: 0, maxPrice: 0, keywords: [], exclude: [], maxCount: 2000, pages: 20, brandable: false },
+  feed: { enabled: true, tlds: [], minPrice: 0, maxPrice: 0, keywords: [], exclude: [], maxCount: 2000, pages: 20, brandable: false, minLen: 0, maxLen: 0, noDigits: false, noHyphens: false, startsWith: [], endsWith: [], startPage: 1, step: 1 },
   pricing: { mode: 'markup', markupPct: 15, markupFixed: 0, feePct: 15, feeMin: 100 },
   registry: { enabled: true, markupPct: 0 },
   home: { position: 'after-domain', title: 'Premium domains for sale', max: 16 },
@@ -83,6 +84,10 @@ export function normalizePremium(raw: unknown): PremiumConfig {
       keywords: list(f.keywords, 30, normWord), exclude: list(f.exclude, 30, normWord),
       maxCount: Math.round(num(f.maxCount, d.feed.maxCount, 0, 2000)), pages: Math.round(num(f.pages, d.feed.pages, 1, 20)),
       brandable: typeof f.brandable === 'boolean' ? f.brandable : d.feed.brandable,
+      minLen: Math.round(num(f.minLen, 0, 0, 63)), maxLen: Math.round(num(f.maxLen, 0, 0, 63)),
+      noDigits: f.noDigits === true, noHyphens: f.noHyphens === true,
+      startsWith: list(f.startsWith, 30, normWord), endsWith: list(f.endsWith, 30, normWord),
+      startPage: Math.round(num(f.startPage, 1, 1, 1e6)), step: Math.round(num(f.step, 1, 1, 1e5)),
     },
     pricing: {
       mode: p.mode === 'fee' ? 'fee' : 'markup',
@@ -256,6 +261,12 @@ export function feedAllows(l: { domain: string; amount: number; currency: string
   if (f.maxPrice && l.amount > f.maxPrice) return false;
   if (f.keywords.length && !f.keywords.some((k) => sld.includes(k))) return false;
   if (f.exclude.some((k) => sld.includes(k))) return false;
+  if (f.minLen && sld.length < f.minLen) return false;
+  if (f.maxLen && sld.length > f.maxLen) return false;
+  if (f.noDigits && /[0-9]/.test(sld)) return false;
+  if (f.noHyphens && sld.includes('-')) return false;
+  if (f.startsWith?.length && !f.startsWith.some((k) => sld.startsWith(k))) return false;
+  if (f.endsWith?.length && !f.endsWith.some((k) => sld.endsWith(k))) return false;
   return true;
 }
 
@@ -445,11 +456,11 @@ export async function call(t: Transport, cmd: string, params: Record<string, str
 }
 
 /** Marketplace listings, page by page (count_per_page 100, page_index from 1). Returns the listings and how many pages were read. */
-export async function getListings(t: Transport, pages: number): Promise<{ items: RawListing[]; pages: number }> {
+export async function getListings(t: Transport, pages: number, start = 1, step = 1, deadline = Date.now() + 45000): Promise<{ items: RawListing[]; pages: number }> {
   const all: RawListing[] = [];
   let read = 0;
-  for (let i = 0; i < pages; i++) {
-    const r = parseListings(await call(t, 'get_listings', { currency: 'usd', count_per_page: '100', page_index: String(i + 1) }, 25000));
+  for (let i = 0; i < pages && Date.now() < deadline; i++) {
+    const r = parseListings(await call(t, 'get_listings', { currency: 'usd', count_per_page: '100', page_index: String(Math.max(1, start) + i * Math.max(1, step)) }, 25000));
     read++;
     all.push(...r);
     if (r.length < 100) break;

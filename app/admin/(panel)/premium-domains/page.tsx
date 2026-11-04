@@ -110,6 +110,14 @@ export default async function PremiumDomains({ searchParams }: { searchParams: P
                 <Field label="Max names shown" hint="up to 2000"><input name="feed_max_count" defaultValue={cfg.feed.maxCount} inputMode="numeric" className="input" /></Field>
                 <Field label="Pages to read (100 each)" hint="per refresh, up to 20"><input name="feed_pages" defaultValue={cfg.feed.pages} inputMode="numeric" className="input" /></Field>
                 <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="feed_brandable" defaultChecked={cfg.feed.brandable} /> Brandable names only (letters, 3–12 characters, no digits or hyphens)</label>
+                <Field label="Min name length" hint="characters before the dot; 0 = any"><input name="feed_min_len" defaultValue={cfg.feed.minLen} inputMode="numeric" className="input" /></Field>
+                <Field label="Max name length" hint="0 = any"><input name="feed_max_len" defaultValue={cfg.feed.maxLen} inputMode="numeric" className="input" /></Field>
+                <Field label="Starts with" hint="comma separated; empty = any"><input name="feed_starts" defaultValue={cfg.feed.startsWith.join(', ')} className="input" /></Field>
+                <Field label="Ends with" hint="comma separated; empty = any"><input name="feed_ends" defaultValue={cfg.feed.endsWith.join(', ')} className="input" /></Field>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="feed_no_digits" defaultChecked={cfg.feed.noDigits} /> No numbers in the name</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="feed_no_hyphens" defaultChecked={cfg.feed.noHyphens} /> No hyphens</label>
+                <Field label="Start at page" hint="Dynadot lists A–Z (numbers first); a higher page skips ahead"><input name="feed_start_page" defaultValue={cfg.feed.startPage} inputMode="numeric" className="input" /></Field>
+                <Field label="Jump between pages" hint="1 = next page; 100 = sample every 100th page across the marketplace"><input name="feed_step" defaultValue={cfg.feed.step} inputMode="numeric" className="input" /></Field>
                 <Field label="Refresh after (hours)" hint="also refreshed by the daily cron"><input name="cache_hours" defaultValue={cfg.cacheHours} inputMode="numeric" className="input" /></Field>
               </fieldset>
               <fieldset className="grid gap-3 rounded-lg border border-slate-200 p-3 sm:col-span-2 sm:grid-cols-2">
