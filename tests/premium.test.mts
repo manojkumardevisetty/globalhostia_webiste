@@ -148,8 +148,8 @@ function mockDynadot() {
     if (u.pathname !== '/api3.json') { res.statusCode = 404; return res.end('nope'); }
     if (q.get('key') !== KEY) return send({ Response: { ResponseCode: '-1', Error: 'invalid key' } });
     if (command === 'get_listings') {
-      const page = Number(q.get('page_index') || 0);
-      const n = page === 0 ? 100 : 7; // two pages: 100 + 7
+      const page = Number(q.get('page_index') || 1);
+      const n = page === 1 ? 100 : 7; // two pages: 100 + 7
       return send({ GetListingsResponse: { ResponseCode: '0', Status: 'success', Listing: Array.from({ length: n }, (_, i) => ({ ListingId: `${page}-${i}`, Domain: `name${page}x${i}.com`, Price: `$${100 + i}.00`, Currency: 'USD', Note: `echo ${KEY}` })) } });
     }
     if (command === 'get_listing_item') return send({ GetListingItemResponse: { ResponseCode: 0, Status: 'success', Listing: { ListingId: q.get('listing_id'), Domain: 'zing.com', Price: '1000.00' } } });
@@ -202,7 +202,7 @@ test('WHMCS proxy (php): signed read-only requests pass through, the key never l
     const l = await getListings(t, 1);
     assert.equal(l.items.length, 100);
     assert.ok(m.seen.every((x) => x.key === KEY), 'the proxy used the key from the WHMCS registrar config');
-    const raw = await call(t, 'get_listings', { currency: 'usd', count_per_page: '100', page_index: '0' });
+    const raw = await call(t, 'get_listings', { currency: 'usd', count_per_page: '100', page_index: '1' });
     assert.ok(!JSON.stringify(raw).includes(KEY), 'the key is scrubbed from the answer');
     const [s] = await searchPrices(t, ['gold.io']); assert.equal(s.premium, true);
     await assert.rejects(call({ ...t, secret: 'x'.repeat(40) }, 'list_domain'), (e: any) => e.code === 'signature');

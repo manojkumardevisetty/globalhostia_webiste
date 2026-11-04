@@ -440,12 +440,12 @@ export async function call(t: Transport, cmd: string, params: Record<string, str
   return json;
 }
 
-/** Marketplace listings, page by page (count_per_page 100). Returns the listings and how many pages were read. */
+/** Marketplace listings, page by page (count_per_page 100, page_index from 1). Returns the listings and how many pages were read. */
 export async function getListings(t: Transport, pages: number): Promise<{ items: RawListing[]; pages: number }> {
   const all: RawListing[] = [];
   let read = 0;
   for (let i = 0; i < pages; i++) {
-    const r = parseListings(await call(t, 'get_listings', { currency: 'usd', count_per_page: '100', page_index: String(i) }, 25000));
+    const r = parseListings(await call(t, 'get_listings', { currency: 'usd', count_per_page: '100', page_index: String(i + 1) }, 25000));
     read++;
     all.push(...r);
     if (r.length < 100) break;
