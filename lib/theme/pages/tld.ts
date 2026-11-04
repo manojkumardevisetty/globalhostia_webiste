@@ -154,7 +154,7 @@ async function renderTld(ctx: PageCtx, cat: Catalog, tld: string) {
     ${sectionHead({ id: 'ps-faq-h', title: `${tld} domain questions`, align: 'left' })}${faq(faqs, { id: 'ps-faq', single: true })}
   </div></section>`;
   const next = `<section class="hp-section hp-section--tint ps-next" aria-label="Next steps"><div class="hp-container"><p class="ps-links">
-    ${link('Web hosting for your new domain', '/web-hosting')}${link('Business email on your domain', '/google-workspace')}${link('SSL certificates', '/ssl-certificate')}${link('Every extension and price', '/domains/all')}${link('Transfer a domain', '/domains-registration#transfer')}</p></div></section>`;
+    ${link('Web hosting for your new domain', '/web-hosting')}${link('Business email on your domain', '/google-workspace')}${link('SSL certificates', '/ssl-certificate')}${link('Every extension and price', '/domains/all')}${link('Transfer a domain', '/domain-transfer')}</p></div></section>`;
   const cta = ctaBand({ title: `Claim your ${tld} name before someone else does`, text: 'Good names go quickly. Search now and see the live price before you pay.',
     primary: { label: `Search ${tld} names`, href: '#ps-q', attrs: 'data-focus-domain' }, secondary: { label: 'Help choosing a name', href: '/contact' } });
 
@@ -198,7 +198,7 @@ async function renderAll(ctx: PageCtx, cat: Catalog) {
   const hero = pageHero({
     crumbs, eyebrow: 'Domains A to Z', title: 'Every domain extension we sell, with prices',
     lead: `${pages.length} extensions${nCc ? `, ${nCc} of them country codes` : ''}. Compare the first-year, renewal and transfer price of each in ${cat.currency}, then open any extension for who it suits and a search box.`,
-    ctas: [{ label: 'Search a domain', href: '/domains-registration', icon: 'search' }, { label: 'Transfer a domain', href: '/domains-registration#transfer', variant: 'ghost' }],
+    ctas: [{ label: 'Search a domain', href: '/domains-registration', icon: 'search' }, { label: 'Transfer a domain', href: '/domain-transfer', variant: 'ghost' }],
     network: false,
   });
   const th = (k: string, l: string, num = false) => `<th scope="col"${num ? ' class="is-num"' : ''}><button type="button" data-sort="${k}">${esc(l)}<span class="ps-sort" aria-hidden="true"></span></button></th>`;

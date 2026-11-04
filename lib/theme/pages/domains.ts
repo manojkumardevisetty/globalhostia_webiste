@@ -24,7 +24,7 @@ const ABOUT: Record<string, string> = {
   '.ai': 'AI products and research',
   '.shop': 'Online shops of every size',
   '.store': 'Retail and e-commerce brands',
-  '.xyz': 'Flexible and low cost for any idea',
+  '.xyz': 'Flexible and open to any idea',
   '.live': 'Streams, events and creators',
   '.tech': 'Technology companies and products',
   '.online': 'Any business with an online presence',
@@ -122,6 +122,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
           <input id="dom-tq" class="hp-input" name="query" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="yourdomain.com" required>
           <button class="hp-btn hp-btn--brand" type="submit">${icon('transfer')}Start transfer</button>
         </form>
+        <p class="dom-tr__more">${link('Transfer checklist, prices and answers', '/domain-transfer')}</p>
       </div>
       <div class="dom-flow" data-dom-flow data-pause data-reveal role="img" aria-label="Illustration: a domain moves from your current registrar to Globalhostia through unlock, authorize and approve steps.">
         <div class="dom-flow__end"><span>${icon('server')}</span><b>Current registrar</b></div>
@@ -169,7 +170,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   </div></section>`;
 
   const cta = ctaBand({ id: 'cta', title: ab.text('cta.title', 'Your name is waiting'), text: 'Search now and register in minutes. Add hosting and email whenever you are ready.',
-    primary: { label: 'Search for a domain', href: '#domain-q', attrs: 'data-focus-domain' }, secondary: { label: 'Transfer a domain', href: '#transfer' } });
+    primary: { label: 'Search for a domain', href: '#domain-q', attrs: 'data-focus-domain' }, secondary: { label: 'Transfer a domain', href: '/domain-transfer' } });
 
   const offers = tlds.length ? ld({ '@context': 'https://schema.org', '@type': 'OfferCatalog', name: 'Domain registration', url: `${site}/${ctx.slug}`,
     itemListElement: tlds.map((t) => ({ '@type': 'Offer', name: `${t.tld} domain registration, first year`, price: t.register!.toFixed(2), priceCurrency: currency, url: domainCartUrl(base),

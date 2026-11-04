@@ -28,6 +28,7 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   planfinder: () => import('./pages/planfinder'),
   migration: () => import('./pages/migration'),
   aedomains: () => import('./pages/aedomains'),
+  domaintransfer: () => import('./pages/domaintransfer'),
   datacenters: () => import('./pages/datacenters'),
   uae: () => import('./pages/uae'),
   learn: () => import('./pages/learn'),

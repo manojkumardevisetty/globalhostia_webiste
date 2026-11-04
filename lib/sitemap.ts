@@ -96,7 +96,7 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
   }
   const have = new Set(rows.map((r) => r.slug));
   // theme-only landing pages (plan finder, free migration, .ae, data centers, UAE guides, /compare, /guides)
-  for (const slug of THEME_ONLY) if (!have.has(slug) && !emptyListing(cat, slug)) add(`/${slug}`, slug === 'ae-domains' ? maxDate(themeMod, tldMod) : themeMod);
+  for (const slug of THEME_ONLY) if (!have.has(slug) && !emptyListing(cat, slug)) add(`/${slug}`, slug === 'ae-domains' || slug === 'domain-transfer' ? maxDate(themeMod, tldMod) : themeMod);
   // with the Hostpen theme every route in lib/theme/routes.ts renders even without a CMS page row
   // (/windows-rdp, /cloud-servers, /forex-vps …), so list those too; sign-in flows and noindex pages stay out
   if (hostpen) {

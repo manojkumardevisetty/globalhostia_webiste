@@ -146,7 +146,7 @@ const ogClean = (v: string, max: number) => String(v || '').replace(/[\u0000-\u0
 /** Section label printed above the title on a page's OG image, by theme route kind (lib/theme/routes.ts). */
 const KICKER: Record<string, string> = {
   hosting: 'Managed web hosting', wordpress: 'Managed WordPress', reseller: 'Reseller hosting', vps: 'VPS hosting', cloud: 'Managed cloud', servers: 'Servers',
-  dedicated: 'Dedicated servers', forex: 'Forex VPS', domains: 'Domains', aedomains: '.ae domains', tld: 'Domains', premium: 'Premium domains', broker: 'Domain broker',
+  dedicated: 'Dedicated servers', forex: 'Forex VPS', domains: 'Domains', aedomains: '.ae domains', domaintransfer: 'Domain transfer', tld: 'Domains', premium: 'Premium domains', broker: 'Domain broker',
   sell: 'Sell your domain', ssl: 'SSL certificates', email: 'Business email', store: 'Business services', projects: 'Project management', blog: 'Blog',
   learn: 'Guides', vs: 'Compare', help: 'Help centre', contact: 'Contact', datacenters: 'Data centres', migration: 'Free migration', planfinder: 'Plan finder',
   uae: 'UAE business hosting', usecase: 'Hosting for', location: 'Locations', category: 'Plans', ai: 'AI connectors', auth: 'Account', product: 'Plan', landing: 'Offer',

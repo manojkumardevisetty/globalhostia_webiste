@@ -60,7 +60,7 @@ export function defaultMenu(cat: Catalog): ThemeMenu[] {
     { id: 'domains', label: 'Domains', groups: [
       { title: 'Domain names', items: [
         { label: 'Register a domain', href: '/domains-registration', icon: 'at', desc: 'Search extensions and register in minutes.' },
-        { label: 'Transfer a domain', href: L.transfer, icon: 'transfer', desc: 'Move your domain to us at no cost.' },
+        { label: 'Transfer a domain', href: '/domain-transfer', icon: 'transfer', desc: 'Move a domain you own, keep your site online.' },
         { label: 'Domain pricing', href: '/domains-registration#pricing', icon: 'tag', desc: 'Registration, renewal and transfer prices.' },
         { label: '.ae domains', href: '/ae-domains', icon: 'globe', desc: 'The UAE country domain for local businesses.' },
         { label: 'Premium domains', href: '/premium-domains', icon: 'star', desc: 'Short, brandable names for sale, price upfront.' },

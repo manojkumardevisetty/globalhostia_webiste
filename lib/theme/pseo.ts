@@ -62,7 +62,7 @@ export const TLD_INFO: Record<string, TldInfo> = {
     facts: ['A generic extension operated by Google Registry, launched in 2018.', 'Every .app site must use HTTPS: the extension is on browsers’ HSTS preload list, so an SSL certificate is required.', 'Open to anyone.'], related: ['.dev', '.io', '.tech'] },
   '.dev': { kind: 'generic', forWho: 'Developers, engineering teams, open-source projects and documentation sites.',
     facts: ['A generic extension operated by Google Registry, launched in 2019.', 'HTTPS is required: the extension is on browsers’ HSTS preload list.', 'Open to anyone.'], related: ['.app', '.io', '.tech'] },
-  '.xyz': { kind: 'generic', forWho: 'Any idea on a budget: side projects, portfolios, communities and new brands.',
+  '.xyz': { kind: 'generic', forWho: 'Any idea that needs a flexible name: side projects, portfolios, communities and new brands.',
     facts: ['A newer generic extension launched in 2014.', 'One of the most registered new extensions.', 'Open to anyone, with no use restrictions.'], related: ['.online', '.site', '.live'] },
   '.info': { kind: 'generic', forWho: 'Information sites, guides, resources and documentation.',
     facts: ['A generic extension introduced in 2001.', 'Open to anyone for any purpose.', 'Reads naturally for reference and help content.'], related: ['.org', '.com', '.blog'] },
@@ -471,8 +471,8 @@ export const USE_CASES: UseCase[] = [
     slug: 'small-business', name: 'Small business', icon: 'store', h1: 'Hosting for small businesses', seoTitle: 'Small Business Hosting: Website, Email & SSL',
     lead: 'A small business needs a fast website, email on its own domain and someone to call when something breaks, without paying for a server it does not use.',
     meta: 'Website hosting for small businesses: real plans from our catalog for your site and email on your domain, with reasons, setup steps and free website migration.',
-    intro: 'Most small-business sites are a handful of pages, a contact form and perhaps a blog. Shared hosting covers that for a few dollars a month, with free SSL and backups. Professional email on your own domain builds trust with every message you send.',
-    needs: [{ h: 'Simple and affordable', p: 'Shared hosting runs a business website without server management.' }, { h: 'Email on your domain', p: 'you@yourcompany.com looks more trustworthy than a free webmail address.' }, { h: 'Help when you need it', p: 'Engineers on call by ticket and WhatsApp, around the clock.' }],
+    intro: 'Most small-business sites are a handful of pages, a contact form and perhaps a blog. Managed shared hosting covers that well, with free SSL and daily backups included. Professional email on your own domain builds trust with every message you send.',
+    needs: [{ h: 'Managed for you', p: 'Managed shared hosting runs a professional business website while we look after the servers, security and backups.' }, { h: 'Email on your domain', p: 'you@yourcompany.com looks more trustworthy than a free webmail address.' }, { h: 'Help when you need it', p: 'Engineers on call by ticket and WhatsApp, around the clock.' }],
     select: (ps, cat) => {
       const host = pickFrom(ps.filter(by(['shared', 'wp'])), cat, () => true, (p, s) => ['Includes free SSL and daily backups.', sitesWhy(s), locWhy(s)], 2);
       const mail = pickFrom(ps.filter((p) => p.categorySlug === 'business-email'), cat, () => true, () => ['Professional email on your own domain.', 'Webmail and apps for every member of the team.'], 1);

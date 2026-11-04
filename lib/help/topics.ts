@@ -296,7 +296,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     title: 'Transfer a domain to GlobalHostia', titleAr: 'نقل نطاق إلى GlobalHostia',
     summary: 'Unlock the domain at your current registrar, get the EPP code and start the transfer.',
     summaryAr: 'افتح قفل النطاق لدى المسجّل الحالي واحصل على رمز EPP ثم ابدأ النقل.',
-    start: { label: 'Start a transfer', labelAr: 'ابدأ النقل', href: '/domains-registration' },
+    start: { label: 'Start a transfer', labelAr: 'ابدأ النقل', href: '/domain-transfer' },
     steps: [
       s('At your current registrar, unlock the domain and copy its EPP (authorisation) code.', 'لدى المسجّل الحالي افتح قفل النطاق وانسخ رمز EPP (رمز التفويض).'),
       s('On our domain page, choose Transfer and enter the domain name.', 'في صفحة النطاقات لدينا اختر «نقل» وأدخل اسم النطاق.'),

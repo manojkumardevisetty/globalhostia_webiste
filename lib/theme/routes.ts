@@ -19,7 +19,7 @@ export const ROUTES: Record<string, RouteDef> = {
   'web-hosting': { kind: 'hosting', title: 'Web Hosting', description: 'Fast NVMe web hosting in the USA, Malaysia and Singapore with free SSL and daily backups.', categories: H,
     seoTitle: 'Managed Web Hosting for Businesses | GlobalHostia',
     meta: 'Managed NVMe web hosting for business websites: we handle servers, security patches and backups. Free SSL, email on your domain, free migration, 24/7 support.' },
-  'shared-hosting': { kind: 'hosting', title: 'Shared Hosting', description: 'Affordable shared hosting on NVMe storage with free SSL, email and daily backups.', categories: H,
+  'shared-hosting': { kind: 'hosting', title: 'Shared Hosting', description: 'Business-grade shared hosting on NVMe storage, with free SSL, email on your domain and daily backups, managed for you.', categories: H,
     seoTitle: 'Shared Hosting for Business Websites | GlobalHostia',
     meta: 'Shared hosting for business websites on NVMe: Lite, Ultra and Infinity plans with free SSL, email accounts and daily backups in the USA, Malaysia or Singapore.' },
   'wordpress-hosting': { kind: 'wordpress', title: 'Managed WordPress Hosting', description: 'WordPress hosting tuned for speed: caching, staging, automatic updates and backups.', categories: ['wordpress-hosting', ...H],
@@ -124,6 +124,9 @@ export const ROUTES: Record<string, RouteDef> = {
   'ae-domains': { kind: 'aedomains', title: '.ae Domains: register your UAE domain', description: 'Register a .ae domain for your UAE business. Live .ae price, eligibility requirements and help with the paperwork from a Dubai-based team.',
     seoTitle: '.ae Domain Registration for UAE Businesses',
     meta: 'Register a .ae domain for your UAE business: the live .ae price, eligibility requirements explained, and help with the paperwork from our Dubai-based team.' },
+  'domain-transfer': { kind: 'domaintransfer', title: 'Domain Transfer', description: 'Move a domain you own to GlobalHostia: unlock it, get the EPP code, start the transfer and approve it. Steps, live transfer prices and answers.',
+    seoTitle: 'Domain Transfer: Move Your Domain to GlobalHostia',
+    meta: 'Transfer your domain to GlobalHostia in four steps: unlock it, get the EPP code, start the transfer and approve it. DNS management and reminders included.' },
   'domain-broker': { kind: 'broker', title: 'Domain broker service', description: 'The domain you want is taken? A dedicated broker contacts the owner anonymously, negotiates within your budget and secures the transfer through escrow.',
     seoTitle: 'Domain Broker Service: Buy a Taken Domain',
     meta: 'Buy a taken or premium domain: anonymous owner outreach, negotiation within your budget and escrow transfer. A fixed fee to start, commission only if it closes.' },
@@ -157,7 +160,7 @@ export const ROUTES: Record<string, RouteDef> = {
 };
 
 /** Pages that only exist in the Hostpen theme: always rendered by it, whatever the site theme (like /blog). */
-export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-broker', 'premium-domains', 'sell-domains']);
+export const THEME_ONLY = new Set(['plan-finder', 'free-migration', 'ae-domains', 'data-centers', 'web-hosting-dubai', 'vps-uae', 'windows-rdp-uae', 'best-hosting-uae', ...LEARN_SLUGS, 'domain-transfer', 'domain-broker', 'premium-domains', 'sell-domains']);
 for (const v of VS_SLUGS) THEME_ONLY.add(v); // GlobalHostia vs <host> pages
 // Arabic section /ar, /ar/<english-slug> (lib/i18n/ar-pages.ts, rendered by lib/theme/pages/ar.ts; a page switched off
 // in Admin → Arabic pages answers 404 and is left out of the sitemap)

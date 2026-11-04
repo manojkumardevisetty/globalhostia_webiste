@@ -89,6 +89,7 @@ export async function buildLlms(full: boolean) {
   L.push('2. Open its order link: it adds the plan to the cart with the billing cycle selected. Add `&currency=<id>` links from the API for another currency.');
   L.push('3. Choose options (operating system, extra RAM or disk, domain) in the cart, sign in or create an account, and pay. Servers and hosting are set up automatically after payment.');
   L.push(`4. Domains: search on ${S}/domains-registration or open ${d.cat.base}/cart.php?a=add&domain=register&query=<name>.`);
+  L.push(`   Domain transfers: steps, checklist and live transfer prices on ${S}/domain-transfer; start one at ${d.cat.base}/cart.php?a=add&domain=transfer&query=<name> (the EPP/auth code from the current registrar is entered in the order form).`);
   L.push(`5. Domain already taken: request the domain broker service at ${S}/domain-broker?domain=<name> (anonymous owner outreach, negotiation and escrow; a fixed service fee plus a commission only if a deal closes, details on that page).`);
   L.push(`6. Premium domains for sale (real listings with one-time prices): ${S}/premium-domains; each name has a page /premium-domains/<domain> with a purchase request form (we confirm, send a secure invoice and transfer the domain).`);
   L.push('');
@@ -175,6 +176,7 @@ export async function buildLlms(full: boolean) {
       L.push(`- [${t.tld} domains](${S}${tldHref(t.tld)}): register ${t.register !== null ? amt(t.register, t.currency) : 'n/a'}${t.renew !== null ? `, renew ${amt(t.renew, t.currency)}` : ''}${t.transfer !== null ? `, transfer ${amt(t.transfer, t.currency)}` : ''}${t.promo ? ` (${md(t.promo)})` : ''}`);
     }
     if (!full && tlds.length > list.length) L.push(`- [${tlds.length - list.length} more extensions](${S}/api/catalog/tlds): register, renewal and transfer prices as JSON`);
+    L.push(`- [Domain transfer](${S}/domain-transfer): move a domain you own to GlobalHostia (unlock, EPP/auth code, start the transfer, approve), with live transfer prices`);
     L.push('');
   }
 

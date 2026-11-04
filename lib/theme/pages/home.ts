@@ -67,6 +67,13 @@ export default async function render(ctx: PageCtx): Promise<string> {
   /* ---------------- hero ---------------- */
   const hero = heroSlider([
     {
+      kicker: 'Domains and SSL', dot: 'Domains and SSL', image: '/hp/img/hero-domains.jpg', imageH: 1080,
+      title: 'Claim your name and secure it the same day.',
+      text: 'Register .com, .shop, .org and more, transfer the ones you already own, and add an SSL certificate that is issued in minutes.',
+      ctas: [{ label: 'Search for a domain', href: '#domain-q', attrs: 'data-focus-domain' }, { label: 'Transfer a domain', href: '/domain-transfer', variant: 'ghost' }],
+      fromHtml: cheapTld ? `${esc(cheapTld.tld)} domains from <b class="num">${esc(money(cheapTld.register!, prefix))}</b> for the first year` : undefined,
+    },
+    {
       kicker: 'Web hosting', dot: 'Web hosting', image: '/hp/img/hero-hosting.jpg', imageH: 1280,
       title: hostFrom ? `Fast NVMe web hosting, from ${billed(hostFrom)} ${PER[hostFrom.cycle] || ''}.`.replace(/\s+\./, '.') : 'Fast NVMe web hosting for every website.',
       text: `${planText} plans${locText ? ` in ${locText}` : ''}. Free SSL, daily and weekly backups, and engineers on call around the clock.`,
@@ -79,13 +86,6 @@ export default async function render(ctx: PageCtx): Promise<string> {
       text: 'Managed SSD cloud VPS for Linux or Windows, and dedicated servers up to 64 threads with 10Gbps ports, across six datacenters at 99.93% uptime.',
       ctas: [{ label: 'Explore dedicated servers', href: '/dedicated-servers' }, { label: 'Cloud VPS', href: '/cloudvps-hosting', variant: 'ghost' }],
       fromHtml: dedFrom ? `Dedicated servers from <b class="num">${esc(billed(dedFrom))}</b> ${esc(PER_B[dedFrom.cycle] || '')}` : undefined,
-    },
-    {
-      kicker: 'Domains and SSL', dot: 'Domains and SSL', image: '/hp/img/hero-domains.jpg', imageH: 1080,
-      title: 'Claim your name and secure it the same day.',
-      text: 'Register .com, .shop, .org and more, transfer existing domains for free, and add an SSL certificate that is issued in minutes.',
-      ctas: [{ label: 'Search for a domain', href: '#domain-q', attrs: 'data-focus-domain' }, { label: 'SSL certificates', href: '/ssl-certificate', variant: 'ghost' }],
-      fromHtml: cheapTld ? `${esc(cheapTld.tld)} domains from <b class="num">${esc(money(cheapTld.register!, prefix))}</b> for the first year` : undefined,
     },
   ], { desktopOnly: true, h1: false });
   // phones (up to 767px): sticky domain search + the admin-managed hero card (Admin > Marketing > Mobile hero)
@@ -196,7 +196,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     <div data-reveal>${colHead('Why choose us')}${faq(why.map((w) => ({ q: w.q, a: w.a, icon: w.icon })), { id: 'why', single: true, icons: true })}</div>
     <div data-reveal>${colHead('From the help center')}${articleList([
       { title: 'Point your domain to Globalhostia nameservers', meta: 'Domains, 4 minute read', href: '/help-center', image: '/hp/img/help-1.jpg' },
-      { title: 'Transfer a domain to us without downtime', meta: 'Domains, 5 minute read', href: '/help-center', image: '/hp/img/help-2.jpg' },
+      { title: 'Transfer a domain to us without downtime', meta: 'Domains, 5 minute read', href: '/domain-transfer', image: '/hp/img/help-2.jpg' },
       { title: 'Restore files and databases from a backup', meta: 'Hosting, 3 minute read', href: '/help-center', image: '/hp/img/help-3.jpg' },
     ])}<div style="margin-top:10px">${link('Visit the help center', '/help-center')}</div></div>
   </div></section>`;
@@ -211,7 +211,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
   return page({
     ctx, catalog: cat, path: '/', title: ctx.route.title, description: ctx.route.description,
     // the blog strip's card styles live in theme.css, so no page stylesheet is needed here
-    preload: [{ src: '/hp/img/hero-hosting.jpg', sizes: '100vw', media: '(min-width: 768px)' }, ...(mHero.preload ? [mHero.preload] : [])],
+    preload: [{ src: '/hp/img/hero-domains.jpg', sizes: '100vw', media: '(min-width: 768px)' }, ...(mHero.preload ? [mHero.preload] : [])],
     bodyClass: 'hp-home', css: ['mhero', 'aic', ...(prem.html ? ['pdm'] : [])], js: ['mhero', ...(prem.html ? ['pdm'] : [])],
     body: (() => {
       const aiSec = ai.home.position === 'off' ? '' : homeSection(ai);

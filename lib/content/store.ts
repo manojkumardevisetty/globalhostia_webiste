@@ -115,7 +115,7 @@ export async function inventory(fresh = false): Promise<Inventory> {
   const existing: Existing[] = [
     ...posts.filter((p) => p.lang !== 'ar').map((p) => ({ path: `/blog/${p.slug}`, title: p.title, slug: p.slug })),
     ...LEARN_PAGES.map((p) => ({ path: learnPath(p), title: p.title, slug: p.slug })),
-    ...Object.entries(ROUTES).filter(([, r]) => ['uae', 'aedomains', 'migration', 'planfinder', 'datacenters', 'broker'].includes(r.kind)).map(([slug, r]) => ({ path: `/${slug}`, title: r.title, slug })),
+    ...Object.entries(ROUTES).filter(([, r]) => ['uae', 'aedomains', 'domaintransfer', 'migration', 'planfinder', 'datacenters', 'broker'].includes(r.kind)).map(([slug, r]) => ({ path: `/${slug}`, title: r.title, slug })),
   ];
   const catalogPrices = [...new Set([
     ...d.products.flatMap((p) => p.prices.flatMap((x) => [x.price, ...(x.perMonth ? [x.perMonth] : [])])),
