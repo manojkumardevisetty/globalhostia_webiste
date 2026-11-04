@@ -65,8 +65,74 @@
     form.addEventListener("change", function () { apply(false); });
     form.addEventListener("submit", function (e) { e.preventDefault(); apply(false); });
     var reset = $("[data-pd-reset]");
-    if (reset) reset.addEventListener("click", function (e) { e.preventDefault(); form.reset(); $$("input", form).forEach(function (i) { i.value = ""; }); apply(false); });
+    if (reset) reset.addEventListener("click", function (e) { e.preventDefault(); form.reset(); $$("input", form).forEach(function (i) { i.value = ""; }); $$("select[data-pd-f]", form).forEach(function (s) { s.dispatchEvent(new Event("change")); }); apply(false); });
     apply(false);
+    enhanceSelects(form);
+  }
+
+  /* ---------------- compact dropdowns (replace the native list, which can fill the whole screen) ---------------- */
+  function enhanceSelects(root) {
+    var POPULAR = [".com", ".ai", ".io", ".net", ".co", ".ae", ".org", ".app"];
+    var uid = 0;
+    $$("select[data-pd-f]", root).forEach(function (sel) {
+      if (sel.getAttribute("data-pd-dd")) return;
+      sel.setAttribute("data-pd-dd", "1");
+      var id = "pddd" + (++uid), many = sel.options.length > 10;
+      var wrap = document.createElement("div"); wrap.className = "pd-dd";
+      var btn = document.createElement("button"); btn.type = "button"; btn.className = "pd-dd__btn hp-select";
+      btn.setAttribute("aria-haspopup", "listbox"); btn.setAttribute("aria-expanded", "false"); btn.setAttribute("aria-controls", id);
+      var lab = sel.closest("label"); var labText = lab ? (lab.querySelector("span") || {}).textContent : ""; if (labText) btn.setAttribute("aria-label", labText);
+      var pop = document.createElement("div"); pop.className = "pd-dd__pop"; pop.hidden = true;
+      var search = null;
+      if (many) { search = document.createElement("input"); search.type = "search"; search.className = "pd-dd__q"; search.placeholder = "Search…"; search.setAttribute("aria-label", "Search options"); pop.appendChild(search); }
+      var list = document.createElement("ul"); list.className = "pd-dd__list"; list.id = id; list.setAttribute("role", "listbox"); pop.appendChild(list);
+      var opts = [].slice.call(sel.options).map(function (o) { return { v: o.value, t: o.textContent }; });
+      if (many) {
+        var first = opts.filter(function (o) { return !o.v; }), pop1 = [], rest = [];
+        opts.forEach(function (o) { if (!o.v) return; (POPULAR.indexOf(o.v) >= 0 ? pop1 : rest).push(o); });
+        pop1.sort(function (a, b) { return POPULAR.indexOf(a.v) - POPULAR.indexOf(b.v); });
+        opts = first.concat(pop1.map(function (o) { return { v: o.v, t: o.t, popular: true }; }), rest);
+      }
+      var items = [], act = -1;
+      var render = function (q) {
+        list.innerHTML = ""; items = [];
+        q = (q || "").toLowerCase().replace(/^\./, "");
+        var shownSep = false;
+        opts.forEach(function (o) {
+          if (q && o.t.toLowerCase().replace(/^\./, "").indexOf(q) < 0) return;
+          if (!q && many && !o.popular && o.v && !shownSep) { var sep = document.createElement("li"); sep.className = "pd-dd__sep"; sep.setAttribute("role", "presentation"); sep.textContent = "All extensions"; list.appendChild(sep); shownSep = true; }
+          var li = document.createElement("li"); li.setAttribute("role", "option"); li.className = "pd-dd__opt"; li.textContent = o.t; li.dataset.v = o.v;
+          li.setAttribute("aria-selected", String(sel.value === o.v)); li.id = id + "-" + items.length;
+          li.addEventListener("mousedown", function (e) { e.preventDefault(); choose(o.v); });
+          list.appendChild(li); items.push(li);
+        });
+        if (!items.length) { var none = document.createElement("li"); none.className = "pd-dd__none"; none.textContent = "No match"; list.appendChild(none); }
+        act = Math.max(0, items.findIndex(function (li) { return li.dataset.v === sel.value; })); mark();
+      };
+      var mark = function () { items.forEach(function (li, i) { li.classList.toggle("is-act", i === act); }); var a = items[act]; if (a) { (search || btn).setAttribute("aria-activedescendant", a.id); a.scrollIntoView({ block: "nearest" }); } };
+      var label = function () { var o = sel.options[sel.selectedIndex]; btn.textContent = o ? o.textContent : ""; };
+      var open = function () { if (!pop.hidden) return; closeAll(); pop.hidden = false; btn.setAttribute("aria-expanded", "true"); wrap.classList.add("is-open"); if (search) { search.value = ""; } render(""); (search || list).focus && (search ? search.focus() : null); };
+      var close = function (focus) { if (pop.hidden) return; pop.hidden = true; btn.setAttribute("aria-expanded", "false"); wrap.classList.remove("is-open"); if (focus) btn.focus(); };
+      wrap._close = close;
+      var choose = function (v) { if (sel.value !== v) { sel.value = v; sel.dispatchEvent(new Event("change", { bubbles: true })); } label(); close(true); };
+      var key = function (e) {
+        if (e.key === "ArrowDown") { e.preventDefault(); if (pop.hidden) return open(); act = Math.min(items.length - 1, act + 1); mark(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); act = Math.max(0, act - 1); mark(); }
+        else if (e.key === "Enter") { if (!pop.hidden && items[act]) { e.preventDefault(); choose(items[act].dataset.v); } }
+        else if (e.key === "Escape") { if (!pop.hidden) { e.preventDefault(); close(true); } }
+        else if (e.key === "Tab") close(false);
+      };
+      btn.addEventListener("click", function () { pop.hidden ? open() : close(false); });
+      btn.addEventListener("keydown", key);
+      if (search) { search.addEventListener("input", function () { render(search.value); }); search.addEventListener("keydown", key); }
+      sel.addEventListener("change", label);
+      sel.parentNode.insertBefore(wrap, sel); wrap.appendChild(btn); wrap.appendChild(pop); wrap.appendChild(sel);
+      sel.classList.add("pd-dd__native"); sel.tabIndex = -1; sel.setAttribute("aria-hidden", "true");
+      label();
+    });
+    function closeAll() { $$(".pd-dd.is-open", root).forEach(function (w) { w._close && w._close(false); }); }
+    document.addEventListener("mousedown", function (e) { if (!e.target.closest || !e.target.closest(".pd-dd")) closeAll(); });
+    root.addEventListener("reset", function () { setTimeout(function () { $$("select[data-pd-f]", root).forEach(function (s) { s.dispatchEvent(new Event("change")); }); }, 0); });
   }
 
   /* ---------------- request form ---------------- */
