@@ -39,16 +39,21 @@ export function blogListingDescription(desc: string, title: string) {
   const cat = title.replace(/\s*\(page \d+\)$/i, '').replace(/\s+articles( and guides)?$/i, '').trim();
   const topic = !cat || /^blog$/i.test(cat) ? 'web hosting, VPS, servers, domains and email' : cat.toLowerCase().replace(/\s+guides?$/, '') || 'web hosting';
   return fitDescription(t, [
-    `Practical guides, tutorials and tips on ${topic} for site owners and developers, written by the engineers who run GlobalHostia.`,
+    `Practical guides, tutorials and tips on ${topic} for businesses, site owners and developers, written by the engineers who run GlobalHostia.`,
     `Practical guides, tutorials and tips on ${topic}, written by the engineers who run GlobalHostia.`,
-    'Step-by-step tutorials and tips for site owners and developers.',
-    'Tutorials and tips for site owners and developers.',
+    'Step-by-step tutorials and tips for businesses, site owners and developers.',
+    'Tutorials and tips for businesses and developers.',
     `Practical guides and tips on ${topic} from our engineers.`,
     'Guides and tips from the GlobalHostia engineers.',
   ]);
 }
 
-export const DEFAULT_DESCRIPTION = 'NVMe web hosting, cloud VPS and dedicated servers in Dubai, Europe, the USA and Asia, with free SSL, daily backups and 24/7 support.';
+export const DEFAULT_DESCRIPTION = 'Domain names, premium domains and managed hosting for businesses worldwide: register and transfer domains, add VPS, servers and business email, 24/7 support.';
+
+/** Positioning line (Organization.slogan): domains first, then managed hosting and business infrastructure. */
+export const ORG_SLOGAN = 'Domain names, premium domains and managed hosting for businesses worldwide, based in Dubai.';
+/** Organization.description: only services and support the site itself lists. */
+export const ORG_DESCRIPTION = 'GlobalHostia is a Dubai-based domain registrar reseller, premium domain marketplace and managed hosting partner for businesses worldwide: domain registration and transfers, premium domains and brokerage, web and WordPress hosting, VPS, dedicated servers, SSL certificates and business email, with 24/7 support.';
 export const DEFAULT_PHONE = '+971 50 734 1578';
 export const DEFAULT_EMAIL = 'support@globalhostia.com';
 
@@ -140,11 +145,11 @@ const ogClean = (v: string, max: number) => String(v || '').replace(/[\u0000-\u0
 
 /** Section label printed above the title on a page's OG image, by theme route kind (lib/theme/routes.ts). */
 const KICKER: Record<string, string> = {
-  hosting: 'Web hosting', wordpress: 'WordPress hosting', reseller: 'Reseller hosting', vps: 'VPS hosting', cloud: 'Cloud servers', servers: 'Servers',
+  hosting: 'Managed web hosting', wordpress: 'Managed WordPress', reseller: 'Reseller hosting', vps: 'VPS hosting', cloud: 'Managed cloud', servers: 'Servers',
   dedicated: 'Dedicated servers', forex: 'Forex VPS', domains: 'Domains', aedomains: '.ae domains', tld: 'Domains', premium: 'Premium domains', broker: 'Domain broker',
   sell: 'Sell your domain', ssl: 'SSL certificates', email: 'Business email', store: 'Business services', projects: 'Project management', blog: 'Blog',
   learn: 'Guides', vs: 'Compare', help: 'Help centre', contact: 'Contact', datacenters: 'Data centres', migration: 'Free migration', planfinder: 'Plan finder',
-  uae: 'UAE hosting', usecase: 'Hosting for', location: 'Locations', category: 'Plans', ai: 'AI connectors', auth: 'Account', product: 'Plan', landing: 'Offer',
+  uae: 'UAE business hosting', usecase: 'Hosting for', location: 'Locations', category: 'Plans', ai: 'AI connectors', auth: 'Account', product: 'Plan', landing: 'Offer',
 };
 const KICKER_AR: Record<string, string> = { ar: 'GlobalHostia بالعربية' };
 /** OG kicker for a page: the explicit one, else its section label. */
@@ -201,9 +206,9 @@ export function descriptionFor(title: string, text?: string) {
   if (base.length >= 70) return seoDescription(base);
   const lead = base ? `${base.replace(/[.\s]+$/, '')}.` : `${t} from GlobalHostia.`;
   return seoDescription(fitDescription(lead, [
-    'NVMe web hosting, VPS and dedicated servers in Dubai, Europe, the USA and Asia, with free SSL and 24/7 support.',
-    'Web hosting, VPS, domains and email from GlobalHostia in Dubai, with free SSL and 24/7 support.',
-    'Hosting, servers and domains with 24/7 support from GlobalHostia in Dubai.',
+    'Domain names, premium domains and managed hosting for businesses worldwide, from a Dubai-based team, with 24/7 support.',
+    'Domains, managed hosting, VPS and business email from Dubai-based GlobalHostia, with 24/7 support.',
+    'Domains, managed hosting and servers with 24/7 support from GlobalHostia.',
   ], 70, 160));
 }
 
@@ -221,7 +226,7 @@ export function siteJsonLd(s: Partial<Settings>, whmcsBase: string, orgExtra?: R
   const base = String(whmcsBase || '').replace(/\/$/, '');
   const org = {
     '@type': 'Organization', '@id': `${site}/#organization`, name, ...(alt && alt !== name ? { alternateName: alt } : {}),
-    url: `${site}/`, 
+    url: `${site}/`, description: ORG_DESCRIPTION, slogan: ORG_SLOGAN,
     logo: { '@type': 'ImageObject', url: `${site}/icon-512.png`, width: 512, height: 512 },
     image: `${site}/og/default.png`,
     email, telephone: phone,
@@ -233,7 +238,7 @@ export function siteJsonLd(s: Partial<Settings>, whmcsBase: string, orgExtra?: R
     ...(orgExtra || {}),
   };
   const website: Record<string, unknown> = {
-    '@type': 'WebSite', '@id': `${site}/#website`, name, ...(alt && alt !== name ? { alternateName: alt } : {}), url: `${site}/`, inLanguage: 'en',
+    '@type': 'WebSite', '@id': `${site}/#website`, name, ...(alt && alt !== name ? { alternateName: alt } : {}), url: `${site}/`, inLanguage: 'en', description: DEFAULT_DESCRIPTION,
     publisher: { '@id': `${site}/#organization` },
   };
   if (/^https:\/\//.test(base)) {

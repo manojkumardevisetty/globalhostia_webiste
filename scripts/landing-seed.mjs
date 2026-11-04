@@ -5,8 +5,9 @@
 
 export const LANDING_SEED = [
   {
-    slug: 'cheap-hosting-uae', name: 'Cheap hosting UAE (Google Ads)',
-    headline: 'Affordable web hosting for UAE businesses',
+    // the slug stays (it may already be used in an ad group); the copy follows the premium positioning
+    slug: 'cheap-hosting-uae', name: 'Web hosting UAE (Google Ads)',
+    headline: 'Managed web hosting for UAE businesses',
     subheadline: 'NVMe hosting with free SSL and daily backups, run by a Dubai-based team. See the live price and order online in minutes.',
     targets: ['cat:hostia-shared', 'cat:hosting-usa', 'cat:hosting-singapore'],
     benefits: ['Free SSL certificate on every site', 'Daily backups', 'NVMe storage for fast page loads', 'Email accounts on your own domain', 'Support by WhatsApp and ticket around the clock'],

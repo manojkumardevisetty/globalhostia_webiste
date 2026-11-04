@@ -224,7 +224,7 @@ export async function page(o: PageOpts): Promise<string> {
   const custom = o.ogImage ? new URL(o.ogImage, site + '/').toString() : '';
   const og = custom || (isHome ? `${site}/og/default.png`
     : ogImageUrl(site, bareTitle(o.title), { kicker: sectionKicker(r.kind, o.path, o.ogKicker), price: o.ogPrice, lang: o.lang }));
-  const ogAlt = isHome && !custom ? 'GlobalHostia: web hosting, VPS and dedicated servers' : `${bareTitle(o.title)} | ${BRAND}`;
+  const ogAlt = isHome && !custom ? 'GlobalHostia: domain names, premium domains and managed hosting' : `${bareTitle(o.title)} | ${BRAND}`;
   const size = custom ? o.ogImageSize : [1200, 630];
 
   return withCurrency(`<!DOCTYPE html>

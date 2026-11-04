@@ -109,7 +109,7 @@ export async function productsXml(currency: string | null) {
   <channel>
     <title>GlobalHostia products</title>
     <link>${x(S)}/</link>
-    <description>Web hosting, VPS, cloud and dedicated servers, SSL and email from GlobalHostia (Dubai, UAE). Prices in ${d.currency}, synced from the billing system.</description>
+    <description>Managed web hosting, VPS, cloud and dedicated servers, SSL and business email from GlobalHostia (Dubai, UAE). Prices in ${d.currency}, synced from the billing system.</description>
     <language>en</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
 ${body}

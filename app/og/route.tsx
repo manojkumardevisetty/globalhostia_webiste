@@ -59,7 +59,7 @@ const RTL_BOX = { display: 'flex', flexDirection: 'row-reverse', flexWrap: 'wrap
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams;
   const ar = q.get('lang') === 'ar' || ARABIC.test(q.get('title') || '');
-  const title = clean(q.get('title'), 90) || (ar ? 'استضافة المواقع وخوادم VPS والخوادم المخصصة' : 'Web hosting, VPS & dedicated servers');
+  const title = clean(q.get('title'), 90) || (ar ? 'النطاقات والنطاقات المميزة والاستضافة المُدارة' : 'Domains, premium domains & managed hosting');
   const kicker = clean(q.get('kicker'), 40);
   const sub = clean(q.get('sub'), 60) || (ar ? 'دبي · أوروبا · الولايات المتحدة · آسيا' : 'Dubai · Europe · USA · Asia');
   const price = clean(q.get('price'), 24);

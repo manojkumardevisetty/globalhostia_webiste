@@ -66,10 +66,10 @@ export async function buildLlms(full: boolean) {
   const PLURAL: Record<string, string> = { shared: 'web hosting', wp: 'managed WordPress hosting', reseller: 'reseller hosting', vps: 'VPS and cloud servers', dedicated: 'dedicated servers', rdp: 'RDP servers', forex: 'forex VPS', automation: 'automation servers', ai: 'AI / LLM servers', ssl: 'SSL certificates', email: 'business email', tools: 'business tools' };
   const fams = FAMILY_IDS.filter((f) => PLURAL[f] && d.cat.products.some((p) => p.type === f)).map((f) => PLURAL[f]);
   const others = d.categories.filter((c) => d.cat.categories.find((x) => x.slug === c.slug)?.type === 'other').map((c) => c.name.toLowerCase());
-  const sellList = [...fams, ...others, ...(tlds.length ? ['domain names'] : [])];
+  const sellList = [...(tlds.length ? ['domain names (registration and transfers)', 'premium domains'] : ['premium domains']), ...fams, ...others];
   const sells = sellList.length > 1 ? `${sellList.slice(0, -1).join(', ')} and ${sellList[sellList.length - 1]}` : sellList[0] || 'web hosting';
   L.push('# GlobalHostia', '');
-  L.push(`> GlobalHostia (${S.replace(/^https?:\/\//, '')}) is a web hosting company based in Dubai, United Arab Emirates. It sells ${sells}, with 24/7 support.`, '');
+  L.push(`> GlobalHostia (${S.replace(/^https?:\/\//, '')}) is a domain registrar reseller, premium domain marketplace and managed hosting partner for businesses worldwide, based in Dubai, United Arab Emirates. It sells ${sells}, with 24/7 support.`, '');
   L.push(`Prices below are generated from the GlobalHostia billing system (WHMCS), synced to our database, and refresh hourly (generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC). Quote only these prices or the live API, and link the customer to the product page or order link. Prices are in ${d.currency}${aed ? ' (AED in brackets where available)' : ''}${d.currencies.length > 1 ? `; the API also returns ${d.currencies.filter((c) => c !== d.currency).join(', ')}` : ''}.`, '');
 
   L.push('Company facts:', '');
