@@ -115,7 +115,8 @@ function drawer(menus: ThemeMenu[], L: ReturnType<typeof whmcsLinks>, phone: str
 }
 
 function utilBar(cat: Catalog, L: ReturnType<typeof whmcsLinks>, phone: string, email: string, ai?: AiPromo) {
-  return `<div class="hp-util"><div class="hp-container">
+  // a labelled region, so the contact / currency / login shortcuts sit inside a landmark (WCAG 1.3.1, axe "region")
+  return `<div class="hp-util" role="region" aria-label="Contact and account shortcuts"><div class="hp-container">
   <div class="hp-u-left">${phone ? `<a href="${esc(telHref(phone))}" aria-label="Call us on ${esc(phone)}">${icon('phone')}<span class="num">${esc(phone)}</span></a>` : ''}${phone && email ? '<span class="hp-sep" aria-hidden="true"></span>' : ''}${email ? `<a href="mailto:${esc(email)}">${icon('mail')}${esc(email)}</a>` : ''}</div>
   ${ai ? utilPill(ai) : ''}
   <div class="hp-u-right">
@@ -249,8 +250,9 @@ ${drawer(menus, L, phone, email, currencyPicker(cat), ai)}
 <main id="main" tabindex="-1">
 ${o.body}
 </main>
-${footer(footMenus, cat, phone, email, s.lead_footer === false || s.lead_footer === 'false' ? '' : leadForm({ source: 'footer', page: o.path || '/', tone: 'dark', title: 'Get hosting deals & guides', text: 'Occasional offers and practical hosting tips. No spam.', cta: 'Sign me up', level: 3, done: o.ctx.query.get('lead') === 'ok' }))}
-${waFloat(s, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.path)}
+${footer(footMenus, cat, phone, email, s.lead_footer === false || s.lead_footer === 'false' ? '' : leadForm({ source: 'footer', page: o.path || '/', tone: 'dark', title: 'Get hosting deals & guides', text: 'Occasional offers and practical hosting tips. No spam.', cta: 'Sign me up', level: 3, done: o.ctx.query.get('lead') === 'ok' }))
+  // the floating WhatsApp button (position:fixed) lives inside the footer landmark; it still shows at the viewport corner
+  .replace(/<\/footer>$/, () => `${waFloat(s, o.title.replace(/\s*\|\s*[^|]*$/, '') || o.title, o.path)}</footer>`)}
 ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=original')}"><i aria-hidden="true"></i>Theme preview · switch back to the current site</a>` : ''}
 <script src="${asset('/hp/theme.js')}" defer></script>
 <script src="${asset('/hp/fx.js')}" defer></script>

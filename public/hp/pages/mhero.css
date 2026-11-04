@@ -37,7 +37,7 @@
 /* controls: dots bottom-left, pause/play + prev/next bottom-right */
 .hp-mhero__ctrl{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:0 8px 6px 8px}
 .hp-mhero__dots{display:flex;align-items:center}
-.hp-mdot{display:inline-flex;align-items:center;justify-content:center;width:22px;height:44px;padding:0;border:0;background:none;cursor:pointer}
+.hp-mdot{display:inline-flex;align-items:center;justify-content:center;width:24px;height:44px;padding:0;border:0;background:none;cursor:pointer}
 .hp-mdot i{display:block;width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.55);transition:width .3s var(--ease),background-color .3s}
 .hp-mdot[aria-current="true"]{width:30px}
 .hp-mdot[aria-current="true"] i{width:18px;background:#fff}
@@ -56,4 +56,4 @@
 .hp-home .hp-domain{margin-top:0;padding-top:16px}
 }
 @media (max-width:767px) and (prefers-reduced-motion:reduce){.hp-mhero__track,.hp-mdot i,.hp-mslide__cta{transition:none}}
-@media (max-width:359px){.hp-mslide__body{padding:18px 14px 68px}.hp-mdot{width:20px}}
+@media (max-width:359px){.hp-mslide__body{padding:18px 14px 68px}.hp-mdot{width:24px}}

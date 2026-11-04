@@ -63,7 +63,9 @@ function rowHtml(r: RenewalRow, g: Group['key'], csrf: string, cur: string) {
 function groupHtml(g: Group, csrf: string, cur: string, i: number) {
   const tt = g.totals;
   const sum = `<span class="ac-rwg__sum"><small>${esc(tn(tt.count, '{n} item', '{n} items'))}</small><b class="num">${esc(money(tt.amount, cur))}</b>${tt.unpriced ? `<small>${esc(t('+ {n} priced at renewal', { n: tt.unpriced }))}</small>` : ''}</span>`;
-  const head = `<span class="ac-rwg__t"><input type="checkbox" class="ac-rwg__all" data-rw-all aria-label="${esc(t('Select all: {x}', { x: GROUP_LABEL(g.key) }))}" hidden><h2 class="hp-col-h" id="rw-${g.key}-h">${esc(GROUP_LABEL(g.key))}</h2></span>${sum}`;
+  const all = `<input type="checkbox" class="ac-rwg__all" data-rw-all aria-label="${esc(t('Select all: {x}', { x: GROUP_LABEL(g.key) }))}" hidden>`;
+  // a collapsible group keeps its select-all outside <summary>: a control inside a summary is a nested interactive (WCAG 4.1.2)
+  const head = (box: boolean) => `<span class="ac-rwg__t">${box ? all : ''}<h2 class="hp-col-h" id="rw-${g.key}-h">${esc(GROUP_LABEL(g.key))}</h2></span>${sum}`;
   // overdue services with no invoice yet: one prominent renew-and-pay hand-off (the service renewal checkout)
   const due = g.key === 'overdue' ? g.rows.filter((r) => r.kind === 'service' && !r.invoiceId && /^active$/i.test(r.status)) : [];
   const dueAmt = due.reduce((x, r) => x + (r.amount || 0), 0);
@@ -73,9 +75,9 @@ function groupHtml(g: Group, csrf: string, cur: string, i: number) {
   const list = `${cta}<ul class="ac-rwlist">${g.rows.map((r) => rowHtml(r, g.key, csrf, cur)).join('')}</ul>`;
   const cls = `ac-card ac-rwg ac-rwg--${g.key}`;
   if (g.key === 'later') {
-    return `<details class="${cls}" id="rw-${g.key}" data-reveal style="--i:${i}"><summary class="ac-card__head">${head}${icon('chev')}</summary>${list}</details>`;
+    return `<details class="${cls}" id="rw-${g.key}" data-reveal style="--i:${i}"><summary class="ac-card__head">${head(false)}${icon('chev')}</summary><label class="ac-rwg__allrow">${all}<span>${esc(t('Select all'))}</span></label>${list}</details>`;
   }
-  return `<section class="${cls}" id="rw-${g.key}" aria-labelledby="rw-${g.key}-h" data-reveal style="--i:${i}"><header class="ac-card__head">${head}</header>${list}</section>`;
+  return `<section class="${cls}" id="rw-${g.key}" aria-labelledby="rw-${g.key}-h" data-reveal style="--i:${i}"><header class="ac-card__head">${head(true)}</header>${list}</section>`;
 }
 
 export function renewalCentreView(o: {

@@ -30,7 +30,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<Re
           <label className="mt-6 block"><span className="field-label">Email</span><input name="email" type="email" required autoComplete="username" className="input h-11" /></label>
           <label className="mt-4 block"><span className="field-label">Password</span><input name="password" type="password" required autoComplete="current-password" className="input h-11" /></label>
           <button className="btn btn-primary mt-6 h-11 w-full">Sign in</button>
-          <p className="mt-6 text-center text-xs text-slate-400">Protected area · activity is logged</p>
+          <p className="mt-6 text-center text-xs text-slate-500">Protected area · activity is logged</p>
         </form>
       </section>
     </main>

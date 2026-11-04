@@ -145,7 +145,7 @@ export default async function render(ctx: PageCtx): Promise<string> {
     </div>
     <div class="ssl-levels" data-ssl-levels>${LEVELS.map((l, i) => `
       <article class="ssl-level" data-level="${l.id}" data-reveal style="--i:${i}">
-        <header><span class="ssl-depth" aria-label="Validation depth ${l.depth} of 3">${[1, 2, 3].map((d) => `<i class="${d <= l.depth ? 'on' : ''}"></i>`).join('')}</span>
+        <header><span class="ssl-depth" role="img" aria-label="Validation depth ${l.depth} of 3">${[1, 2, 3].map((d) => `<i class="${d <= l.depth ? 'on' : ''}"></i>`).join('')}</span>
           <h3><b>${l.short}</b>${esc(l.name)}</h3></header>
         <dl>
           <div><dt>What is checked</dt><dd>${esc(l.checks)}</dd></div>

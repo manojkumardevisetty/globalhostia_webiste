@@ -513,11 +513,12 @@ export function ctaBand(o: { title: string; text?: string; primary: Cta; seconda
 </section>`;
 }
 
-/** Client-name marquee (pauses on hover / off-screen; static under reduced motion). */
+/** Client-name marquee (pauses on hover / off-screen / with its pause button (WCAG 2.2.2); static under reduced motion). */
 export function logosStrip(o: { label?: string; names?: string[] } = {}) {
   const names = o.names?.length ? o.names : ['ADPList', '1Mentorship', 'INFRA', 'AllCode', 'Token247'];
   const span = (n: string, hidden: boolean) => `<span${hidden ? ' aria-hidden="true"' : ''}>${esc(n)}</span>`;
   return `<section class="hp-logos" aria-label="${esc(o.label || 'Clients')}"><div class="hp-container"><p class="hp-logos__lbl">${esc(o.label || 'Trusted by teams at')}</p>
+  <button type="button" class="hp-mq-toggle" data-marquee-toggle aria-label="Pause scrolling names">${icon('pause', 'is-pause')}${icon('play', 'is-play')}</button>
   <div class="hp-marquee"><div class="hp-marquee__track">${names.map((n) => span(n, false)).join('')}${names.map((n) => span(n, true)).join('')}</div></div></div></section>`;
 }
 
@@ -604,7 +605,7 @@ export function heroSlider(slides: Slide[], o: { label?: string; interval?: numb
       ${s.fromHtml ? `<div class="hp-from">${s.fromHtml}</div>` : ''}
     </div></div>
   </div>`).join('\n  ')}
-  ${slides.length > 1 ? `<div class="hp-hnav"><div class="hp-container"><ol aria-label="Choose a slide">${slides.map((s, i) =>
+  ${slides.length > 1 ? `<div class="hp-hnav"><div class="hp-container"><button type="button" class="hp-hpause" data-hero-pause aria-label="Pause slideshow">${icon('pause', 'is-pause')}${icon('play', 'is-play')}</button><ol aria-label="Choose a slide">${slides.map((s, i) =>
     `<li><button type="button" class="hp-hdot" aria-current="${i === 0}" aria-controls="hp-slide-${i}"><span class="hp-hdot__lab">${esc(s.dot || s.kicker)}</span><span class="hp-hdot__track" aria-hidden="true"><span class="hp-hdot__fill"></span></span></button></li>`).join('')}</ol></div></div>` : ''}
 </section>`;
 }

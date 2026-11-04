@@ -26,7 +26,7 @@
 .ua-row.is-alt{background:var(--tint);margin-left:clamp(0px,6vw,96px)}
 .ua-row:not(.is-alt){margin-right:clamp(0px,6vw,96px)}
 .ua-row__ico{display:flex;align-items:center;gap:12px}
-.ua-row__ico span{font:800 28px/1 var(--head);color:var(--line-2)}
+.ua-row__ico span{font:800 28px/1 var(--head);color:var(--field,#858f9b)}
 .ua-row h3{font:700 20px/1.3 var(--head)}
 .ua-row p{margin-top:6px;color:var(--muted)}
 /* timeline */

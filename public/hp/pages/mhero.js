@@ -35,7 +35,7 @@
       slides.forEach(function (s, k) {
         var on = k === i; s.classList.toggle("is-active", on);
         if (on) { s.removeAttribute("aria-hidden"); s.removeAttribute("inert"); } else { s.setAttribute("aria-hidden", "true"); s.setAttribute("inert", ""); }
-        video(s, on);
+        video(s, on && !(stopped && n > 1));
       });
       dots.forEach(function (d, k) { if (k === i) d.setAttribute("aria-current", "true"); else d.removeAttribute("aria-current"); });
       cur = i; schedule();
@@ -43,6 +43,8 @@
     function setStopped(v) {
       stopped = v; hero.classList.toggle("is-stopped", v);
       if (toggle) toggle.setAttribute("aria-label", v ? "Play slideshow" : "Pause slideshow");
+      // the pause button also stops a looping background video (WCAG 2.2.2)
+      video(slides[cur], !v);
       schedule();
     }
     dots.forEach(function (d, k) { d.addEventListener("click", function () { go(k); }); });

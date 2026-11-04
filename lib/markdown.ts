@@ -53,8 +53,10 @@ export function renderMarkdown(md: string): Rendered {
     },
   });
   // wide tables scroll inside their own box instead of widening the page
+  let tables = 0;
   const out = html
-    .replace(/<table>/g, '<div class="bl-table" tabindex="0" role="region" aria-label="Table"><table>').replace(/<\/table>/g, '</table></div>')
+    // numbered labels: each scrolling table region needs its own accessible name
+    .replace(/<table>/g, () => `<div class="bl-table" tabindex="0" role="region" aria-label="Table ${++tables}"><table>`).replace(/<\/table>/g, '</table></div>')
     // an image alone in its paragraph becomes a branded figure with caption (title, else alt) and zoom
     .replace(/<p>\s*(<img [^>]*>)\s*<\/p>/g, (_m, img: string) => {
       const attr = (k: string) => (img.match(new RegExp(`\\s${k}="([^"]*)"`)) || [])[1] || '';

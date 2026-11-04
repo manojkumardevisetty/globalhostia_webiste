@@ -148,7 +148,7 @@ export async function frame(o: {
       ${o.headAction || ''}
       <details class="ac-dd ac-dd--buy"><summary class="hp-btn ${o.headAction ? 'hp-btn--ghost' : 'hp-btn--brand'}">${icon('plus')}${esc(t('Buy more'))}</summary>
         <div class="ac-dd__menu" role="menu">${BUY().map(([h, l, i]) => `<a role="menuitem" href="${h}">${icon(i)}${esc(l)}</a>`).join('')}</div></details>
-      <details class="ac-dd ac-dd--me"><summary class="ac-me" aria-label="${esc(t('Account menu for {name}', { name: v.name || v.email }))}"><span class="ac-avatar ac-avatar--sm" aria-hidden="true">${esc(ini)}</span><span class="ac-me__n">${esc((v.name || v.email).split(' ')[0])}</span>${icon('chev')}</summary>
+      <details class="ac-dd ac-dd--me"><summary class="ac-me"><span class="ac-avatar ac-avatar--sm" aria-hidden="true">${esc(ini)}</span><span class="ac-me__n">${esc((v.name || v.email).split(' ')[0])}</span><span class="sr-only"> ${esc(t('Account menu'))}</span>${icon('chev')}</summary>
         <div class="ac-dd__menu" role="menu">
           <div class="ac-dd__who"><b>${esc(v.name)}</b><small>${esc(v.email)}</small></div>
           ${aiOn ? `<button role="menuitem" type="button" data-ac-ask aria-haspopup="dialog" hidden>${AI_HEX}${esc(t('Ask the assistant'))}</button>` : ''}

@@ -81,7 +81,9 @@
       var wrap = document.createElement("div"); wrap.className = "pd-dd";
       var btn = document.createElement("button"); btn.type = "button"; btn.className = "pd-dd__btn hp-select";
       btn.setAttribute("aria-haspopup", "listbox"); btn.setAttribute("aria-expanded", "false"); btn.setAttribute("aria-controls", id);
-      var lab = sel.closest("label"); var labText = lab ? (lab.querySelector("span") || {}).textContent : ""; if (labText) btn.setAttribute("aria-label", labText);
+      // name = the visible label + the chosen value ("Extension All extensions"), so speech users can say what they see (WCAG 2.5.3)
+      var lab = sel.closest("label"), labEl = lab && lab.querySelector("span"); btn.id = id + "-b";
+      if (labEl) { labEl.id = labEl.id || id + "-l"; btn.setAttribute("aria-labelledby", labEl.id + " " + btn.id); }
       var pop = document.createElement("div"); pop.className = "pd-dd__pop"; pop.hidden = true;
       var search = null;
       if (many) { search = document.createElement("input"); search.type = "search"; search.className = "pd-dd__q"; search.placeholder = "Search…"; search.setAttribute("aria-label", "Search options"); pop.appendChild(search); }

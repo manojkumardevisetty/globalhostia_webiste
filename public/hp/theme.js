@@ -290,6 +290,26 @@
     })});
   });
 
+  /* ---------- sideways-scrolling tables and code blocks: keyboard reachable while they overflow (WCAG 2.1.1) ---------- */
+  function scrollables(){
+    $$(".hp-table-wrap, main pre, .hp-scroll-x").forEach(function(el){
+      var over=el.scrollWidth>el.clientWidth+1, own=el.hasAttribute("data-hp-sx");
+      if(over && !el.hasAttribute("tabindex")){
+        el.setAttribute("tabindex","0"); el.setAttribute("data-hp-sx","");
+        if(!el.getAttribute("role")) el.setAttribute("role","region");
+        if(!el.getAttribute("aria-label")){ el.setAttribute("data-hp-sx","l"); var c=el.querySelector("caption"); el.setAttribute("aria-label",c&&c.textContent.trim()?c.textContent.trim():(el.tagName==="PRE"?"Code sample":"Table")+" (scrolls sideways)") }
+      } else if(!over && own){ el.removeAttribute("tabindex"); var lab=el.getAttribute("data-hp-sx")==="l"; el.removeAttribute("data-hp-sx"); if(el.getAttribute("role")==="region") el.removeAttribute("role"); if(lab) el.removeAttribute("aria-label") }
+    });
+  }
+  scrollables(); var sxT; W.addEventListener("resize",function(){clearTimeout(sxT);sxT=setTimeout(scrollables,200)});
+
+  /* ---------- marquee pause button (WCAG 2.2.2 pause, stop, hide) ---------- */
+  $$("[data-marquee-toggle]").forEach(function(b){
+    var m=b.parentNode.querySelector(".hp-marquee"); if(!m) return;
+    if(reduce){ b.hidden=true; return }
+    b.addEventListener("click",function(){ var on=!m.classList.contains("is-stopped"); m.classList.toggle("is-stopped",on); b.setAttribute("aria-label",on?"Play scrolling names":"Pause scrolling names") });
+  });
+
   /* ---------- pause CSS loops off-screen ---------- */
   $$("[data-pause], .hp-cta, .hp-marquee, .hp-dpanel, .hp-plans").forEach(pauseOff);
 
@@ -421,7 +441,10 @@
       var f=$(".hp-hdot__fill",d); if(f) f.addEventListener("animationend",function(){ if(!reduce && d.getAttribute("aria-current")==="true") go(cur+1) });
     });
     go(0);
-    function setPaused(){ hero.classList.toggle("is-paused", hero.classList.contains("is-off") || D.hidden || hero.matches(":hover") || hero.contains(D.activeElement)) }
+    // pause button (WCAG 2.2.2): stops the auto-advance until pressed again; hover / focus / off-screen pause it meanwhile
+    var stopped=false, pb=$("[data-hero-pause]",hero);
+    if(pb){ if(reduce) pb.hidden=true; pb.addEventListener("click",function(){ stopped=!stopped; pb.setAttribute("aria-label",stopped?"Play slideshow":"Pause slideshow"); hero.classList.toggle("is-stopped",stopped); setPaused() }) }
+    function setPaused(){ hero.classList.toggle("is-paused", stopped || hero.classList.contains("is-off") || D.hidden || hero.matches(":hover") || hero.contains(D.activeElement)) }
     hero.addEventListener("mouseenter",setPaused); hero.addEventListener("mouseleave",function(){setTimeout(setPaused,0)});
     hero.addEventListener("focusin",setPaused); hero.addEventListener("focusout",function(){setTimeout(setPaused,0)});
     D.addEventListener("visibilitychange",setPaused);

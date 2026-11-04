@@ -73,7 +73,7 @@ a.ac-strong:hover,.ac-prow__name:hover,.ac-mini a:hover,.ac-tlist a:hover{color:
 .ac-who small{display:block;margin-top:2px;font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
 .ac-avatar{flex:none;display:inline-grid;place-items:center;width:44px;height:48px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:var(--ink);color:var(--gold);font:800 15px/1 var(--head)}
 .ac-avatar--sm{width:32px;height:36px;font-size:12px}
-.ac-avatar--staff{background:var(--brand)}
+.ac-avatar--staff{background:var(--brand);color:#fff}
 .ac-avatar--staff .hp-ico{width:16px;height:16px;color:#fff}
 .ac-nav{display:grid;gap:2px}
 .ac-nav a{position:relative;display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:var(--r-sm);font-weight:500;font-size:14.5px;transition:background-color .15s}
@@ -309,10 +309,10 @@ a.ac-strong:hover,.ac-prow__name:hover,.ac-mini a:hover,.ac-tlist a:hover{color:
 .ac-form--grid .ac-form__foot{grid-column:1/-1}
 .ac-field{display:grid;gap:6px;min-width:0}
 .ac-field label{font-size:14px;font-weight:600}
-.ac-input{width:100%;min-height:44px;padding:0 12px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:#fff;font:500 15px var(--body);color:var(--ink)}
+.ac-input{width:100%;min-height:44px;padding:0 12px;border:1px solid var(--field,#858f9b);border-radius:var(--r-sm);background:#fff;font:500 15px var(--body);color:var(--ink)}
 select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%235a6774' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:40px}
 .ac-textarea{padding:12px 14px;line-height:1.55;resize:vertical;min-height:140px}
-.ac-input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(197,56,111,.14)}
+.ac-input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 1px var(--brand),0 0 0 4px rgba(197,56,111,.16)}
 .ac-input[aria-invalid="true"]{border-color:var(--ac-bad)}
 .ac-input:disabled{background:var(--tint);color:var(--muted)}
 .ac-ferr{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--ac-bad)}
@@ -712,7 +712,9 @@ select.ac-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 .ac-rw__due.is-overdue{border-color:#f6cdc8}
 .ac-rwg .ac-card__head{min-height:60px}
 .ac-rwg__t{display:flex;align-items:center;gap:12px;min-width:0}
-.ac-rwg__all{width:18px;height:18px;margin:0;accent-color:var(--brand)}
+.ac-rwg__all{width:24px;height:24px;margin:0;accent-color:var(--brand);flex:none}
+.ac-rwg__allrow{display:flex;align-items:center;gap:10px;padding:10px 20px 0;font-size:13.5px;color:var(--ink);cursor:pointer}
+.ac-rwg__allrow:has(input[hidden]){display:none}
 .ac-rwg__sum{display:inline-flex;align-items:baseline;gap:8px;flex-wrap:wrap;justify-content:flex-end;font-size:13px;color:var(--muted)}
 .ac-rwg__sum b{font:800 16px/1 var(--head);color:var(--ink)}
 .ac-rwg--overdue{border-color:#f6cdc8;box-shadow:inset 3px 0 0 var(--ac-bad)}
@@ -1285,7 +1287,7 @@ html.ghas-lock .ac-page .hp-wa,html.ghas-on .ac-page .hp-wa{display:none}
 .ac-sell-t1{display:none}
 .ac-sell-new:has(input[name=featured]:checked) .ac-sell-t0{display:none}
 .ac-sell-new:has(input[name=featured]:checked) .ac-sell-t1{display:inline}
-.ac-sell-new:not(:has(input[name=featured]:checked)) .ac-sell-sum__f{opacity:.5}
+.ac-sell-new:not(:has(input[name=featured]:checked)) .ac-sell-sum__f dd{text-decoration:line-through;color:var(--muted)}
 .ac-sell-steps{display:grid;gap:12px;counter-reset:s;padding:0}
 .ac-sell-steps li{display:grid;grid-template-columns:28px 1fr;column-gap:10px;counter-increment:s;font-size:14px}
 .ac-sell-steps li::before{content:counter(s);grid-row:span 2;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--tint);border:1px solid var(--line);font:700 12.5px/1 var(--head);color:var(--brand-d)}

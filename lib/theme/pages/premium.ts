@@ -78,7 +78,7 @@ async function listing(ctx: PageCtx, cat: Cat, items: PItem[], cfg: PremiumConfi
   const top = applyFilter(items, { sort: 'featured' })[0];
   const minP = items.filter((i) => i.price !== null).reduce((m, i) => Math.min(m, i.price!), Infinity);
 
-  const visual = top ? `<a class="pd-cert" href="${esc(itemHref(top))}" aria-label="${esc(`${top.domain}, ${priceText(top)}`)}">
+  const visual = top ? `<a class="pd-cert" href="${esc(itemHref(top))}">
       <span class="pd-cert__k">${icon('star')}${top.featured ? 'Featured name' : 'Premium name'}</span>
       ${domainHtml(top, 'span')}
       <span class="pd-cert__row"><span>${esc(sourceLabel(top))}</span><b class="num">${esc(priceText(top))}</b></span>

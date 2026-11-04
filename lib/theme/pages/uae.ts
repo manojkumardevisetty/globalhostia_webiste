@@ -82,7 +82,7 @@ async function dubai(cat: Catalog, ctx: PageCtx) {
   ];
   const why = `<section class="hp-section" aria-labelledby="ua-why-h"><div class="hp-container">
     ${splitHead({ id: 'ua-why-h', title: 'Why UAE businesses host with us', lead: 'Hosting is easier when the company behind it is on the same clock, bills in the same currency and picks up the phone.' })}
-    <div class="ua-rows">${reasons.map(([ic, h, p], i) => `<article class="ua-row${i % 2 ? ' is-alt' : ''}" data-reveal><div class="ua-row__ico">${hexIcon(ic)}<span class="num">0${i + 1}</span></div><div><h3>${esc(h)}</h3><p>${esc(p)}</p></div></article>`).join('')}</div>
+    <div class="ua-rows">${reasons.map(([ic, h, p], i) => `<article class="ua-row${i % 2 ? ' is-alt' : ''}" data-reveal><div class="ua-row__ico">${hexIcon(ic)}<span class="num" aria-hidden="true">0${i + 1}</span></div><div><h3>${esc(h)}</h3><p>${esc(p)}</p></div></article>`).join('')}</div>
   </div></section>`;
 
   const plans = `<section class="hp-section hp-section--tint" id="plans" aria-labelledby="ua-plans-h"><div class="hp-container">
