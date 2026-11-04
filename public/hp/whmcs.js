@@ -2613,6 +2613,244 @@
   });
 })();
 
+// 1) Stuck overlays (every page): a Bootstrap .modal-backdrop left on <body> with no modal showing (whmcs.css paints
+//    backdrops dark navy), WHMCS's #fullpage-overlay shown with no message (its .w-hidden rule missing from the theme's
+//    page CSS), or any other empty, dark, full-screen fixed layer. Swept only before the visitor first clicks / types /
+//    submits, and never while a modal is really open, so WHMCS's own "please wait" veil during a payment stays.
+// 2) Branded invoice (viewinvoice.php, WHMCS 8.13 viewinvoice markup as the theme prints it, including a theme side
+//    column with "Total Due" + "Actions"): rebuilt in the GlobalHostia PDF design (docs/whmcs/invoicepdf.tpl): navy band
+//    with the white logo, INVOICE + number + status pill, Pay To / Invoiced To / details, items, totals with the pink total
+//    bar, transactions, footer; a pay card (amount due, WHMCS's own gateway dropdown + payment button moved in, still
+//    working) and Download PDF / Print. Values are read from WHMCS's markup (never typed here); if the markup is not
+//    recognised the page is left as it was. Print (@media print in whmcs.css) shows only the document.
+(function () {
+  'use strict';
+  if (!window.GH_L10N || window.GH_L10N.wait) return;
+  var L10N = window.GH_L10N, _t = L10N.t, D = document, W = window;
+  function ready(f) { if (D.readyState !== 'loading') f(); else D.addEventListener('DOMContentLoaded', f); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var txt = function (e) { return e ? String(e.textContent || '').replace(/\s+/g, ' ').trim() : ''; };
+  var arr = function (l) { return [].slice.call(l || []); };
+
+  /* ---------------- stuck overlays */
+  var touched = false;
+  ['pointerdown', 'keydown', 'submit'].forEach(function (ev) { D.addEventListener(ev, function () { touched = true; }, true); });
+  function shownModal() {
+    return arr(D.querySelectorAll('.modal')).some(function (m) { var s = W.getComputedStyle(m); return (m.classList.contains('show') || m.classList.contains('in')) && s.display !== 'none' && s.visibility !== 'hidden' && parseFloat(s.opacity) > 0.05; });
+  }
+  function darkVeil(bg) {
+    var m = String(bg).match(/rgba?\(([^)]+)\)/); if (!m) return false;
+    var p = m[1].split(/[\s,\/]+/).filter(Boolean).map(parseFloat), a = p.length > 3 ? p[3] : 1;
+    return a >= 0.12 && a < 0.98 && (0.2126 * p[0] + 0.7152 * p[1] + 0.0722 * p[2]) / 255 < 0.45;
+  }
+  var OURS = '.gh-wait, .ghh-pal, .ghh-dlg, .ghas-sheet, .ghai-panel, .ghai-scrim, .gh-ok, .gh-inv, .modal';
+  function unveil() {
+    if (touched || !D.body || shownModal()) return;
+    var vw = W.innerWidth, vh = W.innerHeight, hit = 0;
+    arr(D.querySelectorAll('.modal-backdrop, #fullpage-overlay, body > div, body > section, [class*="overlay"], [id*="overlay"], [class*="backdrop"]')).forEach(function (e) {
+      if (e.classList.contains('gh-veil-off') || e.closest(OURS)) return;
+      var s = W.getComputedStyle(e); if (s.position !== 'fixed' || s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) < 0.05) return;
+      var r = e.getBoundingClientRect(); if (r.width < vw * 0.9 || r.height < vh * 0.9) return;
+      if (!e.classList.contains('modal-backdrop')) {
+        var words = e.id === 'fullpage-overlay' ? txt(e.querySelector('.msg')) : txt(e);
+        if (words.length > 1 || e.querySelector('a[href], button, input, select, textarea, iframe') || !darkVeil(s.backgroundColor)) return;
+      }
+      e.classList.add('gh-veil-off'); hit++;
+    });
+    if (hit && D.body.classList.contains('modal-open')) { D.body.classList.remove('modal-open'); D.body.style.paddingRight = ''; D.body.style.overflow = ''; }
+  }
+
+  /* ---------------- branded invoice */
+  var TOTAL = /sub\s*-?total|total|credit|balance|tax|vat|gst|%|المجموع|الإجمالي|إجمالي|الرصيد|رصيد|ضريبة|الضريبة/i;
+  var STATUS = [['paid', /^paid$|^مدفوعة?$/i], ['unpaid', /unpaid|غير مدفوع/i], ['overdue', /overdue|متأخر/i], ['cancelled', /cancel|ملغ/i], ['refunded', /refund|مسترد/i],
+    ['collections', /collection|تحصيل/i], ['draft', /draft|مسودة/i], ['pending', /pending|قيد الانتظار|معلق/i]];
+  function statusOf(root) {
+    var el = root.querySelector('.invoice-status'), key = '', label = '';
+    if (el) {
+      var sp = el.querySelector('span[class]') || el;
+      ['paid', 'unpaid', 'overdue', 'cancelled', 'refunded', 'collections', 'draft', 'payment-pending'].some(function (c) { if (sp.classList.contains(c)) { key = c === 'payment-pending' ? 'pending' : c; return true; } return false; });
+      label = txt(el);
+    }
+    if (!key && label) STATUS.some(function (s) { if (s[1].test(label)) { key = s[0]; return true; } return false; });
+    if (!key) arr(root.querySelectorAll('.label, .badge, [class*="status"]')).some(function (e) { var t = txt(e); return t.length < 30 && STATUS.some(function (s) { if (s[1].test(t)) { key = s[0]; label = t; return true; } return false; }); });
+    return { key: key || 'unpaid', label: label };
+  }
+  function parseDate(s) {
+    s = String(s || '').trim(); var m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    var t = Date.parse(s.replace(/^[A-Za-z]+,\s*/, '').replace(/(\d)(st|nd|rd|th)\b/, '$1'));
+    return /[A-Za-z]{3}/.test(s) && !isNaN(t) ? new Date(t) : null; // numeric d/m/y vs m/d/y is ambiguous: not guessed
+  }
+  /** label / value pairs printed outside the tables: <strong>Label</strong><br><span>value</span> and "Label: value" */
+  function facts(root) {
+    var out = [];
+    arr(root.querySelectorAll('strong, b, .total-due-title, label')).forEach(function (s) {
+      if (s.closest('table, address, .gh-inv')) return;
+      var n = s.nextElementSibling; while (n && n.tagName === 'BR') n = n.nextElementSibling;
+      if (n && n.tagName !== 'ADDRESS' && !/^(STRONG|B|H\d)$/.test(n.tagName)) out.push({ label: txt(s), el: n, value: n.querySelector('select') ? txt(n.querySelector('select option:checked')) : txt(n) });
+    });
+    arr(root.querySelectorAll('.small-text, div, span, p')).forEach(function (e) {
+      if (e.closest('table, address, .gh-inv') || arr(e.children).some(function (c) { return !/^(BR|SPAN|B|STRONG)$/.test(c.tagName); })) return;
+      var m = txt(e).match(/^([^:：]{2,40})[:：]\s*(.{4,60})$/); if (m) out.push({ label: m[1].trim(), el: e, value: m[2].trim() });
+    });
+    return out;
+  }
+  function cloneInto(slot, from) { if (slot && from) arr(from.childNodes).forEach(function (n) { slot.appendChild(n.cloneNode(true)); }); }
+  function rowsOf(t) {
+    var head = t.tHead ? arr(t.tHead.rows) : [], body = arr(t.rows).filter(function (r) { return head.indexOf(r) < 0; });
+    if (!head.length && body.length && arr(body[0].cells).every(function (c) { return c.tagName === 'TH' || (c.querySelector('strong, b') && txt(c) === txt(c.querySelector('strong, b'))); })) head = [body.shift()];
+    return { head: head[0] ? arr(head[0].cells).map(txt) : [], body: body };
+  }
+  var ICON = {
+    dl: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    pr: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v6H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    back: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    ok: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" fill="currentColor" opacity=".16"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  };
+  var amt = function (s) { return '<span class="gh-inv__amt" dir="ltr">' + esc(s) + '</span>'; };
+
+  function invoice() {
+    if (!/viewinvoice\.php/i.test(location.pathname) || D.querySelector('.gh-inv')) return;
+    var tables = arr(D.querySelectorAll('table')).filter(function (t) { return !t.closest('header, footer, nav, .gh-inv'); });
+    var itemsT = tables.filter(function (t) { return t.querySelector('.total-row'); })[0] ||
+      tables.filter(function (t) { var h = rowsOf(t).head.join(' '); return /description|الوصف|البيان/i.test(h) && !/transaction|gateway|معامل|بوابة/i.test(h); })[0];
+    if (!itemsT) return;
+    var root = itemsT.closest('.invoice-container');
+    if (!root) { // no container class: the smallest block holding the items and the addresses, never the page chrome
+      var ad = D.querySelector('address'); root = itemsT.parentElement;
+      while (root && ad && !root.contains(ad)) root = root.parentElement;
+      if (!root || !ad || root === D.body || root.querySelector('header, footer, .site-header, nav')) return;
+    }
+    // a side column next to the invoice (theme "Total Due" / "Actions" cards) belongs to it as well
+    var wrap = root, PAYSEL = '.payment-btn-container, select[name=gateway], a[href*="dl.php?type=i"]';
+    for (var up = 0, p = root.parentElement; up < 3 && p && p !== D.body && !/^(MAIN|BODY)$/.test(p.tagName) && p.id !== 'main-body'; up++, p = p.parentElement) {
+      if (p.querySelector('header, footer, nav, .card-sidebar, .sidebar, #main-menu')) break;
+      var extra = arr(p.querySelectorAll(PAYSEL)).some(function (e) { return !root.contains(e); });
+      if (extra) wrap = p;
+    }
+
+    var st = statusOf(root), F = facts(wrap);
+    var dateish = function (v) { return /\d/.test(v) && !/[$€£₹]|\b(USD|AED|EUR|GBP|SAR|INR)\b/.test(v) && v.length < 40; };
+    var fact = function (re) { return F.filter(function (f) { return re.test(f.label) && dateish(f.value); })[0]; };
+    var dCreated = fact(/invoice date|date created|issued|تاريخ الفاتورة|تاريخ الإنشاء|تاريخ الإصدار/i), dDue = fact(/due|استحقاق/i), dPaid = fact(/date paid|paid on|تاريخ الدفع|تاريخ السداد/i);
+    if (!dCreated) dCreated = F.filter(function (f) { return f !== dDue && f !== dPaid && /\d{2}/.test(f.value) && dateish(f.value) && !/:/.test(f.value); })[0];
+    if (st.key === 'unpaid' && dDue) { var dd = parseDate(dDue.value), now = new Date(); now.setHours(0, 0, 0, 0); if (dd && dd < now) st.key = 'overdue'; }
+    var pill = st.key === 'overdue' ? _t('Overdue') : st.label || _t('Unpaid');
+
+    // number + title: the page heading ("Invoice #7402026"), else the document title, else the id in the URL
+    var num = '', kind = '';
+    arr(wrap.querySelectorAll('h1, h2, h3, h4')).concat(arr(D.querySelectorAll('h1'))).some(function (h) { var m = txt(h).match(/^(.*?)#\s*(.+)$/); if (m) { kind = m[1].trim(); num = m[2].trim(); } return !!num; });
+    if (!num) { var m = D.title.replace(/\s+[-|–]\s+[^-|–]*$/, '').match(/^(.*?)#\s*(.+)$/) || D.title.match(/^[^-|–]*[-|–]\s*(.*?)#\s*(.+)$/); if (m) { kind = m[1].trim(); num = m[2].trim(); } }
+    if (!num) num = (location.search.match(/[?&]id=(\d+)/) || [])[1] || '';
+    kind = kind.replace(/^.*[-|–]\s*/, '') || _t('Invoice');
+
+    // addresses: first is Pay To, second Invoiced To (WHMCS order); the label printed before each is kept
+    var addrs = arr(wrap.querySelectorAll('address')).filter(function (a) { return !a.closest('.gh-inv'); });
+    var labelOf = function (a, dflt) { var s = a.previousElementSibling; while (s && s.tagName === 'BR') s = s.previousElementSibling; return s && txt(s).length < 40 ? txt(s) : dflt; };
+
+    var items = rowsOf(itemsT), rowsI = [], tots = [];
+    items.body.forEach(function (r) {
+      var c = arr(r.cells); if (c.length < 2) return;
+      var first = c[0], isTot = !!r.querySelector('.total-row') || (rowsI.length && TOTAL.test(txt(first)) && !!first.querySelector('strong, b') && txt(first).length < 40);
+      if (isTot) tots.push({ label: txt(first), value: txt(c[c.length - 1]) }); else rowsI.push({ cell: first, value: txt(c[c.length - 1]) });
+    });
+    if (!rowsI.length) return;
+    var grand = tots.filter(function (t) { return /^(total|total due|grand total|الإجمالي|المجموع الكلي|المبلغ الإجمالي)$/i.test(t.label); }).pop() || tots[tots.length - 1];
+
+    var txT = tables.filter(function (t) { return t !== itemsT && (t.closest('.transactions-container') || /transaction|gateway|معامل|بوابة/i.test(rowsOf(t).head.join(' '))); })[0];
+    var tx = txT ? rowsOf(txT) : null, bal = null, txRows = [], txEmpty = '';
+    if (tx) tx.body.forEach(function (r) {
+      var c = arr(r.cells);
+      if (c.length === 1) txEmpty = txt(c[0]);
+      else if (c.length === 2 || (c[0].colSpan > 1 && c.length < tx.head.length)) bal = { label: txt(c[0]), value: txt(c[c.length - 1]) };
+      else txRows.push(c.map(txt));
+    });
+    var due = st.key === 'paid' || st.key === 'cancelled' || st.key === 'refunded' ? null : (bal && /\d/.test(bal.value) ? bal.value : grand && grand.value);
+
+    // payment pieces (moved, not copied, so WHMCS's forms and gateway scripts keep working)
+    var gwSel = wrap.querySelector('select[name=gateway]'), gwForm = gwSel && (gwSel.closest('form') || gwSel);
+    var payBox = wrap.querySelector('.payment-btn-container');
+    if (!payBox) payBox = arr(wrap.querySelectorAll('form')).filter(function (f) { return f !== gwForm && !f.querySelector('[name=creditamount]') && f.querySelector('[type=submit], [type=image], button:not([type=button])'); })[0] || null;
+    if (payBox && !txt(payBox) && !payBox.querySelector('form, iframe, input, button, [id*="paypal"], [class*="paypal"], script')) payBox = null;
+    var dl = wrap.querySelector('a[href*="dl.php"]');
+    var notices = arr(wrap.querySelectorAll('.alert')).filter(function (a) { return !a.closest('.gh-inv'); });
+    var credit = wrap.querySelector('[name=creditamount]'), creditBox = credit && (credit.closest('.card, .panel') || credit.closest('form'));
+    var notesBox = arr(wrap.querySelectorAll('.card, .panel')).filter(function (c) { return c !== creditBox && !c.contains(itemsT) && /^(notes|ملاحظات)/i.test(txt(c.querySelector('.card-header, .panel-heading'))); })[0];
+    var taxNote = arr(wrap.querySelectorAll('p')).filter(function (p) { return /^\*/.test(txt(p)) && !p.closest('table'); })[0];
+
+    var tone = { paid: 'ok', unpaid: 'due', overdue: 'late', cancelled: 'off', refunded: 'off', draft: 'off', collections: 'late', pending: 'wait' }[st.key] || 'due';
+    var dRow = function (f) { return f ? '<div><dt>' + esc(f.label) + '</dt><dd><bdi>' + esc(f.value) + '</bdi></dd></div>' : ''; };
+    var pmName = gwSel ? txt(gwSel.querySelector('option:checked')) : ((F.filter(function (f) { return /payment method|طريقة الدفع|وسيلة الدفع/i.test(f.label); })[0] || {}).value || '');
+    var host = /(^|\.)globalhostia\.com$/i.test(location.hostname) ? 'https://my.globalhostia.com' : location.origin;
+
+    var h = '<article class="gh-inv__doc" aria-labelledby="gh-inv-h">' +
+      '<header class="gh-inv__band"><div class="gh-inv__brand"><img src="' + esc(host + '/assets/img/gh-logo-white.png') + '" alt="GlobalHostia" width="190" height="36"></div>' +
+      '<div class="gh-inv__ttl"><h1 id="gh-inv-h"><span class="gh-inv__kind">' + esc(kind) + '</span> <bdi class="gh-inv__no">#' + esc(num) + '</bdi></h1>' +
+      '<span class="gh-inv__pill is-' + tone + '">' + esc(pill) + '</span></div></header>' +
+      '<div class="gh-inv__notices" data-slot="notices"></div>' +
+      '<section class="gh-inv__parties">' +
+      (addrs[0] ? '<div class="gh-inv__col"><h2>' + esc(labelOf(addrs[0], _t('Pay To'))) + '</h2><address data-slot="payto"></address></div>' : '') +
+      (addrs[1] ? '<div class="gh-inv__col"><h2>' + esc(labelOf(addrs[1], _t('Invoiced To'))) + '</h2><address data-slot="invto"></address></div>' : '') +
+      '<div class="gh-inv__col"><h2>' + esc(_t('Invoice details')) + '</h2><dl class="gh-inv__dl">' + dRow(dCreated) + dRow(dDue) + dRow(dPaid) +
+      (pmName ? '<div><dt>' + esc(_t('Payment method')) + '</dt><dd>' + esc(pmName) + '</dd></div>' : '') + '</dl></div></section>' +
+      '<div class="gh-inv__tw"><table class="gh-inv__items"><thead><tr><th scope="col">' + esc(items.head[0] || _t('Description')) + '</th><th scope="col">' + esc(items.head[items.head.length - 1] || _t('Amount')) + '</th></tr></thead><tbody>' +
+      rowsI.map(function (r, i) { return '<tr><td data-slot="item' + i + '"></td><td>' + amt(r.value) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div class="gh-inv__under"><div class="gh-inv__taxnote" data-slot="taxnote"></div><table class="gh-inv__totals"><tbody>' +
+      tots.map(function (t) { return '<tr class="total-row' + (t === grand ? ' gh-inv__grand' : '') + '"><th scope="row">' + esc(t.label) + '</th><td>' + amt(t.value) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      (tx ? '<section class="gh-inv__tx"><h2>' + esc(_t('Transactions')) + '</h2><div class="gh-inv__tw"><table><thead><tr>' + tx.head.map(function (c, i) { return '<th scope="col"' + (i === tx.head.length - 1 ? ' class="is-num"' : '') + '>' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        (txRows.length ? txRows.map(function (r) { return '<tr>' + r.map(function (c, i) { return '<td' + (i === r.length - 1 ? ' class="is-num"' : '') + '>' + (i === r.length - 1 ? amt(c) : '<bdi>' + esc(c) + '</bdi>') + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + Math.max(tx.head.length, 1) + '" class="gh-inv__none">' + esc(txEmpty || _t('No payments yet.')) + '</td></tr>') +
+        (bal ? '<tr class="gh-inv__bal"><th scope="row" colspan="' + Math.max(tx.head.length - 1, 1) + '">' + esc(bal.label) + '</th><td class="is-num">' + amt(bal.value) + '</td></tr>' : '') + '</tbody></table></div></section>' : '') +
+      '<div class="gh-inv__extra" data-slot="extra"></div>' +
+      '<footer class="gh-inv__foot">' + esc(_t('Thank you for choosing GlobalHostia')) + ' · globalhostia.com · support@globalhostia.com · ' + esc(_t('24/7 support')) + '</footer></article>';
+
+    var payTop = due ? '<div class="gh-inv__paytop"><span>' + esc(_t('Amount due')) + '</span><b>' + amt(due) + '</b>' + (dDue ? '<small>' + esc(dDue.label) + ': <bdi>' + esc(dDue.value) + '</bdi></small>' : '') + '</div>'
+      : '<div class="gh-inv__paytop is-' + tone + '">' + (st.key === 'paid' ? ICON.ok : '') + '<span>' + esc(pill) + '</span><b>' + amt(grand ? grand.value : '') + '</b>' + (dPaid ? '<small>' + esc(dPaid.label) + ': <bdi>' + esc(dPaid.value) + '</bdi></small>' : '') + '</div>';
+    var payMsg = st.key === 'paid' ? _t('This invoice is paid. Thank you.') : st.key === 'cancelled' ? _t('This invoice was cancelled. There is nothing to pay.') : st.key === 'refunded' ? _t('This invoice was refunded.') : '';
+    var a = '<aside class="gh-inv__aside" aria-label="' + esc(_t('Pay this invoice')) + '"><section class="gh-inv__pay is-' + tone + '">' + payTop +
+      '<div class="gh-inv__paybody">' + (payMsg ? '<p class="gh-inv__paymsg">' + esc(payMsg) + '</p>' : '') +
+      (gwForm && due ? '<div class="gh-inv__gw"><span class="gh-inv__lbl">' + esc(_t('Payment method')) + '</span><div data-slot="gw"></div></div>' : '') +
+      (payBox && due ? '<div class="gh-inv__btn" data-slot="pay"></div><p class="gh-inv__safe">' + ICON.lock + '<span>' + esc(_t('Secure payment. Card details go straight to the payment provider, never to us.')) + '</span></p>' : '') +
+      '<div class="gh-inv__more" data-slot="more"></div></div></section>' +
+      '<nav class="gh-inv__acts" aria-label="' + esc(_t('Actions')) + '">' +
+      (dl ? '<a class="gh-inv__act is-main" href="' + esc(dl.getAttribute('href')) + '">' + ICON.dl + '<span>' + esc(_t('Download PDF')) + '</span></a>' : '') +
+      '<button type="button" class="gh-inv__act" data-print>' + ICON.pr + '<span>' + esc(_t('Print')) + '</span></button>' +
+      '<a class="gh-inv__act is-link" href="clientarea.php?action=invoices">' + ICON.back + '<span>' + esc(_t('All invoices')) + '</span></a></nav></aside>';
+
+    var box = D.createElement('div');
+    box.className = 'gh-inv is-' + tone; box.setAttribute('data-status', st.key);
+    if (L10N.rtl) box.setAttribute('dir', 'rtl');
+    box.innerHTML = h + a;
+    wrap.parentNode.insertBefore(box, wrap); // in the page before anything is moved into it, so a failure never loses a form
+    var slot = function (n) { return box.querySelector('[data-slot="' + n + '"]'); };
+    if (addrs[0]) cloneInto(slot('payto'), addrs[0]);
+    if (addrs[1]) cloneInto(slot('invto'), addrs[1]);
+    rowsI.forEach(function (r, i) { cloneInto(slot('item' + i), r.cell); });
+    if (taxNote) cloneInto(slot('taxnote'), taxNote);
+    notices.forEach(function (n) { slot('notices').appendChild(n); });
+    if (creditBox) slot('extra').appendChild(creditBox);
+    if (notesBox) slot('extra').appendChild(notesBox);
+    if (gwForm && due) slot('gw').appendChild(gwForm);
+    if (payBox && due) slot('pay').appendChild(payBox);
+    // any other working form the theme printed around the invoice (never a second gateway switcher)
+    arr(wrap.querySelectorAll('form')).forEach(function (f) { if (!f.querySelector('select[name=gateway]') && f.querySelector('[type=submit], [type=image], button:not([type=button])')) slot('more').appendChild(f); });
+    var logo = box.querySelector('.gh-inv__brand img'), tries = 0;
+    logo.addEventListener('error', function () { if (tries++) { logo.replaceWith(Object.assign(D.createElement('b'), { className: 'gh-inv__word', textContent: 'GlobalHostia' })); return; } logo.src = (L10N.origin || '') + '/image/logo-main-white.png'; });
+    box.querySelector('[data-print]').addEventListener('click', function () { W.print(); });
+    wrap.classList.add('gh-inv-src'); wrap.setAttribute('aria-hidden', 'true');
+    D.documentElement.classList.add('gh-inv-on');
+    // print: everything that is not on the way to the invoice is hidden (whmcs.css @media print)
+    for (var e = box.parentElement; e && e !== D.documentElement; e = e.parentElement) e.classList.add('gh-inv-path');
+    var back = arr(D.querySelectorAll('a[href*="action=invoices"]')).filter(function (x) { return !box.contains(x) && x.closest('p.text-center'); })[0];
+    if (back) back.parentNode.classList.add('gh-inv-back');
+  }
+
+  ready(function () {
+    try { unveil(); [300, 1200, 3000].forEach(function (t) { setTimeout(unveil, t); }); } catch (e) {}
+    try { invoice(); } catch (e) { if (W.console) console.warn('[gh] invoice view skipped', e); }
+  });
+})();
+
 // Feedback on the WHMCS pages we skin: purchase celebration (order complete, invoice turned Paid) with a "what happens
 // next" card and one GA4 purchase event per order, a hexagon wait screen while the payment page opens, checkout errors
 // linked to their fields, ticket confirmation, domain added to cart, and roles on WHMCS's own alerts.
@@ -2709,7 +2947,7 @@
     var turned = /[?&]paymentsuccess=true/i.test(Q) || (ss && ss.getItem(key));
     if (!turned || D.querySelector('.gh-ok')) return;
     if (ss) ss.removeItem(key);
-    var c = D.querySelector('.invoice-container'); if (!c) return;
+    var gi = D.querySelector('.gh-inv'), c = gi ? gi.querySelector('.gh-inv__doc') : D.querySelector('.invoice-container'); if (!c) return;
     var tot = null; [].some.call(c.querySelectorAll('.total-row, tr'), function (r) { if (/total/i.test(r.textContent) && !/sub\s*total/i.test(r.textContent)) { var cells = r.querySelectorAll('td, th'); tot = money(cells.length ? cells[cells.length - 1].textContent : r.textContent); return !!tot; } return false; });
     var host = D.createElement('div');
     host.innerHTML = card({
@@ -2721,7 +2959,7 @@
         [_t('Get help any time'), _t('Our engineers answer 24/7 by ticket and WhatsApp.'), 'submitticket.php', _t('Open a support ticket')]
       ]
     });
-    var sec = host.firstChild; c.insertBefore(sec, c.firstChild);
+    var sec = host.firstChild; if (gi) gi.parentNode.insertBefore(sec, gi); else c.insertBefore(sec, c.firstChild);
     requestAnimationFrame(function () { play(sec); });
     if (!(ss && ss.getItem('gh-purchase-inv:' + id))) purchase('invoice-' + id, tot && tot.value, tot && tot.currency);
   }
@@ -2742,7 +2980,7 @@
     return el;
   }
   function payWait() {
-    var c = D.querySelector('.invoice-container'); if (!c || c.dataset.ghWait) return; c.dataset.ghWait = '1';
+    var c = D.querySelector('.gh-inv') || D.querySelector('.invoice-container'); if (!c || c.dataset.ghWait) return; c.dataset.ghWait = '1';
     D.addEventListener('submit', function (e) {
       var f = e.target; if (e.defaultPrevented || !f || !c.contains(f) || f.target === '_blank') return;
       if (f.querySelector('select[name=gateway]') && !f.querySelector('[type=submit], button:not([type=button])')) return; // the gateway switcher reloads the page
