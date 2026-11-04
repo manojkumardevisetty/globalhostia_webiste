@@ -2180,3 +2180,6 @@ html body .kb-article-item small { display: block; margin-top: 2px; font-weight:
   .ghh-wp__act > .ghh-btn { flex: 1 1 auto; min-width: 0; }
   .ghh-wp__act .ghh-wpmenu { flex: none; }
 }
+
+/* Domain search hero: keep the title white on the dark band (later card/title rules were turning it dark) */
+html body .domain-registiration-hero h1, html body .domain-registiration-hero h1.page-title, html body #main-body .domain-registiration-hero h1, html body .domain-registiration-hero .hero-content h1 { color: #fff !important; }
