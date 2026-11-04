@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.602 --> 00:00:04.882
+1. In Manage hosting, open File manager.
+
+2
+00:00:04.882 --> 00:00:09.366
+2. Pick the website. Its public_html folder opens.
+
+3
+00:00:09.366 --> 00:00:15.740
+3. Click Upload and choose the file (up to 4 MB; use FTP for bigger files).
+
+4
+00:00:15.740 --> 00:00:22.904
+4. The file appears in the list when the upload finishes.

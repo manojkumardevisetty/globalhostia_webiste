@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.609 --> 00:00:03.767
+1. Open Manage hosting. The overview lists domains that are not connected yet.
+
+2
+00:00:03.767 --> 00:00:08.069
+2. Click Connect next to the domain.
+
+3
+00:00:08.069 --> 00:00:14.500
+3. Follow the steps: switch the nameservers, or add the A and www records shown.
+
+4
+00:00:14.500 --> 00:00:24.162
+4. The helper checks again every 30 seconds and ticks each step when it is live.
