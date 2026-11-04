@@ -13,6 +13,7 @@ import { verifySession, COOKIE } from '@/lib/auth';
 import { pageMarkdown, mdPath } from '@/lib/agents/markdown';
 import { GET as aiPage } from '../ai/route';
 import { onDeploy } from '@/lib/indexnow';
+import { kickContent } from '@/lib/content/kick';
 import { ALIAS_PATHS, HUB_PATH } from '@/lib/store/config';
 import { storeRedirect } from '@/lib/store/view';
 import { errorPage } from '@/lib/ux/error-page';
@@ -76,6 +77,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug?: stri
 async function render(req: NextRequest, ctx: { params: Promise<{ slug?: string[] }> }): Promise<Response> {
   const { slug: segs = [] } = await ctx.params;
   after(onDeploy); // first request after a production deploy: submit the sitemap to IndexNow (once per commit)
+  after(() => kickContent(req.nextUrl.origin, 'page')); // content engine: publish scheduled posts on time, draft the day's articles (≤ every 10 min)
   if (segs.length && /\.md$/i.test(segs[segs.length - 1]) && segs[segs.length - 1].length > 3) return markdown(req, segs);
   const path = '/' + segs.join('/');
   const r = (await redirectMap())[path.toLowerCase()];

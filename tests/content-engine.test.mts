@@ -13,7 +13,14 @@ import { SEED_IDEAS } from '../lib/content/seed-ideas.mjs';
 
 /* ------------------------------------------------------------------ fixtures */
 const KNOWN = ['/', '/web-hosting', '/vps-hosting', '/ae-domains', '/guides/register-ae-domain', '/blog/spf-dkim-dmarc-explained', '/wordpress-hosting', '/contact', '/free-migration'];
-const para = (n: number, w = 'Hosting keeps your website online and fast for visitors.') => Array.from({ length: n }, () => w).join(' ');
+// varied prose (seeded), so the repetition and stuffing checks see natural text
+const VOCAB = ('website visitors server backup plan team owner page speed files database update theme plugin browser cache image script shop order '
+  + 'customer invoice support ticket record domain mailbox inbox folder report log access login screen device network office budget month week task list note '
+  + 'guide step change review start finish check move test launch measure compare choose keep share store build clear quick simple').split(' ');
+let seed = 7;
+const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+const sentence = () => { const w = Array.from({ length: 9 }, () => VOCAB[Math.floor(rnd() * VOCAB.length)]); return w[0][0].toUpperCase() + w.join(' ').slice(1) + '.'; };
+const para = (n: number, w?: string) => Array.from({ length: n }, () => w ?? sentence()).join(' ');
 function goodArticle() {
   const sections = [
     ['What VPS hosting means for a small business', `${para(30)} See our [VPS plans](/vps-hosting) for details.`],
@@ -347,4 +354,152 @@ test('ideas and review calls with a mocked client', async () => {
   assert.match(c.calls[0].messages[0].content, /OWNER SEED KEYWORDS[\s\S]*arabic website/);
   const r = await reviewWith(c, 'claude-haiku-5-5', { title: 't', body: 'b', track: 'global' });
   assert.deepEqual(r.issues.map((i) => i.severity), ['fail', 'warn']);
+});
+
+/* ------------------------------------------------------------------ daily cadence, topic diversity, gates, cost */
+import {
+  postsForDay, postsInMonth, dailySlots, matchSlots, slotStatus, nextDailySlot, dayKey, diversityCheck, pickCategory, qualityScore, passesGate, tagRationale, readTags,
+  inferCategory, estimateMonthlyCost, capBlock, DEFAULT_CAP_USD, CATEGORIES, SETTINGS_VERSION,
+} from '../lib/content/core.ts';
+import { keywordDensity, repetition } from '../lib/content/quality.ts';
+
+const CS = normalizeContent(null);
+const mins = (d: Date) => { const t = toDubaiLocal(d).slice(11); return Number(t.slice(0, 2)) * 60 + Number(t.slice(3)); };
+
+test('daily cadence: 50 a month spread as 1–2 a day, exact monthly total; fixed postsPerDay overrides', () => {
+  assert.equal(CS.monthlyTarget, 50); assert.equal(CS.postsPerDay, null); assert.equal(CS.autoPublish, true);
+  for (const m of ['2026-11', '2026-12', '2027-02']) {
+    assert.equal(postsInMonth(m, CS), 50, m);
+    const [y, mo] = m.split('-').map(Number);
+    for (let d = 1; d <= new Date(Date.UTC(y, mo, 0)).getUTCDate(); d++) { const n = postsForDay(`${m}-${String(d).padStart(2, '0')}`, CS); assert.ok(n >= 1 && n <= 2, `${m}-${d}: ${n}`); }
+  }
+  assert.equal(postsForDay('2026-11-05', { monthlyTarget: 50, postsPerDay: 3 }), 3);
+  assert.equal(postsInMonth('2026-11', { monthlyTarget: 50, postsPerDay: 0 }), 0);
+  assert.equal(postsInMonth('2026-11', { monthlyTarget: 0, postsPerDay: null }), 0);
+});
+
+test('daily slots: natural times (±jitter, stable per day), ≥ min gap, both tracks on 2-post days', () => {
+  const two = { ...CS, postsPerDay: 2 };
+  const a = dailySlots('2026-11-05', two), b = dailySlots('2026-11-05', two);
+  assert.deepEqual(a.map((s) => s.at.toISOString()), b.map((s) => s.at.toISOString()), 'deterministic');
+  assert.equal(a.length, 2);
+  assert.ok(Math.abs(mins(a[0].at) - 9 * 60) <= 20 && Math.abs(mins(a[1].at) - 18 * 60) <= 20, a.map((s) => toDubaiLocal(s.at)).join());
+  assert.deepEqual(new Set(a.map((s) => s.track)), new Set(['uae', 'global']));
+  const other = dailySlots('2026-11-06', two);
+  assert.notEqual(mins(a[0].at), mins(other[0].at), 'times move day to day');
+  const three = dailySlots('2026-11-05', { ...CS, postsPerDay: 3 });
+  for (let i = 1; i < 3; i++) assert.ok(three[i].at.getTime() - three[i - 1].at.getTime() >= 4 * 3600_000, 'min gap 4 h');
+  assert.ok(new Set(three.map((s) => s.track)).size === 2);
+  const one = [0, 1, 2, 3].map((k) => dailySlots(`2026-11-1${k}`, { ...CS, postsPerDay: 1 })[0].track);
+  assert.ok(one.includes('uae') && one.includes('global'), 'single-post days alternate');
+  const many = dailySlots('2026-11-05', { ...CS, postsPerDay: 6 });
+  assert.equal(many.length, 6); assert.ok(many.every((s, i) => !i || s.at > many[i - 1].at));
+  assert.equal(dailySlots('2026-11-05', { ...CS, tracks: ['global'], postsPerDay: 2 }).every((s) => s.track === 'global'), true);
+  const noJ = dailySlots('2026-11-05', { ...CS, postsPerDay: 2, jitterMin: 0 });
+  assert.deepEqual(noJ.map((s) => toDubaiLocal(s.at).slice(11)), ['09:00', '18:00']);
+});
+
+test('slots pair with planned ideas; status per slot; next free slot', () => {
+  const cs = { ...CS, postsPerDay: 2, jitterMin: 0 };
+  const slots = dailySlots('2026-11-05', cs);
+  const ideas = [
+    { id: 'a', state: 'scheduled', plannedFor: new Date(slots[0].at.getTime() + 5 * 60_000) },
+    { id: 'x', state: 'idea', plannedFor: slots[1].at },
+    { id: 'r', state: 'rejected', plannedFor: slots[1].at },
+  ];
+  const m = matchSlots(slots, ideas);
+  assert.equal(m[0].idea?.id, 'a'); assert.equal(m[1].idea, null, 'backlog and rejected ideas do not fill a slot');
+  const now = slots[0].at.getTime() - 3600_000;
+  assert.equal(slotStatus(m[0].idea, slots[0].at, now), 'scheduled');
+  assert.equal(slotStatus(null, slots[1].at, now), 'open');
+  assert.equal(slotStatus(null, slots[1].at, slots[1].at.getTime() + 2 * 3600_000), 'missed');
+  assert.equal(slotStatus(null, slots[1].at, now, 'gate failed'), 'failed');
+  assert.equal(slotStatus({ id: 'h', state: 'draft_ready', plannedFor: null, checks: [{ status: 'fail' }] }, slots[1].at, now), 'held');
+  const next = nextDailySlot({ cs, planned: ideas, now: new Date('2026-11-05T00:00:00Z') })!;
+  assert.equal(next.at.toISOString(), slots[1].at.toISOString(), 'first slot taken → the 18:00 one');
+  const g = nextDailySlot({ cs, track: slots[0].track, planned: ideas, now: new Date('2026-11-05T00:00:00Z') })!;
+  assert.equal(g.track, slots[0].track); assert.equal(dayKey(g.at), '2026-11-06');
+});
+
+test('topic dedupe: same keyword, slug, near-duplicate title, close keyword and cluster cooldown are rejected', () => {
+  const now = new Date('2026-11-20T00:00:00Z');
+  const refs = [
+    { title: 'How to set up SPF, DKIM and DMARC for business email', primaryKeyword: 'spf dkim dmarc setup', slug: 'spf-dkim-dmarc-setup', cluster: 'email authentication', at: new Date('2026-11-12T00:00:00Z') },
+    { title: 'Choosing a VPS for a growing online shop', primaryKeyword: 'vps for online shop', slug: 'vps-online-shop', cluster: 'vps sizing', at: new Date('2026-09-01T00:00:00Z') },
+  ];
+  const opt = { now, cooldownDays: 14 };
+  assert.equal(diversityCheck({ title: 'Something new entirely', primaryKeyword: 'SPF DKIM DMARC setup' }, refs, opt).ok, false, 'same keyword (case/order-insensitive)');
+  assert.equal(diversityCheck({ title: 'Totally different words here', slug: 'vps-online-shop' }, refs, opt).ok, false, 'same slug');
+  const t = diversityCheck({ title: 'How to set up SPF, DKIM and DMARC for your company email', primaryKeyword: 'email authentication records' }, refs, opt);
+  assert.equal(t.ok, false); assert.match((t as any).reason, /title too close/);
+  assert.equal(diversityCheck({ title: 'Reading DMARC aggregate reports', primaryKeyword: 'dmarc aggregate reports', cluster: 'email authentication' }, refs, opt).ok, false, 'cluster used 8 days ago');
+  assert.equal(diversityCheck({ title: 'Right-sizing RAM on a VPS', primaryKeyword: 'vps ram sizing', cluster: 'vps sizing' }, refs, opt).ok, true, 'cluster last used 80 days ago is fine');
+  assert.equal(diversityCheck({ title: 'Using AI to summarise customer emails safely', primaryKeyword: 'ai email summaries', cluster: 'ai email triage' }, refs, opt).ok, true);
+  assert.equal(diversityCheck({ title: 'Plan a Ramadan sale for your online store', primaryKeyword: 'ramadan online sale' }, [], opt).ok, true);
+});
+
+test('category rotation: never the same twice in a row, least recently used first, track-aware', () => {
+  const all = CATEGORIES.map((c) => c.id);
+  const recent = [{ category: 'email', at: '2026-11-19' }, { category: 'security', at: '2026-11-18' }];
+  const c1 = pickCategory({ track: 'global', enabled: all, recent })!;
+  assert.notEqual(c1, 'email'); assert.notEqual(c1, 'uae-business', 'UAE-only category not on the global track');
+  const used: string[] = [];
+  let r = [...recent];
+  for (let i = 0; i < 12; i++) { const c = pickCategory({ track: 'uae', enabled: all, recent: r, seed: String(i) })!; assert.notEqual(c, r[0]?.category); used.push(c); r = [{ category: c, at: `2026-11-${20 + i}` }, ...r]; }
+  assert.ok(new Set(used).size >= 10, `rotates broadly: ${used.join(',')}`);
+  assert.equal(pickCategory({ track: 'uae', enabled: ['developers'], recent: [] }), null, 'developers is global-only');
+  assert.equal(pickCategory({ track: 'global', enabled: ['email', 'domains'], recent: [{ category: 'email', at: 1 }], avoid: ['domains'] }), 'domains', 'falls back when everything is avoided');
+  assert.deepEqual(readTags(tagRationale('email', 'Email Authentication', 'Why. Angle: x')), { category: 'email', cluster: 'email authentication', text: 'Why. Angle: x' });
+  assert.deepEqual(readTags('plain'), { category: '', cluster: '', text: 'plain' });
+  assert.equal(inferCategory('How to set up DMARC'), 'email'); assert.equal(inferCategory('UAE VAT on hosting'), 'uae-business');
+});
+
+test('quality score and the publish gate', () => {
+  assert.equal(qualityScore([]), 0);
+  assert.equal(qualityScore([{ status: 'pass' }, { status: 'warn' }, { status: 'warn' }]), 90);
+  assert.equal(passesGate([{ status: 'pass' }, { status: 'warn' }], 80), true);
+  assert.equal(passesGate([{ status: 'pass' }, { status: 'fail' }], 0), false, 'a failed check always blocks');
+  assert.equal(passesGate(Array.from({ length: 5 }, () => ({ status: 'warn' })), 80), false, '5 warnings = 75 < 80');
+  const fresh = [
+    { id: 'ok', state: 'draft_ready', plannedFor: new Date(), postId: 'p', priority: 1, checks: [{ status: 'pass' }, { status: 'warn' }] },
+    { id: 'warny', state: 'draft_ready', plannedFor: new Date(), postId: 'p', priority: 1, checks: Array.from({ length: 6 }, () => ({ status: 'warn' })) },
+  ];
+  assert.deepEqual(selectAutoSchedule(fresh, true, 80).map((i) => i.id), ['ok']);
+});
+
+test('keyword stuffing, repetitive phrasing and official sources are checked', () => {
+  const good = goodArticle();
+  const c = runQualityChecks(base(good));
+  assert.equal(status(c, 'keyword-density'), 'pass'); assert.equal(status(c, 'repetition'), 'pass');
+  assert.equal(status(c, 'sources'), 'warn', 'no official link: warning');
+  assert.equal(status(runQualityChecks(base(good, { needsSources: true })), 'sources'), 'fail', 'UAE rules / tech news need a source');
+  assert.equal(status(runQualityChecks(base(good + '\nSee [the FTA](https://tax.gov.ae/en/).\n', { needsSources: true })), 'sources'), 'pass');
+  const stuffed = good + '\n' + Array.from({ length: 40 }, () => 'VPS hosting is VPS hosting.').join(' ') + '\n';
+  assert.equal(status(runQualityChecks(base(stuffed)), 'keyword-density'), 'fail');
+  assert.ok(keywordDensity(stuffed, 'vps hosting').density > 3.5);
+  const rep = good + '\n' + Array.from({ length: 3 }, () => 'Always keep a fresh offsite backup of every important website file.').join('\n\n') + '\n';
+  assert.equal(status(runQualityChecks(base(rep)), 'repetition'), 'fail');
+  assert.equal(repetition(good).dupSentences.length, 0);
+});
+
+test('legacy settings get the daily defaults: autopilot on, cap raised; new settings are kept as saved', () => {
+  const old = normalizeContent({ perMonth: { uae: 4, global: 4 }, autoPublish: false, monthlyCapUsd: 10 });
+  assert.equal(old.autoPublish, true); assert.equal(old.monthlyTarget, 50); assert.equal(old.postsPerDay, null); assert.equal(old.monthlyCapUsd, DEFAULT_CAP_USD);
+  const saved = normalizeContent({ ...old, autoPublish: false, monthlyCapUsd: 5, postsPerDay: '3', v: SETTINGS_VERSION });
+  assert.equal(saved.autoPublish, false); assert.equal(saved.monthlyCapUsd, 5); assert.equal(saved.postsPerDay, 3);
+  assert.equal(normalizeContent({ v: 2, postsPerDay: 99 }).postsPerDay, 10);
+  assert.equal(normalizeContent({ v: 2, postsPerDay: '' }).postsPerDay, null);
+  assert.deepEqual(normalizeContent({ v: 2, publishTimes: '18:00, 9:30, bad, 25:00' }).publishTimes, ['09:30', '18:00']);
+  assert.equal(normalizeContent({ v: 2, categories: ['nope'] }).categories.length, CATEGORIES.length, 'none valid → all');
+});
+
+test('cost: default cap covers ~55 articles with ≥30% headroom; the engine stops at the cap', () => {
+  const prices = { 'claude-sonnet-5-5': { in: 2, out: 10 }, 'claude-haiku-5-5': { in: 0.1, out: 0.5 } };
+  const models = { chat: 'claude-sonnet-5-5', fast: 'claude-haiku-5-5' };
+  const en = estimateMonthlyCost(prices, models, { articles: 55 });
+  assert.ok(en.month > 2 && en.month * 1.3 <= DEFAULT_CAP_USD, `English 55: $${en.month}`);
+  const half = estimateMonthlyCost(prices, models, { articles: 55, arabicShare: 0.5 });
+  assert.ok(half.month * 1.3 <= DEFAULT_CAP_USD, `55 with half Arabic: $${half.month}`);
+  assert.equal(capBlock(3, 12), null);
+  assert.match(capBlock(12, 12)!, /used up/); assert.match(capBlock(0, 0)!, /set to 0/);
 });

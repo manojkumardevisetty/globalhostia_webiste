@@ -150,3 +150,32 @@ export async function freeSlug(want: string, exceptId?: string): Promise<string>
   for (let i = 2; i < 100; i++) if (!taken.has(`${base}-${i}`)) return `${base}-${i}`;
   return `${base}-${Date.now().toString(36)}`;
 }
+
+/* ------------------------------------------------------------------ daily autopilot state */
+export const DAILY_KEY = 'content_daily';
+export type DailyEvent = { at: string; kind: 'published' | 'scheduled' | 'held' | 'failed' | 'skipped' | 'cap'; slotAt?: string; ideaId?: string; title?: string; reason?: string };
+export type DailyState = { events: DailyEvent[]; capNotified?: string; lastRun?: { at: string; trigger: string; summary: string; ms: number } };
+export async function dailyState(): Promise<DailyState> {
+  try {
+    const [r] = await db.select({ value: schema.settings.value }).from(schema.settings).where(eq(schema.settings.key, DAILY_KEY));
+    const v: any = r?.value;
+    return { events: Array.isArray(v?.events) ? v.events : [], capNotified: v?.capNotified, lastRun: v?.lastRun };
+  } catch { return { events: [] }; }
+}
+/** Append events (newest first, last 200 kept) and/or patch fields. */
+export async function patchDaily(p: { events?: DailyEvent[]; capNotified?: string; lastRun?: DailyState['lastRun'] }) {
+  const cur = await dailyState();
+  await setSetting(DAILY_KEY, { ...cur, ...(p.capNotified ? { capNotified: p.capNotified } : {}), ...(p.lastRun ? { lastRun: p.lastRun } : {}), events: [...(p.events || []), ...cur.events].slice(0, 200) });
+}
+/** Lock for one tick at a time (conditional upsert: only the caller that takes it gets a row back). */
+export async function takeTickLock(ttlMs: number, force = false): Promise<boolean> {
+  const until = new Date(Date.now() + ttlMs).toISOString();
+  const r = await db.execute(sql`insert into settings (key, value) values ('content_tick_lock', ${JSON.stringify({ until })}::jsonb)
+    on conflict (key) do update set value = excluded.value
+    where ${force} or (settings.value->>'until')::timestamptz < now()
+    returning key`);
+  return Array.from(r as unknown as ArrayLike<unknown>).length > 0;
+}
+export async function releaseTickLock() {
+  await setSetting('content_tick_lock', { until: new Date(0).toISOString() }).catch(() => {});
+}

@@ -24,9 +24,9 @@ export const IDEAS_SCHEMA = {
       type: 'array',
       items: {
         type: 'object', additionalProperties: false,
-        required: ['title', 'primaryKeyword', 'secondaryKeywords', 'intent', 'audienceCountry', 'target', 'slug', 'priority', 'rationale'],
+        required: ['title', 'primaryKeyword', 'secondaryKeywords', 'intent', 'audienceCountry', 'target', 'slug', 'priority', 'rationale', 'cluster', 'angle'],
         properties: {
-          title: { type: 'string' }, primaryKeyword: { type: 'string' }, secondaryKeywords: { type: 'array', items: { type: 'string' } },
+          title: { type: 'string' }, primaryKeyword: { type: 'string' }, cluster: { type: 'string' }, angle: { type: 'string' }, secondaryKeywords: { type: 'array', items: { type: 'string' } },
           intent: { type: 'string', enum: ['informational', 'commercial', 'transactional'] }, audienceCountry: { type: 'string' },
           target: { type: 'string' }, slug: { type: 'string' }, priority: { type: 'integer' }, rationale: { type: 'string' },
         },
@@ -40,10 +40,16 @@ export const TRACK_BRIEF: Record<Track, string> = {
   global: 'Global track: readers are small businesses, freelancers and developers anywhere. Typical themes: WordPress hosting, VPS vs shared hosting, choosing a domain name, email deliverability (SPF, DKIM, DMARC), SSL/HTTPS, website migration, site speed, backups, small-business website checklists, and comparisons of our own plan types (never other companies).',
 };
 
+export type IdeaCategory = { id: string; label: string; brief: string; needsSources?: boolean };
 export function ideasPrompt(o: {
   track: Track; count: number; targets: TargetOption[]; existing: { title: string; path: string }[]; seasonal: { month: string; hints: string[] }[]; seeds: string[]; today: string;
+  /** autopilot: one broad category for this batch, every previous title (compact) and the topic clusters used recently */
+  category?: IdeaCategory | null; previousTitles?: string[]; recentClusters?: string[];
 }) {
-  const system = `You plan SEO articles for GlobalHostia's blog. ${TRACK_BRIEF[o.track]}
+  const cat = o.category ? `
+CATEGORY for this batch: ${o.category.label} — ${o.category.brief}. Every idea must belong to this category (it does not have to be about hosting; link it to the closest TARGET).${o.category.needsSources ? ' Only propose topics that can be supported by official sources (government portals, standards bodies, the vendor\'s own announcement or documentation). No rumours, predictions or unverified news.' : ''}
+Each idea must stand on its own: unrelated to the previous articles, with a distinct reader problem and a unique angle (a specific situation, audience or task), never a rewrite of an earlier topic.` : '';
+  const system = `You plan SEO articles for GlobalHostia's blog. ${TRACK_BRIEF[o.track]}${cat}
 Return ${o.count} distinct article ideas as JSON. Each idea:
 - title: a specific working title (max 70 characters) that answers a real search query.
 - primaryKeyword: the main search phrase (2-6 words, lowercase), plus secondaryKeywords: 3-6 related phrases.
@@ -53,6 +59,8 @@ Return ${o.count} distinct article ideas as JSON. Each idea:
 - slug: short lowercase URL slug with hyphens (max 60 characters).
 - priority: 1-100, higher = publish sooner (fit with our products, buying intent, seasonal timing).
 - rationale: one sentence on why this topic and which reader question it answers.
+- cluster: the narrow topic cluster in 2-4 lowercase words (e.g. "email authentication", "domain transfers", "ai meeting notes").
+- angle: one sentence on the specific, useful angle that makes this article different from generic articles on the subject.
 Do NOT propose topics that duplicate or compete with EXISTING PAGES; pick a different angle or a narrower question instead.
 Do NOT include search volumes or any numbers you do not know: there is no keyword data, only estimated intent.
 No competitor names. No topics about other companies.`;
@@ -61,12 +69,14 @@ No competitor names. No topics about other companies.`;
     `TARGETS (use the ref):\n${o.targets.map((t) => `- ${t.ref} — ${t.label}`).join('\n')}`,
     `EXISTING PAGES (avoid overlap):\n${o.existing.slice(0, 120).map((e) => `- ${e.title} (${e.path})`).join('\n') || '- none'}`,
     `SEASONAL CALENDAR (next months):\n${o.seasonal.map((s) => `- ${s.month}: ${s.hints.join('; ') || '—'}`).join('\n')}`,
+    o.previousTitles?.length ? `PREVIOUS ARTICLES AND QUEUED TOPICS (do not repeat or closely relate to any of these):\n${o.previousTitles.slice(0, 250).map((t) => `- ${t.slice(0, 90)}`).join('\n')}` : '',
+    o.recentClusters?.length ? `TOPIC CLUSTERS USED RECENTLY (pick different clusters): ${o.recentClusters.slice(0, 60).join('; ')}` : '',
     o.seeds.length ? `OWNER SEED KEYWORDS (use where they fit the track):\n${o.seeds.map((s) => `- ${s}`).join('\n')}` : '',
   ].filter(Boolean).join('\n\n');
   return { system, user };
 }
 
-export type RawIdea = { title: string; primaryKeyword: string; secondaryKeywords: string[]; intent: Intent; audienceCountry: string; target: string; slug: string; priority: number; rationale: string };
+export type RawIdea = { title: string; primaryKeyword: string; secondaryKeywords: string[]; intent: Intent; audienceCountry: string; target: string; slug: string; priority: number; rationale: string; cluster: string; angle: string };
 
 /** Parse model text into ideas: tolerant of code fences / extra prose; drops malformed rows; target must be one of the allowed refs. */
 export function parseIdeas(text: string, allowedTargets: string[]): RawIdea[] {
@@ -87,6 +97,8 @@ export function parseIdeas(text: string, allowedTargets: string[]): RawIdea[] {
       intent, audienceCountry: String(r.audienceCountry || '').trim().slice(0, 12) || 'Global', target,
       slug: String(r.slug || '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 75),
       priority: Math.max(1, Math.min(100, Math.round(Number(r.priority) || 50))), rationale: String(r.rationale || '').trim().slice(0, 300),
+      cluster: String(r.cluster || '').toLowerCase().replace(/[^a-z0-9 .-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60),
+      angle: String(r.angle || '').replace(/\s+/g, ' ').trim().slice(0, 240),
     });
   }
   return out;
@@ -106,7 +118,7 @@ export const DRAFT_SCHEMA = {
   },
 } as const;
 
-export type DraftIdea = { title: string; primaryKeyword: string; secondaryKeywords: string[]; intent: string; track: Track; country: string; slug: string };
+export type DraftIdea = { title: string; primaryKeyword: string; secondaryKeywords: string[]; intent: string; track: Track; country: string; slug: string; angle?: string; category?: IdeaCategory | null };
 export function draftPrompt(o: { idea: DraftIdea; target: TargetOption | null; links: LinkTarget[]; minWords: number; maxWords: number; today: string; notes?: string }) {
   const system = `You write SEO articles for the GlobalHostia blog. ${TRACK_BRIEF[o.idea.track]}
 
@@ -123,13 +135,16 @@ Output JSON with:
 - faq: 4-6 questions real readers ask, each answered in 2-4 sentences.
 - takeaways: 3-5 short key takeaways (one sentence each).
 - cta: one or two friendly sentences inviting the reader to look at the TARGET page, with one Markdown link to it. No prices, no pressure.
-Total length: ${o.minWords}-${o.maxWords} words across intro, sections and FAQ. Include 3-6 internal links to ALLOWED LINKS where they genuinely help.`;
+Total length: ${o.minWords}-${o.maxWords} words across intro, sections and FAQ, all of it substance (no filler, no restating the question, no generic padding). Include 3-6 internal links to ALLOWED LINKS where they genuinely help.
+Helpful-content rules: write for the reader, not for search engines. Give first-hand-style practical detail (exact settings, steps, decision criteria, pitfalls), a clear point of view and the unique ANGLE below. Use the primary keyword naturally (a handful of times, never stuffed) and vary the wording; do not repeat sentences or stock phrases. Facts that are not common knowledge must cite an official source as a Markdown link (1-3 links, see the rules). Do not write anything you cannot stand behind.${o.idea.category?.needsSources ? ' This topic REQUIRES at least one official source link (government portal, standards body or the vendor\'s own documentation) for its factual statements.' : ''}`;
   const user = [
     `Today: ${o.today} (write "last updated" content as of this date; avoid year-specific claims you cannot verify)`,
     `Working title: ${o.idea.title}`,
     `Primary keyword: ${o.idea.primaryKeyword}`,
     `Secondary keywords: ${o.idea.secondaryKeywords.join(', ') || '—'}`,
     `Search intent: ${o.idea.intent}`,
+    o.idea.category ? `Category: ${o.idea.category.label} — ${o.idea.category.brief}` : '',
+    o.idea.angle ? `ANGLE (what makes this article different): ${o.idea.angle}` : '',
     `Audience: ${o.idea.country || (o.idea.track === 'uae' ? 'UAE / GCC' : 'Global')}`,
     `Suggested slug: ${o.idea.slug || '—'}`,
     `TARGET: ${o.target ? `${o.target.label} — ${o.target.path}` : 'web hosting — /web-hosting'}`,

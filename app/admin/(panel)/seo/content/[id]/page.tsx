@@ -6,7 +6,7 @@ import { PageHeader, Flash, Badge, Card, LinkBtn, fmtDate } from '@/components/u
 import { Icon } from '@/components/icons';
 import PendingButton from '@/components/PendingButton';
 import { aiSettings } from '@/lib/ai/server';
-import { STATE_LABEL, STATE_TONE, TRACK_LABEL, estimateArticleCost, splitSections, toDubaiLocal, nextStates, type IdeaState, type Track } from '@/lib/content/core';
+import { STATE_LABEL, STATE_TONE, TRACK_LABEL, estimateArticleCost, splitSections, toDubaiLocal, nextStates, readTags, categoryOf, qualityScore, type IdeaState, type Track } from '@/lib/content/core';
 import { countWords, extractLinks, faqCount, internalPath, summarize, type Check } from '@/lib/content/quality';
 import { contentSettings, getIdea, inventory } from '@/lib/content/store';
 import { reconcile } from '@/lib/content/engine';
@@ -202,7 +202,7 @@ export default async function IdeaPage({ params, searchParams }: { params: Promi
               <label className="block"><span className="field-label">Suggested slug</span><input name="slug" defaultValue={idea.slug} className="input font-mono" /></label>
               {!['idea', 'rejected'].includes(st) && <label className="block"><span className="field-label">Calendar date (Dubai)</span><input type="datetime-local" name="plannedFor" defaultValue={toDubaiLocal(idea.plannedFor)} className="input" /></label>}
               <label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="checkbox" name="wantArabic" defaultChecked={idea.wantArabic} className="h-4 w-4" /> Arabic version</label>
-              {idea.rationale && <p className="text-xs text-slate-500 md:col-span-2"><b>Why this topic:</b> {idea.rationale}</p>}
+              {idea.rationale && (() => { const t = readTags(idea.rationale); return <p className="text-xs text-slate-500 md:col-span-2">{t.category && <><b>Category:</b> {categoryOf(t.category)?.label || t.category}{t.cluster ? ` · ${t.cluster}` : ''} · </>}<b>Why this topic:</b> {t.text}</p>; })()}
               {idea.overlap && <p className="text-xs text-amber-700 md:col-span-2">⚠ {idea.overlap}</p>}
               {idea.target && !target && <p className="text-xs text-amber-700 md:col-span-2">The target “{idea.target}” has no live page right now: the article will pick plans automatically.</p>}
               <div className="flex flex-wrap gap-2 md:col-span-2"><PendingButton className="btn btn-secondary">Save details</PendingButton>
@@ -213,7 +213,7 @@ export default async function IdeaPage({ params, searchParams }: { params: Promi
 
         {/* ---------------------------------------------------------- sidebar */}
         <div className="space-y-6">
-          <Card title="Quality checks" actions={en ? <span className="text-xs tabular-nums"><span className="text-emerald-600">{sum.pass}</span> · <span className="text-amber-600">{sum.warn}</span> · <span className={sum.fail ? 'font-semibold text-red-600' : 'text-slate-400'}>{sum.fail}</span></span> : undefined}>
+          <Card title="Quality checks" actions={en ? <span className="text-xs tabular-nums">{checks.length > 0 && <b className="mr-2 text-slate-700">score {qualityScore(checks)}</b>}<span className="text-emerald-600">{sum.pass}</span> · <span className="text-amber-600">{sum.warn}</span> · <span className={sum.fail ? 'font-semibold text-red-600' : 'text-slate-400'}>{sum.fail}</span></span> : undefined}>
             {!en ? <p className="text-sm text-slate-500">Checks run when the draft is generated, and again after every edit you ask for here.</p> : (
               <>
                 {!checks.length && <p className="mb-3 text-sm text-slate-500">Not checked yet.</p>}

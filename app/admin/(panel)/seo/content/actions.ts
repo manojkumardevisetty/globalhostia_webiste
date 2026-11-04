@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { done, fail, str, bool, int } from '@/lib/admin';
-import { INTENTS, StateError, TRACKS, makeSlug, normalizeContent, parseDubaiLocal, validSlug, type Track } from '@/lib/content/core';
+import { INTENTS, SETTINGS_VERSION, StateError, TRACKS, makeSlug, normalizeContent, parseDubaiLocal, validSlug, type Track } from '@/lib/content/core';
 import { contentSettings, getIdea, saveContentSettings, updateIdea } from '@/lib/content/store';
 import {
   EngineError, approve, generateArabic, generateDraft, generateIdeas, loadSeed, publishNow, reject, restore, rewriteSection, runChecks, runContentCron,
@@ -64,7 +64,7 @@ export async function approveAction(fd: FormData) {
   if (fd.has('arabic')) for (const id of list) await updateIdea(id, { wantArabic: bool(fd, 'arabic') });
   const slots: string[] = [];
   for (const id of list) slots.push(fmt(await step(back, () => approve(id, s, list.length === 1 ? at : null))));
-  done(back, list.length === 1 ? `Approved for ${slots[0]} (Dubai time). The draft is written automatically about a week before.` : `${list.length} ideas approved into the calendar.`);
+  done(back, list.length === 1 ? `Approved for ${slots[0]} (Dubai time). The draft is written automatically before its date.` : `${list.length} ideas approved into the calendar.`);
 }
 
 export async function rejectAction(fd: FormData) {
@@ -168,23 +168,28 @@ export async function unscheduleAction(fd: FormData) {
 export async function saveSettingsAction(fd: FormData) {
   const s = await requireSession('settings');
   const cur = await contentSettings();
+  const ppd = str(fd, 'postsPerDay');
   const v = normalizeContent({
-    ...cur, enabled: bool(fd, 'enabled'), perMonth: { uae: str(fd, 'perUae'), global: str(fd, 'perGlobal') }, autoDraft: bool(fd, 'autoDraft'), draftLeadDays: str(fd, 'draftLeadDays'),
-    autoPublish: bool(fd, 'autoPublish'), perRun: str(fd, 'perRun'), minWords: str(fd, 'minWords'), maxWords: str(fd, 'maxWords'), publishHour: str(fd, 'publishHour'),
+    ...cur, enabled: bool(fd, 'enabled'), perMonth: { uae: str(fd, 'perUae') || cur.perMonth.uae, global: str(fd, 'perGlobal') || cur.perMonth.global }, autoDraft: bool(fd, 'autoDraft'), draftLeadDays: str(fd, 'draftLeadDays') || cur.draftLeadDays,
+    autoPublish: bool(fd, 'autoPublish'), perRun: str(fd, 'perRun') || cur.perRun, minWords: str(fd, 'minWords'), maxWords: str(fd, 'maxWords'), publishHour: str(fd, 'publishHour') || cur.publishHour,
     notify: bool(fd, 'notify'), arabicDefault: bool(fd, 'arabicDefault'), monthlyCapUsd: str(fd, 'monthlyCapUsd'), seedKeywords: str(fd, 'seedKeywords'),
+    monthlyTarget: str(fd, 'monthlyTarget'), postsPerDay: ppd === '' ? null : ppd, publishTimes: str(fd, 'publishTimes'), jitterMin: str(fd, 'jitterMin'), minGapHours: str(fd, 'minGapHours'),
+    tracks: fd.getAll('tracks').map(String), categories: fd.getAll('categories').map(String), clusterCooldownDays: str(fd, 'clusterCooldownDays'), minQualityScore: str(fd, 'minQualityScore'),
+    v: SETTINGS_VERSION,
   });
   await saveContentSettings(v);
   await db.insert(schema.auditLogs).values({ userEmail: s.email, action: 'update', entity: 'content_settings', detail: v as any }).catch(() => {});
-  done(`${BASE}?tab=settings`, v.autoPublish ? 'Saved. Auto-publish is ON: clean drafts are scheduled on their calendar date without your review.' : 'Saved.');
+  done(`${BASE}?tab=settings`, v.autoPublish ? 'Saved. Autopilot is ON: the engine picks topics, drafts them and publishes the ones that pass every quality gate at the scheduled times.' : 'Saved. Autopilot is off: approve topics and publish drafts yourself.');
 }
 
 export async function runNowAction() {
   await requireSession('settings');
-  const r = await step(`${BASE}?tab=pipeline`, () => runContentCron({ deadlineMs: 120_000 }));
-  if (r.skipped) fail(`${BASE}?tab=pipeline`, 'The content engine is switched off in Settings.');
-  const parts = [`${r.drafted.length} drafted`, `${r.published.length} went live`, ...(r.autoScheduled.length ? [`${r.autoScheduled.length} auto-scheduled`] : []), ...(r.notified ? [`owner emailed about ${r.notified}`] : [])];
-  const tail = r.failed.length ? ` ${r.failed.length} failed: ${r.failed[0].error}` : r.budget ? ` Stopped: ${r.budget}` : '';
-  done(`${BASE}?tab=pipeline`, `Automation ran: ${parts.join(', ')}.${tail}`);
+  const back = `${BASE}?tab=today`;
+  const r = await step(back, () => runContentCron({ deadlineMs: 120_000, trigger: 'admin', force: true }));
+  if (r.skipped) fail(back, r.skipped === 'disabled' ? 'The content engine is switched off in Settings.' : 'Another run is in progress. Try again in a few minutes.');
+  const parts = [`${r.autoApproved.length} topic${r.autoApproved.length === 1 ? '' : 's'} picked`, `${r.drafted.length} drafted`, `${r.published.length} went live`, ...(r.autoScheduled.length ? [`${r.autoScheduled.length} scheduled`] : []), ...(r.held?.length ? [`${r.held.length} held for review`] : []), ...(r.notified ? [`owner emailed about ${r.notified}`] : [])];
+  const tail = r.budget ? ` Stopped: ${r.budget}` : r.failed.length ? ` ${r.failed.length} failed: ${r.failed[0].error}` : '';
+  done(back, `Automation ran: ${parts.join(', ')}.${tail}`);
 }
 
 export async function deleteIdeaAction(fd: FormData) {

@@ -7,16 +7,17 @@ import { getSession } from '@/lib/session';
 import { can } from '@/lib/auth';
 import {
   STATE_LABEL, STATE_TONE, TRACK_LABEL, addMonths, estimateArticleCost, estimateIdeasCost, monthKey, quotaUse, seasonalHints, toDubaiLocal, type IdeaState, type Track,
+  CATEGORIES, SLOT_LABEL, addDays, categoryOf, dailySlots, dayKey, estimateMonthlyCost, matchSlots, postsForDay, postsInMonth, qualityScore, readTags, slotStatus, type SlotStatus,
 } from '@/lib/content/core';
 import { summarize } from '@/lib/content/quality';
-import { contentSettings, contentSpend, engineReady, listIdeas, type Idea } from '@/lib/content/store';
+import { contentSettings, contentSpend, dailyState, engineReady, listIdeas, type DailyState, type Idea } from '@/lib/content/store';
 import { reconcile } from '@/lib/content/engine';
 import { addIdeaAction, approveAction, generateIdeasAction, loadSeedAction, rejectAction, restoreAction, runNowAction, saveSettingsAction, draftAction } from './actions';
 
 export const metadata = { title: 'Content engine' };
 export const maxDuration = 300;
 
-const TABS = [['calendar', 'Calendar'], ['ideas', 'Ideas'], ['pipeline', 'Drafts & review'], ['settings', 'Settings']] as const;
+const TABS = [['today', 'Today'], ['calendar', 'Calendar'], ['topics', 'Recent topics'], ['ideas', 'Ideas'], ['pipeline', 'Drafts & review'], ['settings', 'Settings']] as const;
 const TRACK_DOT: Record<string, string> = { uae: 'bg-rose-500', global: 'bg-sky-500' };
 const day = (d: Date | string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Dubai' });
 const monthName = (key: string) => new Date(`${key}-15T00:00:00Z`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -24,22 +25,25 @@ const usd = (n: number) => `$${n < 1 ? n.toFixed(3) : n.toFixed(2)}`;
 
 export default async function ContentEngine({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const sp = await searchParams;
-  const tab = TABS.some(([k]) => k === sp.tab) ? sp.tab : 'calendar';
+  const tab = TABS.some(([k]) => k === sp.tab) ? sp.tab : 'today';
   if (!(await engineReady())) {
     return (<><PageHeader title="Content engine" /><Empty icon="alert"><p className="font-medium text-slate-700">The content engine tables are not created yet</p><p className="mt-2">They are added by the database setup that runs on every deploy (patch 031-content-engine). Redeploy, then reload this page.</p></Empty></>);
   }
   await reconcile().catch(() => 0);
-  const [cs, ideas, ai, sp$, cspend, session] = await Promise.all([contentSettings(), listIdeas({ limit: 1000 }), aiSettings(), spend(), contentSpend(), getSession()]);
+  const [cs, ideas, ai, sp$, cspend, session, daily] = await Promise.all([contentSettings(), listIdeas({ limit: 3000 }), aiSettings(), spend(), contentSpend(), getSession(), dailyState()]);
   const keyOk = aiKeyPresent();
   const perArticle = estimateArticleCost(ai.prices, { chat: ai.chatModel, fast: ai.fastModel });
   const perArticleAr = estimateArticleCost(ai.prices, { chat: ai.chatModel, fast: ai.fastModel }, true);
-  const monthArticles = cs.perMonth.uae + cs.perMonth.global;
+  const monthArticles = postsInMonth(monthKey(Date.now()), cs) || cs.perMonth.uae + cs.perMonth.global;
+  const monthEst = estimateMonthlyCost(ai.prices, { chat: ai.chatModel, fast: ai.fastModel }, { articles: monthArticles, arabicShare: cs.arabicDefault ? 0.5 : 0 });
   const count = (st: string) => ideas.filter((i) => i.state === st).length;
   const waiting = ideas.filter((i) => i.state === 'draft_ready' || i.state === 'in_review');
 
   return (
     <>
-      <PageHeader title="Content engine" desc={<>AI-drafted articles for the UAE / GCC and global audiences. You pick the topics, the engine writes drafts a week before their date, you review and approve. <b>Nothing is published without your approval</b>{cs.autoPublish ? ' (auto-publish is ON in Settings)' : ''}.</>}
+      <PageHeader title="Content engine" desc={cs.autoPublish
+        ? <>Autopilot is <b>on</b>: about {monthArticles} articles this month ({postsForDay(dayKey(Date.now()), cs)} today), UAE / GCC and global, on unrelated topics. Only drafts that pass every quality gate are published; the rest wait for you.</>
+        : <>AI-drafted articles for the UAE / GCC and global audiences. You pick the topics, the engine writes drafts, you review and approve. <b>Nothing is published without your approval</b>.</>}
         actions={<><Link href="/admin/blog" className="btn btn-secondary"><Icon name="pen" /> Blog posts</Link><a href="/blog" target="_blank" className="btn btn-ghost"><Icon name="external" /> View blog</a></>} />
       <Flash sp={sp} />
 
@@ -50,7 +54,7 @@ export default async function ContentEngine({ searchParams }: { searchParams: Pr
         <Stat label="Backlog ideas" value={count('idea')} sub={`${count('rejected')} rejected`} icon="file" tone="slate" href="?tab=ideas" />
         <Stat label="Planned" value={count('approved') + count('drafting')} sub={`${count('scheduled')} scheduled to go live`} icon="activity" tone="sky" href="?tab=calendar" />
         <Stat label="To review" value={waiting.length} sub={`${count('published')} published so far`} icon="eye" tone="amber" href="?tab=pipeline" />
-        <Stat label="AI spend this month" value={usd(cspend.month)} sub={<>cap {usd(cs.monthlyCapUsd)} · ≈{usd(perArticle)}/article{cspend.avg !== null ? ` (actual avg ${usd(cspend.avg)})` : ''}</>} icon="dollar" tone="green" />
+        <Stat label="AI spend this month" value={usd(cspend.month)} sub={<>cap {usd(cs.monthlyCapUsd)} · est. {usd(monthEst.month)} for {monthArticles} articles{cspend.avg !== null ? ` · actual avg ${usd(cspend.avg)}/article` : ''}</>} icon="dollar" tone="green" />
       </div>
 
       <nav className="mb-5 flex flex-wrap gap-1.5" aria-label="Content engine sections">
@@ -60,16 +64,119 @@ export default async function ContentEngine({ searchParams }: { searchParams: Pr
         ))}
       </nav>
 
-      {tab === 'calendar' && <CalendarTab ideas={ideas} month={/^\d{4}-\d{2}$/.test(sp.m || '') ? sp.m : monthKey(Date.now())} perMonth={cs.perMonth} />}
+      {tab === 'today' && <TodayTab ideas={ideas} cs={cs} daily={daily} canRun={can(session, 'settings')} />}
+      {tab === 'topics' && <TopicsTab ideas={ideas} cooldown={cs.clusterCooldownDays} />}
+      {tab === 'calendar' && <CalendarTab ideas={ideas} month={/^\d{4}-\d{2}$/.test(sp.m || '') ? sp.m : monthKey(Date.now())} target={postsInMonth(/^\d{4}-\d{2}$/.test(sp.m || '') ? sp.m : monthKey(Date.now()), cs)} />}
       {tab === 'ideas' && <IdeasTab ideas={ideas} sp={sp} keyOk={keyOk} ideasCost={estimateIdeasCost(ai.prices, ai.fastModel)} />}
       {tab === 'pipeline' && <PipelineTab ideas={ideas} canRun={can(session, 'settings')} />}
-      {tab === 'settings' && <SettingsTab cs={cs} canEdit={can(session, 'settings')} est={{ en: perArticle, ar: perArticleAr, month: Math.round(perArticle * monthArticles * 100) / 100 }} budget={{ month: ai.monthlyBudgetUsd, spent: sp$.month }} />}
+      {tab === 'settings' && <SettingsTab cs={cs} canEdit={can(session, 'settings')} est={{ en: perArticle, ar: perArticleAr, month: monthEst.month, perMonth: monthEst.perArticle, articles: monthArticles, capOk: cs.monthlyCapUsd >= monthEst.month * 1.3 }} budget={{ month: ai.monthlyBudgetUsd, spent: sp$.month }} />}
     </>
   );
 }
 
+/* ------------------------------------------------------------------ today */
+const SLOT_TONE: Record<SlotStatus, string> = { open: 'gray', idea: 'blue', drafting: 'yellow', held: 'red', ready: 'yellow', scheduled: 'blue', published: 'green', failed: 'red', missed: 'gray' };
+const hm = (d: Date | string) => new Date(d).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
+function TodayTab({ ideas, cs, daily, canRun }: { ideas: Idea[]; cs: Awaited<ReturnType<typeof contentSettings>>; daily: DailyState; canRun: boolean }) {
+  const now = Date.now();
+  const days = [dayKey(now), addDays(dayKey(now), 1)];
+  const held = ideas.filter((i) => i.state === 'draft_ready' && !i.plannedFor && i.error.startsWith('Not auto-published'));
+  const fmtDay = (k: string) => new Date(`${k}T12:00:00Z`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+  return (
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="min-w-0 space-y-6">
+        {days.map((k, n) => {
+          const slots = dailySlots(k, cs);
+          const rows = matchSlots(slots, ideas);
+          return (
+            <Card key={k} title={<span>{n === 0 ? 'Today' : 'Tomorrow'} <span className="font-normal text-slate-400">· {fmtDay(k)} · {slots.length} article{slots.length === 1 ? '' : 's'}</span></span>}>
+              {!slots.length ? <p className="text-sm text-slate-500">No articles planned for this day{cs.autoPublish ? '' : ' (autopilot is off)'}.</p> : (
+                <ol className="divide-y divide-slate-100">
+                  {rows.map(({ slot, idea }) => {
+                    const ev = daily.events.find((e) => e.slotAt === slot.at.toISOString() && (e.kind === 'held' || e.kind === 'failed' || e.kind === 'skipped'));
+                    const st = slotStatus(idea, slot.at, now, !idea && ev && ev.kind !== 'skipped' ? ev.reason : undefined);
+                    const t = idea ? readTags(idea.rationale) : null;
+                    return (
+                      <li key={slot.at.toISOString()} className="flex gap-4 py-3">
+                        <span className="w-14 shrink-0 pt-0.5 text-right font-semibold tabular-nums text-slate-900">{hm(slot.at)}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2"><Badge tone={SLOT_TONE[st]}>{SLOT_LABEL[st]}</Badge><span className="inline-flex items-center gap-1 text-[11.5px] text-slate-500"><i className={`h-1.5 w-1.5 rounded-full ${TRACK_DOT[slot.track]}`} />{TRACK_LABEL[slot.track]}</span>
+                            {t?.category && <span className="text-[11.5px] text-slate-500">· {categoryOf(t.category)?.label || t.category}</span>}
+                            {idea && (idea.checks || []).length > 0 && <span className="text-[11.5px] text-slate-500">· quality {qualityScore(idea.checks)}</span>}</div>
+                          {idea ? <Link href={`/admin/seo/content/${idea.id}`} className="mt-1 block text-[14px] font-medium text-slate-900 hover:text-brand-600">{idea.title}</Link>
+                            : <p className="mt-1 text-[13px] text-slate-500">{st === 'open' ? 'The engine picks a new, unrelated topic for this slot on its next run.' : st === 'missed' ? 'No article went out in this slot.' : ''}</p>}
+                          {idea?.error && <p className="mt-1 text-[12px] text-red-600">{idea.error}</p>}
+                          {!idea && ev?.reason && <p className="mt-1 text-[12px] text-amber-700">{ev.kind === 'held' ? 'Held' : ev.kind === 'failed' ? 'Failed' : 'Note'}: {ev.title ? `“${ev.title}” — ` : ''}{ev.reason}</p>}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>)}
+            </Card>
+          );
+        })}
+        {held.length > 0 && <Card title={`Held for your review (${held.length})`}>
+          <p className="mb-3 text-xs text-slate-500">These drafts failed a quality gate, so the engine did not publish them and used a new topic for the slot. Fix and publish them, or reject them.</p>
+          <ul className="space-y-2">{held.slice(0, 20).map((i) => <li key={i.id} className="rounded-xl p-3 ring-1 ring-slate-200"><Link href={`/admin/seo/content/${i.id}`} className="text-[13.5px] font-medium text-slate-900 hover:text-brand-600">{i.title}</Link><p className="mt-1 text-[12px] text-red-600">{i.error.replace(/^Not auto-published:\s*/, '')}</p></li>)}</ul>
+        </Card>}
+      </div>
+      <div className="space-y-6">
+        {canRun && <Card title="Run now">
+          <form action={runNowAction} className="space-y-3">
+            <p className="text-[13px] text-slate-600">Picks topics for open slots, drafts the next articles and publishes the ones that pass. It also runs by itself through the day.</p>
+            <PendingButton className="btn btn-primary w-full" pending="Running… (up to 4 minutes)">Run automation now</PendingButton>
+          </form>
+        </Card>}
+        <Card title="How it runs">
+          <ul className="space-y-2 text-[13px] leading-relaxed text-slate-600">
+            <li><b className="text-slate-800">05:00 Dubai</b> daily job: picks the day&apos;s topics and starts drafting.</li>
+            <li><b className="text-slate-800">Through the day</b> (WHMCS cron and site traffic, about every 10 minutes): publishes each article at its time, continues drafting, refills slots whose draft failed a gate.</li>
+            <li>Times move ±{cs.jitterMin} min each day and stay ≥ {cs.minGapHours} h apart.</li>
+          </ul>
+          {daily.lastRun && <p className="mt-3 border-t border-slate-100 pt-3 text-[12px] text-slate-500">Last run {fmtDate(daily.lastRun.at)} {hm(daily.lastRun.at)} ({daily.lastRun.trigger}): {daily.lastRun.summary}.</p>}
+        </Card>
+        <Card title="Recent activity">
+          {daily.events.length ? <ul className="space-y-2 text-[12.5px]">{daily.events.slice(0, 12).map((e, k) => <li key={k} className="text-slate-600"><span className="tabular-nums text-slate-400">{fmtDate(e.at)} {hm(e.at)}</span> · <b className="font-medium capitalize text-slate-800">{e.kind}</b>{e.title ? ` “${e.title}”` : ''}{e.reason ? ` — ${e.reason}` : ''}</li>)}</ul> : <p className="text-[13px] text-slate-500">Nothing yet.</p>}
+        </Card>
+        <Card title="Google safety">
+          <p className="text-[12.5px] leading-relaxed text-slate-600">Publishing many AI-assisted articles is only safe when each one is genuinely useful. If Search Console shows a drop in impressions or clicks, a manual action, or many &ldquo;Crawled – currently not indexed&rdquo; articles, <b>switch the autopilot off</b> in Settings, review the recent posts and lower the monthly target before resuming.</p>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ recent topics */
+function TopicsTab({ ideas, cooldown }: { ideas: Idea[]; cooldown: number }) {
+  const since = Date.now() - 45 * 86_400_000;
+  const rows = ideas.filter((i) => !['idea', 'rejected'].includes(i.state) && i.plannedFor || i.publishedAt)
+    .map((i) => ({ i, at: new Date(i.publishedAt || i.plannedFor!), t: readTags(i.rationale) })).filter((r) => r.at.getTime() >= since)
+    .sort((a, b) => b.at.getTime() - a.at.getTime());
+  const byCat = new Map<string, number>();
+  for (const r of rows) if (r.at.getTime() >= Date.now() - 30 * 86_400_000) byCat.set(r.t.category || 'untagged', (byCat.get(r.t.category || 'untagged') || 0) + 1);
+  return (
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <Card title="Topics used in the last 45 days">
+        {!rows.length ? <p className="text-sm text-slate-500">No planned or published topics yet.</p> : (
+          <div className="overflow-x-auto"><table className="w-full text-left text-[13px]">
+            <thead className="text-[11.5px] uppercase tracking-wide text-slate-400"><tr><th className="py-2 pr-3 font-semibold">Date</th><th className="py-2 pr-3 font-semibold">Article</th><th className="py-2 pr-3 font-semibold">Category</th><th className="py-2 pr-3 font-semibold">Cluster</th><th className="py-2 font-semibold">State</th></tr></thead>
+            <tbody className="divide-y divide-slate-100">{rows.map(({ i, at, t }) => (
+              <tr key={i.id}><td className="whitespace-nowrap py-2 pr-3 tabular-nums text-slate-500">{day(at)}</td>
+                <td className="py-2 pr-3"><Link href={`/admin/seo/content/${i.id}`} className="font-medium text-slate-900 hover:text-brand-600">{i.title}</Link><span className="block font-mono text-[11.5px] text-slate-400">{i.primaryKeyword}</span></td>
+                <td className="whitespace-nowrap py-2 pr-3 text-slate-600">{categoryOf(t.category)?.label || '—'}</td><td className="py-2 pr-3 text-slate-600">{t.cluster || '—'}</td>
+                <td className="py-2"><Badge tone={STATE_TONE[i.state]}>{STATE_LABEL[i.state as IdeaState]}</Badge></td></tr>))}</tbody>
+          </table></div>)}
+      </Card>
+      <Card title="Mix, last 30 days">
+        <ul className="space-y-1.5 text-[13px]">{[...byCat].sort((a, b) => b[1] - a[1]).map(([k, n]) => <li key={k} className="flex justify-between"><span className="text-slate-600">{categoryOf(k)?.label || k}</span><b className="tabular-nums">{n}</b></li>)}</ul>
+        <p className="mt-3 text-[11.5px] leading-relaxed text-slate-400">New topics are rejected when they share a primary keyword or slug with any earlier article or queued topic, when the title overlaps one by half or more, or when the same narrow cluster was used in the last {cooldown} days. Consecutive articles never share a category.</p>
+      </Card>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ calendar */
-function CalendarTab({ ideas, month, perMonth }: { ideas: Idea[]; month: string; perMonth: Record<Track, number> }) {
+function CalendarTab({ ideas, month, target }: { ideas: Idea[]; month: string; target: number }) {
   const [y, m] = month.split('-').map(Number);
   const first = new Date(Date.UTC(y, m - 1, 1));
   const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
@@ -117,17 +224,10 @@ function CalendarTab({ ideas, month, perMonth }: { ideas: Idea[]; month: string;
         <p className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500"><span className="inline-flex items-center gap-1.5"><i className={`h-2 w-2 rounded-full ${TRACK_DOT.uae}`} />UAE / GCC</span><span className="inline-flex items-center gap-1.5"><i className={`h-2 w-2 rounded-full ${TRACK_DOT.global}`} />Global</span><span>Times are Dubai time.</span></p>
       </Card>
       <div className="space-y-6">
-        <Card title="Monthly quota">
-          {(['uae', 'global'] as Track[]).map((t) => {
-            const q = perMonth[t], u = use[t];
-            return (
-              <div key={t} className="mb-4 last:mb-0">
-                <div className="mb-1.5 flex items-baseline justify-between text-sm"><span className="font-medium text-slate-800">{TRACK_LABEL[t]}</span><span className="tabular-nums text-slate-500">{u} / {q}</span></div>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${u >= q ? 'bg-emerald-500' : TRACK_DOT[t]}`} style={{ width: `${q ? Math.min(100, (u / q) * 100) : 0}%` }} /></div>
-                {u < q && <Link href={`?tab=ideas&track=${t}`} className="mt-1.5 inline-block text-xs font-medium text-brand-600 hover:underline">Pick {q - u} more from the backlog →</Link>}
-              </div>
-            );
-          })}
+        <Card title="This month">
+          <div className="mb-1.5 flex items-baseline justify-between text-sm"><span className="font-medium text-slate-800">Planned or published</span><span className="tabular-nums text-slate-500">{use.uae + use.global} / {target}</span></div>
+          <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${target ? Math.min(100, ((use.uae + use.global) / target) * 100) : 0}%` }} /></div>
+          <p className="mt-2 text-xs text-slate-500">{TRACK_LABEL.uae}: {use.uae} · {TRACK_LABEL.global}: {use.global}. The autopilot fills today and tomorrow; later days fill as they come.</p>
         </Card>
         <Card title="Seasonal hooks">
           {(['uae', 'global'] as Track[]).map((t) => (
@@ -240,7 +340,7 @@ function PipelineTab({ ideas, canRun }: { ideas: Idea[]; canRun: boolean }) {
   return (
     <div className="space-y-5">
       {canRun && <form action={runNowAction} className="card flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-sm text-slate-600">
-        <span>The daily automation runs at 05:00 Dubai time (drafts for the next 7 days, scheduled posts, owner email). Run it now if you approved something urgent.</span>
+        <span>The automation runs at 05:00 Dubai time and about every 10 minutes through the day (topics, drafts, publishing at the scheduled times). Run it now if you approved something urgent.</span>
         <PendingButton className="btn btn-secondary h-9 text-xs" pending="Running… (up to 2 minutes)">Run automation now</PendingButton>
       </form>}
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
@@ -273,43 +373,57 @@ function PipelineTab({ ideas, canRun }: { ideas: Idea[]; canRun: boolean }) {
 }
 
 /* ------------------------------------------------------------------ settings */
-function SettingsTab({ cs, canEdit, est, budget }: { cs: Awaited<ReturnType<typeof contentSettings>>; canEdit: boolean; est: { en: number; ar: number; month: number }; budget: { month: number; spent: number } }) {
-  const chk = (name: string, on: boolean, label: string, hint: string) => (
-    <label className="flex items-start gap-3 rounded-xl p-3 ring-1 ring-slate-200"><input type="checkbox" name={name} defaultChecked={on} className="mt-0.5 h-4 w-4" disabled={!canEdit} /><span><span className="block text-sm font-medium text-slate-800">{label}</span><span className="block text-xs leading-relaxed text-slate-500">{hint}</span></span></label>
+function SettingsTab({ cs, canEdit, est, budget }: { cs: Awaited<ReturnType<typeof contentSettings>>; canEdit: boolean; est: { en: number; ar: number; month: number; perMonth: number; articles: number; capOk: boolean }; budget: { month: number; spent: number } }) {
+  const chk = (name: string, on: boolean, label: string, hint: string, value?: string) => (
+    <label className="flex items-start gap-3 rounded-xl p-3 ring-1 ring-slate-200"><input type="checkbox" name={name} value={value} defaultChecked={on} className="mt-0.5 h-4 w-4" disabled={!canEdit} /><span><span className="block text-sm font-medium text-slate-800">{label}</span>{hint && <span className="block text-xs leading-relaxed text-slate-500">{hint}</span>}</span></label>
   );
-  const num = (name: string, v: number, label: string, o: { min?: number; max?: number; step?: number; hint?: string } = {}) => (
-    <label className="block"><span className="field-label">{label}</span><input type="number" name={name} defaultValue={v} min={o.min} max={o.max} step={o.step} className="input" disabled={!canEdit} />{o.hint && <span className="mt-1 block text-xs text-slate-400">{o.hint}</span>}</label>
+  const num = (name: string, v: number | string, label: string, o: { min?: number; max?: number; step?: number; hint?: string; placeholder?: string } = {}) => (
+    <label className="block"><span className="field-label">{label}</span><input type="number" name={name} defaultValue={v} min={o.min} max={o.max} step={o.step} placeholder={o.placeholder} className="input" disabled={!canEdit} />{o.hint && <span className="mt-1 block text-xs text-slate-400">{o.hint}</span>}</label>
   );
   return (
     <form action={saveSettingsAction} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
       <div className="space-y-6">
-        <Card title="Monthly plan">
+        <Card title="Daily cadence">
           <div className="grid gap-4 sm:grid-cols-3">
-            {num('perUae', cs.perMonth.uae, 'UAE / GCC articles per month', { min: 0, max: 31 })}
-            {num('perGlobal', cs.perMonth.global, 'Global articles per month', { min: 0, max: 31 })}
-            {num('publishHour', cs.publishHour, 'Publish hour (Dubai)', { min: 0, max: 23, hint: 'Calendar slots use this time.' })}
+            {num('monthlyTarget', cs.monthlyTarget, 'Articles per month', { min: 0, max: 310, hint: 'Spread evenly: 50 ≈ 1–2 a day.' })}
+            {num('postsPerDay', cs.postsPerDay ?? '', 'Or a fixed number per day', { min: 0, max: 10, placeholder: 'auto', hint: 'Leave empty to use the monthly target.' })}
+            <label className="block"><span className="field-label">Publish times (Dubai)</span><input name="publishTimes" defaultValue={cs.publishTimes.join(', ')} className="input" disabled={!canEdit} /><span className="mt-1 block text-xs text-slate-400">2 a day uses the first and last.</span></label>
+            {num('jitterMin', cs.jitterMin, 'Vary times by ± minutes', { min: 0, max: 60 })}
+            {num('minGapHours', cs.minGapHours, 'Minimum hours between posts', { min: 0, max: 12, step: 0.5 })}
+            {num('clusterCooldownDays', cs.clusterCooldownDays, 'Same topic cluster again after (days)', { min: 0, max: 90 })}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {(['uae', 'global'] as Track[]).map((t) => <span key={t} className="min-w-[180px] flex-1">{chk('tracks', cs.tracks.includes(t), TRACK_LABEL[t], t === 'uae' ? 'UAE / GCC readers' : 'Readers anywhere', t)}</span>)}
+          </div>
+          <p className="mt-2 text-xs text-slate-400">With both tracks on, every day with two or more articles gets one of each; single-article days alternate.</p>
+        </Card>
+        <Card title="Topic categories">
+          <p className="mb-3 text-xs text-slate-500">The autopilot rotates through the ticked categories (least recently used first, never the same category twice in a row).</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {CATEGORIES.map((c) => <span key={c.id}>{chk('categories', cs.categories.includes(c.id), c.label, `${c.tracks.length === 1 ? (c.tracks[0] === 'uae' ? 'UAE only · ' : 'Global only · ') : ''}${c.needsSources ? 'needs an official source · ' : ''}${c.brief}`, c.id)}</span>)}
           </div>
         </Card>
         <Card title="Automation">
           <div className="space-y-3">
             {chk('enabled', cs.enabled, 'Content engine on', 'Off stops all AI calls from the engine (planning and editing still work).')}
-            {chk('autoDraft', cs.autoDraft, 'Write drafts automatically', 'The daily job drafts approved calendar items that are due soon.')}
-            {chk('autoPublish', cs.autoPublish, 'Autopilot: pick topics, draft and publish automatically', 'On. Every day the engine fills the calendar with the highest-priority ideas (seasonal topics first), tops up ideas when a track runs low, drafts a week ahead and publishes drafts that pass every check on their date. Drafts with a failed check wait for you. Turn off to approve every article yourself.')}
-            {chk('notify', cs.notify, 'Email me when drafts are ready', 'Sent through WHMCS to the same account as the support alerts.')}
+            {chk('autoPublish', cs.autoPublish, 'Autopilot: pick topics, draft and publish automatically', 'The engine chooses unrelated UAE and global topics, drafts them and publishes only drafts that pass every quality gate at the scheduled times. Drafts that fail are held for you and the slot gets a new topic. Turn off to approve every article yourself.')}
+            {chk('autoDraft', cs.autoDraft, 'Write drafts automatically', 'Needed for the autopilot.')}
+            {chk('notify', cs.notify, 'Email me about drafts held for review', 'Sent through WHMCS to the same account as the support alerts.')}
             {chk('arabicDefault', cs.arabicDefault, 'Suggest an Arabic version for UAE articles', 'You still switch it on per article.')}
           </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            {num('draftLeadDays', cs.draftLeadDays, 'Draft this many days ahead', { min: 1, max: 30 })}
-            {num('perRun', cs.perRun, 'Drafts per daily run', { min: 1, max: 5, hint: 'Each draft takes about a minute.' })}
-          </div>
         </Card>
-        <Card title="Article rules">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <Card title="Quality gates (Google helpful-content safety)">
+          <div className="grid gap-4 sm:grid-cols-3">
             {num('minWords', cs.minWords, 'Minimum words', { min: 300, max: 5000 })}
             {num('maxWords', cs.maxWords, 'Maximum words', { min: 400, max: 8000 })}
+            {num('minQualityScore', cs.minQualityScore, 'Minimum quality score', { min: 0, max: 100, hint: '100 − 30 per failed check − 5 per warning.' })}
           </div>
-          <label className="mt-4 block"><span className="field-label">Seed keywords <span className="font-normal text-slate-400">(used for every idea batch, one per line)</span></span><textarea name="seedKeywords" rows={4} defaultValue={cs.seedKeywords.join('\n')} className="input" disabled={!canEdit} /></label>
-          <p className="mt-3 text-xs leading-relaxed text-slate-500">Every prompt forbids invented statistics, studies, quotes, testimonials and customer names, competitor names, superlatives and prices in the text; UAE legal and tax points stay general and point to the authority or an accountant. Prices appear only in the live plan block next to each article.</p>
+          <ul className="mt-4 list-disc space-y-1 pl-5 text-xs leading-relaxed text-slate-500">
+            <li>Never published automatically: any failed check, e.g. under {cs.minWords} words, near-duplicate of an existing article (≥ 35% overlap), keyword stuffing (&gt; 3.5%), repeated sentences, invented statistics, studies, quotes or prices, competitor names, superlatives, broken internal links, meta title/description too long, or no official source on UAE-rules and tech-news topics.</li>
+            <li>Every topic is checked against all earlier articles and queued topics before it is used; each brief carries a unique angle.</li>
+            <li>Each article has the byline and dates, BlogPosting JSON-LD (author, published, modified), FAQ JSON-LD only when it has a real FAQ, and internal links to live pages. Publishing updates the sitemap and pings IndexNow.</li>
+          </ul>
+          <label className="mt-4 block"><span className="field-label">Seed keywords <span className="font-normal text-slate-400">(optional, one per line)</span></span><textarea name="seedKeywords" rows={3} defaultValue={cs.seedKeywords.join('\n')} className="input" disabled={!canEdit} /></label>
         </Card>
       </div>
       <div className="space-y-6">
@@ -317,11 +431,13 @@ function SettingsTab({ cs, canEdit, est, budget }: { cs: Awaited<ReturnType<type
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between"><dt className="text-slate-500">Per English article (est.)</dt><dd className="font-semibold tabular-nums">{usd(est.en)}</dd></div>
             <div className="flex justify-between"><dt className="text-slate-500">With Arabic version (est.)</dt><dd className="font-semibold tabular-nums">{usd(est.ar)}</dd></div>
-            <div className="flex justify-between"><dt className="text-slate-500">Monthly plan (est.)</dt><dd className="font-semibold tabular-nums">{usd(est.month)}</dd></div>
-            <div className="flex justify-between border-t border-slate-100 pt-2"><dt className="text-slate-500">All AI this month</dt><dd className="tabular-nums">{usd(budget.spent)} of {usd(budget.month)}</dd></div>
+            <div className="flex justify-between"><dt className="text-slate-500">Incl. topic picking and retries</dt><dd className="font-semibold tabular-nums">{usd(est.perMonth)}</dd></div>
+            <div className="flex justify-between border-t border-slate-100 pt-2"><dt className="text-slate-700">This month: {est.articles} articles (est.)</dt><dd className="font-semibold tabular-nums">{usd(est.month)}</dd></div>
+            <div className="flex justify-between"><dt className="text-slate-500">All AI this month</dt><dd className="tabular-nums">{usd(budget.spent)} of {usd(budget.month)}</dd></div>
           </dl>
-          <div className="mt-4">{num('monthlyCapUsd', cs.monthlyCapUsd, 'Content engine monthly cap (USD)', { min: 0, max: 1000, step: 0.5, hint: 'On top of the global caps in AI assistant → Settings.' })}</div>
-          <p className="mt-3 text-[11.5px] text-slate-400">Estimates use typical token counts; the real cost of each article is logged and shown on it.</p>
+          <div className="mt-4">{num('monthlyCapUsd', cs.monthlyCapUsd, 'Content engine monthly cap (USD)', { min: 0, max: 1000, step: 0.5, hint: 'The engine stops and emails you when it is reached. The global caps in AI assistant → Settings apply too.' })}</div>
+          {!est.capOk && <p className="mt-2 text-[12px] text-amber-700">The cap is less than the estimate + 30%: the engine may stop before the month&apos;s target.</p>}
+          <p className="mt-3 text-[11.5px] text-slate-400">The Anthropic API is billed to your account. Estimates use typical token counts at the prices in AI assistant → Settings; the real cost of each article is logged and shown on it.</p>
         </Card>
         {canEdit ? <PendingButton className="btn btn-primary w-full">Save settings</PendingButton> : <p className="text-xs text-slate-500">Only owners and admins can change these settings.</p>}
       </div>

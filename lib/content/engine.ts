@@ -14,13 +14,14 @@ import type { Session } from '../auth';
 import {
   assertMove, closestExisting, makeSlug, metaDescription, metaTitle, monthKey, nextFreeSlot, overlapLevel, reconcileState, replaceSection, seasonalHints,
   selectAutoSchedule, selectDuePublished, selectForDrafting, splitSections, validSlug, type IdeaState, type Track, TRACK_LABEL,
+  capBlock, categoryOf, diversityCheck, inferCategory, nextDailySlot, postsInMonth, readTags, tagRationale, type Category, type TopicRef,
 } from './core';
 import { runQualityChecks, summarize, type Check } from './quality';
 import { arabicWith, draftArticle, generateIdeasWith, reviewWith, rewriteSectionWith, type CallUsage } from './prompts';
 import { addCost, blogCategoryFor, contentSettings, contentSpend, freeSlug, getIdea, inventory, listIdeas, resolveTarget, updateIdea, type Idea, type Inventory } from './store';
 
 export const AUTHOR = 'GlobalHostia Team';
-const SYSTEM: Session = { uid: 'system', email: 'content-engine@cron', name: 'Content engine', role: 'OWNER' };
+export const SYSTEM: Session = { uid: 'system', email: 'content-engine@cron', name: 'Content engine', role: 'OWNER' };
 export class EngineError extends Error {}
 
 /* ------------------------------------------------------------------ AI plumbing */
@@ -36,10 +37,7 @@ export async function budgetGate(): Promise<string | null> {
   if (!b.ok) return b.reason === 'zero' ? 'The AI budget is set to 0 (Admin → AI assistant → Settings).' : `The ${b.reason} AI budget cap is reached (Admin → AI assistant → Settings).`;
   const cs = await contentSettings();
   if (!cs.enabled) return 'The content engine is switched off (Content engine → Settings).';
-  if (cs.monthlyCapUsd <= 0) return 'The content engine budget is set to 0 (Content engine → Settings).';
-  const sp = await contentSpend();
-  if (sp.month >= cs.monthlyCapUsd) return `This month's content engine budget ($${cs.monthlyCapUsd}) is used up.`;
-  return null;
+  return capBlock(cs.monthlyCapUsd > 0 ? (await contentSpend()).month : 0, cs.monthlyCapUsd);
 }
 async function log(ideaId: string | null, step: string, u: CallUsage, status = 'ok', detail = ''): Promise<number> {
   const s = await aiSettings();
@@ -66,37 +64,67 @@ async function claim(id: string, from: IdeaState[], to: IdeaState, extra: Partia
 }
 
 /* ------------------------------------------------------------------ ideas */
-export async function generateIdeas(o: { track: Track; count?: number; seeds?: string[]; by: Session }) {
+/** Every published, drafted and queued topic (titles, keywords, slugs, category and cluster tags, dates), newest first. */
+export async function topicRefs(): Promise<(TopicRef & { id?: string; state?: string })[]> {
+  const [posts, ideas] = await Promise.all([
+    db.select({ id: schema.posts.id, title: schema.posts.title, slug: schema.posts.slug, focusKeyword: schema.posts.focusKeyword, lang: schema.posts.lang, publishAt: schema.posts.publishAt, createdAt: schema.posts.createdAt }).from(schema.posts).catch(() => []),
+    listIdeas({ limit: 3000 }),
+  ]);
+  const ideaPosts = new Set(ideas.map((i) => i.postId).filter(Boolean));
+  const out: (TopicRef & { id?: string; state?: string })[] = [];
+  for (const i of ideas) {
+    if (i.state === 'rejected') continue;
+    const t = readTags(i.rationale);
+    out.push({ id: i.id, state: i.state, title: i.title, primaryKeyword: i.primaryKeyword, slug: i.slug, category: t.category, cluster: t.cluster, at: i.publishedAt || i.plannedFor || i.createdAt, where: i.state === 'published' ? 'published' : 'planned' });
+  }
+  for (const p of posts) if (p.lang !== 'ar' && !ideaPosts.has(p.id)) out.push({ title: p.title, primaryKeyword: p.focusKeyword || '', slug: p.slug, at: p.publishAt || p.createdAt, where: `/blog/${p.slug}` });
+  return out.sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime());
+}
+
+export async function generateIdeas(o: { track: Track; count?: number; seeds?: string[]; by: Session; category?: Category | null }) {
   const gate = await budgetGate();
   if (gate) throw new EngineError(gate);
-  const [c, s, inv, cs, ideas] = await Promise.all([clientOrThrow(), aiSettings(), inventory(true), contentSettings(), listIdeas({ limit: 1000 })]);
+  const [c, s, inv, cs, ideas, refs] = await Promise.all([clientOrThrow(), aiSettings(), inventory(true), contentSettings(), listIdeas({ limit: 1000 }), topicRefs()]);
   const seeds = [...(o.seeds || []), ...cs.seedKeywords].slice(0, 40);
   const existing = [...inv.existing, ...ideas.filter((i) => i.state !== 'rejected').map((i) => ({ path: `idea:${i.id}`, title: i.title, slug: i.slug }))];
+  const now = Date.now();
+  const recentClusters = [...new Set(refs.filter((r) => r.cluster && Math.abs(now - new Date(r.at || 0).getTime()) <= Math.max(14, cs.clusterCooldownDays) * 86_400_000).map((r) => r.cluster!))];
   let out;
   try {
-    out = await generateIdeasWith(c, s.fastModel, { track: o.track, count: Math.min(20, Math.max(3, o.count || 12)), targets: inv.targets, existing: existing.map((e) => ({ title: e.title, path: e.path.startsWith('idea:') ? '(planned idea)' : e.path })), seasonal: seasonalHints(o.track, monthKey(Date.now()), 4), seeds, today: today() });
+    out = await generateIdeasWith(c, s.fastModel, {
+      track: o.track, count: Math.min(20, Math.max(3, o.count || 12)), targets: inv.targets, seeds, today: today(),
+      existing: o.category ? [] : existing.map((e) => ({ title: e.title, path: e.path.startsWith('idea:') ? '(planned idea)' : e.path })),
+      seasonal: seasonalHints(o.track, monthKey(Date.now()), o.category ? 2 : 4),
+      category: o.category || null, previousTitles: refs.map((r) => r.title), recentClusters,
+    });
   } catch (e: any) {
     await log(null, 'ideas', { model: s.fastModel, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, ms: 0 }, 'error', String(e?.message || e).slice(0, 200));
     throw new EngineError('The idea generator did not answer. Try again in a minute.');
   }
-  await log(null, 'ideas', out.usage, 'ok', `${o.track} ${out.ideas.length}`);
+  await log(null, 'ideas', out.usage, 'ok', `${o.track}${o.category ? ` ${o.category.id}` : ''} ${out.ideas.length}`);
   const slugs = new Set(ideas.map((i) => i.slug));
   let added = 0, dropped = 0;
+  const ids: string[] = [], reasons: string[] = [];
   for (const r of out.ideas) {
     const slug = (validSlug(r.slug) ? r.slug : makeSlug(r.primaryKeyword || r.title)).slice(0, 75);
     const hit = closestExisting({ title: r.title, primaryKeyword: r.primaryKeyword, slug }, existing);
-    if ((hit && overlapLevel(hit.score) === 'drop') || slugs.has(slug)) { dropped++; continue; }
+    const div = diversityCheck({ title: r.title, primaryKeyword: r.primaryKeyword, slug, cluster: r.cluster }, refs, { now, cooldownDays: cs.clusterCooldownDays });
+    if ((hit && overlapLevel(hit.score) === 'drop') || slugs.has(slug) || !div.ok) { dropped++; if (!div.ok) reasons.push(`${r.title}: ${div.reason}`); continue; }
     slugs.add(slug);
-    await db.insert(schema.contentIdeas).values({
+    const cat = o.category?.id || '';
+    const [row] = await db.insert(schema.contentIdeas).values({
       track: o.track, title: r.title, primaryKeyword: r.primaryKeyword, secondaryKeywords: r.secondaryKeywords, intent: r.intent, country: r.audienceCountry,
-      target: r.target, slug, priority: r.priority, rationale: r.rationale, source: 'ai', state: 'idea',
+      target: r.target, slug, priority: r.priority, rationale: cat || r.cluster ? tagRationale(cat || inferCategory(`${r.title} ${r.primaryKeyword}`), r.cluster, `${r.rationale}${r.angle ? ` Angle: ${r.angle}` : ''}`) : r.rationale,
+      source: 'ai', state: 'idea',
       overlap: hit && overlapLevel(hit.score) === 'warn' ? `Related: ${hit.page.title} (${hit.page.path.startsWith('idea:') ? 'another idea' : hit.page.path})` : '',
-    });
+    }).returning({ id: schema.contentIdeas.id });
+    ids.push(row.id);
     existing.push({ path: 'idea:new', title: r.title, slug });
+    refs.unshift({ title: r.title, primaryKeyword: r.primaryKeyword, slug, category: cat, cluster: r.cluster, at: new Date(), where: 'new idea' });
     added++;
   }
-  await audit(o.by, 'generate_ideas', o.track, { added, dropped });
-  return { added, dropped };
+  await audit(o.by, 'generate_ideas', o.track, { added, dropped, category: o.category?.id, reasons: reasons.slice(0, 5) });
+  return { added, dropped, ids, reasons };
 }
 
 /** Insert the curated starter backlog (only ideas whose slug is not already in the table). */
@@ -123,9 +151,16 @@ export async function approve(id: string, by: Session, at?: Date | null) {
   let when = at || null;
   if (!when) {
     const cs = await contentSettings();
-    const taken = (await listIdeas({ track: idea.track, states: ['approved', 'drafting', 'draft_ready', 'in_review', 'scheduled', 'published'] })).map((i) => i.plannedFor);
-    when = nextFreeSlot({ track: idea.track as Track, perMonth: cs.perMonth[idea.track as Track] || 0, taken, now: Date.now(), hour: cs.publishHour });
-    if (!when) throw new EngineError(`No free ${TRACK_LABEL[idea.track as Track]} slot in the next 6 months: raise the monthly quota or pick a date.`);
+    const daily = postsInMonth(monthKey(Date.now()), cs) > 0;
+    if (daily) {
+      const planned = await listIdeas({ states: ['approved', 'drafting', 'draft_ready', 'in_review', 'scheduled', 'published'], limit: 2000 });
+      when = nextDailySlot({ cs, track: idea.track as Track, planned, now: Date.now(), days: 31 })?.at || null;
+    }
+    if (!when) {
+      const taken = (await listIdeas({ track: idea.track, states: ['approved', 'drafting', 'draft_ready', 'in_review', 'scheduled', 'published'] })).map((i) => i.plannedFor);
+      when = nextFreeSlot({ track: idea.track as Track, perMonth: cs.perMonth[idea.track as Track] || 0, taken, now: Date.now(), hour: cs.publishHour });
+    }
+    if (!when) throw new EngineError(`No free ${TRACK_LABEL[idea.track as Track]} slot: raise the monthly target or pick a date.`);
   }
   if (!(await claim(id, [idea.state as IdeaState], 'approved', { plannedFor: when, approvedBy: by.email, approvedAt: new Date(), wantArabic: idea.wantArabic, error: '' }))) throw new EngineError('This idea changed in the meantime. Reload and try again.');
   await audit(by, 'approve', id, { plannedFor: when.toISOString() });
@@ -152,8 +187,9 @@ function postRowFromDraft(idea: Idea, inv: Inventory, d: { h1: string; metaTitle
   const target = resolveTarget(inv, idea.target);
   const ref = target?.ref || idea.target;
   const related = /^(cat|p):[a-z0-9-]+$/.test(ref) && (!ref.startsWith('cat:') || inv.liveCategories.has(ref.slice(4))) ? [ref] : [];
+  const topic = categoryOf(readTags(idea.rationale).category);
   return {
-    title: d.h1.slice(0, 200), excerpt: d.excerpt.slice(0, 500), body, category: blogCategoryFor(ref, idea.track as Track),
+    title: d.h1.slice(0, 200), excerpt: d.excerpt.slice(0, 500), body, category: topic?.blog || blogCategoryFor(ref, idea.track as Track),
     tags: [...new Set([idea.track === 'uae' ? 'UAE' : '', target?.label.replace(/\s*\(business service\)$/, '') || ''].filter((t) => t && t.length <= 40))],
     author: AUTHOR, seoTitle: metaTitle(d.metaTitle || d.h1), seoDescription: metaDescription(d.metaDescription || d.excerpt),
     focusKeyword: idea.primaryKeyword.slice(0, 80), secondaryKeywords: idea.secondaryKeywords.join(', ').slice(0, 300),
@@ -173,8 +209,11 @@ export async function generateDraft(id: string, by: Session) {
   try {
     const [c, s, inv, cs] = await Promise.all([clientOrThrow(), aiSettings(), inventory(true), contentSettings()]);
     const target = resolveTarget(inv, idea.target);
+    const tags = readTags(idea.rationale);
+    const angle = (tags.text.match(/Angle:\s*(.+)$/)?.[1] || '').trim();
     const out = await draftArticle(c, s.chatModel, {
-      idea: { title: idea.title, primaryKeyword: idea.primaryKeyword, secondaryKeywords: idea.secondaryKeywords, intent: idea.intent, track: idea.track as Track, country: idea.country, slug: idea.slug },
+      idea: { title: idea.title, primaryKeyword: idea.primaryKeyword, secondaryKeywords: idea.secondaryKeywords, intent: idea.intent, track: idea.track as Track, country: idea.country, slug: idea.slug,
+        angle, category: categoryOf(tags.category) },
       target, links: inv.links, minWords: cs.minWords, maxWords: cs.maxWords, today: today(),
     }).catch(async (e) => { await log(id, 'draft', { model: s.chatModel, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, ms: 0 }, 'error', String(e?.message || e).slice(0, 200)); throw e; });
     await log(id, 'draft', out.usage);
@@ -272,7 +311,7 @@ export async function runChecks(id: string, o: { ai: boolean }): Promise<Check[]
   const checks = runQualityChecks({
     body: en.body, h1: en.title, metaTitle: en.seoTitle || en.title, metaDescription: en.seoDescription || en.excerpt, slug: en.slug, primaryKeyword: idea.primaryKeyword,
     secondaryKeywords: idea.secondaryKeywords, track: idea.track, lang: 'en', minWords: cs.minWords, maxWords: cs.maxWords, knownPaths: known, existing: others,
-    catalogPrices: inv.catalogPrices, site: inv.site,
+    catalogPrices: inv.catalogPrices, site: inv.site, needsSources: !!categoryOf(readTags(idea.rationale).category)?.needsSources,
   });
   if (o.ai && !(await budgetGate())) {
     const c = await aiClient();
@@ -360,7 +399,8 @@ export async function reconcile() {
     const p = byId.get(i.postId!);
     if (!p) { if (!['idea', 'approved', 'rejected', 'drafting'].includes(i.state)) { await updateIdea(i.id, { postId: null, state: 'approved', error: 'The draft post was deleted.' }); changed++; } continue; }
     const next = reconcileState(i.state as IdeaState, p);
-    if (next !== i.state) {
+    // scheduled → published is recorded by the content tick (recordDuePublished), which also pings IndexNow
+    if (next !== i.state && !(i.state === 'scheduled' && next === 'published')) {
       await updateIdea(i.id, { state: next, ...(next === 'published' ? { publishedAt: p.publishAt || new Date() } : {}), ...(next === 'scheduled' ? { plannedFor: p.publishAt } : {}) });
       changed++;
     }
@@ -378,71 +418,44 @@ async function unapproveIfFar(id: string) {
 }
 
 /* ------------------------------------------------------------------ cron */
-export type CronResult = { ok: boolean; skipped?: string; drafted: string[]; autoApproved: string[]; failed: { id: string; error: string }[]; published: string[]; autoScheduled: string[]; notified: number; budget?: string | null };
+export type CronResult = { ok: boolean; skipped?: string; drafted: string[]; autoApproved: string[]; failed: { id: string; error: string }[]; published: string[]; autoScheduled: string[]; notified: number; budget?: string | null; held?: string[] };
 
-/** Daily step (piggybacks on /api/cron/sync): record posts that went live, draft approved items due soon,
- *  auto-schedule clean drafts only when the owner enabled it, then email the owner about drafts waiting for review. */
-export async function runContentCron(o: { deadlineMs?: number } = {}): Promise<CronResult> {
-  const t0 = Date.now();
-  const deadline = t0 + (o.deadlineMs ?? 170_000);
-  const res: CronResult = { ok: true, drafted: [], failed: [], published: [], autoScheduled: [], autoApproved: [], notified: 0 };
+/** Daily step (piggybacks on /api/cron/sync at 05:00 Dubai): the monthly competitor-facts reminder, then the content tick
+ *  (lib/content/daily.ts) that also runs from /api/content/tick through the day. */
+export async function runContentCron(o: { deadlineMs?: number; trigger?: string; force?: boolean } = {}): Promise<CronResult> {
   // monthly "re-verify competitor facts" email (lib/compare/reminder.ts); runs even with the engine switched off
-  await compareReminder().catch(() => 0);
+  if ((o.trigger || 'daily cron') === 'daily cron') await compareReminder().catch(() => 0);
+  const { runDaily } = await import('./daily');
+  return runDaily({ deadlineMs: o.deadlineMs, trigger: o.trigger || 'daily cron', force: o.force ?? true });
+}
+
+/** Legacy step for manual planning (autopilot off): draft approved items due soon and record posts that went live. */
+export async function runManual(res: CronResult, deadline: number) {
   const cs = await contentSettings();
-  if (!cs.enabled) return { ...res, skipped: 'disabled' };
-  await reconcile();
   const ideas = await listIdeas({ states: ['approved', 'draft_ready', 'scheduled'], limit: 1000 });
-
-  for (const i of selectDuePublished(ideas, Date.now())) {
-    await updateIdea(i.id, { state: 'published', publishedAt: i.plannedFor || new Date() });
-    const paths = (await db.select({ slug: schema.posts.slug }).from(schema.posts).where(inArray(schema.posts.id, [i.postId, i.arPostId].filter(Boolean) as string[]))).map((r) => `/blog/${r.slug}`);
-    await pingChanged([...paths, '/blog'], 'content engine scheduled post').catch(() => {});
-    res.published.push(i.id);
-  }
-
-  // Autopilot: keep the calendar filled day to day. Approve the highest-priority open ideas into the next free slots
-  // (seasonal topics carry higher priority), and top up a track's backlog with fresh AI ideas when it runs low.
-  let pool = ideas;
-  if (cs.autoPublish) {
-    try {
-      const horizon = Date.now() + (cs.draftLeadDays + 7) * 86_400_000;
-      for (const tr of TRACKS) {
-        if (!(cs.perMonth[tr] > 0)) continue;
-        let open = await listIdeas({ track: tr, states: ['idea'], limit: 50 });
-        if (open.length < 4 && Date.now() < deadline - 60_000 && !(await budgetGate())) {
-          try { await generateIdeas({ track: tr, count: 8, seeds: cs.seedKeywords, by: SYSTEM }); open = await listIdeas({ track: tr, states: ['idea'], limit: 50 }); } catch { /* ideas next run */ }
-        }
-        const queued = (await listIdeas({ track: tr, states: ['approved', 'drafting', 'draft_ready', 'in_review', 'scheduled'], limit: 200 }))
-          .filter((i) => i.plannedFor && new Date(i.plannedFor).getTime() <= horizon).length;
-        const want = Math.max(0, Math.ceil((cs.perMonth[tr] * (cs.draftLeadDays + 7)) / 30) - queued);
-        for (const i of open.slice(0, want)) {
-          try { const at = await approve(i.id, SYSTEM); if (at.getTime() > horizon) { await unapproveIfFar(i.id); break; } res.autoApproved.push(i.id); } catch { break; }
-        }
-      }
-    } catch { /* never block the rest of the run */ }
-    pool = await listIdeas({ states: ['approved', 'draft_ready', 'scheduled'], limit: 1000 });
-  }
-
   if (cs.autoDraft) {
-    for (const i of selectForDrafting(pool, Date.now(), cs.draftLeadDays, cs.perRun)) {
+    for (const i of selectForDrafting(ideas, Date.now(), cs.draftLeadDays, cs.perRun)) {
       if (Date.now() > deadline) break;
       const gate = await budgetGate();
       if (gate) { res.budget = gate; break; }
       try { await generateDraft(i.id, SYSTEM); res.drafted.push(i.id); } catch (e: any) { res.failed.push({ id: i.id, error: String(e?.message || e).slice(0, 200) }); }
     }
   }
-
-  if (cs.autoPublish) {
-    const fresh = await listIdeas({ states: ['draft_ready'], limit: 200 });
-    for (const i of selectAutoSchedule(fresh, true)) {
-      const at = i.plannedFor && new Date(i.plannedFor).getTime() > Date.now() ? new Date(i.plannedFor) : new Date();
-      try { await schedule(i.id, at, SYSTEM); res.autoScheduled.push(i.id); } catch (e: any) { res.failed.push({ id: i.id, error: String(e?.message || e).slice(0, 200) }); }
-    }
-  }
-
-  if (cs.notify) res.notified = await notifyDrafts().catch(() => 0);
   return res;
 }
+/** Scheduled items whose time has passed: mark them published, refresh the blog data and ping IndexNow (sitemap follows from the data). */
+export async function recordDuePublished(res: CronResult) {
+  const ideas = await listIdeas({ states: ['scheduled'], limit: 1000 });
+  for (const i of selectDuePublished(ideas, Date.now())) {
+    await updateIdea(i.id, { state: 'published', publishedAt: i.plannedFor || new Date() });
+    const paths = (await db.select({ slug: schema.posts.slug }).from(schema.posts).where(inArray(schema.posts.id, [i.postId, i.arPostId].filter(Boolean) as string[]))).map((r) => `/blog/${r.slug}`);
+    bust();
+    await pingChanged([...paths, '/blog'], 'content engine scheduled post').catch(() => {});
+    res.published.push(i.id);
+  }
+  return res;
+}
+export { selectAutoSchedule };
 
 /** "N drafts ready for review" email (once per draft). */
 export async function notifyDrafts(): Promise<number> {

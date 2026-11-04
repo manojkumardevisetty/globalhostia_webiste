@@ -23,6 +23,8 @@ export type QualityInput = {
   /** live catalog prices (numbers) an amount in the text may legitimately quote */
   catalogPrices?: number[];
   site?: string; // https://globalhostia.com
+  /** the topic category needs official sources (UAE rules, tech news explainers): no official link → fail */
+  needsSources?: boolean;
 };
 
 /* ------------------------------------------------------------------ text helpers */
@@ -98,7 +100,7 @@ export function brokenInternalLinks(md: string, known: Iterable<string>, site?: 
 export const OFFICIAL_DOMAINS = ['u.ae', 'tax.gov.ae', 'mof.gov.ae', 'tdra.gov.ae', 'aeda.ae', 'nic.ae', 'economy.gov.ae', 'dubaided.gov.ae', 'ded.ae', 'moec.gov.ae',
   'centralbank.ae', 'dubaichamber.com', 'adgm.com', 'difc.ae', 'uaelegislation.gov.ae', 'icann.org', 'iana.org', 'w3.org', 'developer.mozilla.org', 'wordpress.org',
   'developer.wordpress.org', 'web.dev', 'developers.google.com', 'support.google.com', 'learn.microsoft.com', 'rfc-editor.org', 'datatracker.ietf.org', 'letsencrypt.org',
-  'cabforum.org', 'owasp.org', 'php.net', 'nginx.org', 'httpd.apache.org', 'dmarc.org', 'm3aawg.org', 'ncsc.gov.uk', 'cisa.gov', 'gdpr.eu', 'europa.eu'];
+  'cabforum.org', 'owasp.org', 'docs.github.com', 'nodejs.org', 'postgresql.org', 'dev.mysql.com', 'python.org', 'chromium.org', 'webkit.org', 'mozilla.org', 'ietf.org', 'schema.org', 'w3c.github.io', 'whatwg.org', 'unicode.org', 'pcisecuritystandards.org', 'oecd.org', 'wipo.int', 'itu.int', 'php.net', 'nginx.org', 'httpd.apache.org', 'dmarc.org', 'm3aawg.org', 'ncsc.gov.uk', 'cisa.gov', 'gdpr.eu', 'europa.eu'];
 const officialHost = (href: string) => {
   const m = href.match(/^https?:\/\/(?:www\.)?([^/?#]+)/i);
   if (!m) return false;
@@ -189,6 +191,38 @@ export function mostSimilar(body: string, existing: { slug: string; title: strin
   return best;
 }
 
+/* ------------------------------------------------------------------ keyword stuffing and repetitive phrasing */
+/** Primary-keyword density in % of words (occurrences × words in the phrase ÷ total words), plus the most over-used content word. */
+export function keywordDensity(md: string, kw: string) {
+  const text = norm(plainText(md));
+  const total = text.trim() ? text.trim().split(' ').length : 0;
+  const k = norm(kw).trim();
+  if (!total || !k) return { density: 0, count: 0, top: null as null | { word: string; share: number } };
+  let count = 0, i = text.indexOf(` ${k} `);
+  while (i >= 0) { count++; i = text.indexOf(` ${k} `, i + k.length + 1); }
+  const freq = new Map<string, number>();
+  for (const w of text.trim().split(' ')) if (w.length > 3 && !KW_STOP.has(w)) freq.set(w, (freq.get(w) || 0) + 1);
+  let top: { word: string; share: number } | null = null;
+  for (const [w, c] of freq) if (!top || c > top.share) top = { word: w, share: c };
+  return { density: Math.round(((count * k.split(' ').length) / total) * 1000) / 10, count, top: top ? { word: top.word, share: Math.round((top.share / total) * 1000) / 10 } : null };
+}
+/** Repeated phrasing: 6-word sequences used 3+ times, identical sentences, and sentences that keep opening the same way. */
+export function repetition(md: string) {
+  const prose = String(md || '').split('\n').filter((l) => !/^\s*(\||#)/.test(l)).join('\n');
+  const w = plainText(prose).toLowerCase().replace(/[^a-z0-9؀-ۿ ]+/g, ' ').split(/\s+/).filter(Boolean);
+  const grams = new Map<string, number>();
+  for (let i = 0; i + 6 <= w.length; i++) { const g = w.slice(i, i + 6).join(' '); grams.set(g, (grams.get(g) || 0) + 1); }
+  const phrases = [...grams].filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]).map(([g]) => g);
+  const sentences = plainText(prose).split(/(?<=[.!?])\s+/).map((x) => x.trim().toLowerCase()).filter((x) => x.split(' ').length >= 6);
+  const seen = new Map<string, number>();
+  for (const x of sentences) seen.set(x, (seen.get(x) || 0) + 1);
+  const dupSentences = [...seen].filter(([, c]) => c > 1).flatMap(([x, c]) => Array(c - 1).fill(x) as string[]); // one entry per extra copy
+  const starts = new Map<string, number>();
+  for (const x of sentences) { const k = x.split(' ').slice(0, 3).join(' '); starts.set(k, (starts.get(k) || 0) + 1); }
+  const openers = [...starts].filter(([, c]) => c >= 5).map(([k]) => k);
+  return { phrases, dupSentences, openers };
+}
+
 /* ------------------------------------------------------------------ FAQ */
 const FAQ_H = /^##\s+(?:FAQ|FAQs|Frequently asked questions|الأسئلة الشائعة|أسئلة شائعة)\s*$/im;
 export function faqCount(md: string) {
@@ -252,6 +286,18 @@ export function runQualityChecks(q: QualityInput): Check[] {
     if (m) out.push(ck(`claim-${FORBIDDEN.indexOf(f)}`, `No ${f.label}`, f.status, `“${m[0].trim().slice(0, 80)}”`));
   }
   if (!FORBIDDEN.some((f) => f.re.test(q.body) || f.re.test(`${q.h1}\n${mt}\n${md}`))) out.push(ck('claims', 'No forbidden claims (#1, guaranteed, superlatives, unnamed studies)', 'pass'));
+  const official = external.filter((l) => officialHost(l.href));
+  out.push(ck('sources', 'Facts cite an official source (linked)', official.length ? 'pass' : q.needsSources ? 'fail' : 'warn',
+    official.length ? `${official.length} official reference${official.length === 1 ? '' : 's'}` : q.needsSources ? 'This topic needs at least one official source link (government, standard or vendor documentation)' : 'No official reference linked: add one where the article states facts'));
+  if (lang === 'en' && kw) {
+    const kd = keywordDensity(q.body, kw);
+    out.push(ck('keyword-density', 'No keyword stuffing (primary keyword ≤ 2.5% of words)', kd.density > 3.5 ? 'fail' : kd.density > 2.5 ? 'warn' : 'pass', `“${kw}” ${kd.count}× · ${kd.density}%`));
+    if (kd.top && kd.top.share > 4.5) out.push(ck('word-overuse', 'No single word overused', 'warn', `“${kd.top.word}” is ${kd.top.share}% of all words`));
+  }
+  const rep = repetition(q.body);
+  const repBad = rep.dupSentences.length + rep.phrases.length;
+  out.push(ck('repetition', 'No repetitive phrasing', rep.dupSentences.length >= 2 || rep.phrases.length >= 8 ? 'fail' : repBad >= 3 || rep.openers.length ? 'warn' : 'pass',
+    rep.dupSentences.length ? `Repeated sentence: “${rep.dupSentences[0].slice(0, 80)}”` : rep.phrases.length ? `Repeated ${rep.phrases.length}×: “${rep.phrases[0]}”` : rep.openers.length ? `Many sentences start with “${rep.openers[0]}”` : ''));
   const pct = unsourcedPercentages(q.body);
   out.push(ck('percentages', 'Percentages have a source', pct.length ? 'warn' : 'pass', pct.length ? pct[0] : ''));
   const prices = unknownPrices(q.body, q.catalogPrices);
@@ -267,7 +313,7 @@ export function runQualityChecks(q: QualityInput): Check[] {
 
   if (q.existing?.length) {
     const sim = mostSimilar(q.body, q.existing);
-    out.push(ck('similarity', 'Not a near-duplicate of an existing article', !sim || sim.score < 0.2 ? 'pass' : sim.score < 0.45 ? 'warn' : 'fail',
+    out.push(ck('similarity', 'Not a near-duplicate of an existing article', !sim || sim.score < 0.15 ? 'pass' : sim.score < 0.35 ? 'warn' : 'fail',
       sim ? `Closest: /blog/${sim.slug} (${Math.round(sim.score * 100)}% overlap)` : ''));
   }
   return out;
