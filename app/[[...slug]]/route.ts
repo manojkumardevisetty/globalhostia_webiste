@@ -25,9 +25,12 @@ export const dynamic = 'force-dynamic';
 // (middleware.ts) keeps one cached copy per currency. While a page is built from snapshot data (database
 // unavailable, lib/lkg.ts) the TTL is one minute so fresh content returns quickly after recovery.
 const pageCache = cdnCache;
-const html = (body: string, status = 200, cache = true) => new NextResponse(body, {
+// Pages whose data changes often from Admin (premium domain listings): 5-minute CDN copy instead of 1 hour.
+const SHORT_CACHE = 'public, s-maxage=300, stale-while-revalidate=600';
+const isShort = (p: string) => /^\/premium-domains(\/|$)/i.test(p);
+const html = (body: string, status = 200, cache = true, short = false) => new NextResponse(body, {
   status,
-  headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache && status === 200 ? pageCache() : 'private, no-store' },
+  headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': cache && status === 200 ? (short ? SHORT_CACHE : pageCache()) : 'private, no-store' },
 });
 
 /** Last resort when a page cannot be built at all (no database and no snapshot): 503 + Retry-After, never a 500.
@@ -117,18 +120,18 @@ async function render(req: NextRequest, ctx: { params: Promise<{ slug?: string[]
   const themed = (tq ? tq === 'hostpen' : s.site_theme === 'hostpen') || (segs.length <= 2 && segs.length > 0 && THEME_ONLY.has(segs.join('/').toLowerCase())) || !!dynamicRoute(segs);
   if (themed) {
     const out = await renderTheme(segs, { path, preview, query: req.nextUrl.searchParams });
-    if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'));
+    if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'), isShort(path));
   }
 
   if (segs[0] === 'p' && segs.length === 2) {
     const out = await renderProductPage(segs[1].toLowerCase(), preview);
-    if (out) return html(out, 200, !preview);
+    if (out) return html(out, 200, !preview, isShort(path));
   }
   const slug = segs.length ? segs.join('/').toLowerCase() : 'index';
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
   const opts = { preview, query: req.nextUrl.searchParams, ip, path };
   const out = await renderPage(slug, opts);
-  if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'));
+  if (out) return html(out, 200, !preview && !req.nextUrl.searchParams.has('domain'), isShort(path));
   // branded 404 (search + popular pages) with the site theme; the original theme's CMS "404" page otherwise
   if (s.site_theme === 'hostpen' || tq === 'hostpen') {
     const themed = await renderNotFound({ slug, path, preview: false, query: req.nextUrl.searchParams, route: { kind: 'content', title: 'Page not found', description: '' } }).catch((e) => { console.error('[page] 404 render failed:', (e as Error)?.message || e); return null; });

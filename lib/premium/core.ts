@@ -48,7 +48,7 @@ export interface PremiumConfig {
 
 export const DEFAULT_PREMIUM: PremiumConfig = {
   enabled: true,
-  feed: { enabled: true, tlds: ['.com', '.ai', '.io', '.net', '.co', '.ae'], minPrice: 100, maxPrice: 25000, keywords: [], exclude: [], maxCount: 60, pages: 3 },
+  feed: { enabled: true, tlds: ['.com', '.ai', '.io', '.net', '.co', '.ae'], minPrice: 100, maxPrice: 25000, keywords: [], exclude: [], maxCount: 60, pages: 10 },
   pricing: { mode: 'markup', markupPct: 15, markupFixed: 0, feePct: 15, feeMin: 100 },
   registry: { enabled: true, markupPct: 0 },
   home: { position: 'after-domain', title: 'Premium domains for sale', max: 16 },
@@ -244,6 +244,9 @@ export function parseOwnDomains(json: unknown): string[] {
 
 /* ------------------------------------------------------------------ feed rules */
 /** Does a Dynadot listing pass the admin filters (TLDs, price range in USD, keywords, excluded words)? */
+/** Brandable names only for the marketplace feed: letters, 3–12 characters, no digits or hyphens. */
+export const brandable = (domain: string) => /^[a-z]{3,12}$/.test(splitDomain(domain).sld);
+
 export function feedAllows(l: { domain: string; amount: number; currency: string }, f: PremiumConfig['feed']): boolean {
   if (l.currency !== 'USD') return false;
   const { sld, tld } = splitDomain(l.domain);

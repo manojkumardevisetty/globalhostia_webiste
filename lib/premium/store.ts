@@ -7,7 +7,7 @@ import { revalidateTag } from 'next/cache';
 import { db, schema } from '../db';
 import { cachedRead } from '../lkg';
 import { getSettings, setSetting } from '../settings';
-import { normalizePremium, mergeItems, feedAllows, registryPrice, PREMIUM_KEY, type PremiumConfig, type PItem, type OwnRow, type FeedRow } from './core';
+import { normalizePremium, mergeItems, feedAllows, brandable, registryPrice, PREMIUM_KEY, type PremiumConfig, type PItem, type OwnRow, type FeedRow } from './core';
 import { transport, getListings, searchPrices, adviceFor } from './dynadot';
 
 export const STATE_KEY = 'premium_state';
@@ -70,7 +70,7 @@ export async function refreshFeed(by = 'system'): Promise<FeedState> {
   const t = await transport(cfg);
   try {
     const { items, pages } = await getListings(t, cfg.feed.pages);
-    const keep = items.filter((l) => feedAllows(l, cfg.feed)).slice(0, Math.max(cfg.feed.maxCount * 3, 30));
+    const keep = items.filter((l) => brandable(l.domain) && feedAllows(l, cfg.feed)).slice(0, Math.max(cfg.feed.maxCount * 3, 30));
     await db.transaction(async (tx) => {
       await tx.delete(schema.premiumFeed);
       for (let i = 0; i < keep.length; i += 200) {
