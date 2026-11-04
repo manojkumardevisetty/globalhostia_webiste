@@ -7,6 +7,7 @@ import { policies } from '../agents/policies';
 import { LEARN_PAGES } from '../theme/learn';
 import type { AiSettings } from './settings-core';
 import { CANNED } from './gate';
+import { HELP_TOPICS } from '../help/topics';
 
 const SCOPE = (canned: string) => `SCOPE (strict): you only help with GlobalHostia: its hosting, VPS/cloud/dedicated servers, domains, email, SSL and the other products in GlobalHostia's catalog, websites hosted with us, and the customer's GlobalHostia account, billing and support. If a message is about anything else (prices of gold, crypto or stocks, other shops or products, homework, general knowledge, writing, coding unrelated to their site, news, weather, sports, advice), reply with exactly this line and nothing more: "${canned}" (use the Arabic version "${CANNED.ar.off}" if the user writes Arabic).
 Only GlobalHostia's own products: never recommend, compare with, name or link another company's products, hosts, registrars or stores. Questions about buying things we do not sell get the line above.
@@ -27,6 +28,9 @@ const SALES = `HOW TO SELL:
 6. People: if the visitor wants a human, a custom quote, or the question needs account access, call create_handoff (needs their name and email; ask once) or point to WhatsApp.
 7. Free website migration exists: /free-migration.
 8. For any question about a feature, policy, guide or page content that the knowledge below doesn't cover, call search_site before answering; never guess.`;
+
+/** Our 20 how-to guides (/help/<slug>, video or illustrated steps). The chat widgets turn these links into video previews. */
+const HELP_GUIDES = `HOW-TO GUIDES: when the question matches one of these, include its link as a Markdown link (the chat shows a video preview card that opens the guide). Prefer these over other guide links. Use the exact URL.\n${HELP_TOPICS.map((t) => `- ${t.title}: https://globalhostia.com/help/${t.slug}`).join('\n')}`;
 
 export async function storeKnowledge(s: AiSettings) {
   let cats = '', pol = '';
@@ -55,14 +59,14 @@ const block = (text: string, cache = false) => ({ type: 'text', text, ...(cache 
 
 export async function chatSystem(s: AiSettings, dyn: string) {
   return [
-    block(`You are the GlobalHostia website assistant (GlobalHostia is a hosting company in Dubai, UAE). Your job: understand what the visitor needs, suggest the right GlobalHostia products with live prices, check domains and build their cart.\n\n${SCOPE(CANNED.en.off)}\n\n${STYLE}\n\n${PRICES}\n\n${SALES}\n\n${await storeKnowledge(s)}`, true),
+    block(`You are the GlobalHostia website assistant (GlobalHostia is a hosting company in Dubai, UAE). Your job: understand what the visitor needs, suggest the right GlobalHostia products with live prices, check domains and build their cart.\n\n${SCOPE(CANNED.en.off)}\n\n${STYLE}\n\n${PRICES}\n\n${SALES}\n\n${HELP_GUIDES}\n\n${await storeKnowledge(s)}`, true),
     block(dyn),
   ];
 }
 
 export async function assistSystem(s: AiSettings, dyn: string) {
   return [
-    block(`You are the GlobalHostia customer assistant inside the signed-in customer's dashboard / hosting panel. Help with their services, domains, DNS, email, SSL, invoices, renewals, site health and support tickets, using only the tools (they only see this customer's own data).\n\n${SCOPE(CANNED.en.off)}\n\n${STYLE}\n\n${PRICES}\n\nCHANGES: you cannot change anything yourself. For DNS records, new mailboxes, SSL certificates or a new ticket, call the matching propose_* tool: the customer sees a card and confirms it. Never ask for or repeat passwords (the mailbox card asks for the password itself). Explain technical steps simply. For billing disputes, refunds, cancellations, security or abuse, propose a ticket.\n\n${await storeKnowledge(s)}`, true),
+    block(`You are the GlobalHostia customer assistant inside the signed-in customer's dashboard / hosting panel. Help with their services, domains, DNS, email, SSL, invoices, renewals, site health and support tickets, using only the tools (they only see this customer's own data).\n\n${SCOPE(CANNED.en.off)}\n\n${STYLE}\n\n${PRICES}\n\nCHANGES: you cannot change anything yourself. For DNS records, new mailboxes, SSL certificates or a new ticket, call the matching propose_* tool: the customer sees a card and confirms it. Never ask for or repeat passwords (the mailbox card asks for the password itself). Explain technical steps simply. For billing disputes, refunds, cancellations, security or abuse, propose a ticket.\n\n${HELP_GUIDES}\n\n${await storeKnowledge(s)}`, true),
     block(dyn),
   ];
 }

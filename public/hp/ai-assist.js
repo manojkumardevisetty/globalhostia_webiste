@@ -124,6 +124,36 @@
   }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   /** minimal Markdown: escape first, then links (http(s) or site paths, resolved against linkBase), bold, code, lists */
+  /* links to /help/<slug> (our how-to guides) get a video preview card under the reply */
+  function helpCards(b) {
+    try {
+      var seen = {}, list = [];
+      [].forEach.call(b.querySelectorAll("a[href]"), function (a) {
+        var m = String(a.getAttribute("href")).match(/^(?:https:\/\/(?:www\.)?globalhostia\.com)?\/help\/([a-z0-9-]{2,60})\/?(?:[?#].*)?$/);
+        if (m && !seen[m[1]]) { seen[m[1]] = 1; list.push({ slug: m[1], title: a.textContent.trim() }); }
+      });
+      list.slice(0, 2).forEach(function (h) {
+        var url = "https://globalhostia.com/help/" + h.slug;
+        var c = document.createElement("a"); c.className = "gh-helpcard"; c.href = url; c.target = "_blank"; c.rel = "noopener";
+        c.setAttribute("aria-label", "Watch the guide: " + h.title);
+        c.style.cssText = "display:flex;gap:12px;align-items:center;margin-top:10px;padding:8px;border:1px solid rgba(22,33,43,.14);border-radius:10px;background:#fff;color:#16212b;text-decoration:none;max-width:360px";
+        var img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.width = 112; img.height = 63;
+        img.src = "https://globalhostia.com/help/videos/" + h.slug + ".jpg";
+        img.onerror = function () { img.onerror = null; img.src = "https://globalhostia.com/help/frames/" + h.slug + "-1.jpg"; };
+        img.style.cssText = "width:112px;height:63px;object-fit:cover;border-radius:6px;flex:none;background:#0f1820";
+        var th = document.createElement("span"); th.style.cssText = "position:relative;flex:none;display:block;width:112px;height:63px";
+        var play = document.createElement("span"); play.setAttribute("aria-hidden", "true");
+        play.style.cssText = "position:absolute;inset:0;margin:auto;width:28px;height:28px;border-radius:50%;background:rgba(166,34,95,.92);box-shadow:0 2px 8px rgba(0,0,0,.3)";
+        play.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28"><path d="M10 8.5v7l6-3.5z" fill="#fff"/></svg>';
+        th.appendChild(img); th.appendChild(play);
+        var tx = document.createElement("span"); tx.style.cssText = "display:flex;flex-direction:column;gap:2px;min-width:0";
+        var t1 = document.createElement("strong"); t1.textContent = h.title; t1.style.cssText = "font-size:14px;line-height:1.3";
+        var t2 = document.createElement("span"); t2.textContent = "Watch the step-by-step guide"; t2.style.cssText = "font-size:12.5px;color:#5b6573";
+        tx.appendChild(t1); tx.appendChild(t2); c.appendChild(th); c.appendChild(tx); b.appendChild(c);
+      });
+    } catch (e) {}
+  }
+
   function md(src, linkBase) {
     var out = [], list = null;
     function inline(s) {
@@ -239,7 +269,7 @@
     }
     function bubble(who, text) {
       var b = el("div", { class: "ghas-bub", dir: "auto" });
-      if (who === "me") b.textContent = text; else b.innerHTML = md(text, linkBase);
+      if (who === "me") b.textContent = text; else { b.innerHTML = md(text, linkBase); helpCards(b); }
       log.appendChild(el("div", { class: "ghas-msg ghas-msg--" + who }, who === "ai" ? [el("span", { class: "ghas-hex ghas-hex--sm", html: HEX }), b] : [b])); scroll(); return b;
     }
     function chips(list) {
@@ -331,7 +361,7 @@
           parts.forEach(function (part) {
             var ev = (part.match(/^event: (.*)$/m) || [])[1], data = (part.match(/^data: (.*)$/m) || [])[1]; if (!ev || data == null) return;
             var v; try { v = JSON.parse(data); } catch (e) { return; }
-            if (ev === "text") { if (!v.t) return; if (!b) { drop(); b = bubble("ai", ""); b.setAttribute("aria-busy", "true"); } reply += v.t; b.innerHTML = md(reply, linkBase); scroll(); }
+            if (ev === "text") { if (!v.t) return; if (!b) { drop(); b = bubble("ai", ""); b.setAttribute("aria-busy", "true"); } reply += v.t; b.innerHTML = md(reply, linkBase); helpCards(b); scroll(); }
             else if (ev === "tool") { if (!tool) { tool = el("p", { class: "ghas-tool", text: T.checking }); log.insertBefore(tool, wait.parentNode ? wait : null); live.textContent = T.checking; } b = null; log.appendChild(tool); waitOn(); }
             else if (ev === "ui") { drop(); if (b) b.removeAttribute("aria-busy"); b = null; ui++; if (v.type === "proposal") proposal(v); else if (v.type === "chips") chips(v.items || []); waitOn(); }
             else if (ev === "error") { erred = true; if (b) b.removeAttribute("aria-busy"); say(v.message || T.failed, !reply && !ui); b = null; }
