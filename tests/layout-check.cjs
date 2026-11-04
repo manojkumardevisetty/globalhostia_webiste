@@ -25,6 +25,9 @@ const PAGES = [
   ['premium-ar', '/premium-domains', 'rtl'], ['premium-detail-ar', process.env.PREMIUM_DETAIL || '/premium-domains/atlas.test', 'rtl'],
   // sell your domain (lib/sell, lib/portal/views/sell.ts, lib/theme/pages/sell.ts)
   ['sell-domains', '/sell-domains'], ['sell-domains-ar', '/sell-domains', 'rtl'],
+  // Arabic section (lib/theme/pages/ar.ts): right-to-left pages with Arabic copy
+  ...['', 'web-hosting', 'vps-hosting', 'dedicated-servers', 'domains-registration', 'ae-domains', 'google-workspace', 'ssl-certificate', 'free-migration', 'premium-domains', 'sell-domains', 'connectors', 'contact', 'about']
+    .map((s) => [`ar-${s || 'home'}`, s ? `/ar/${s}` : '/ar']),
   ['acc-sell', '/account/sell', 'auth'], ['acc-sell-new', '/account/sell/new', 'auth'], ['acc-sell-ar', '/account/sell', 'ar'], ['acc-sell-new-ar', '/account/sell/new', 'ar'],
 ];
 

@@ -207,10 +207,10 @@ async function aeDomains(x: Ctx): Promise<Built> {
       <li>${icon('check')}<div><b>قد تُطلب مستندات</b><span>إذا طلب السجل إثباتاً، نخبرك بالمطلوب تحديداً ونتولى تقديمه.</span></div></li>
       <li>${icon('info')}<div><b>نتحقق قبل أن تدفع</b><span>لست متأكداً من أهليتك؟ اسألنا أولاً وسنؤكد لك المتطلبات الحالية لحالتك.</span></div></li>
     </ul>
-    <p class="ae-req__note">${icon('info')}هذا ملخص مبسّط وليس استشارة قانونية، وتنطبق دائماً السياسة الحالية للسجل. المصادر الرسمية:
+    <p class="ae-req__note">${icon('info')}<span>هذا ملخص مبسّط وليس استشارة قانونية، وتنطبق دائماً السياسة الحالية للسجل. المصادر الرسمية:
       <a href="https://aeda.ae" rel="noopener" target="_blank" lang="en" dir="ltr">.ae Domain Administration (aeDA)</a> التابعة لهيئة تنظيم الاتصالات والحكومة الرقمية
       (<a href="https://tdra.gov.ae" rel="noopener" target="_blank" lang="en" dir="ltr">TDRA</a>)، وسجل
-      <a href="https://www.iana.org/domains/root/db/ae.html" rel="noopener" target="_blank" lang="en" dir="ltr">IANA لنطاق .ae</a>.</p>
+      <a href="https://www.iana.org/domains/root/db/ae.html" rel="noopener" target="_blank" lang="en" dir="ltr">IANA لنطاق .ae</a>.</span></p>
   </div></section>`;
   const faqs = [...def.copy.faqs];
   faqs.unshift({ q: 'كم سعر نطاق .ae؟', a: ae ? `سعر نطاق .ae للسنة الأولى ${tldMoney(cat, ae.register)}${ae.renew !== null ? `، ويُجدَّد بسعر ${tldMoney(cat, ae.renew)} سنوياً` : ''}، بعملة ${cat.currency} وقبل ضريبة القيمة المضافة حيثما تنطبق. السعر مباشر من نظام الفوترة ويُؤكَّد في نموذج الطلب.` : 'يظهر سعر .ae المباشر في نموذج الطلب قبل الدفع، مع سعر التجديد.' });
