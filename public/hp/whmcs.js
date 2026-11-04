@@ -2869,8 +2869,9 @@
   function lum(c) { var m = String(c).match(/[\d.]+/g); if (!m || (m[3] !== undefined && +m[3] === 0)) return null; var f = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(+m[0]) + 0.7152 * f(+m[1]) + 0.0722 * f(+m[2]); }
   function titleContrast() {
     [].forEach.call(D.querySelectorAll('#main-body h1, #main-body h2, .header-lined h1, .page-header h1, .main-content h1'), function (h) {
-      if (h.closest('.gh-ok, .ghh, .gh-tk-done') || !h.offsetParent) return;
-      var e = h, bg = null; while (e && e.nodeType === 1) { bg = lum(getComputedStyle(e).backgroundColor); if (bg !== null) break; e = e.parentElement; }
+      if (h.closest('.gh-ok, .ghh, .gh-tk-done, .domain-registiration-hero, .gh-hub, .gh-catbanner') || !h.offsetParent) return;
+      // a background image or gradient can't be measured: leave those titles alone
+      var e = h, bg = null; while (e && e.nodeType === 1) { var cs = getComputedStyle(e); if (cs.backgroundImage && cs.backgroundImage !== 'none') return; bg = lum(cs.backgroundColor); if (bg !== null) break; e = e.parentElement; }
       if (bg === null) bg = 1;
       var fg = lum(getComputedStyle(h).color); if (fg === null) return;
       var ratio = (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
