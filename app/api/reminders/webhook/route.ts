@@ -2,7 +2,7 @@
 // Header X-GH-Signature: t=<unix>,v1=<hex HMAC-SHA256("gh-hook.v1.<t>.<body>")> with the shared hook secret; 5-minute window.
 //   {"event":"order","orderid":N,"invoiceid":N,"cid":N,"email":"…","sk":"<session hash>"}   cart ordered → reminders stop
 //   {"event":"invoice_paid","invoiceid":N}                                                  overdue / renewal reminders stop; seller listing fees
-//   {"event":"tick"}                                                                          WHMCS cron ran → reminder run (max every 10 min)
+//   {"event":"tick"}                                                                          WHMCS cron ran → reminder run (max every 10 min), ticket check
 import { NextRequest, NextResponse, after } from 'next/server';
 import { verifyHook, EMAIL_RE } from '@/lib/reminders/core';
 import { hookSecret, cartsOrdered, patchState, state, setPrefs, closeCart } from '@/lib/reminders/store';
@@ -14,6 +14,7 @@ import { limiter } from '@/lib/agents/http';
 import { db, schema } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { orderPlaced } from '@/lib/abtest/store';
+import { checkTicketsSoon } from '@/lib/support-notify';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -66,6 +67,9 @@ export async function POST(req: NextRequest) {
     after(() => kickContent(req.nextUrl.origin, 'whmcs'));
     // seller listing fee invoices: fallback payment poll, at most every 15 minutes (lib/sell/store.ts)
     after(() => sellerTick().then(() => undefined));
+    // support tickets: owner alert, ticket spam filter (lib/ai/spam.ts) and AI assistant; locked and claimed per ticket
+    // activity, so the every-5-minutes WHMCS cron only does work when a ticket is new or has a new reply
+    checkTicketsSoon('whmcs-tick');
     const st = await state();
     const last = st.lastRun ? Date.parse(st.lastRun) : 0;
     if (Date.now() - last < TICK_EVERY_MS) return NextResponse.json({ ok: true, skipped: 'recent' });

@@ -15,7 +15,7 @@ export default async function AssistantPage() {
   return (
     <>
       <PageHeader title="AI assistant" desc="Ask about your business in plain words. Powered by Claude; answers come from WHMCS and your servers, read-only."
-        actions={<><Link href="/admin/assistant/usage" className="btn btn-secondary">Usage &amp; costs</Link><Link href="/admin/assistant/settings" className="btn btn-secondary">Settings</Link></>} />
+        actions={<><Link href="/admin/assistant/spam" className="btn btn-secondary">Ticket spam</Link><Link href="/admin/assistant/usage" className="btn btn-secondary">Usage &amp; costs</Link><Link href="/admin/assistant/settings" className="btn btn-secondary">Settings</Link></>} />
       {!key && (
         <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-5 text-sm leading-relaxed text-amber-900">
           <b>Add ANTHROPIC_API_KEY.</b> In Vercel open the project, then Settings &gt; Environment Variables, add <code>ANTHROPIC_API_KEY</code> (Production and Preview) and redeploy.

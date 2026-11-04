@@ -480,6 +480,42 @@ export const aiTicketRuns = pgTable('ai_ticket_runs', {
 }, (t) => [uniqueIndex('ai_ticket_runs_activity').on(t.ticketId, t.activity), index('ai_ticket_runs_created_idx').on(t.createdAt)]);
 export type AiTicketRun = typeof aiTicketRuns.$inferSelect;
 
+// Ticket spam filter (lib/ai/spam*.ts): one row per screened ticket activity (ticket id + last reply stamp) with the rule /
+// AI verdict and what was done (action none | flag | close | skip | error; state active | restored | confirmed). Senders:
+// the internal block / allow lists added automatically (two confirmed spam tickets) or by "Not spam, restore". Created by
+// db-setup patch '040-ticket-spam'.
+export const aiSpamDecisions = pgTable('ai_spam_decisions', {
+  id: id(),
+  ticketId: integer('ticket_id').notNull(),
+  tid: text('tid').notNull().default(''),
+  activity: text('activity').notNull(),
+  email: text('email').notNull().default(''),
+  domain: text('domain').notNull().default(''),
+  name: text('name').notNull().default(''),
+  subject: text('subject').notNull().default(''),
+  label: text('label').notNull().default(''),
+  confidence: numeric('confidence', { precision: 4, scale: 3 }),
+  reason: text('reason').notNull().default(''),
+  source: text('source').notNull().default(''),
+  action: text('action').notNull().default('pending'),
+  state: text('state').notNull().default('active'),
+  prevStatus: text('prev_status').notNull().default(''),
+  prevDept: integer('prev_dept').notNull().default(0),
+  hints: jsonb('hints').$type<string[]>().notNull().default([]),
+  reviewedBy: text('reviewed_by').notNull().default(''),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [uniqueIndex('ai_spam_decisions_activity').on(t.ticketId, t.activity), index('ai_spam_decisions_created_idx').on(t.createdAt), index('ai_spam_decisions_email_idx').on(t.email), index('ai_spam_decisions_domain_idx').on(t.domain)]);
+export const aiSpamSenders = pgTable('ai_spam_senders', {
+  id: id(),
+  value: text('value').notNull(),
+  kind: text('kind').notNull().default('email'),
+  list: text('list').notNull().default('block'),
+  source: text('source').notNull().default('auto'),
+  label: text('label').notNull().default(''),
+  createdAt: now('created_at'),
+}, (t) => [uniqueIndex('ai_spam_senders_uniq').on(t.value, t.list)]);
+
 // Portal web push (lib/portal/push.ts): one row per browser/device subscription, owned by a WHMCS client. Categories
 // the customer turned on (tickets, invoices, domains, services). Created by db-setup patch '022-portal-push'.
 export const pushSubscriptions = pgTable('push_subscriptions', {

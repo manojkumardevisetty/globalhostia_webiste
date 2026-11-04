@@ -661,6 +661,25 @@ try {
       ];
       await tx`insert into settings (key, value) values ('ab_experiments', ${JSON.stringify(seed)}::jsonb) on conflict (key) do nothing`;
     },
+    // 40. Ticket spam filter (lib/ai/spam*.ts): decisions per ticket activity and the internal sender block / allow lists.
+    // Settings live in settings.ai_spam (defaults in code: on, auto-close at >= 0.95 for non-clients, flag 0.6-0.95).
+    '040-ticket-spam': async (tx) => {
+      await tx`create table if not exists ai_spam_decisions (
+        id text primary key, ticket_id integer not null, tid text not null default '', activity text not null,
+        email text not null default '', domain text not null default '', name text not null default '', subject text not null default '',
+        label text not null default '', confidence numeric(4,3), reason text not null default '', source text not null default '',
+        action text not null default 'pending', state text not null default 'active', prev_status text not null default '', prev_dept integer not null default 0,
+        hints jsonb not null default '[]'::jsonb, reviewed_by text not null default '',
+        created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      await tx`create unique index if not exists ai_spam_decisions_activity on ai_spam_decisions (ticket_id, activity)`;
+      await tx`create index if not exists ai_spam_decisions_created_idx on ai_spam_decisions (created_at)`;
+      await tx`create index if not exists ai_spam_decisions_email_idx on ai_spam_decisions (email)`;
+      await tx`create index if not exists ai_spam_decisions_domain_idx on ai_spam_decisions (domain)`;
+      await tx`create table if not exists ai_spam_senders (
+        id text primary key, value text not null, kind text not null default 'email', list text not null default 'block',
+        source text not null default 'auto', label text not null default '', created_at timestamptz not null default now())`;
+      await tx`create unique index if not exists ai_spam_senders_uniq on ai_spam_senders (value, list)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

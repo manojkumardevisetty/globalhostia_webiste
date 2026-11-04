@@ -84,6 +84,7 @@ let nextTicket = 9000;
 const orders = [{ id: 501, ordernum: '8812', date: '2026-10-30 10:00:00', name: 'Test Client', amount: '5.99', paymentmethod: 'stripe', paymentstatus: 'Paid', status: 'Pending', userid: 7 }];
 const sentEmails = [];
 const calls = [];
+const blockedSenders = [];
 const departments = [{ id: 1, name: 'Technical Support' }, { id: 2, name: 'Billing' }, { id: 3, name: 'Sales' }];
 const cid = (p, k = 'clientid') => Number(p[k] || 7);
 const listInvoices = (uid) => Object.values(invoices).filter((i) => i.userid === uid);
@@ -165,13 +166,55 @@ const portal = {
   },
   GetInvoice: (p) => invoices[Number(p.invoiceid)] || err('Invoice ID Not Found'),
   GetTickets: (p) => {
-    if (!p.clientid) return { tickets: { ticket: [] } };
+    // admin-side listing (no clientid): only tickets seeded with MockSeedTickets (spam filter tests), so other suites see none
+    if (!p.clientid) {
+      let list = Object.values(tickets).filter((t) => t.seeded);
+      if (p.status === 'All Active Tickets') list = list.filter((t) => t.status !== 'Closed');
+      else if (p.status) list = list.filter((t) => t.status === p.status);
+      return { totalresults: list.length, tickets: { ticket: list.map((t) => ({ ...ticketSummary(t), name: t.name, email: t.email })) } };
+    }
     let list = Object.values(tickets).filter((t) => t.userid === Number(p.clientid));
     if (p.status === 'All Active Tickets') list = list.filter((t) => t.status !== 'Closed');
     else if (p.status) list = list.filter((t) => t.status === p.status);
     return { totalresults: list.length, tickets: { ticket: list.map(ticketSummary) } };
   },
-  GetTicket: (p) => { const t = tickets[Number(p.ticketid)] || err('Ticket ID Not Found'); return { ...ticketSummary(t), ticketid: t.ticketid, replies: { reply: t.replies } }; },
+  GetTicket: (p) => { const t = tickets[Number(p.ticketid)] || err('Ticket ID Not Found'); return { ...ticketSummary(t), ticketid: t.ticketid, name: t.name, email: t.email, replies: { reply: t.replies }, notes: { note: t.notes || [] } }; },
+  // spam filter: admin-side ticket writes (status / department, internal notes, WHMCS Spam Control block)
+  UpdateTicket: (p) => {
+    const t = tickets[Number(p.ticketid)] || err('Ticket ID Not Found');
+    if (p.deptid !== undefined) { const d = departments.find((x) => x.id === Number(p.deptid)) || err('Department ID Not Found'); t.deptid = d.id; t.deptname = d.name; }
+    if (p.status) t.status = p.status;
+    calls.push({ action: 'UpdateTicket', ...p });
+    return { ticketid: t.id };
+  },
+  AddTicketNote: (p) => {
+    const t = tickets[Number(p.ticketid)] || err('Ticket ID Not Found');
+    if (!p.message) err('Message is required');
+    (t.notes ||= []).push({ noteid: (t.notes.length || 0) + 1, message: p.message, date: now(), admin: 'API' });
+    calls.push({ action: 'AddTicketNote', ticketid: t.id });
+    return {};
+  },
+  BlockTicketSender: (p) => {
+    const t = tickets[Number(p.ticketid)] || err('Ticket ID Not Found');
+    if (t.userid) err('A registered client cannot be blocked');
+    blockedSenders.push(t.email);
+    if (p.delete === 'true' || p.delete === '1') delete tickets[t.id];
+    return { deleted: p.delete === 'true' || p.delete === '1' };
+  },
+  // tests: add admin-visible tickets ({json: [{id, tid, userid, name, email, subject, message, status?, deptid?, staffReply?}]}), inspect them, list calls
+  MockSeedTickets: (p) => {
+    for (const x of JSON.parse(p.json || '[]')) {
+      const d = departments.find((y) => y.id === Number(x.deptid || 1));
+      const at = x.date || now();
+      tickets[x.id] = { ticketid: x.id, id: x.id, tid: x.tid || `GHX-${x.id}`, deptid: d.id, deptname: d.name, userid: Number(x.userid || 0), name: x.name, email: x.email, date: at, subject: x.subject,
+        status: x.status || 'Open', priority: 'Medium', lastreply: at, seeded: true, notes: [],
+        replies: [{ replyid: 0, userid: Number(x.userid || 0), name: x.name, email: x.email, date: at, message: x.message, admin: '' },
+          ...(x.staffReply ? [{ replyid: 1, userid: 0, name: '', date: at, message: x.staffReply, admin: 'Rahul S.' }, { replyid: 2, userid: Number(x.userid || 0), name: x.name, email: x.email, date: at, message: x.followUp || 'Thanks, any update?', admin: '' }] : [])] };
+    }
+    return {};
+  },
+  MockTicket: (p) => { const t = tickets[Number(p.ticketid)] || err('Ticket ID Not Found'); return { ticket: t }; },
+  MockCalls: () => ({ calls, blockedSenders }),
   GetSupportDepartments: () => ({ totalresults: departments.length, departments: { department: departments } }),
   OpenTicket: (p) => {
     // guest tickets (website forms send name + email, no clientid)
@@ -274,7 +317,7 @@ const handlers = {
   // reminders: emails "sent" through WHMCS are kept in memory; Mock* actions let tests inspect / change state
   SendEmail: (p) => { if (!clients[Number(p.id)]) err('Client ID Not Found'); sentEmails.push({ id: Number(p.id), customtype: p.customtype, subject: p.customsubject, message: p.custommessage, at: Date.now() }); return {}; },
   MockSentEmails: () => ({ emails: sentEmails }),
-  MockReset: () => { sentEmails.length = 0; calls.length = 0; orders.splice(1); for (const k of Object.keys(invoices)) if (Number(k) >= 9500) delete invoices[k]; return {}; },
+  MockReset: () => { sentEmails.length = 0; calls.length = 0; blockedSenders.length = 0; for (const k of Object.keys(tickets)) if (tickets[k].seeded) delete tickets[k]; orders.splice(1); for (const k of Object.keys(invoices)) if (Number(k) >= 9500) delete invoices[k]; return {}; },
   MockAddOrder: (p) => { const o = { id: 600 + orders.length, ordernum: String(9000 + orders.length), date: new Date().toISOString().slice(0, 19).replace('T', ' '), name: 'x', amount: '1.00', paymentstatus: 'Unpaid', status: 'Pending', userid: Number(p.userid) }; orders.push(o); return { orderid: o.id }; },
   MockAddInvoice: (p) => { const id = 9500 + Object.keys(invoices).filter((k) => Number(k) >= 9500).length; invoices[id] = { invoiceid: id, id, userid: Number(p.userid), invoicenum: '', date: day(Number(p.due) - 7), duedate: day(Number(p.due)), subtotal: p.total, total: p.total, balance: p.total, status: 'Unpaid', currencycode: 'USD', items: { item: [{ id: 1, type: 'Hosting', relid: Number(p.relid || 0), description: p.desc || 'Service', amount: p.total }] } }; return { invoiceid: id }; },
   MockPayInvoice: (p) => { const i = invoices[Number(p.invoiceid)] || err('Invoice ID Not Found'); i.status = 'Paid'; i.balance = '0.00'; return {}; },

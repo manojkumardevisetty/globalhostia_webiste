@@ -62,11 +62,11 @@ async function forceRelease() {
 }
 
 /* ---------------- WHMCS reads ---------------- */
-export type TicketSummary = { id: number; tid: string; subject: string; status: string; priority: string; deptid: number; name: string; email: string; date: string; lastreply: string };
+export type TicketSummary = { id: number; tid: string; subject: string; status: string; priority: string; deptid: number; userid: number; name: string; email: string; date: string; lastreply: string };
 
 const toSummary = (t: any): TicketSummary => ({
   id: Number(t.id ?? t.ticketid), tid: String(t.tid || ''), subject: String(t.subject || ''), status: String(t.status || ''),
-  priority: String(t.priority || ''), deptid: Number(t.deptid || 0),
+  priority: String(t.priority || ''), deptid: Number(t.deptid || 0), userid: Number(t.userid || 0),
   name: String(t.requestor_name || t.name || t.owner_name || ''), email: String(t.requestor_email || t.email || ''),
   date: String(t.date || ''), lastreply: String(t.lastreply || ''),
 });
@@ -191,6 +191,9 @@ export async function checkTickets(reason = 'manual'): Promise<CheckResult> {
   if (!got) return { ok: true, skipped: 'busy' };
   let checked = 0, notified = 0, failed = 0, lastErr = '';
   try {
+    // Ticket spam filter (lib/ai/spam.ts) first: tickets from non-clients closed as spam are then neither emailed to the
+    // owner nor answered by the AI assistant below. Never throws; off / no tables / no AI key just skip or use rules only.
+    try { const { screenAwaiting } = await import('./ai/spam'); await screenAwaiting(await awaitingTickets(), reason); } catch (e: any) { console.warn('[support-notify] spam filter:', e?.message || e); }
     for (let loop = 0; loop < 3; loop++) {
       try {
         const r = await runOnce();

@@ -6,7 +6,8 @@
 //   3. lib/ai/policy.ts decideTicket: auto-send (AddTicketReply, status Answered, signed "GlobalHostia Assistant") only for
 //      simple how-to questions above the confidence threshold; otherwise the draft is saved as an internal note
 //      (AddTicketNote) and waits in Admin > Support with a one-click "Send draft".
-// Tickets are never closed. Every decision is stored with its reasons.
+// Tickets are never closed. Every decision is stored with its reasons. Non-client tickets wait for the spam filter
+// (lib/ai/spam.ts spamHold): flagged / closed spam is never drafted or answered.
 import 'server-only';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db, schema } from '../db';
@@ -124,12 +125,16 @@ export async function triageAwaiting(reason = 'notifier'): Promise<{ ran: number
     .sort((a, b) => (a.lastreply || a.date).localeCompare(b.lastreply || b.date));
   const results: string[] = [];
   const until = Date.now() + (reason === 'cron' ? 200_000 : 25_000); // stay inside the caller's function time limit
+  const { spamHold } = await import('./spam');
   for (const t of list) {
-    if (results.filter((r) => r !== 'claimed').length >= s.tickets.perRun || Date.now() > until) break;
-    results.push(await triageOne(s, t, t.lastreply || t.date || t.status, cfg.adminUsername));
+    if (results.filter((r) => r !== 'claimed' && r !== 'spam-hold').length >= s.tickets.perRun || Date.now() > until) break;
+    const activity = t.lastreply || t.date || t.status;
+    // ticket spam filter (lib/ai/spam.ts): never draft or auto-reply on spam, or on a non-client ticket not screened yet
+    if (await spamHold(t, activity)) { results.push('spam-hold'); continue; }
+    results.push(await triageOne(s, t, activity, cfg.adminUsername));
   }
   if (results.some((r) => r !== 'claimed')) console.log(`[ai-tickets] ${reason}: ${results.join(', ')}`);
-  return { ran: results.filter((r) => r !== 'claimed').length, results };
+  return { ran: results.filter((r) => r !== 'claimed' && r !== 'spam-hold').length, results };
 }
 
 /** Admin "Send draft": posts the (possibly edited) draft as the admin, status Answered. */
