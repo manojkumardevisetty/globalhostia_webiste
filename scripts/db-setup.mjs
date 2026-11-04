@@ -699,6 +699,21 @@ try {
         source text not null default 'auto', label text not null default '', created_at timestamptz not null default now())`;
       await tx`create unique index if not exists ai_spam_senders_uniq on ai_spam_senders (value, list)`;
     },
+    // 42. Client experience (lib/cx/onboarding*.ts, lib/cx/usage*.ts): welcome checklist state per client, hosting usage
+    // cache (6 h) per service, idempotency keys for one-click plan upgrades. Settings live in settings.usage_alerts.
+    '042-cx-onboarding-usage': async (tx) => {
+      await tx`create table if not exists cx_onboarding (client_id integer primary key, started_at timestamptz, dismissed_at timestamptz,
+        completed_at timestamptz, celebrated_at timestamptz, manual jsonb not null default '{}'::jsonb, detected jsonb not null default '{}'::jsonb,
+        detected_at timestamptz, target jsonb, updated_at timestamptz not null default now())`;
+      await tx`create table if not exists cx_usage (service_id integer primary key, client_id integer not null, metrics jsonb not null default '[]'::jsonb,
+        source text not null default 'panel', plan text not null default '', error text not null default '', at timestamptz not null default now())`;
+      await tx`create index if not exists cx_usage_client_idx on cx_usage (client_id)`;
+      await tx`create index if not exists cx_usage_at_idx on cx_usage (at)`;
+      await tx`create table if not exists cx_upgrades (key text primary key, client_id integer not null, service_id integer not null, pid integer not null,
+        cycle text not null default '', status text not null default 'pending', order_id integer, invoice_id integer, error text not null default '',
+        created_at timestamptz not null default now())`;
+      await tx`create index if not exists cx_upgrades_client_idx on cx_upgrades (client_id, created_at)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

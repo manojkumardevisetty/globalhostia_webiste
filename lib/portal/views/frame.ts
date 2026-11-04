@@ -59,6 +59,10 @@ const FLASH: () => Record<string, [string, 'ok' | 'err']> = () => ({
   push_none: [t('No device received the test. Turn notifications on for this device first.'), 'err'],
   push_bad: [t('Something went wrong. Please try again.'), 'err'],
   push_unavailable: [t('Notifications are not available yet. Please check back soon.'), 'err'],
+  // one-click upgrade and the setup checklist (lib/cx)
+  upgrade_done: [t('Upgrade ordered. Your new plan is active as soon as the invoice is paid.'), 'ok'],
+  upgrade_failed: [t('The upgrade could not be ordered right now. Nothing was charged. Please try again or contact support.'), 'err'],
+  ob_hidden: [t('The setup checklist is hidden. Every how-to guide is still in the help centre.'), 'ok'],
 });
 
 export const ctxFor = (path: string, query: URLSearchParams, title: string): PageCtx => ({

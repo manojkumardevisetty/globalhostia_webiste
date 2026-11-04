@@ -791,3 +791,42 @@ export const healthPrefs = pgTable('health_prefs', {
   alerts: boolean('alerts').notNull().default(true),
   updatedAt: now('updated_at'),
 });
+
+// ---- Client experience (lib/cx/onboarding*.ts, lib/cx/usage*.ts; db-setup patch '042-cx-onboarding-usage').
+// Welcome checklist per WHMCS client: dismissed / completed / celebrated, the customer's own "done" / "skip" choices
+// and the last auto-detection (10-minute cache) for the service + domain it is about.
+export const cxOnboarding = pgTable('cx_onboarding', {
+  clientId: integer('client_id').primaryKey(),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  dismissedAt: timestamp('dismissed_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  celebratedAt: timestamp('celebrated_at', { withTimezone: true }),
+  manual: jsonb('manual').notNull().default({}),
+  detected: jsonb('detected').notNull().default({}),
+  detectedAt: timestamp('detected_at', { withTimezone: true }),
+  target: jsonb('target'),
+  updatedAt: now('updated_at'),
+});
+// Hosting usage per service (disk, bandwidth, inodes, mailboxes vs plan limits), cached 6 hours.
+export const cxUsage = pgTable('cx_usage', {
+  serviceId: integer('service_id').primaryKey(),
+  clientId: integer('client_id').notNull(),
+  metrics: jsonb('metrics').notNull().default([]),
+  source: text('source').notNull().default('panel'),
+  plan: text('plan').notNull().default(''),
+  error: text('error').notNull().default(''),
+  at: now('at'),
+}, (t) => [index('cx_usage_client_idx').on(t.clientId), index('cx_usage_at_idx').on(t.at)]);
+// One-click upgrades: idempotency key per confirmed form, so a double submit never places two orders.
+export const cxUpgrades = pgTable('cx_upgrades', {
+  key: text('key').primaryKey(),
+  clientId: integer('client_id').notNull(),
+  serviceId: integer('service_id').notNull(),
+  pid: integer('pid').notNull(),
+  cycle: text('cycle').notNull().default(''),
+  status: text('status').notNull().default('pending'), // pending | ordered | failed
+  orderId: integer('order_id'),
+  invoiceId: integer('invoice_id'),
+  error: text('error').notNull().default(''),
+  createdAt: now('created_at'),
+}, (t) => [index('cx_upgrades_client_idx').on(t.clientId, t.createdAt)]);

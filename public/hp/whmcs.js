@@ -1349,7 +1349,11 @@
       };
       var want; try { want = sessionStorage.getItem('gh-hosting-tab-' + G.sid); } catch (e) {}
       if (/^#hosting-/.test(location.hash)) try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+      // deep link from the account portal (setup checklist, usage alerts): ?ghtab=email opens that tab once, then leaves the URL
+      var deep = null; try { var dq = new URL(location.href); deep = dq.searchParams.get('ghtab'); if (deep) { dq.searchParams.delete('ghtab'); history.replaceState(null, '', dq.pathname + dq.search + dq.hash); } } catch (e) {}
+      if (deep && tabs.some(function (t) { return t[0] === deep; })) want = deep; else deep = null;
       show(tabs.some(function (t) { return t[0] === want; }) ? want : tabs[0] ? tabs[0][0] : null);
+      if (deep && root.scrollIntoView) try { root.scrollIntoView({ block: 'start' }); } catch (e) {}
     }, function (e) {
       if (e && e.code === 'expired') return expired();
       body.innerHTML = errBox(e && e.message); retryOn(body, function () { root.remove(); mount(G); });

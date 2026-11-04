@@ -109,6 +109,12 @@ const handler = async (req, res) => {
   if (url.pathname === '/CMD_PLUGINS/softaculous/index.raw') return softaculousMock(res, u, q, f, req.method);
   if (url.pathname === '/__softlog') return send(res, softLog);
   switch (url.pathname) {
+    // hosting usage vs plan limits (lib/hosting/providers/directadmin-parse.ts daUsage; MB for quota / bandwidth): demobran is
+    // nearly out of disk (96%) and at 82% of its inodes, demoblog is nearly empty. Asked as the reseller with ?user=.
+    case '/CMD_API_SHOW_USER_USAGE': return send(res, ({ demobran: { quota: '9850', bandwidth: '21000', inode: '205000', nemails: '3', vdomains: '2' }, demoblog: { quota: '120', bandwidth: '5000', inode: '900', nemails: '0', vdomains: '1' } })[q.user] || { error: '1', text: 'No such user' });
+    case '/CMD_API_SHOW_USER_CONFIG': return send(res, ({ demobran: { package: 'hostia-ultra', ip: '216.158.237.114', quota: '10240', bandwidth: 'unlimited', inode: '250000', nemails: '10', vdomains: '5' }, demoblog: { package: 'hostia-lite', ip: '216.158.237.114', quota: '2048', bandwidth: '51200', inode: '100000', nemails: '10', vdomains: '1' } })[q.user] || { error: '1', text: 'No such user' });
+    case '/CMD_API_POP': return send(res, u === 'demobran' ? { info: { usage: '120', quota: '0' }, sales: { usage: '15', quota: '0' }, hello: { usage: '1', quota: '0' } } : {});
+    case '/CMD_API_FILE_MANAGER': return send(res, q.path === '/backups' && u === 'demobran' ? { '/backups/backup-Nov-01-2026.tar.zst': { name: 'backup-Nov-01-2026.tar.zst', type: 'file', size: '52428800', date: String(Math.floor(Date.now() / 1000) - 3 * 86400) } } : {});
     case '/CMD_API_SHOW_USERS': return send(res, Object.keys(users));
     case '/CMD_API_SHOW_DOMAINS': return send(res, users[u] || []);
     case '/CMD_API_DOMAIN':

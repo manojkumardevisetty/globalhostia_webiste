@@ -4,6 +4,7 @@
     { "path": "/api/cron/sync", "schedule": "0 1 * * *" },
     { "path": "/api/cron/reminders", "schedule": "0 6 * * *" },
     { "path": "/api/cron/health", "schedule": "17 4 * * *" },
-    { "path": "/api/cron/feedback", "schedule": "41 7 * * *" }
+    { "path": "/api/cron/feedback", "schedule": "41 7 * * *" },
+    { "path": "/api/cron/usage", "schedule": "23 5 * * *" }
   ]
 }

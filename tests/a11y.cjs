@@ -36,6 +36,8 @@ const PAGES = [
   ['acc-reports', '/account/reports?m=2026-10', 'auth'], ['acc-report-print', '/account/reports/print?m=2026-10', 'auth'], ['acc-ticket-closed', '/account/support/7000', 'auth'], ['rate-demo', '/account/rate?t=demo&s=4'], ['rate-invalid', '/account/rate?t=bad'],
   ['acc-renewals', '/account/renewals', 'auth'], ['acc-profile', '/account/profile', 'auth'], ['acc-settings', '/account/settings', 'auth'],
   ['acc-team', '/account/team', 'auth'], ['acc-sell', '/account/sell', 'auth'], ['acc-sell-new', '/account/sell/new', 'auth'],
+  // setup checklist, usage meters and the one-click upgrade (lib/cx): hosting at 96% disk, a monthly plan with two upgrades
+  ['acc-service-usage', '/account/services/102', 'auth'], ['acc-upgrade', '/account/services/104/upgrade', 'auth'],
 ];
 const url = (path, need) => {
   if (!THEME || need || path.startsWith('/account') || path.startsWith('/admin')) return BASE + path;

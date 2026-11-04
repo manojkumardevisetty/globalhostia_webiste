@@ -30,6 +30,14 @@ import { teamView, type TeamForm } from '@/lib/portal/views/team';
 import { listMembers, inviteUser, updatePermissions, removeUser } from '@/lib/portal/team';
 import { EMAIL_RE, normalizeEmail, permsFromForm, viewerIsOwner } from '@/lib/portal/team-perms';
 import { settingsView } from '@/lib/portal/views/settings';
+// client experience (lib/cx): welcome setup checklist, hosting usage meters + alerts, one-click upgrade
+import { onboardingCard } from '@/lib/portal/views/onboarding';
+import { usageServiceCard, usageDashCard, usageStrip, upgradeView, upgradeDialog, usagePrefsCard } from '@/lib/portal/views/usage';
+import { checklist, setManual, dismiss as dismissChecklist } from '@/lib/cx/onboarding';
+import { isStep, PANEL_TABS } from '@/lib/cx/onboarding-core';
+import { usageFor, tracked as usageTracked, loadUsageConfig, plansFor, payMethodFor, quotesFor, orderUpgrade, UpgradeError, usageAlertsOn, setUsageAlerts } from '@/lib/cx/usage';
+import type { Quote } from '@/lib/cx/usage-core';
+import { randomBytes } from 'node:crypto';
 import { remindersCard } from '@/lib/portal/views/reminders';
 // client experience (lib/cx): monthly site report email switch, "How did we do?" on closed tickets
 import { reportOn, setReportPref } from '@/lib/cx/report-engine';
@@ -83,6 +91,9 @@ const bulkLimit = limiter(10, 10 * 60_000);
 const lookupLimit = limiter(120, 60_000);
 const teamLimit = limiter(20, 60 * 60_000);
 const pushLimit = limiter(30, 10 * 60_000);
+/** setup checklist choices, and confirmed plan upgrades (each one an order in the billing system) */
+const obLimit = limiter(60, 10 * 60_000);
+const upgradeLimit = limiter(8, 60 * 60_000);
 const json = (body: unknown, status = 200) => new NextResponse(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', ...SECURITY_HEADERS } });
 const YEAR = 365 * 24 * 3600;
 const PUSH_MSG: Record<string, string> = {
@@ -183,6 +194,16 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       const r = await paletteItems(cid, sess.jti, curLang(), sess.cur);
       return json(r);
     }
+    if (b === 'onboarding') {
+      // welcome checklist: run the checks now (bounded) and send the card back to replace the cached one
+      let products: any[], domains: any[];
+      try { [products, domains] = await Promise.all([api.getClientsProducts(cid), api.getClientsDomains(cid)]); } catch { return json({ error: 'unavailable' }, 503); }
+      const cfg = await loadUsageConfig().catch(() => null);
+      if (cfg && !cfg.checklist) return json({ html: '' });
+      const c = await checklist(cid, products, domains, { fresh: true }).catch((e) => { console.error('[onboarding]', e instanceof Error ? e.message : e); return null; });
+      if (!c) return json({ error: 'unavailable' }, 503);
+      return json({ html: onboardingCard(c, { csrf: v.csrf }), complete: c.celebrate, done: c.prog.done, total: c.prog.total });
+    }
     if (b === 'domains') {
       const ids = idList(q.get('ids'), 25);
       let mine: any[];
@@ -217,6 +238,19 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   /* sell your domains (lib/portal/sell-handler.ts): /account/sell, /account/sell/new, /account/sell/<id> */
   if (a === 'sell' && c === undefined) return sellGet(await sellCtx(req, sess, v, path, q), segs, q);
 
+  /* one-click upgrade: /account/services/<id>/upgrade (page, or ?fragment=1 for the dialog account.js opens) */
+  if (a === 'services' && c === 'upgrade' && segs.length === 3) {
+    const id = idOf(b);
+    const p = id ? await api.getService(cid, id).catch(() => null) : null;
+    if (!p) return notFound('service', '/account/services', 'services');
+    const fragment = q.get('fragment') === '1';
+    const body = await upgradeBody(v.csrf, cid, sess.cur, p, fragment, q.get('err') === 'upgrade' ? t('The upgrade could not be ordered right now. Nothing was charged. Please try again or contact support.') : undefined);
+    if (fragment) return html(body);
+    return html(await F({ title: t('Upgrade your plan'), sub: p.domain ? `<span class="ac-mono">${esc(p.domain)}</span>` : '', active: 'services',
+      crumbs: [{ label: t('Products & Services'), href: '/account/services' }, { label: p.name || t('Service'), href: `/account/services/${Number(p.id)}` }],
+      body: `<div class="ac-up-page">${body}</div>` }));
+  }
+
   if (c !== undefined && !(a === 'support' && b === 'new')) return notFound('page', '/account', 'dashboard');
 
   /* dashboard */
@@ -227,9 +261,19 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       settle(api.getInvoices(cid, 'Unpaid').then((r) => r.list)), settle(api.getTickets(cid, 'All Active Tickets')),
     ]);
     const inv = unpaid.ok && unpaid.v.length ? await api.unpaidRenewalInvoices(cid, unpaid.v).catch(() => undefined) : undefined;
-    const d = dashboardView({ csrf: v.csrf, client, products, domains, unpaid, tickets, inv, cur: sess.cur });
+    // hosting usage from the panel (cached 6 h, lib/cx/usage.ts) and the welcome checklist (lib/cx/onboarding.ts)
+    const ucfg = await loadUsageConfig().catch(() => null);
+    const hosting = products.ok ? products.v.filter(usageTracked) : [];
+    const [snaps, ob] = await Promise.all([
+      ucfg && hosting.length ? usageFor(cid, hosting).catch(() => null) : Promise.resolve(null),
+      ucfg?.checklist && products.ok && domains.ok ? checklist(cid, products.v, domains.v).catch((e) => { console.error('[onboarding]', e instanceof Error ? e.message : e); return null; }) : Promise.resolve(null),
+    ]);
+    const usageHtml = ucfg && snaps ? usageDashCard(hosting, snaps, ucfg, v.csrf) : undefined;
+    const d = dashboardView({ csrf: v.csrf, client, products, domains, unpaid, tickets, inv, cur: sess.cur, usageHtml });
     const strip = healthStrip(await healthRows(cid).catch(() => [])); // urgent domain health problems (lib/health)
-    return html(await F({ title: 'Dashboard', h1: d.greeting, sub: d.alert ? `<span class="ac-hero-alert" role="status">${esc(d.summary)}</span>` : esc(d.summary), active: 'dashboard', heroExtra: d.statsHtml, body: strip + d.body }));
+    const ustrip = ucfg && snaps ? usageStrip(hosting, snaps, ucfg) : '';
+    const obHtml = ob ? onboardingCard(ob, { csrf: v.csrf }) : '';
+    return html(await F({ title: 'Dashboard', h1: d.greeting, sub: d.alert ? `<span class="ac-hero-alert" role="status">${esc(d.summary)}</span>` : esc(d.summary), active: 'dashboard', heroExtra: d.statsHtml, body: strip + ustrip + obHtml + d.body + (hosting.length ? upgradeDialog() : '') }));
   }
 
   /* services */
@@ -260,7 +304,7 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       crumbs: [{ label: t('Products & Services'), href: '/account/services' }, { label: p.name || t('Service') }],
       headAction: ssoButton(v.csrf, 'service', p.id, t('Open control panel'), { variant: 'outline', ic: 'external' }),
       ai: { serviceId: Number(p.id), domain: p.domain ? String(p.domain).toLowerCase() : undefined },
-      body: serviceDetailView({ csrf: v.csrf, p, cur: sess.cur, dnsHref }),
+      body: serviceDetailView({ csrf: v.csrf, p, cur: sess.cur, dnsHref, ...(await serviceUsage(v.csrf, cid, p)) }),
     }));
   }
 
@@ -329,7 +373,7 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       phone: cl ? toE164(cl.phonenumberformatted || cl.phonenumber, { country: cl.countrycode || cl.country, cc: cl.phonecc }) : null, waOffered, saved: q.get('ok') === 'reminders_saved', health: hp ? hp.alerts : undefined, report: await reportOn(sess.email).catch(() => undefined) }) : '';
     return html(await F({
       title: t('App & notifications'), sub: esc(t('Install GlobalHostia as an app, choose notifications and set your language.')), active: 'settings',
-      body: settingsView({ csrf: v.csrf, publicKey: keys?.publicKey || null, available: !!keys, devices: subs.length, cats: parseCategories(cats), lang: curLang(), digits: curDigits(), reminders }),
+      body: settingsView({ csrf: v.csrf, publicKey: keys?.publicKey || null, available: !!keys, devices: subs.length, cats: parseCategories(cats), lang: curLang(), digits: curDigits(), reminders: reminders + (await usagePrefs(v.csrf, cid, cl, q.get('ok') === 'usage_saved')) }),
     }));
   }
 
@@ -402,6 +446,44 @@ async function sellCtx(req: NextRequest, sess: ClientSession, v: Viewer, path: s
     cid: sess.clientId, email: sess.email, ip: clientIp(req), csrf: v.csrf, whmcsBase: await secureBase(),
     F: (o) => frame({ ...o, viewer: v, path, query: q }), html, go: (to) => go(req, to),
   };
+}
+
+/** Settings card for usage alert emails, only for accounts with hosting. */
+async function usagePrefs(csrf: string, cid: number, cl: any, saved: boolean) {
+  try {
+    const products = await api.getClientsProducts(cid);
+    if (!products.some(usageTracked)) return '';
+    const [cfg, on] = await Promise.all([loadUsageConfig(), usageAlertsOn(String(cl?.email || ''))]);
+    return usagePrefsCard({ csrf, on, saved, cfg });
+  } catch { return ''; }
+}
+
+/** Service page: panel usage meters (hosting services only) and the in-portal upgrade link for active services. */
+async function serviceUsage(csrf: string, cid: number, p: any): Promise<{ usageHtml?: string; upgradeHref?: string }> {
+  const active = /^active$/i.test(String(p.status || ''));
+  if (!usageTracked(p)) return {};
+  const cfg = await loadUsageConfig().catch(() => null);
+  if (!cfg) return {};
+  const snaps = await usageFor(cid, [p], { budgetMs: 4000 }).catch(() => null);
+  return { usageHtml: usageServiceCard(p, snaps?.get(Number(p.id)), cfg, csrf) + (active ? upgradeDialog() : ''), upgradeHref: active ? `/account/services/${Number(p.id)}/upgrade` : undefined };
+}
+
+/**
+ * Upgrade chooser: next plans in the same product group (catalog prices from WHMCS) with the prorated amount due today
+ * (UpgradeProduct calconly). A plan without a quote cannot be ordered here. The form carries a one-time idempotency key.
+ */
+async function upgradeBody(csrf: string, cid: number, cur: string, p: any, fragment: boolean, error?: string) {
+  const key = randomBytes(16).toString('hex');
+  if (!/^active$/i.test(String(p.status || ''))) return upgradeView({ csrf, p, cur, plans: { current: null, options: [], currency: cur, reason: 'cycle' }, quotes: new Map(), key, fragment, error: t('Only active services can be upgraded here.') });
+  const client = await api.getClientsDetails(cid).catch(() => null);
+  const currency = String(client?.currency_code || cur || 'USD');
+  const [plans, cfg, snaps] = await Promise.all([plansFor(p, currency).catch((e) => { console.error('[upgrade] plans', e instanceof Error ? e.message : e); return null; }), loadUsageConfig().catch(() => null), usageTracked(p) ? usageFor(cid, [p]).catch(() => null) : Promise.resolve(null)]);
+  const quotes = new Map<number, Quote | null>();
+  if (plans?.options.length) {
+    const pm = await payMethodFor(cid, p).catch(() => null);
+    if (pm) for (const r of await quotesFor(p, plans.options, pm)) { if (r.ok) quotes.set(r.q.pid, r.q); else { quotes.set(r.pid, null); console.warn('[upgrade] quote', p.id, r.pid, r.error); } }
+  }
+  return upgradeView({ csrf, p, cur: currency, plans, quotes, key, fragment, error, snap: snaps?.get(Number(p.id)), cfg: cfg || undefined });
 }
 
 /** Domain detail with its DNS section (nameservers read live from the registry, zone resolved per request). */
@@ -523,7 +605,12 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     const fail = () => go(req, `${safeNext(back) || '/account'}?err=sso`);
     try {
       let dest: Parameters<typeof api.createSso>[1] | null = null;
-      if (['service', 'upgrade', 'cancel'].includes(to)) {
+      if (to === 'panel') {
+        // one tab of Manage hosting on the service page (public/hp/whmcs.js reads ghtab once); allow-listed tabs only
+        const tab = str('tab', 20);
+        if (!id || !(PANEL_TABS as readonly string[]).includes(tab) || !(await api.getService(cid, id))) return fail();
+        dest = { destination: 'sso:custom_redirect', path: `clientarea.php?action=productdetails&id=${id}&ghtab=${tab}` };
+      } else if (['service', 'upgrade', 'cancel'].includes(to)) {
         if (!id || !(await api.getService(cid, id))) return fail();
         dest = to === 'service' ? { destination: 'clientarea:product_details', service_id: id }
           : to === 'upgrade' ? { destination: 'sso:custom_redirect', path: `upgrade.php?type=package&id=${id}` }
@@ -730,6 +817,13 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     const op = str('op', 20);
     const reply = (ok: boolean, key: string, status = ok ? 200 : 400) => (wantsJson ? json({ ok, key, message: t(PUSH_MSG[key] || key) }, status) : go(req, `/account/settings?${ok ? 'ok' : 'err'}=${key}`));
     if (pushLimit(`c${cid}`)) return reply(false, 'rate', 429);
+    if (op === 'usage_prefs') {
+      // hosting usage alert emails (lib/cx/usage.ts): sent to the account's billing email, so the choice is kept for that address
+      const on = fd.get('usage') === '1';
+      try { const cl = await api.getClientsDetails(cid); await setUsageAlerts(cid, String(cl.email || sess.email), on); } catch { return go(req, '/account/settings?err=failed#usage-alerts'); }
+      await auditClient('client_usage_alert_prefs', sess.email, ip, { on });
+      return go(req, '/account/settings?ok=usage_saved#usage-alerts');
+    }
     if (op === 'reminder_prefs') {
       // unticked boxes are absent from the form: absent = off. WhatsApp stays off unless ticked (explicit opt-in).
       const next: { cartEmail: boolean; renewalEmail: boolean; whatsapp?: boolean } = { cartEmail: fd.get('cart') === '1', renewalEmail: fd.get('renewal') === '1' };
@@ -877,6 +971,55 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       return go(req, `${back}?ok=dns_template#dns`);
     }
     return again(t('Unknown action.'), 'zone', 400);
+  }
+
+  /* ---- welcome checklist: mark done / skip / undo a step, or hide the card ---- */
+  if (segs[0] === 'onboarding' && segs.length === 1) {
+    const op = str('op', 10), step = str('step', 20);
+    const reply = async (ok: boolean, flash = '') => {
+      if (!wantsJson) return go(req, `/account${flash ? `?ok=${flash}` : ''}${ok && op !== 'dismiss' ? '#ob' : ''}`);
+      if (!ok) return json({ ok }, 400);
+      // the card again from the stored checks (no new probes), for account.js to swap in place
+      const [products, domains] = await Promise.all([api.getClientsProducts(cid).catch(() => null), api.getClientsDomains(cid).catch(() => null)]);
+      const c = products && domains ? await checklist(cid, products, domains).catch(() => null) : null;
+      return json({ ok, html: c ? onboardingCard(c, { csrf: v.csrf }) : '' });
+    };
+    if (obLimit(`c${cid}`)) return wantsJson ? json({ ok: false, error: 'rate' }, 429) : go(req, '/account?err=rate');
+    try {
+      if (op === 'dismiss') { await dismissChecklist(cid); await auditClient('client_onboarding_dismiss', sess.email, ip, {}); return reply(true, 'ob_hidden'); }
+      if (!isStep(step) || !['done', 'skip', 'undo'].includes(op)) return reply(false);
+      await setManual(cid, step, op === 'done' ? 'done' : op === 'skip' ? 'skipped' : null);
+      await auditClient('client_onboarding_step', sess.email, ip, { step, op });
+      return reply(true);
+    } catch (e) { console.error('[onboarding]', e instanceof Error ? e.message : e); return wantsJson ? json({ ok: false }, 503) : go(req, '/account?err=failed'); }
+  }
+
+  /* ---- one-click upgrade: confirmed by the customer, then the WHMCS invoice via single sign-on. Never automatic. ---- */
+  if (segs[0] === 'services' && segs[2] === 'upgrade' && segs.length === 3) {
+    const id = idOf(segs[1]);
+    const p = id ? await api.getService(cid, id).catch(() => null) : null;
+    if (!id || !p) return go(req, '/account/services');
+    const back = `/account/services/${id}/upgrade`;
+    const pid = idOf(str('pid', 10)), key = str('key', 64);
+    if (str('confirm', 5) !== 'yes' || !pid || !/^[a-f0-9]{32}$/.test(key)) return go(req, back);
+    if (upgradeLimit(`c${cid}`)) return go(req, `${back}?err=upgrade`);
+    let r: Awaited<ReturnType<typeof orderUpgrade>>;
+    try {
+      const cl = await api.getClientsDetails(cid).catch(() => null);
+      r = await orderUpgrade({ clientId: cid, p, pid, key, currency: String(cl?.currency_code || sess.cur || 'USD') });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      await auditClient('client_upgrade_failed', sess.email, ip, { serviceId: id, pid, error: msg.slice(0, 300), code: e instanceof UpgradeError ? e.code : 'error' });
+      return go(req, `${back}?err=upgrade`);
+    }
+    await auditClient('client_upgrade', sess.email, ip, { serviceId: id, pid, orderId: r.orderId, invoiceId: r.invoiceId, repeat: r.repeat });
+    if (!r.invoiceId) return go(req, `/account/services/${id}?ok=upgrade_done`);
+    try {
+      const url = await api.createSso(cid, { destination: 'sso:custom_redirect', path: `viewinvoice.php?id=${r.invoiceId}` });
+      const res = NextResponse.redirect(url, 303);
+      res.headers.set('cache-control', 'private, no-store');
+      return res;
+    } catch { return go(req, `/account/invoices/${r.invoiceId}?ok=upgrade_done`); }
   }
 
   /* ---- renewal centre: domain auto-renew switch ---- */

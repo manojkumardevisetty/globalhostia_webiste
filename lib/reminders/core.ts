@@ -290,9 +290,9 @@ export function verifyValue<T = any>(domain: string, token: unknown, secret: unk
 }
 
 /** Unsubscribe link token (no expiry: an unsubscribe link must keep working). scope: which reminders it stops (health = domain health alerts, lib/health;
- *  report = the monthly site report and rating = "How did we do?" requests after a closed ticket, lib/cx). */
-export type UnsubScope = 'cart' | 'renewal' | 'health' | 'report' | 'rating' | 'all';
-export const UNSUB_SCOPES: UnsubScope[] = ['cart', 'renewal', 'health', 'report', 'rating', 'all'];
+ *  report = the monthly site report and rating = "How did we do?" requests after a closed ticket, lib/cx; usage = hosting usage alerts, lib/cx/usage.ts). */
+export type UnsubScope = 'cart' | 'renewal' | 'health' | 'report' | 'rating' | 'usage' | 'all';
+export const UNSUB_SCOPES: UnsubScope[] = ['cart', 'renewal', 'health', 'report', 'rating', 'usage', 'all'];
 export type UnsubClaims = { e: string; c: number; s: UnsubScope };
 export const signUnsub = (c: UnsubClaims, secret: string) => signValue('gh-unsub.v1', { e: c.e.toLowerCase(), c: c.c, s: c.s }, secret, 16);
 export function verifyUnsub(token: unknown, secret: unknown): UnsubClaims | null {

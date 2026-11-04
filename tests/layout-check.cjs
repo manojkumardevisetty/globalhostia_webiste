@@ -21,6 +21,8 @@ const PAGES = [
   ['acc-invoices', '/account/invoices', 'auth'], ['acc-support', '/account/support', 'auth'],
   ['acc-reports', '/account/reports?m=2026-10', 'auth'], ['acc-ticket-closed', '/account/support/7000', 'auth'], ['rate-demo', '/account/rate?t=demo&s=4'],
   ['acc-home-ar', '/account', 'ar'], ['acc-domains-ar', '/account/domains', 'ar'],
+  // setup checklist, usage meters and the one-click upgrade (lib/cx)
+  ['acc-service-usage', '/account/services/102', 'auth'], ['acc-upgrade', '/account/services/104/upgrade', 'auth'], ['acc-service-usage-ar', '/account/services/102', 'ar'], ['acc-upgrade-ar', '/account/services/104/upgrade', 'ar'],
   // premium domains (lib/premium): 'rtl' = Arabic right-to-left stress without signing in; PREMIUM_DETAIL = a listed name
   ['premium', '/premium-domains'], ['premium-detail', process.env.PREMIUM_DETAIL || '/premium-domains/atlas.test'], ['home-hostpen', '/?theme=hostpen'],
   ['premium-ar', '/premium-domains', 'rtl'], ['premium-detail-ar', process.env.PREMIUM_DETAIL || '/premium-domains/atlas.test', 'rtl'],

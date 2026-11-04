@@ -647,3 +647,87 @@
   });
   if (/[?&]assistant=open\b/.test(location.search)) ask("");
 })();
+
+/* Client experience (lib/cx): the dashboard setup checklist refreshes its checks in place (/account/api/onboarding) and
+   saves Mark as done / Skip / Undo without a page load; Upgrade buttons open the plan chooser in a dialog (the same
+   server-rendered page, ?fragment=1). Without JavaScript every form and link works as a normal page. */
+(function () {
+  "use strict";
+  var D = document, W = window;
+  var I18N = {};
+  try { var ie = D.getElementById("ac-i18n"); if (ie) I18N = JSON.parse(ie.textContent || "{}"); } catch (e) { /* English */ }
+  function L(k, v) { var s = I18N[k] || k; if (v) for (var x in v) s = s.split("{" + x + "}").join(v[x]); return s; }
+  var reduce = W.matchMedia && W.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------------- setup checklist */
+  function spin() { return W.GHFx && W.GHFx.spinner ? W.GHFx.spinner() : ""; }
+  function bindOb(sec) {
+    if (!sec) return;
+    [].forEach.call(sec.querySelectorAll("[data-ob-checking]"), function (s) { s.classList.add("ac-ob__st", "is-checking"); s.innerHTML = spin() + "<span>" + L("Checking…") + "</span>"; });
+    [].forEach.call(sec.querySelectorAll("form[data-ob-op]"), function (f) {
+      f.addEventListener("submit", function (e) {
+        e.preventDefault();
+        sec.classList.add("is-busy");
+        fetch(f.action, { method: "POST", body: new FormData(f), credentials: "same-origin", headers: { "x-ac-fetch": "1", accept: "application/json" } })
+          .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+          .then(function (j) { if (j && typeof j.html === "string") swap(sec, j.html, f.querySelector("[name=step]") && f.querySelector("[name=step]").value); else throw new Error("no html"); })
+          .catch(function () { sec.classList.remove("is-busy"); var m = sec.querySelector("[data-ob-msg]"); if (m) m.textContent = L("Something went wrong. Please try again."); });
+      });
+    });
+    var yay = sec.querySelector("[data-ob-yay]");
+    if (yay && W.GHFx && W.GHFx.success) W.GHFx.success(yay, { small: true });
+  }
+  function swap(sec, html, focusStep) {
+    if (!html) { sec.remove(); return; }
+    var box = D.createElement("div"); box.innerHTML = html;
+    var next = box.firstElementChild;
+    if (!next) return;
+    next.removeAttribute("data-reveal"); next.style.removeProperty("--i");
+    sec.replaceWith(next);
+    bindOb(next);
+    // keep keyboard users in place: the same step (now in the done list) or the card heading
+    var tgt = (focusStep && next.querySelector('[data-step="' + focusStep + '"] button')) || next.querySelector("#ac-ob-h");
+    if (tgt && D.activeElement === D.body) { if (!tgt.hasAttribute("tabindex") && tgt.tagName === "H2") tgt.setAttribute("tabindex", "-1"); try { tgt.focus({ preventScroll: true }); } catch (e) { /* ignore */ } }
+  }
+  var ob = D.querySelector("[data-ob]");
+  if (ob) {
+    bindOb(ob);
+    if (ob.getAttribute("data-ob-refresh") === "1") {
+      fetch("/account/api/onboarding", { credentials: "same-origin", headers: { accept: "application/json" } })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+        .then(function (j) { if (j && typeof j.html === "string") swap(ob, j.html); })
+        .catch(function () { [].forEach.call(ob.querySelectorAll(".ac-ob__st.is-checking"), function (s) { s.classList.remove("is-checking"); s.textContent = L("Not checked"); }); });
+    }
+  }
+
+  /* ---------------- upgrade dialog */
+  var dlg = D.getElementById("ac-up-dlg");
+  if (!dlg || typeof dlg.showModal !== "function") return;
+  var body = dlg.querySelector("[data-up-body]"), opener = null;
+  function close() { dlg.close(); }
+  dlg.addEventListener("close", function () { if (opener && opener.focus) opener.focus(); });
+  dlg.addEventListener("click", function (e) { if (e.target === dlg) close(); });
+  function bindUp() {
+    [].forEach.call(body.querySelectorAll("[data-up-close]"), function (b) { b.addEventListener("click", close); });
+    var form = body.querySelector("[data-up-form]"), cta = body.querySelector("[data-up-cta]");
+    if (form && cta) form.addEventListener("change", function (e) {
+      var r = e.target; if (!r || r.name !== "pid") return;
+      var due = r.getAttribute("data-due"); cta.textContent = due ? L("Confirm and pay {p}", { p: due }) : cta.textContent;
+    });
+    var first = body.querySelector("input[name=pid]:checked") || body.querySelector("[data-up-close]");
+    if (first) try { first.focus(); } catch (e) { /* ignore */ }
+  }
+  D.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[data-ac-upgrade]");
+    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
+    e.preventDefault();
+    opener = a;
+    body.innerHTML = '<p class="ac-up__loading" role="status">' + spin() + " " + L("Loading…") + "</p>";
+    dlg.showModal();
+    fetch(a.getAttribute("href") + "?fragment=1", { credentials: "same-origin", headers: { accept: "text/html" } })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.text(); })
+      .then(function (h) { body.innerHTML = h; bindUp(); })
+      .catch(function () { dlg.close(); W.location.href = a.getAttribute("href"); });
+  });
+  if (reduce) dlg.style.animation = "none";
+})();

@@ -260,7 +260,29 @@ const portal = {
 
 const handlers = {
   WhmcsDetails: () => ({ whmcs: { version: '8.10.1-release.1' } }),
-  GetProducts: (p) => { const l = p.pid ? products.filter((x) => String(x.pid) === String(p.pid)) : products; return { totalresults: l.length, products: { product: l } }; },
+  GetProducts: (p) => { const l = p.pid ? products.filter((x) => String(x.pid) === String(p.pid)) : p.gid ? products.filter((x) => String(x.gid) === String(p.gid)) : products; return { totalresults: l.length, products: { product: l } }; },
+  // one-click upgrade (lib/cx/usage-core.ts): prorated difference to the next due date; calconly answers without an order
+  UpgradeProduct: (p) => {
+    const svc = Object.values(services).flat().find((x) => x.id === Number(p.serviceid)) || err('Service ID Not Found');
+    if (p.type !== 'product') err('Invalid upgrade type');
+    if (!['stripe', 'banktransfer'].includes(p.paymentmethod)) err('Invalid Payment Method. Valid options include stripe,banktransfer');
+    const from = products.find((x) => x.pid === svc.pid), to = products.find((x) => x.pid === Number(p.newproductid));
+    if (!to || (from && to.gid !== from.gid)) err('Invalid New Product ID');
+    const cyc = String(p.newproductbillingcycle || '').toLowerCase();
+    const price = (x) => parseFloat(x?.pricing?.USD?.[cyc] ?? '-1');
+    if (!(price(to) >= 0)) err('Invalid Billing Cycle Requested');
+    const total = { monthly: 30, quarterly: 91, semiannually: 182, annually: 365, biennially: 730, triennially: 1095 }[cyc] || 30;
+    const left = Math.max(0, Math.round((Date.parse(svc.nextduedate) - Date.now()) / 86400000));
+    const diff = Math.max(0, (price(to) - Math.max(0, price(from))) * (left / total));
+    const quote = { oldproductid: String(svc.pid), oldproductname: svc.name, newproductid: String(to.pid), newproductname: to.name, daysuntilrenewal: String(left), totaldays: String(total), newproductbillingcycle: cyc, price: diff.toFixed(2), discount: '0.00', promotiontype: '', promotionvalue: '' };
+    calls.push({ action: 'UpgradeProduct', ...p });
+    if (p.calconly === 'true' || p.calconly === '1') return quote;
+    const invoiceid = 9600 + Object.keys(invoices).filter((k) => Number(k) >= 9600).length;
+    invoices[invoiceid] = { invoiceid, id: invoiceid, userid: svc.clientid, invoicenum: '', date: day(0), duedate: day(0), subtotal: diff.toFixed(2), total: diff.toFixed(2), balance: diff.toFixed(2), status: 'Unpaid', currencycode: 'USD', items: { item: [{ id: 1, type: 'Upgrade', relid: svc.id, description: `Upgrade: ${svc.name} => ${to.name}`, amount: diff.toFixed(2) }] } };
+    const o = { id: 700 + orders.length, ordernum: String(9100 + orders.length), date: now(), name: 'Upgrade', amount: diff.toFixed(2), paymentmethod: p.paymentmethod, paymentstatus: 'Unpaid', status: 'Pending', userid: svc.clientid, invoiceid };
+    orders.push(o);
+    return { ...quote, orderid: o.id, invoiceid };
+  },
   // rates relative to the default currency (USD); sell-your-domain fees convert with these (lib/sell/core.ts convertUsd)
   GetCurrencies: () => ({ totalresults: 3, currencies: { currency: [{ id: 1, code: 'USD', prefix: '$', suffix: ' USD', rate: '1.00000', default: 1 }, { id: 2, code: 'AED', prefix: '', suffix: ' AED', rate: '3.67250', default: 0 }, { id: 3, code: 'EUR', prefix: '€', suffix: ' EUR', rate: '0.92000', default: 0 }] } }),
   GetPaymentMethods: () => ({ totalresults: 2, paymentmethods: { paymentmethod: [{ module: 'stripe', displayname: 'Card' }, { module: 'banktransfer', displayname: 'Bank transfer' }] } }),
@@ -313,7 +335,7 @@ const handlers = {
     ae: { register: { 1: '35.00' }, transfer: { 1: '35.00' }, renew: { 1: '35.00' } }, io: { register: { 1: '49.00' }, transfer: { 1: '49.00' }, renew: { 1: '49.00' } } } }),
   DomainWhois: (p) => ({ status: /google|globalhostia/.test(p.domain) ? 'unavailable' : 'available' }),
   GetStats: () => ({ income_today: '$120.00', income_thismonth: '$4,210.00', orders_pending: 3, orders_today_total: 5, tickets_open: 2, tickets_awaitingreply: 1 }),
-  GetOrders: (p) => { const list = p.userid ? orders.filter((o) => o.userid === Number(p.userid)) : orders.filter((o) => o.userid === 7); return { totalresults: list.length, orders: { order: list } }; },
+  GetOrders: (p) => { const list = p.id ? orders.filter((o) => o.id === Number(p.id)) : p.userid ? orders.filter((o) => o.userid === Number(p.userid)) : orders.filter((o) => o.userid === 7); return { totalresults: list.length, orders: { order: list } }; },
   // reminders: emails "sent" through WHMCS are kept in memory; Mock* actions let tests inspect / change state
   SendEmail: (p) => { if (!clients[Number(p.id)]) err('Client ID Not Found'); sentEmails.push({ id: Number(p.id), customtype: p.customtype, subject: p.customsubject, message: p.custommessage, at: Date.now() }); return {}; },
   MockSentEmails: () => ({ emails: sentEmails }),

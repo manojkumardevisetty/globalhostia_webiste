@@ -23,6 +23,8 @@ export function productRow(p: any, csrf: string, cur: string) {
 
 export function dashboardView(o: {
   csrf: string; client: R<any>; products: R<any[]>; domains: R<any[]>; unpaid: R<any[]>; tickets: R<any[]>; inv?: RenewalInvoices; cur?: string;
+  /** hosting usage card from the panel figures (lib/portal/views/usage.ts); falls back to the billing-sync card */
+  usageHtml?: string;
 }) {
   const c = o.client.ok ? o.client.v : {};
   const cur = c.currency_code || o.cur || 'USD';
@@ -89,7 +91,7 @@ export function dashboardView(o: {
   { id: 'ac-inv-h', i: 1, action: `<a class="ac-more" href="/account/invoices">${esc(t('Billing'))}${icon('right')}</a>` });
 
   const renewals = renewalsCard({ csrf: o.csrf, cur, products: o.products, domains: o.domains, unpaid: o.unpaid, inv: o.inv });
-  const usage = usageCard({ csrf: o.csrf, products: o.products, i: 2 });
+  const usage = o.usageHtml ?? usageCard({ csrf: o.csrf, products: o.products, i: 2 });
 
   const tix = card(t('Recent tickets'), !o.tickets.ok ? errorBox(t('your tickets'), '/account')
     : tickets.length ? `<ul class="ac-mini">${tickets.slice(0, 4).map((tk) => `<li>

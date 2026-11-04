@@ -21,7 +21,7 @@ export function servicesView(o: { csrf: string; products: any[]; cur: string; fi
 
 const copyBtn = (v: string, label: string) => `<button type="button" class="ac-copy" data-copy="${esc(v)}" aria-label="${esc(t('Copy {x}', { x: label }))}">${icon('copy')}<span>${esc(t('Copy'))}</span></button>`;
 
-export function serviceDetailView(o: { csrf: string; p: any; cur: string; dnsHref?: string }) {
+export function serviceDetailView(o: { csrf: string; p: any; cur: string; dnsHref?: string; usageHtml?: string; upgradeHref?: string }) {
   const p = o.p, cur = o.cur;
   const ips = ipList(p);
   const opts = configOptions(p);
@@ -74,11 +74,11 @@ export function serviceDetailView(o: { csrf: string; p: any; cur: string; dnsHre
   ]) + `<div class="ac-card__foot ac-card__foot--stack">${ssoButton(o.csrf, 'invoices', undefined, t('Renew or pay'), { variant: 'brand', ic: 'card', block: true })}</div>`, { id: 'ac-bill-h' });
 
   const manage = card(t('Manage'), `<ul class="ac-actions">
-    <li>${icon('trend')}<div><b>${esc(t('Upgrade or downgrade'))}</b><small>${esc(t('Change plan and pay only the difference.'))}</small></div>${ssoButton(o.csrf, 'upgrade', p.id, t('Change plan'), { sm: true })}</li>
+    <li>${icon('trend')}<div><b>${esc(t('Upgrade or downgrade'))}</b><small>${esc(t('Change plan and pay only the difference.'))}</small></div>${o.upgradeHref ? `<a class="hp-btn hp-btn--ghost ac-sm" href="${esc(o.upgradeHref)}" data-ac-upgrade>${esc(t('Change plan'))}</a>` : ssoButton(o.csrf, 'upgrade', p.id, t('Change plan'), { sm: true })}</li>
     ${o.dnsHref ? `<li>${icon('database')}<div><b>${esc(t('DNS records'))}</b><small>${esc(t('Edit records for {d}.', { d: p.domain }))}</small></div><a class="hp-btn hp-btn--ghost ac-sm" href="${esc(o.dnsHref)}">${esc(t('Manage DNS'))}</a></li>` : ''}
     <li>${icon('headset')}<div><b>${esc(t('Get help with this service'))}</b><small>${esc(t('Opens a ticket linked to it.'))}</small></div><a class="hp-btn hp-btn--ghost ac-sm" href="/account/support/new?service=${esc(p.id)}">${esc(t('New ticket'))}</a></li>
     <li class="ac-actions__danger">${icon('x')}<div><b>${esc(t('Request cancellation'))}</b><small>${esc(t('Choose immediate or end-of-term cancellation.'))}</small></div>${ssoButton(o.csrf, 'cancel', p.id, t('Request'), { sm: true })}</li>
   </ul>`, { id: 'ac-man-h', flush: true });
 
-  return `<div class="ac-grid ac-grid--detail"><div class="ac-col">${serverCard}${usageDetailCard(p, o.csrf)}${overview}${config}</div><div class="ac-col">${billing}${manage}</div></div>`;
+  return `<div class="ac-grid ac-grid--detail"><div class="ac-col">${serverCard}${o.usageHtml ?? usageDetailCard(p, o.csrf)}${overview}${config}</div><div class="ac-col">${billing}${manage}</div></div>`;
 }
