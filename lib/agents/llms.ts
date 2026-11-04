@@ -6,6 +6,8 @@ import 'server-only';
 import { agentData, agentTlds, type AgentData, type AgentProduct } from './catalog';
 import { SPEC_LABEL } from '../render/specs';
 import { LEARN_SECTIONS, learnPages, learnPath, type LearnSection } from '../theme/learn';
+import { helpTopics } from '../help/view';
+import { helpPath } from '../help/topics';
 import { locationGroups, useCasePages, tldHref } from '../theme/pseo';
 import { FAMILY_IDS } from '../theme/sitelinks';
 import { policies as termsPolicies } from './policies';
@@ -182,6 +184,20 @@ export async function buildLlms(full: boolean) {
     for (const p of learnPages(k)) L.push(`- [${md(p.title)}](${S}${learnPath(p)}): ${md(p.description)}`);
     // GlobalHostia vs <host> (lib/compare/competitors.ts): only pages not hidden in admin
     if (k === 'compare') for (const c of visibleCompetitors(await getSettings().catch(() => null))) L.push(`- [GlobalHostia vs ${md(c.name)}](${S}${vsPath(c.slug)}): ${md(c.blurb)} Facts about ${md(c.name)} are from its own website, each with a source and date.`);
+    L.push('');
+  }
+
+  // help centre how-tos (lib/help): short captioned videos and walkthroughs; the full file carries the steps so the
+  // site search (lib/ai/site-search.ts) and the chat assistant can find and link the right one
+  const how = helpTopics(await getSettings().catch(() => null));
+  if (how.length) {
+    L.push('## How-to videos', '', `- [Watch how: all how-to videos](${S}/help-center#watch-how)`);
+    for (const t of how) {
+      const name = `How to ${md(t.title.charAt(0).toLowerCase() + t.title.slice(1))}`;
+      // full file: one heading per topic, so each how-to is its own search chunk
+      if (full) L.push('', `### ${name}`, '', `- [${name}](${S}${helpPath(t.slug)}): ${md(t.summary)}${t.kind === 'video' ? ' Short captioned video.' : ' Illustrated steps.'}`, ...t.steps.map((x, i) => `  ${i + 1}. ${md(x.en)}`), `  Keywords: ${md(t.keywords)}`);
+      else L.push(`- [${name}](${S}${helpPath(t.slug)}): ${md(t.summary)}${t.kind === 'video' ? ' (video)' : ' (step-by-step)'}`);
+    }
     L.push('');
   }
 

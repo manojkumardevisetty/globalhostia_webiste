@@ -12,6 +12,7 @@ import { esc, tokens } from '../../render/util';
 import { picture, HERO_BG_SIZES } from '../img';
 import { getCatalog, whmcsLinks, productsFor, deriveSpecs, minFrom, pricedTlds, fmt, type Catalog } from '../data';
 import { page } from '../shell';
+import { watchHowSection } from './help';
 import {
   pageHero, sectionHead, splitHead, featureGrid, statRow, faq, faqJsonLd, ctaBand, dcMap, planCards, breadcrumbJsonLd,
   icon, hexIcon, button, link, ld, type IconName, type FeatureItem,
@@ -445,6 +446,8 @@ export default async function render(ctx: PageCtx): Promise<string> {
       { icon: 'book', title: 'Knowledge base', text: 'Step-by-step guides for hosting, domains, email and servers, available any time.' },
       { icon: 'chat', title: 'WhatsApp and phone', text: 'Quick questions, quotes and urgent issues, with the same team behind every channel.' },
     ];
+    // "Watch how": captioned how-to videos and walkthroughs for the top customer tasks (lib/theme/pages/help.ts)
+    if (slug === 'help-center') { const hw = watchHowSection(s); if (hw) { parts.push(hw); css.push('help'); js.push('help'); } }
     parts.push(`<section class="hp-section hp-section--tight" aria-labelledby="cn-ch-h"><div class="hp-container">${sectionHead({ id: 'cn-ch-h', title: 'Three ways to get help' })}${featureGrid(channels)}<div class="cn-actions">${button({ label: 'Open a support ticket', href: L.ticket, icon: 'ticket' })}${button({ label: 'Browse the knowledge base', href: L.knowledgebase, variant: 'ghost', icon: 'book' })}</div></div></section>`);
     const isTopics = (x: Sec) => x.k === 'cards' && x.items.length >= 3 && !x.items.every((i) => /ticket|knowledge|expert|24\/7/i.test(i.title));
     let topics = rest.filter(isTopics).flatMap((x) => (x as Extract<Sec, { k: 'cards' }>).items);

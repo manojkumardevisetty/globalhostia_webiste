@@ -40,6 +40,7 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   store: () => import('./pages/store'),
   premium: () => import('./pages/premium'),
   sell: () => import('./pages/sell'),
+  help: () => import('./pages/help'),
   ar: () => import('./pages/ar'),
 };
 

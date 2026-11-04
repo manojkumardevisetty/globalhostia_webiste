@@ -51,6 +51,7 @@ Disallow: /checkout
 Disallow: /thank-you
 
 Sitemap: https://globalhostia.com/sitemap.xml
+Sitemap: https://globalhostia.com/sitemap-video.xml
 Sitemap: https://globalhostia.com/feeds/products.xml
 
 # Agentic Resource Discovery (draft, optional): agent manifest

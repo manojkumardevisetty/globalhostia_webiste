@@ -25,6 +25,8 @@ const PAGES = [
   ['premium-ar', '/premium-domains', 'rtl'], ['premium-detail-ar', process.env.PREMIUM_DETAIL || '/premium-domains/atlas.test', 'rtl'],
   // sell your domain (lib/sell, lib/portal/views/sell.ts, lib/theme/pages/sell.ts)
   ['sell-domains', '/sell-domains'], ['sell-domains-ar', '/sell-domains', 'rtl'],
+  // help centre how-tos (lib/theme/pages/help.ts): a video topic and an illustrated walkthrough, also right to left
+  ['help-hub', '/help-center?theme=hostpen'], ['help-video', '/help/pay-an-invoice'], ['help-walk', '/help/buy-hosting'], ['help-video-ar', '/help/add-a-dns-record', 'rtl'], ['help-walk-ar', '/help/connect-ai-assistant', 'rtl'],
   // Arabic section (lib/theme/pages/ar.ts): right-to-left pages with Arabic copy
   ...['', 'web-hosting', 'vps-hosting', 'dedicated-servers', 'domains-registration', 'ae-domains', 'google-workspace', 'ssl-certificate', 'free-migration', 'premium-domains', 'sell-domains', 'connectors', 'contact', 'about']
     .map((s) => [`ar-${s || 'home'}`, s ? `/ar/${s}` : '/ar']),

@@ -147,7 +147,7 @@ for (const d of AR_DEFS) {
  * Always rendered by the Hostpen theme (like THEME_ONLY). The page module returns null for an unknown slug → 404.
  */
 const DYNAMIC_PREFIX: Record<string, string> = {
-  domains: 'tld', locations: 'location', 'hosting-for': 'usecase', category: 'category', 'business-services': 'store',
+  domains: 'tld', locations: 'location', help: 'help', 'hosting-for': 'usecase', category: 'category', 'business-services': 'store',
   'web-hosting': 'location', vps: 'location', 'dedicated-servers': 'location', 'windows-rdp': 'location', 'linux-rdp': 'location',
 };
 export function dynamicRoute(segs: string[]): RouteDef | null {

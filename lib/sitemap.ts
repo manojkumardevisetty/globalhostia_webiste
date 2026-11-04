@@ -13,6 +13,8 @@ import { pseoPaths } from './theme/pseo';
 import { storePaths } from './store/view';
 import { ALIAS_SLUGS } from './aliases.mjs';
 import { isHiddenVs } from './compare/competitors';
+import { helpTopics } from './help/view';
+import { HELP_SLUGS, helpPath, frameUrl } from './help/topics';
 import { AR_DEFS, arPage, arPathOf } from './i18n/ar-pages';
 
 /** alternates: hreflang versions of the page (English ↔ Arabic pairs, lib/i18n/ar-pages.ts), emitted as xhtml:link. */
@@ -109,6 +111,8 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
   for (const p of pseo) if (!have.has(p.slice(1))) add(p, p.startsWith('/domains/') ? maxDate(tldMod, catalogMod) : catalogMod);
   // Business services shop: only while published, and only pages with something to order or quote (lib/store/view.ts)
   for (const p of cat ? storePaths(cat) : []) if (!have.has(p.slice(1))) add(p, maxDate(catalogMod, s.business_services_at) || catalogMod);
+  // help centre how-to topics (lib/help): hidden ones answer 404
+  for (const t of helpTopics(s)) add(helpPath(t.slug), maxDate(t.media.uploadDate, themeMod) || themeMod);
   // premium domain detail pages (lib/premium): listed names only, while the page is live
   try {
     const { premiumItems, premiumConfig } = await import('./premium/store');
@@ -127,7 +131,7 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
 /** Every theme route, with no data at all: what /sitemap.xml answers when even the snapshot is missing. */
 export function staticSitemapEntries(base = 'https://globalhostia.com'): SitemapEntry[] {
   const now = iso(Date.now());
-  const paths = ['/', '/ai', '/connectors', '/docs/mcp', ...[...THEME_ONLY].map((s) => `/${s}`), ...Object.entries(ROUTES)
+  const paths = ['/', '/ai', '/connectors', '/docs/mcp', ...HELP_SLUGS.map(helpPath), ...[...THEME_ONLY].map((s) => `/${s}`), ...Object.entries(ROUTES)
     .filter(([slug, r]) => slug !== 'index' && r.kind !== 'auth' && !NOINDEX_SLUGS.has(slug) && !ALIAS_SLUGS.includes(slug) && !SITEMAP_EXCLUDE.has(slug))
     .map(([slug]) => `/${slug}`)];
   return [...new Set(paths)].map((p) => ({ loc: base + p, lastmod: now }));
@@ -139,4 +143,15 @@ export function sitemapXml(entries: SitemapEntry[]) {
   const xhtml = entries.some((e) => e.alternates?.length) ? ' xmlns:xhtml="http://www.w3.org/1999/xhtml"' : '';
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${xhtml}>\n${entries
     .map((e) => `<url><loc>${xmlEsc(e.loc)}</loc><lastmod>${e.lastmod}</lastmod>${(e.alternates || []).map((a) => `<xhtml:link rel="alternate" hreflang="${a.lang}" href="${xmlEsc(a.href)}"/>`).join('')}</url>`).join('\n')}\n</urlset>\n`;
+}
+
+/** /sitemap-video.xml: the help centre how-to videos (Google video sitemap extension); walkthroughs list their images. */
+export function videoSitemapXml(settings: Record<string, any> | null | undefined, base = 'https://globalhostia.com') {
+  const abs = (u: string) => (u.startsWith('http') ? u : base + u);
+  const rows = helpTopics(settings).map((t) => {
+    const loc = `<loc>${xmlEsc(base + helpPath(t.slug))}</loc>`;
+    if (t.kind !== 'video') return `<url>${loc}${(t.frames || []).map((f) => `<image:image><image:loc>${xmlEsc(abs(frameUrl(f.src)))}</image:loc></image:image>`).join('')}</url>`;
+    return `<url>${loc}<video:video><video:thumbnail_loc>${xmlEsc(abs(t.media.poster))}</video:thumbnail_loc><video:title>${xmlEsc(t.title)}</video:title><video:description>${xmlEsc(t.summary)}</video:description><video:content_loc>${xmlEsc(abs(t.media.mp4))}</video:content_loc>${t.media.duration ? `<video:duration>${t.media.duration}</video:duration>` : ''}<video:publication_date>${t.media.uploadDate}</video:publication_date><video:family_friendly>yes</video:family_friendly></video:video></url>`;
+  });
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${rows.join('\n')}\n</urlset>\n`;
 }

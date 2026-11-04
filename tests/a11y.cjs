@@ -26,7 +26,7 @@ const PAGES = [
   ['premium', '/premium-domains'], ['premium-detail', process.env.PREMIUM_DETAIL || '/premium-domains/atlas.test'], ['sell-domains', '/sell-domains'],
   ['connectors', '/connectors'], ['docs-mcp', '/docs/mcp'], ['store', '/business-services'],
   ['blog', '/blog'], ['blog-post', '/blog/spf-dkim-dmarc-explained'], ['blog-post-ar', '/blog/spf-dkim-dmarc-explained-ar'],
-  ['help', '/help-center'], ['contact', '/contact'], ['terms', '/terms-conditions'], ['privacy', '/privacy-policy'],
+  ['help', '/help-center'], ['help-video', '/help/pay-an-invoice'], ['help-walk', '/help/buy-hosting'], ['help-ai', '/help/connect-ai-assistant'], ['contact', '/contact'], ['terms', '/terms-conditions'], ['privacy', '/privacy-policy'],
   ['uae', '/web-hosting-dubai'], ['migration', '/free-migration'], ['404', '/no-such-page-xyz'],
   ['acc-login', '/account/login'], ['acc-forgot', '/account/forgot'], ['admin-login', '/admin/login'],
   ['acc-home', '/account', 'auth'], ['acc-services', '/account/services', 'auth'], ['acc-service', '/account/services/101', 'auth'],
