@@ -1,17 +1,37 @@
 WEBVTT
 
 1
-00:00:00.802 --> 00:00:06.719
-1. Open Domains and choose the domain.
+00:00:00.400 --> 00:00:03.200
+In your GlobalHostia account, open Domains.
 
 2
-00:00:06.719 --> 00:00:12.294
-2. Scroll to DNS records and open Add a record.
+00:00:03.200 --> 00:00:06.850
+Then choose the domain you want to update.
 
 3
-00:00:12.294 --> 00:00:22.186
-3. Choose the record type, then enter the name and the value.
+00:00:06.900 --> 00:00:12.450
+Scroll down to DNS records, and open Add a record.
 
 4
-00:00:22.186 --> 00:00:33.520
-4. Click Add record. It appears in the list and is usually live within minutes.
+00:00:12.500 --> 00:00:13.805
+Pick the record type.
+
+5
+00:00:13.805 --> 00:00:15.297
+Here, it's a TXT record.
+
+6
+00:00:15.297 --> 00:00:22.350
+Then enter the name, and paste in the value your provider gave you.
+
+7
+00:00:22.400 --> 00:00:23.638
+Now, click Add record.
+
+8
+00:00:23.638 --> 00:00:25.777
+It shows up in the list straight away.
+
+9
+00:00:25.777 --> 00:00:33.360
+And it's usually live within a few minutes.

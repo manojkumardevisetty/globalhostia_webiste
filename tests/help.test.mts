@@ -13,6 +13,7 @@ const T = await import('../lib/help/topics.ts');
 const V = await import('../lib/help/view.ts');
 const ROOT = path.resolve(import.meta.dirname, '..');
 const ARABIC = /[؀-ۿ]/;
+const NARRATION = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/help-videos/narration.json'), 'utf8'));
 
 test('20 topics with unique slugs, English and Arabic texts and 3 to 6 steps', () => {
   assert.equal(T.HELP_TOPICS.length, 20);
@@ -43,7 +44,12 @@ test('media files referenced by the defaults exist and stay small', () => {
     assert.ok(fs.statSync(path.join(ROOT, 'public', m.mp4)).size < 3.2 * 1024 * 1024, `${t.slug}: mp4 under ~3 MB`);
     const en = fs.readFileSync(path.join(ROOT, 'public', m.vttEn), 'utf8'), ar = fs.readFileSync(path.join(ROOT, 'public', m.vttAr), 'utf8');
     assert.match(en, /^WEBVTT/); assert.match(ar, /^WEBVTT/); assert.ok(ARABIC.test(ar), `${t.slug}: Arabic captions`);
-    assert.ok(t.steps.every((s) => en.includes(s.en)), `${t.slug}: captions match the steps on the page`);
+    // English captions are the spoken voice-over (scripts/help-videos/narration.json, narrate.py); Arabic keeps the step text
+    const said = NARRATION.videos[t.slug];
+    assert.ok(said?.length === t.steps.length, `${t.slug}: one narration line per step`);
+    const cap = (x: string) => Object.entries(NARRATION.captions as Record<string, string>).reduce((a, [k, v]) => a.split(k).join(v), x);
+    for (const l of said) for (const s of l.text.split(/(?<=[.?!])\s+/)) assert.ok(en.includes(cap(s)), `${t.slug}: captions match the narration: ${s}`);
+    assert.ok(t.steps.every((s) => ar.includes(s.ar)), `${t.slug}: Arabic captions match the steps on the page`);
   }
 });
 

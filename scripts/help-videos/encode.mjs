@@ -5,6 +5,7 @@
 //   public/help/videos/<slug>.{en,ar}.vtt  step captions
 //   public/help/frames/<name>.jpg   walkthrough screenshots
 // and writes lib/help/media.ts (length, size). Usage: node scripts/help-videos/encode.mjs <raw dir> [--no-webm]
+// Then add the English voice-over with scripts/help-videos/narrate.py (keep a copy of these silent files as its --src).
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';

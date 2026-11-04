@@ -1,0 +1,106 @@
+{
+  "voice": "af_heart",
+  "speed": 1.0,
+  "lang": "en-us",
+  "phonemes": { "hˈɑːstʃə": "hˈoʊstiə" },
+  "captions": { "Global Hostia": "GlobalHostia", "W W W": "www", "H T M L": "HTML", "F T P": "FTP", "local host": "localhost", "A-record": "A record", "four megabytes": "4 MB", "thirty": "30", "ninety": "90" },
+  "note": "Spoken English voice-over for each help video (Kokoro TTS, voice af_heart, same as the reMarketplace explainer). One line per step; 'at' is when the step starts in the silent recording. 'captions' turns the spoken spellings back into written form for the English captions. 'phonemes' fixes espeak pronunciations (Hostia as HOST-ee-uh). Written for the ear: brand as 'Global Hostia', no URLs spelled out. narrate.py speaks each line, holds frames where a line needs more time than its step, and writes the English captions from these lines.",
+  "videos": {
+    "add-a-dns-record": [
+      { "at": 0.4, "text": "In your Global Hostia account, open Domains. Then choose the domain you want to update." },
+      { "at": 6.9, "text": "Scroll down to DNS records, and open Add a record." },
+      { "at": 12.5, "text": "Pick the record type. Here, it's a TXT record. Then enter the name, and paste in the value your provider gave you." },
+      { "at": 22.4, "text": "Now, click Add record. It shows up in the list straight away. And it's usually live within a few minutes." }
+    ],
+    "change-nameservers": [
+      { "at": 0.4, "text": "In your account, open Domains, and choose the domain you want to point somewhere else." },
+      { "at": 6.5, "text": "Replace the nameservers with the ones you were given. You can use two, or add more if your provider lists them." },
+      { "at": 21.8, "text": "Then click Save nameservers." },
+      { "at": 26.7, "text": "Changes usually work within a few hours, and up to a day worldwide." }
+    ],
+    "change-php-version": [
+      { "at": 0.3, "text": "In Manage hosting, open PHP version." },
+      { "at": 5.5, "text": "Choose the domain, then pick the PHP version your site needs." },
+      { "at": 12.5, "text": "Click Switch version." },
+      { "at": 17.4, "text": "Then open your website, and check that everything still works." }
+    ],
+    "connect-a-domain": [
+      { "at": 0.3, "text": "Open Manage hosting. The overview lists any domains that aren't connected yet." },
+      { "at": 3.9, "text": "Click Connect next to the domain." },
+      { "at": 8.2, "text": "Follow the steps. Either switch the nameservers, or add the A-record and the W W W record shown." },
+      { "at": 14.6, "text": "The helper checks again every thirty seconds, and ticks off each step as soon as it's live." }
+    ],
+    "create-a-database": [
+      { "at": 0.3, "text": "In Manage hosting, open Databases, and click New database." },
+      { "at": 9.3, "text": "Enter a database name and a user name. Your account prefix is added for you." },
+      { "at": 15.6, "text": "Click Generate for a strong password, and save it somewhere safe. Then click Create database." },
+      { "at": 23.2, "text": "Connect your app using local host, with the new name, user, and password." }
+    ],
+    "give-team-access": [
+      { "at": 0.4, "text": "Open Team access from your account menu." },
+      { "at": 6.9, "text": "Enter your teammate's email address." },
+      { "at": 13.0, "text": "Choose an access level, such as Developer, or Billing only." },
+      { "at": 18.8, "text": "Send the invite. You can change or remove their access at any time." }
+    ],
+    "install-wordpress": [
+      { "at": 0.3, "text": "In Manage hosting, open WordPress, and click Install WordPress." },
+      { "at": 8.9, "text": "Choose the domain, and enter your site title and admin email. Then start the install. It only takes a moment." },
+      { "at": 28.5, "text": "When it's ready, click Log in to WordPress admin. No password needed." },
+      { "at": 31.0, "text": "To try out changes safely, open the site menu, and choose Create staging copy." }
+    ],
+    "issue-ssl-certificate": [
+      { "at": 0.3, "text": "In Manage hosting, open SSL." },
+      { "at": 5.0, "text": "Find the domain marked Not secure. Keep Include W W W ticked." },
+      { "at": 9.4, "text": "Click Issue free SSL, and wait a few seconds." },
+      { "at": 17.4, "text": "The domain now shows Secure, with its expiry date. And it renews automatically." }
+    ],
+    "open-a-support-ticket": [
+      { "at": 0.4, "text": "Open Support, and click New ticket." },
+      { "at": 6.0, "text": "Choose the department, and the service your question is about." },
+      { "at": 14.5, "text": "Write a short subject, and describe what you're seeing. Then submit the ticket." },
+      { "at": 30.3, "text": "You can open the ticket any time to read our replies, and answer in the reply box." }
+    ],
+    "pay-an-invoice": [
+      { "at": 0.4, "text": "In your account, open Billing from the menu." },
+      { "at": 9.3, "text": "Choose Unpaid, to see only the invoices that are due." },
+      { "at": 13.7, "text": "Click Pay next to the invoice you want to pay." },
+      { "at": 24.3, "text": "The invoice opens in our secure client area. Choose a payment method, and confirm." }
+    ],
+    "renew-services": [
+      { "at": 0.4, "text": "Open Renewals in your account." },
+      { "at": 7.8, "text": "Here you can see what's overdue, and what renews in the next thirty and ninety days." },
+      { "at": 18.6, "text": "Tick the services and domains you want to renew." },
+      { "at": 24.8, "text": "Click Renew in the bar at the bottom. Then pay for everything you ticked, on one invoice." }
+    ],
+    "restore-a-backup": [
+      { "at": 0.3, "text": "In Manage hosting, open Backups." },
+      { "at": 6.0, "text": "Find a backup from before the problem started." },
+      { "at": 10.2, "text": "Click Restore, and confirm. Any files changed since then are replaced." },
+      { "at": 18.7, "text": "You'll get an email when the restore is done. Want a copy of today first? Use Create backup." }
+    ],
+    "sell-a-domain": [
+      { "at": 0.4, "text": "Open Sell domains, and click List a domain." },
+      { "at": 5.8, "text": "Choose the domain from your account." },
+      { "at": 12.3, "text": "Set your price, the lowest offer you'll accept, and a short description." },
+      { "at": 26.1, "text": "Accept the terms, and continue. Your listing goes live after a quick review, and the listing fee." }
+    ],
+    "set-up-email": [
+      { "at": 0.3, "text": "In Manage hosting, open Mailboxes, and click New mailbox." },
+      { "at": 8.1, "text": "Enter the mailbox name, and a strong password. Then click Create." },
+      { "at": 21.3, "text": "Next to the new mailbox, click Set up on device." },
+      { "at": 25.6, "text": "Pick your app. iPhone gets a one-tap profile, and Android and Outlook get the exact server settings." }
+    ],
+    "switch-language": [
+      { "at": 0.4, "text": "Open the account menu, at the top right." },
+      { "at": 6.5, "text": "Choose Arabic. Your account switches to Arabic, and reads right to left." },
+      { "at": 11.7, "text": "Your choice is remembered on this device." },
+      { "at": 17.4, "text": "To switch back, open the same menu, and choose English." }
+    ],
+    "upload-files": [
+      { "at": 0.3, "text": "In Manage hosting, open File manager." },
+      { "at": 5.0, "text": "Pick the website. Its public H T M L folder opens." },
+      { "at": 9.5, "text": "Click Upload, and choose your file. Files up to four megabytes work here. For bigger ones, use F T P." },
+      { "at": 15.9, "text": "The file appears in the list as soon as the upload finishes." }
+    ]
+  }
+}

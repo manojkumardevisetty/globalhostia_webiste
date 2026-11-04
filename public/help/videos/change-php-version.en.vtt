@@ -1,17 +1,17 @@
 WEBVTT
 
 1
-00:00:00.602 --> 00:00:05.405
-1. In Manage hosting, open PHP version.
+00:00:00.300 --> 00:00:05.450
+In Manage hosting, open PHP version.
 
 2
-00:00:05.405 --> 00:00:12.402
-2. Choose the domain, then the version you need.
+00:00:05.500 --> 00:00:12.450
+Choose the domain, then pick the PHP version your site needs.
 
 3
-00:00:12.402 --> 00:00:17.258
-3. Click Switch version.
+00:00:12.500 --> 00:00:17.350
+Click Switch version.
 
 4
-00:00:17.258 --> 00:00:21.310
-4. Open your website and check that it still works.
+00:00:17.400 --> 00:00:21.372
+Then open your website, and check that everything still works.

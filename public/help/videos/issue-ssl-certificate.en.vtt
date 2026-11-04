@@ -1,17 +1,25 @@
 WEBVTT
 
 1
-00:00:00.601 --> 00:00:04.845
-1. In Manage hosting, open SSL.
+00:00:00.300 --> 00:00:04.950
+In Manage hosting, open SSL.
 
 2
-00:00:04.845 --> 00:00:09.298
-2. Find the domain marked Not secure. Keep Include www ticked.
+00:00:05.000 --> 00:00:07.645
+Find the domain marked Not secure.
 
 3
-00:00:09.298 --> 00:00:17.240
-3. Click Issue free SSL and wait a few seconds.
+00:00:07.645 --> 00:00:10.018
+Keep Include www ticked.
 
 4
-00:00:17.240 --> 00:00:24.097
-4. The domain now shows Secure, with the expiry date. It renews automatically.
+00:00:10.068 --> 00:00:18.018
+Click Issue free SSL, and wait a few seconds.
+
+5
+00:00:18.068 --> 00:00:21.191
+The domain now shows Secure, with its expiry date.
+
+6
+00:00:21.191 --> 00:00:24.748
+And it renews automatically.

@@ -1,17 +1,25 @@
 WEBVTT
 
 1
-00:00:00.601 --> 00:00:09.167
-1. In Manage hosting, open Databases and click New database.
+00:00:00.300 --> 00:00:09.250
+In Manage hosting, open Databases, and click New database.
 
 2
-00:00:09.167 --> 00:00:15.513
-2. Enter the database name and the user name. The account prefix is added for you.
+00:00:09.300 --> 00:00:11.707
+Enter a database name and a user name.
 
 3
-00:00:15.513 --> 00:00:23.070
-3. Click Generate for a strong password (save it), then Create database.
+00:00:11.707 --> 00:00:15.550
+Your account prefix is added for you.
 
 4
-00:00:23.070 --> 00:00:27.043
-4. Connect your app with host localhost and the new name, user and password.
+00:00:15.600 --> 00:00:19.587
+Click Generate for a strong password, and save it somewhere safe.
+
+5
+00:00:19.587 --> 00:00:23.150
+Then click Create database.
+
+6
+00:00:23.200 --> 00:00:28.075
+Connect your app using localhost, with the new name, user, and password.

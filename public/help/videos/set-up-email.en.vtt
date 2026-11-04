@@ -1,17 +1,25 @@
 WEBVTT
 
 1
-00:00:00.601 --> 00:00:07.940
-1. In Manage hosting, open Mailboxes and click New mailbox.
+00:00:00.300 --> 00:00:08.050
+In Manage hosting, open Mailboxes, and click New mailbox.
 
 2
-00:00:07.940 --> 00:00:21.201
-2. Enter the name and a strong password, then click Create.
+00:00:08.100 --> 00:00:10.755
+Enter the mailbox name, and a strong password.
 
 3
-00:00:21.201 --> 00:00:25.436
-3. Click Set up on device next to the new mailbox.
+00:00:10.755 --> 00:00:21.250
+Then click Create.
 
 4
-00:00:25.436 --> 00:00:37.465
-4. Pick your app: iPhone gets a one-tap profile, Android and Outlook get exact server settings.
+00:00:21.300 --> 00:00:25.550
+Next to the new mailbox, click Set up on device.
+
+5
+00:00:25.600 --> 00:00:26.439
+Pick your app.
+
+6
+00:00:26.439 --> 00:00:37.360
+iPhone gets a one-tap profile, and Android and Outlook get the exact server settings.

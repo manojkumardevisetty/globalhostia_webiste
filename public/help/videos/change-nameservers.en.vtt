@@ -1,17 +1,21 @@
 WEBVTT
 
 1
-00:00:00.800 --> 00:00:06.321
-1. Open Domains and choose the domain.
+00:00:00.400 --> 00:00:06.450
+In your account, open Domains, and choose the domain you want to point somewhere else.
 
 2
-00:00:06.321 --> 00:00:21.643
-2. Replace the nameservers with the ones you were given.
+00:00:06.500 --> 00:00:09.434
+Replace the nameservers with the ones you were given.
 
 3
-00:00:21.643 --> 00:00:26.607
-3. Click Save nameservers.
+00:00:09.434 --> 00:00:21.750
+You can use two, or add more if your provider lists them.
 
 4
-00:00:26.607 --> 00:00:29.388
-4. Changes usually take effect within a few hours, and up to 24 hours worldwide.
+00:00:21.800 --> 00:00:26.650
+Then click Save nameservers.
+
+5
+00:00:26.700 --> 00:00:31.352
+Changes usually work within a few hours, and up to a day worldwide.

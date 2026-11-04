@@ -1,17 +1,29 @@
 WEBVTT
 
 1
-00:00:00.603 --> 00:00:05.925
-1. In Manage hosting, open Backups.
+00:00:00.300 --> 00:00:05.950
+In Manage hosting, open Backups.
 
 2
-00:00:05.925 --> 00:00:10.093
-2. Find the backup from before the problem started.
+00:00:06.000 --> 00:00:10.150
+Find a backup from before the problem started.
 
 3
-00:00:10.093 --> 00:00:18.587
-3. Click Restore and confirm. Files changed since then are replaced.
+00:00:10.200 --> 00:00:11.757
+Click Restore, and confirm.
 
 4
-00:00:18.587 --> 00:00:23.927
-4. You get an email when the restore finishes. Use Create backup first if you want a copy of today.
+00:00:11.757 --> 00:00:18.650
+Any files changed since then are replaced.
+
+5
+00:00:18.700 --> 00:00:21.269
+You'll get an email when the restore is done.
+
+6
+00:00:21.269 --> 00:00:22.810
+Want a copy of today first?
+
+7
+00:00:22.810 --> 00:00:24.637
+Use Create backup.

@@ -1,17 +1,29 @@
 WEBVTT
 
 1
-00:00:00.602 --> 00:00:08.774
-1. In Manage hosting, open WordPress and click Install WordPress.
+00:00:00.300 --> 00:00:08.850
+In Manage hosting, open WordPress, and click Install WordPress.
 
 2
-00:00:08.774 --> 00:00:28.389
-2. Choose the domain, enter the site title and admin email, then install.
+00:00:08.900 --> 00:00:12.765
+Choose the domain, and enter your site title and admin email.
 
 3
-00:00:28.389 --> 00:00:30.771
-3. When it is ready, use Log in to WP admin. No password needed.
+00:00:12.765 --> 00:00:14.222
+Then start the install.
 
 4
-00:00:30.771 --> 00:00:48.658
-4. To test changes, open the site menu and choose Create staging copy.
+00:00:14.222 --> 00:00:28.450
+It only takes a moment.
+
+5
+00:00:28.500 --> 00:00:31.491
+When it's ready, click Log in to WordPress admin.
+
+6
+00:00:31.491 --> 00:00:33.001
+No password needed.
+
+7
+00:00:33.051 --> 00:00:50.531
+To try out changes safely, open the site menu, and choose Create staging copy.
