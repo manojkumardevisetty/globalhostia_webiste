@@ -562,6 +562,25 @@ try {
       await tx`create table if not exists oauth_assertions (key text primary key, client_id text not null, expires_at timestamptz not null)`;
       await tx`create index if not exists oauth_assertions_exp_idx on oauth_assertions (expires_at)`;
     },
+    // 41. Client experience (lib/cx/*): daily health check history per domain (monthly site report), the stored monthly
+    // reports shown in the portal, and ticket ratings (one rating request per WHMCS ticket).
+    '041-cx': async (tx) => {
+      await tx`create table if not exists health_days (row_id text not null, day text not null, client_id integer not null, domain text not null,
+        checks integer not null default 1, status text not null default 'unknown', issues jsonb not null default '[]'::jsonb)`;
+      await tx`create unique index if not exists health_days_pk on health_days (row_id, day)`;
+      await tx`create index if not exists health_days_client_idx on health_days (client_id, day)`;
+      await tx`create table if not exists site_reports (id text primary key, client_id integer not null, month text not null, lang text not null default 'en',
+        data jsonb not null, created_at timestamptz not null default now())`;
+      await tx`create unique index if not exists site_reports_uniq on site_reports (client_id, month)`;
+      await tx`create table if not exists ticket_ratings (id text primary key, ticket_id integer not null, tid text not null default '', client_id integer not null default 0,
+        email text not null default '', subject text not null default '', dept_id integer not null default 0, staff text not null default '',
+        status text not null default 'pending', reason text not null default '', lang text not null default 'en', score integer, comment text not null default '',
+        source text not null default '', sent_at timestamptz, rated_at timestamptz, alerted_at timestamptz, comment_alerted_at timestamptz,
+        created_at timestamptz not null default now(), updated_at timestamptz not null default now())`;
+      await tx`create unique index if not exists ticket_ratings_ticket on ticket_ratings (ticket_id)`;
+      await tx`create index if not exists ticket_ratings_status_idx on ticket_ratings (status, created_at)`;
+      await tx`create index if not exists ticket_ratings_rated_idx on ticket_ratings (rated_at)`;
+    },
     // 37. Domain health alerts (lib/health/*): one row per customer domain with open issues and what was alerted; email opt-out.
     '037-domain-health': async (tx) => {
       await tx`create table if not exists domain_health (

@@ -712,6 +712,52 @@ export const remindersLog = pgTable('reminders_log', {
 export type ReminderLogRow = typeof remindersLog.$inferSelect;
 export type ReminderCartRow = typeof reminderCarts.$inferSelect;
 
+// Client experience (lib/cx/*, patch '041-cx'). health_days: one row per customer domain per Dubai calendar day with the
+// number of health checks that day, the worst status seen and the union of the issue keys found (written next to every
+// domain_health check), so the monthly site report can say "checked on N days, M with problems" without inventing uptime.
+export const healthDays = pgTable('health_days', {
+  rowId: text('row_id').notNull(),
+  day: text('day').notNull(), // YYYY-MM-DD, Asia/Dubai
+  clientId: integer('client_id').notNull(),
+  domain: text('domain').notNull(),
+  checks: integer('checks').notNull().default(1),
+  status: text('status').notNull().default('unknown'),
+  issues: jsonb('issues').$type<string[]>().notNull().default([]),
+}, (t) => [uniqueIndex('health_days_pk').on(t.rowId, t.day), index('health_days_client_idx').on(t.clientId, t.day)]);
+// Monthly "Your site report": the report data as built for one client and month (YYYY-MM), shown again in the portal.
+export const siteReports = pgTable('site_reports', {
+  id: id(),
+  clientId: integer('client_id').notNull(),
+  month: text('month').notNull(),
+  lang: text('lang').notNull().default('en'),
+  data: jsonb('data').notNull(),
+  createdAt: now('created_at'),
+}, (t) => [uniqueIndex('site_reports_uniq').on(t.clientId, t.month)]);
+// Ticket ratings: one row per WHMCS ticket (one rating request per ticket). status: pending | sent | skipped | failed | rated.
+export const ticketRatings = pgTable('ticket_ratings', {
+  id: id(),
+  ticketId: integer('ticket_id').notNull(),
+  tid: text('tid').notNull().default(''),
+  clientId: integer('client_id').notNull().default(0),
+  email: text('email').notNull().default(''),
+  subject: text('subject').notNull().default(''),
+  deptId: integer('dept_id').notNull().default(0),
+  staff: text('staff').notNull().default(''),
+  status: text('status').notNull().default('pending'),
+  reason: text('reason').notNull().default(''),
+  lang: text('lang').notNull().default('en'),
+  score: integer('score'),
+  comment: text('comment').notNull().default(''),
+  source: text('source').notNull().default(''),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  ratedAt: timestamp('rated_at', { withTimezone: true }),
+  alertedAt: timestamp('alerted_at', { withTimezone: true }),
+  commentAlertedAt: timestamp('comment_alerted_at', { withTimezone: true }),
+  createdAt: now('created_at'),
+  updatedAt: now('updated_at'),
+}, (t) => [uniqueIndex('ticket_ratings_ticket').on(t.ticketId), index('ticket_ratings_status_idx').on(t.status, t.createdAt), index('ticket_ratings_rated_idx').on(t.ratedAt)]);
+export type TicketRatingRow = typeof ticketRatings.$inferSelect;
+
 // Domain health alerts (lib/health/*, Admin → Business → Domain health). Created by db-setup patch '037-domain-health'.
 // One row per customer domain (registered, hosting service, addon / alias). issues: open problems {key: {sev, stage,
 // first, last, params}}; last_alerted: what the customer was last told per issue (alerts only on new / worse issues).

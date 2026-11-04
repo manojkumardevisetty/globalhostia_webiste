@@ -20,6 +20,7 @@ const NAV: () => { key: Nav; label: string; short: string; href: string; ic: str
   { key: 'renewals', label: t('Renewals'), short: t('Renewals'), href: '/account/renewals', ic: 'refresh', tab: true },
   { key: 'billing', label: t('Billing'), short: t('Billing'), href: '/account/invoices', ic: 'card', tab: true },
   { key: 'support', label: t('Support'), short: t('Support'), href: '/account/support', ic: 'headset', tab: true },
+  { key: 'reports', label: t('Site reports'), short: t('Reports'), href: '/account/reports', ic: 'chart' },
   { key: 'sell', label: t('Sell domains'), short: t('Sell'), href: '/account/sell', ic: 'tag' },
   { key: 'profile', label: t('Profile'), short: t('Profile'), href: '/account/profile', ic: 'user' },
   { key: 'team', label: t('Team access'), short: t('Team'), href: '/account/team', ic: 'users' },

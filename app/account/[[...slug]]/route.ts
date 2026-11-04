@@ -31,6 +31,10 @@ import { listMembers, inviteUser, updatePermissions, removeUser } from '@/lib/po
 import { EMAIL_RE, normalizeEmail, permsFromForm, viewerIsOwner } from '@/lib/portal/team-perms';
 import { settingsView } from '@/lib/portal/views/settings';
 import { remindersCard } from '@/lib/portal/views/reminders';
+// client experience (lib/cx): monthly site report email switch, "How did we do?" on closed tickets
+import { reportOn, setReportPref } from '@/lib/cx/report-engine';
+import { ratingRow, tokenFor, loadRatingsConfig } from '@/lib/cx/ratings-engine';
+import { ticketRatingCard } from '@/lib/portal/views/ratings';
 import { healthPanel, healthStrip, healthFlash } from '@/lib/portal/views/health';
 import { rowsFor as healthRows, rowFor as healthRow, healthPrefs, setHealthPrefs } from '@/lib/health/engine';
 import { prefsFor, setPrefs, loadConfig as reminderConfig } from '@/lib/reminders/store';
@@ -112,6 +116,17 @@ async function secureBase() {
 const viewerOf = (s: ClientSession): Viewer => ({ name: s.name, email: s.email, clientId: s.clientId, csrf: csrfFor(s.jti) });
 
 /* =========================================================== GET */
+/** "How did we do?" card on a closed ticket (lib/cx/ratings-*): the saved rating, or the one-tap form. */
+async function ratingCardFor(cid: number, tk: any) {
+  if (!/closed/i.test(String(tk?.status || ''))) return '';
+  const id = Number(tk.ticketid ?? tk.id);
+  try {
+    const [row, rc] = await Promise.all([ratingRow(id), loadRatingsConfig()]);
+    if ((row && row.clientId !== cid) || (!row?.score && !rc.enabled)) return ''; // off: only an earlier rating is shown
+    return ticketRatingCard({ token: tokenFor(cid, id), score: row?.score ?? null, comment: row?.comment || '', back: `/account/support/${id}` });
+  } catch { return ''; }
+}
+
 export async function GET(req: NextRequest, ctx: Ctx) {
   return withLocale(localeOf(req), () => getLocalized(req, ctx));
 }
@@ -311,7 +326,7 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     // reminder choices: WhatsApp is offered only once the owner switched it on for at least one account reminder
     const waOffered = !!rcfg && rcfg.whatsapp.enabled && (rcfg.renewal.channels.whatsapp || rcfg.overdue.channels.whatsapp || rcfg.domain.channels.whatsapp);
     const reminders = rp ? remindersCard({ csrf: v.csrf, cartEmail: rp.cartEmail, renewalEmail: rp.renewalEmail, whatsapp: rp.whatsapp, whatsappAt: rp.whatsappAt ? rp.whatsappAt.toISOString() : null,
-      phone: cl ? toE164(cl.phonenumberformatted || cl.phonenumber, { country: cl.countrycode || cl.country, cc: cl.phonecc }) : null, waOffered, saved: q.get('ok') === 'reminders_saved', health: hp ? hp.alerts : undefined }) : '';
+      phone: cl ? toE164(cl.phonenumberformatted || cl.phonenumber, { country: cl.countrycode || cl.country, cc: cl.phonecc }) : null, waOffered, saved: q.get('ok') === 'reminders_saved', health: hp ? hp.alerts : undefined, report: await reportOn(sess.email).catch(() => undefined) }) : '';
     return html(await F({
       title: t('App & notifications'), sub: esc(t('Install GlobalHostia as an app, choose notifications and set your language.')), active: 'settings',
       body: settingsView({ csrf: v.csrf, publicKey: keys?.publicKey || null, available: !!keys, devices: subs.length, cats: parseCategories(cats), lang: curLang(), digits: curDigits(), reminders }),
@@ -367,7 +382,7 @@ async function handleGet(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     let tk: any;
     try { tk = await api.getTicket(cid, id); } catch { return failed(t('Ticket'), 'this ticket', 'support'); }
     if (!tk) return notFound('ticket', '/account/support', 'support');
-    return html(await F({ title: tk.subject || t('Ticket'), sub: esc(t('Ticket #{n}', { n: tk.tid })), active: 'support', crumbs: [{ label: t('Support'), href: '/account/support' }, { label: `#${tk.tid}` }], body: ticketView({ csrf: v.csrf, t: tk, viewerName: v.name }) }));
+    return html(await F({ title: tk.subject || t('Ticket'), sub: esc(t('Ticket #{n}', { n: tk.tid })), active: 'support', crumbs: [{ label: t('Support'), href: '/account/support' }, { label: `#${tk.tid}` }], body: ticketView({ csrf: v.csrf, t: tk, viewerName: v.name }) + await ratingCardFor(cid, tk) }));
   }
 
   /* profile */
@@ -722,6 +737,7 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       try {
         await setPrefs(cid, sess.email, next, 'portal');
         if (fd.get('health_shown') === '1') await setHealthPrefs(cid, sess.email, fd.get('health') === '1'); // domain health alerts (lib/health)
+        if (fd.get('report_shown') === '1') await setReportPref(cid, sess.email, fd.get('report') === '1'); // monthly site report (lib/cx)
       } catch { return go(req, '/account/settings?err=failed#reminders'); }
       await auditClient('client_reminder_prefs', sess.email, ip, next);
       return go(req, '/account/settings?ok=reminders_saved#reminders');
@@ -940,7 +956,7 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     const message = str('message').trim();
     const crumbs = [{ label: t('Support'), href: '/account/support' }, { label: `#${tk.tid}` }];
     const again = async (errs: Record<string, string>, status: number) =>
-      html(await F({ title: tk.subject || t('Ticket'), sub: esc(t('Ticket #{n}', { n: tk.tid })), active: 'support', crumbs, body: ticketView({ csrf: v.csrf, t: tk, viewerName: v.name, reply: message, errs }) }), status);
+      html(await F({ title: tk.subject || t('Ticket'), sub: esc(t('Ticket #{n}', { n: tk.tid })), active: 'support', crumbs, body: ticketView({ csrf: v.csrf, t: tk, viewerName: v.name, reply: message, errs }) + await ratingCardFor(cid, tk) }), status);
     if (message.length < 2) return again({ message: t('Write a reply before sending.') }, 422);
     try { await api.addTicketReply(cid, id, message); }
     catch { return again({ form: t('Your reply could not be sent right now. It is kept below; try again in a moment.') }, 502); }

@@ -5,7 +5,9 @@ import { split } from './guest';
 
 export type ReminderPrefsView = { csrf: string; cartEmail: boolean; renewalEmail: boolean; whatsapp: boolean; whatsappAt: string | null; phone: string | null; waOffered: boolean; saved?: boolean;
   /** domain health alert emails (lib/health); undefined = row not shown */
-  health?: boolean };
+  health?: boolean;
+  /** monthly site report email (lib/cx); undefined = row not shown */
+  report?: boolean };
 
 export function remindersCard(o: ReminderPrefsView) {
   const box = (name: string, on: boolean, title: string, hint: string, disabled = false) =>
@@ -20,6 +22,7 @@ export function remindersCard(o: ReminderPrefsView) {
         ${box('cart', o.cartEmail, t('Unfinished orders (email)'), t('Up to two emails if you leave items in your cart.'))}
         ${box('renewal', o.renewalEmail, t('Renewals, unpaid invoices and expiring domains (email)'), t('A summary before services and domains renew, and a nudge if an invoice is overdue.'))}
         ${o.health === undefined ? '' : `<input type="hidden" name="health_shown" value="1">${box('health', o.health, t('Website and domain health alerts (email)'), t('When an SSL certificate expires, your site goes down or DNS or email settings break. Only new or worse problems.'))}`}
+        ${o.report === undefined ? '' : `<input type="hidden" name="report_shown" value="1">${box('report', o.report, t('Monthly site report (email)'), t('On the 1st of each month: checks, SSL, email settings, backups, usage and upcoming renewals for your sites.'))}`}
         ${wa}
       </fieldset>
       <p class="ac-help">${esc(t('We never send reminders between 10 pm and 8 am, and never more than a few a week. Invoices, receipts and ticket replies are always emailed.'))}</p>
@@ -27,13 +30,14 @@ export function remindersCard(o: ReminderPrefsView) {
     </form>`, { id: 'ac-st-rem-h' });
 }
 
-export type UnsubState = { state: 'confirm' | 'done' | 'invalid' | 'error'; token?: string; scope?: 'cart' | 'renewal' | 'health' | 'all'; email?: string };
+export type UnsubState = { state: 'confirm' | 'done' | 'invalid' | 'error'; token?: string; scope?: 'cart' | 'renewal' | 'health' | 'report' | 'rating' | 'all'; email?: string };
 
 /** a***@example.com: enough to recognise the address, not enough to read it off a shared screen. */
 export const maskEmail = (e: string) => { const [u, d] = String(e).split('@'); return d ? `${u.slice(0, 1)}${'*'.repeat(Math.max(2, Math.min(6, u.length - 1)))}@${d}` : ''; };
 
 export function unsubscribeView(s: UnsubState) {
-  const what = s.scope === 'cart' ? t('unfinished-order reminders') : s.scope === 'renewal' ? t('renewal and payment reminders') : s.scope === 'health' ? t('website and domain health alerts') : t('all reminder emails');
+  const what = s.scope === 'cart' ? t('unfinished-order reminders') : s.scope === 'renewal' ? t('renewal and payment reminders') : s.scope === 'health' ? t('website and domain health alerts')
+    : s.scope === 'report' ? t('the monthly site report') : s.scope === 'rating' ? t('requests to rate closed tickets') : t('all reminder emails');
   let body = '';
   if (s.state === 'invalid' || s.state === 'error') {
     body = `<h1 class="au-h1" id="au-h1">${esc(t('This link does not work'))}</h1>
@@ -51,7 +55,7 @@ export function unsubscribeView(s: UnsubState) {
       <form class="au-form" method="post" action="/account/unsubscribe" data-ac-busy>
         <input type="hidden" name="t" value="${esc(s.token || '')}">
         <fieldset><legend class="au-label">${esc(t('Stop sending me'))}</legend>
-          <div class="ac-st__opts ac-st__opts--col">${radio('cart', t('Unfinished-order reminders'))}${radio('renewal', t('Renewal and payment reminders'))}${radio('health', t('Website and domain health alerts'))}${radio('all', t('All reminder emails'))}</div></fieldset>
+          <div class="ac-st__opts ac-st__opts--col">${radio('cart', t('Unfinished-order reminders'))}${radio('renewal', t('Renewal and payment reminders'))}${radio('health', t('Website and domain health alerts'))}${radio('report', t('Monthly site report'))}${radio('rating', t('Requests to rate closed tickets'))}${radio('all', t('All reminder emails'))}</div></fieldset>
         <button class="hp-btn hp-btn--brand hp-btn--block hp-btn--lg" type="submit">${icon('check')}${esc(t('Unsubscribe'))}</button>
       </form>
       <div class="au-links"><a href="/account/settings#reminders">${esc(t('Manage all choices in my account'))}</a></div>`;

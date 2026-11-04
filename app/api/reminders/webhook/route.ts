@@ -8,6 +8,7 @@ import { verifyHook, EMAIL_RE } from '@/lib/reminders/core';
 import { hookSecret, cartsOrdered, patchState, state, setPrefs, closeCart } from '@/lib/reminders/store';
 import { invoicePaid, runReminders } from '@/lib/reminders/engine';
 import { tickHealth } from '@/lib/health/engine';
+import { tickCx } from '@/lib/cx/feedback-tick';
 import { kickContent } from '@/lib/content/kick';
 import { sellerInvoicePaid, sellerTick } from '@/lib/sell/store';
 import { limiter } from '@/lib/agents/http';
@@ -63,6 +64,8 @@ export async function POST(req: NextRequest) {
   if (ev === 'tick') {
     // domain health checks ride the same WHMCS cron tick (their own 10-minute spacing and lock: lib/health/engine.ts)
     after(() => tickHealth().catch((x) => console.warn('[health] tick', x?.message || x)));
+    // ticket rating requests (closed tickets polled with GetTickets) and the monthly site report window (lib/cx)
+    after(() => tickCx().then(() => undefined, (x) => console.warn('[cx] tick', x?.message || x)));
     // content engine: scheduled posts go live on time and the day's articles get drafted (own route, maxDuration 300)
     after(() => kickContent(req.nextUrl.origin, 'whmcs'));
     // seller listing fee invoices: fallback payment poll, at most every 15 minutes (lib/sell/store.ts)

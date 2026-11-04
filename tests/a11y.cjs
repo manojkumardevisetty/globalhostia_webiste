@@ -33,6 +33,7 @@ const PAGES = [
   ['acc-domains', '/account/domains', 'auth'], ['acc-domain', '/account/domains/301', 'auth'], ['acc-dns', '/account/domains/301/dns', 'auth'],
   ['acc-invoices', '/account/invoices', 'auth'], ['acc-invoice', '/account/invoices/5001', 'auth'],
   ['acc-support', '/account/support', 'auth'], ['acc-ticket', '/account/support/7001', 'auth'], ['acc-ticket-new', '/account/support/new', 'auth'],
+  ['acc-reports', '/account/reports?m=2026-10', 'auth'], ['acc-report-print', '/account/reports/print?m=2026-10', 'auth'], ['acc-ticket-closed', '/account/support/7000', 'auth'], ['rate-demo', '/account/rate?t=demo&s=4'], ['rate-invalid', '/account/rate?t=bad'],
   ['acc-renewals', '/account/renewals', 'auth'], ['acc-profile', '/account/profile', 'auth'], ['acc-settings', '/account/settings', 'auth'],
   ['acc-team', '/account/team', 'auth'], ['acc-sell', '/account/sell', 'auth'], ['acc-sell-new', '/account/sell/new', 'auth'],
 ];

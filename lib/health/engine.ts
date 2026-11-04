@@ -141,9 +141,21 @@ export const dbStore = {
   },
   async saveCheck(id: string, p: { issues: IssueMap; status: string; checks: unknown; firstSeen: string | null; checkedAt: number }) {
     await db.update(schema.domainHealth).set({ issues: p.issues as any, status: p.status, checks: p.checks as any, firstSeenIssue: p.firstSeen ? new Date(p.firstSeen) : null, lastChecked: new Date(p.checkedAt), updatedAt: new Date() }).where(eq(schema.domainHealth.id, id));
+    await recordDay(id, p.status, Object.keys(p.issues || {}), p.checkedAt); // monthly site report history (lib/cx)
   },
   async saveMarks(id: string, marks: MarkMap) { await db.update(schema.domainHealth).set({ lastAlerted: marks as any, updatedAt: new Date() }).where(eq(schema.domainHealth.id, id)); },
 };
+
+/** Daily history for the monthly site report (health_days, patch 041-cx): checks that day, worst status, union of issue
+ *  keys, per Dubai calendar day. Never fails the check itself (table missing before the patch ran: ignored). */
+async function recordDay(id: string, status: string, keys: string[], at: number) {
+  const day = new Date(at + 4 * 3600_000).toISOString().slice(0, 10);
+  await db.execute(sql`insert into health_days (row_id, day, client_id, domain, checks, status, issues)
+    select id, ${day}, client_id, domain, 1, ${status}, ${JSON.stringify(keys.slice(0, 40))}::jsonb from domain_health where id = ${id}
+    on conflict (row_id, day) do update set checks = health_days.checks + 1,
+      status = case when (array_position(array['ok','unknown','info','warning','critical'], excluded.status)) > coalesce(array_position(array['ok','unknown','info','warning','critical'], health_days.status), 0) then excluded.status else health_days.status end,
+      issues = (select coalesce(jsonb_agg(distinct x), '[]'::jsonb) from jsonb_array_elements_text(health_days.issues || excluded.issues) x)`).catch(() => {});
+}
 
 /* ================================================================ probe */
 export function probeFor(cfg: HealthConfig) {
