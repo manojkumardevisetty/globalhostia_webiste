@@ -4,11 +4,13 @@ import { assertionClientId } from '@/lib/oauth/core';
 import { OAuthError, authenticateClient, findClient, revokeToken } from '@/lib/oauth/store';
 import { baseUrl, basicAuth, formBody, oauthError, preflight, OAUTH_CORS } from '@/lib/oauth/http';
 import { clientIp, limiter } from '@/lib/agents/http';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 const revokeLimit = limiter(120, 60_000);
 
 export async function POST(req: Request) {
+  { const blocked = await guard(req, 'oauth'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const wait = revokeLimit(clientIp(req));
   if (wait) return oauthError('slow_down', `Too many requests; retry in ${wait}s`, 429, { 'retry-after': String(wait) });
   const b = await formBody(req);

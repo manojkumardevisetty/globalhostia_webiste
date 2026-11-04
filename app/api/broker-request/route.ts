@@ -12,6 +12,8 @@ import { validDomain } from '@/lib/agents/domain';
 import { brokerConfig, BROKER_CURRENCIES } from '@/lib/broker';
 import { autoEnsureBrokerProduct } from '@/lib/broker-whmcs';
 import { getCatalog } from '@/lib/theme/data';
+import { limit } from '@/lib/security/ratelimit';
+import { checkTurnstile, TOKEN_FIELD, TS_MESSAGE } from '@/lib/security/turnstile';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,6 +81,9 @@ export async function POST(req: NextRequest) {
   if (Object.keys(fields).length) return reply(422, { ok: false, error: 'Please check the highlighted fields.', fields });
 
   if (memLimited(ipKey)) return reply(429, { ok: false, error: 'Too many requests from your connection. Please wait a few minutes, or contact us on WhatsApp.' });
+  // central limiter (lib/security/ratelimit.ts) per IP and per email, then Cloudflare Turnstile when switched on (Admin > Security)
+  { const g = await limit('form', ip, String(data.email || '').trim().toLowerCase() || null); if (!g.ok) return reply(429, { ok: false, error: g.message }); }
+  { const t = await checkTurnstile('broker', data[TOKEN_FIELD], ip); if (!t.ok) return reply(400, { ok: false, error: TS_MESSAGE }); }
   try {
     const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.brokerRequests)
       .where(and(eq(schema.brokerRequests.ipHash, ipKey), gt(schema.brokerRequests.createdAt, new Date(Date.now() - 3600_000))));

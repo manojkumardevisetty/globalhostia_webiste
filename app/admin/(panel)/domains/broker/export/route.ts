@@ -1,7 +1,8 @@
 // Admin-only CSV export of broker requests (?status= optional). Formula-injection safe.
 import { NextRequest, NextResponse } from 'next/server';
 import { desc, eq } from 'drizzle-orm';
-import { verifySession, COOKIE, can } from '@/lib/auth';
+import { COOKIE, can } from '@/lib/auth';
+import { liveSession } from '@/lib/security/sessions';
 import { db, schema } from '@/lib/db';
 import { isBrokerStatus } from '@/lib/broker';
 
@@ -14,7 +15,7 @@ const cell = (v: unknown) => {
 };
 
 export async function GET(req: NextRequest) {
-  const s = await verifySession(req.cookies.get(COOKIE)?.value);
+  const s = await liveSession(req.cookies.get(COOKIE)?.value);
   if (!s || !can(s, 'commerce')) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   const st = req.nextUrl.searchParams.get('status');
   const rows = await db.select().from(schema.brokerRequests).where(isBrokerStatus(st) ? eq(schema.brokerRequests.status, st) : undefined).orderBy(desc(schema.brokerRequests.createdAt));

@@ -56,6 +56,8 @@ import { scrubMessage } from '@/lib/ux/errors';
 import { loadServers } from '@/lib/hosting/servers';
 import { serverFor } from '@/lib/hosting/match';
 import { sellGet, sellPost, type SellCtx } from '@/lib/portal/sell-handler';
+import { limit } from '@/lib/security/ratelimit';
+import { checkTurnstile, TOKEN_FIELD } from '@/lib/security/turnstile';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -530,6 +532,7 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   let fd: FormData;
   try { fd = await req.formData(); } catch { return html('Bad request', 400); }
   const str = (k: string, max = 20000) => { const x = fd.get(k); return typeof x === 'string' ? x.slice(0, max) : ''; };
+  const fdTs = str(TOKEN_FIELD, 2048); // Cloudflare Turnstile token (sign-in / reset forms, when switched on)
 
   /* ---- sign in (no session yet: same-origin check guards against login CSRF) ---- */
   if (segs[0] === 'login' && segs.length === 1) {
@@ -540,6 +543,8 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     const out = async (error: LoginState['error'], status: number) => html(await guestFrame({ path, query: q, title: t('Sign in'), body: loginView({ ...st, error }) }), status);
     if (!sameOrigin(req)) return out('origin', 403);
     if (!EMAIL.test(email) || !password) return out('invalid', 400);
+    if (!(await limit('account-login', ip, email)).ok) { await auditClient('client_login_blocked', email, ip, { by: 'limiter' }); return out('locked', 429); }
+    if (!(await checkTurnstile('login', fdTs, ip)).ok) return out('check', 400);
     if (await recentFailures('client_login_failed', ip, email) >= MAX_FAILS) { await auditClient('client_login_blocked', email, ip); return out('locked', 429); }
     let r: Awaited<ReturnType<typeof api.validateLogin>>;
     try { r = await api.validateLogin(email, password); } catch { return out('down', 503); }
@@ -565,6 +570,8 @@ async function handlePost(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     const email = str('email', 254).trim().toLowerCase();
     if (!sameOrigin(req)) return html(await guestFrame({ path, query: q, title: t('Reset your password'), body: forgotView({ email, error: 'origin' }) }), 403);
     if (!EMAIL.test(email)) return html(await guestFrame({ path, query: q, title: t('Reset your password'), body: forgotView({ email, error: 'invalid' }) }), 400);
+    if (!(await limit('password-reset', ip, email)).ok) return html(await guestFrame({ path, query: q, title: t('Reset your password'), body: forgotView({ email, error: 'locked' }) }), 429);
+    if (!(await checkTurnstile('forgot', fdTs, ip)).ok) return html(await guestFrame({ path, query: q, title: t('Reset your password'), body: forgotView({ email, error: 'check' }) }), 400);
     if (await recentFailures('client_reset', ip, email) < MAX_FAILS) {
       await auditClient('client_reset', email, ip);
       await api.resetPassword(email);

@@ -19,6 +19,7 @@ import { clientIp, limiter } from '../agents/http';
 import { connectorConfig } from './config';
 import { ToolFail, listEntries, needsAuth, runTool, type Access, type ToolCtx } from './tools';
 import { connectorDeps, friendly } from './deps';
+import { guard } from '../security/ratelimit';
 
 const ipLimit = limiter(240, 60_000);
 const MAX_BODY = 64 * 1024;
@@ -57,6 +58,7 @@ function toolResult(summary: string, data: Record<string, unknown>) {
 export type McpOptions = { requireAuth?: boolean };
 
 export async function handleMcpPost(req: Request, profile: Profile, opts: McpOptions = {}): Promise<Response> {
+  { const blocked = await guard(req, 'mcp'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const ip = clientIp(req);
   const wait = ipLimit(ip);
   if (wait) return reply({ jsonrpc: '2.0', id: null, error: { code: -32000, message: `Rate limit exceeded; retry in ${wait}s` } }, 429, { 'retry-after': String(wait) });

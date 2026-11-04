@@ -3,7 +3,7 @@ import { breadcrumbs, hexIcon } from '../../theme/ui';
 import { esc, icon, okMark, errMark, t } from './kit';
 import { lang } from '../i18n';
 
-export type LoginState = { email?: string; error?: 'invalid' | 'locked' | 'down' | 'tfa' | 'noclient' | 'origin'; next?: string; secureUrl: string; reset?: boolean; signedOut?: boolean };
+export type LoginState = { email?: string; error?: 'invalid' | 'locked' | 'down' | 'tfa' | 'noclient' | 'origin' | 'check'; next?: string; secureUrl: string; reset?: boolean; signedOut?: boolean };
 
 const ERR = (): Record<NonNullable<LoginState['error']>, string> => ({
   invalid: t('That email and password combination did not match an account. Check both and try again.'),
@@ -12,6 +12,7 @@ const ERR = (): Record<NonNullable<LoginState['error']>, string> => ({
   tfa: '',
   noclient: t('That email and password combination did not match an account. Check both and try again.'),
   origin: t('Your sign-in form expired. Please try again.'),
+  check: t('Please complete the security check and try again.'),
 });
 
 /** Email + password form posting to /account/login. Shared by /account/login and the theme's /sign-in page. */
@@ -91,7 +92,7 @@ export function loginView(s: LoginState) {
   });
 }
 
-export function forgotView(s: { email?: string; sent?: boolean; error?: 'origin' | 'invalid' }) {
+export function forgotView(s: { email?: string; sent?: boolean; error?: 'origin' | 'invalid' | 'check' | 'locked' }) {
   const card = s.sent
     ? `<h1 class="au-h1" id="au-h1">${esc(t('Check your email'))}</h1>
       <div class="ac-gap"><div class="ac-alert ac-alert--ok ac-alert--fx" role="status">${okMark()}<span>${t('If <b>{e}</b> is on an account, we have sent a link to reset your password. It can take a few minutes. Check your spam folder too.', { e: esc(s.email || t('that address')) })}</span></div></div>
@@ -99,7 +100,7 @@ export function forgotView(s: { email?: string; sent?: boolean; error?: 'origin'
       <div class="au-links"><a href="/account/forgot">${esc(t('Send another link'))}</a><a href="/help-center">${esc(t('Contact support'))}</a></div>`
     : `<h1 class="au-h1" id="au-h1">${esc(t('Reset your password'))}</h1>
       <p class="au-sub">${esc(t("Enter the email address on your account and we'll send you a link to choose a new password."))}</p>
-      ${s.error ? `<div class="ac-gap"><div class="ac-alert ac-alert--err" role="alert" id="au-err">${errMark()}<span>${esc(s.error === 'invalid' ? t('Enter a valid email address.') : t('Your form expired. Please try again.'))}</span></div></div>` : ''}
+      ${s.error ? `<div class="ac-gap"><div class="ac-alert ac-alert--err" role="alert" id="au-err">${errMark()}<span>${esc(s.error === 'invalid' ? t('Enter a valid email address.') : s.error === 'check' ? t('Please complete the security check and try again.') : s.error === 'locked' ? t('Too many reset requests. Please check your inbox or try again later.') : t('Your form expired. Please try again.'))}</span></div></div>` : ''}
       <form class="au-form" method="post" action="/account/forgot" novalidate data-ac-busy>
         <label class="au-label" for="au-email">${esc(t('Email address'))}</label>
         <div class="au-field">${icon('mail')}<input class="hp-input" id="au-email" name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" required placeholder="you@company.com" value="${esc(s.email || '')}"${s.error === 'invalid' ? ' aria-invalid="true" aria-describedby="au-err" autofocus' : ''}></div>

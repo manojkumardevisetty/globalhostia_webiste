@@ -16,6 +16,7 @@ import { db, schema } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { orderPlaced } from '@/lib/abtest/store';
 import { checkTicketsSoon } from '@/lib/support-notify';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -25,6 +26,7 @@ const limit = limiter(120, 60_000);
 const TICK_EVERY_MS = 10 * 60_000;
 
 export async function POST(req: NextRequest) {
+  { const blocked = await guard(req, 'reminders'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const ip = (req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown').trim();
   if (limit(ip)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
   const body = await req.text();

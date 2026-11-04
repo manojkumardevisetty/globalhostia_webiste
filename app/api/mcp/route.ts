@@ -4,6 +4,7 @@
 import { handleMessage, MCP_VERSIONS, MCP_LATEST, SERVER_INFO, TOOLS, RESOURCES, PROMPTS } from '@/lib/agents/mcp';
 import { domainLimit } from '@/lib/agents/domain';
 import { CORS, clientIp, limiter } from '@/lib/agents/http';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,7 @@ const rpcError = (code: number, message: string, status: number, extra: Record<s
   out({ jsonrpc: '2.0', id, error: { code, message } }, status, extra);
 
 export async function POST(req: Request) {
+  { const blocked = await guard(req, 'mcp'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const ip = clientIp(req);
   const wait = rpcLimit(ip);
   if (wait) return rpcError(-32000, `Rate limit exceeded; retry in ${wait}s`, 429, { 'retry-after': String(wait) });
@@ -46,6 +48,7 @@ export async function POST(req: Request) {
 
 /** Browsers and humans get a short description; MCP clients asking for an SSE stream get 405 (no server-initiated messages). */
 export async function GET(req: Request) {
+  { const blocked = await guard(req, 'mcp'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const accept = req.headers.get('accept') || '';
   if (accept.includes('text/event-stream')) return new Response(null, { status: 405, headers: { ...CORS, allow: 'POST, OPTIONS' } });
   const site = new URL(req.url).origin;

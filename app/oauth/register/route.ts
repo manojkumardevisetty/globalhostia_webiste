@@ -6,12 +6,14 @@ import { registerClient } from '@/lib/oauth/store';
 import { noStore, oauthError, preflight } from '@/lib/oauth/http';
 import { connectorConfig } from '@/lib/connector/config';
 import { clientIp, limiter } from '@/lib/agents/http';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 // Claude registers once per connection from a shared egress range: keep this generous
 const regLimit = limiter(120, 60_000);
 
 export async function POST(req: Request) {
+  { const blocked = await guard(req, 'oauth'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const wait = regLimit(clientIp(req));
   if (wait) return oauthError('slow_down', `Too many registrations; retry in ${wait}s`, 429, { 'retry-after': String(wait) });
   const cfg = await connectorConfig();

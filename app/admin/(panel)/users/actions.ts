@@ -52,3 +52,19 @@ export async function changeOwnPassword(fd: FormData) {
   await audit(s, 'change_password', 'user', s.uid);
   done('/admin/account', 'Password changed');
 }
+
+/** Owner: per-admin two-factor requirement and reset (lost phone + lost recovery codes). */
+export async function userMfa(fd: FormData) {
+  const s = await requireSession('users');
+  const id = str(fd, 'id'), op = str(fd, 'op');
+  const { setMfaRequired, disableMfa, getMfa } = await import('@/lib/security/mfa');
+  if ((await getMfa(id)) === undefined) fail('/admin/users', 'Two-factor is not available yet (database update 040-security has not run).');
+  if (op === 'require' || op === 'unrequire') await setMfaRequired(id, op === 'require');
+  else if (op === 'reset') {
+    await disableMfa(id);
+    const { revokeUserSessions } = await import('@/lib/security/sessions');
+    if (id !== s.uid) await revokeUserSessions(id, 'mfa_reset');
+  } else fail('/admin/users', 'Unknown action');
+  await audit(s, `user_mfa_${op}`, 'user', id);
+  done('/admin/users', op === 'reset' ? 'Two-factor reset: the admin signs in with the password and sets it up again' : 'Two-factor requirement saved');
+}

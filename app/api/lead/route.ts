@@ -7,6 +7,8 @@ import { createHash } from 'node:crypto';
 import { and, eq, gt, sql } from 'drizzle-orm';
 import { db, schema } from '@/lib/db';
 import { clean, EMAIL, SOURCE, UTM_KEYS, UTM_COOKIE, normPhone, parseUtmCookie, safePath, utmVal } from '@/lib/leads';
+import { limit } from '@/lib/security/ratelimit';
+import { checkTurnstile, TOKEN_FIELD, TS_MESSAGE } from '@/lib/security/turnstile';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +67,9 @@ export async function POST(req: NextRequest) {
   if (Object.keys(fields).length) return reply(422, { ok: false, error: 'Please check the highlighted fields.', fields });
 
   if (memLimited(ipHash)) return reply(429, { ok: false, error: 'Too many sign-ups from your connection. Please wait a few minutes.' });
+  // central limiter (lib/security/ratelimit.ts) per IP and per email, then Cloudflare Turnstile when switched on (Admin > Security)
+  { const g = await limit('form', ip, String(data.email || '').trim().toLowerCase() || null); if (!g.ok) return reply(429, { ok: false, error: g.message }); }
+  { const t = await checkTurnstile('lead', data[TOKEN_FIELD], ip); if (!t.ok) return reply(400, { ok: false, error: TS_MESSAGE }); }
   try {
     const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.leads)
       .where(and(eq(schema.leads.ipHash, ipHash), gt(schema.leads.createdAt, new Date(Date.now() - 3600_000))));

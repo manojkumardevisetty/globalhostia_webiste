@@ -1,28 +1,18 @@
 import fs from 'node:fs';
 import { ALIAS_REDIRECTS } from './lib/aliases.mjs';
+import { buildCsp, cspHeaderName, parseMode, reportingEndpoints } from './lib/security/csp-policy.mjs';
 
 // scripts/build-assets.mjs (run by `npm run build`) writes minified copies next to public/hp/*.js|css.
 // When they exist, shell.ts asset() links them (HP_MIN) and the URLs WHMCS loads cross-origin are rewritten to them.
 const HP_MIN = fs.existsSync(new URL('./public/hp/theme.min.js', import.meta.url)) ? '1' : '';
 const CROSS_ORIGIN_ASSETS = ['whmcs.js', 'whmcs-i18n.js', 'whmcs.css', 'promo.js', 'promo.css', 'track.js', 'ai-assist.js', 'ai-assist.css'];
 
-// Report-only CSP: the sources the site actually uses (theme, trackers in /hp/track.js, Google Fonts on the
-// admin and legacy theme, WHMCS forms). Violations are reported by the browser console only; nothing is blocked.
-const CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://googleads.g.doubleclick.net https://connect.facebook.net https://analytics.tiktok.com https://www.clarity.ms https://scripts.clarity.ms",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' data: https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https:",
-  "connect-src 'self' https://my.globalhostia.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://www.facebook.com https://analytics.tiktok.com",
-  "frame-src 'self' https://www.googletagmanager.com https://td.doubleclick.net https://www.youtube.com https://www.youtube-nocookie.com",
-  "media-src 'self' https:",
-  "worker-src 'self' blob:",
-  "form-action 'self' https://my.globalhostia.com https://globalhostia.com",
-  "frame-ancestors 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-].join('; ');
+// Content-Security-Policy (lib/security/csp-policy.mjs, docs/security/CSP.md). middleware.ts sends it on public pages and
+// the admin (with the Admin > Security mode); this static copy covers what middleware does not see (/account, /oauth, /mcp,
+// /template-part). CSP_MODE=report|off (Vercel env, then redeploy) stops enforcing here and in middleware.
+const CSP_MODE = parseMode(process.env.CSP_MODE);
+const CSP_HEADER = cspHeaderName(CSP_MODE);
+const CSP_STATIC = CSP_HEADER ? [{ key: CSP_HEADER, value: buildCsp({ dev: process.env.NODE_ENV === 'development' }) }, { key: 'Reporting-Endpoints', value: reportingEndpoints() }] : [];
 
 /** @type {import('next').NextConfig} */
 const security = [
@@ -31,7 +21,6 @@ const security = [
   // Covers every subdomain (my., mail., panel. …): each must keep serving valid HTTPS before this is submitted to hstspreload.org.
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()' },
-  { key: 'Content-Security-Policy-Report-Only', value: CSP },
 ];
 export default {
   poweredByHeader: false,
@@ -77,6 +66,9 @@ export default {
         { source: '/.well-known/oauth-protected-resource/mcp/auth', destination: '/api/well-known/oauth-protected-resource' },
         { source: '/.well-known/oauth-authorization-server', destination: '/api/well-known/oauth-authorization-server' },
         { source: '/.well-known/openai-apps-challenge', destination: '/api/well-known/openai-apps-challenge' },
+        // RFC 9116 security contact (lib/security/disclosure.ts)
+        { source: '/.well-known/security.txt', destination: '/api/well-known/security-txt' },
+        { source: '/security.txt', destination: '/api/well-known/security-txt' },
       ],
       fallback: [],
     };
@@ -84,6 +76,7 @@ export default {
   async headers() {
     return [
       { source: '/:path*', headers: security },
+      ...(CSP_STATIC.length ? [{ source: '/:p(account|oauth|mcp|template-part)', headers: CSP_STATIC }, { source: '/:p(account|oauth|mcp|template-part)/:path*', headers: CSP_STATIC }] : []),
       // config headers win over route headers, so /account (which sends its own X-Frame-Options: DENY) is left out
       { source: '/((?!account(?:/|$)).*)', headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }] },
       { source: '/admin/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },

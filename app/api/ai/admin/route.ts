@@ -8,11 +8,13 @@ import { runAgent, trimHistory } from '@/lib/ai/agent';
 import { adminSystem } from '@/lib/ai/prompts';
 import { adminTools } from '@/lib/ai/tools/admin';
 import { json, sameSite } from '@/lib/ai/http';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120;
 
 export async function POST(req: Request) {
+  { const blocked = await guard(req, 'ai'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const sess = await getSession();
   if (!sess || !can(sess, 'commerce')) return json({ error: 'unauthorized' }, 401);
   if (!sameSite(req)) return json({ error: 'forbidden' }, 403);

@@ -407,7 +407,7 @@ export const AR: Record<string, ArEntry> = {
   // ---- sign in / reset
   'That email and password combination did not match an account. Check both and try again.': 'لا يطابق هذا البريد الإلكتروني وكلمة المرور أي حساب. تحقق منهما وحاول مرة أخرى.',
   'Too many sign-in attempts. Wait 15 minutes, then try again or reset your password.': 'محاولات دخول كثيرة. انتظر 15 دقيقة ثم حاول مرة أخرى أو أعد تعيين كلمة المرور.',
-  'Sign-in is temporarily unavailable. Please try again in a few minutes.': 'تسجيل الدخول غير متاح مؤقتًا. يُرجى المحاولة بعد بضع دقائق.', 'Your sign-in form expired. Please try again.': 'انتهت صلاحية نموذج الدخول. يُرجى المحاولة مرة أخرى.',
+  'Sign-in is temporarily unavailable. Please try again in a few minutes.': 'تسجيل الدخول غير متاح مؤقتًا. يُرجى المحاولة بعد بضع دقائق.', 'Your sign-in form expired. Please try again.': 'انتهت صلاحية نموذج الدخول. يُرجى المحاولة مرة أخرى.', 'Please complete the security check and try again.': 'يُرجى إكمال التحقق الأمني ثم المحاولة مرة أخرى.', 'Too many reset requests. Please check your inbox or try again later.': 'طلبات إعادة تعيين كثيرة. تحقّق من بريدك الوارد أو حاول لاحقًا.',
   'Forgot password?': 'نسيت كلمة المرور؟', 'Show password': 'إظهار كلمة المرور', 'Hide password': 'إخفاء كلمة المرور', 'Sign in': 'تسجيل الدخول', 'Globalhostia account': 'حساب Globalhostia',
   'Encrypted with HTTPS. Your password is never stored on this website.': 'اتصال مشفّر عبر HTTPS. لا تُخزَّن كلمة مرورك على هذا الموقع أبدًا.', 'Products and servers': 'المنتجات والخوادم',
   'Status, IP addresses, renewal dates and one-click access to your control panel.': 'الحالة وعناوين IP ومواعيد التجديد والدخول إلى لوحة التحكم بنقرة واحدة.',

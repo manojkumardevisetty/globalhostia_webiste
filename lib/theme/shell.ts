@@ -1,4 +1,5 @@
 // Full HTML document for a theme page: head/meta, utility bar, header + mega menus, drawer, main, footer.
+import { turnstileTag } from '../security/turnstile-client';
 import { esc } from '../render/util';
 import { money } from '../pricing';
 import type { PageCtx } from './index';
@@ -274,6 +275,7 @@ ${preview ? `<a class="hp-preview-pill" href="${esc((o.path || '/') + '?theme=or
 ${WEBMCP_LOADER}
 ${o.aiChat === false ? '' : aiChatLoader(s, cat.currency)}
 <script src="${asset('/hp/track.js')}" defer></script>
+${turnstileTag(s, ASSET_V)}
 ${hasPromo(promo) ? `${promoDataScript(promo)}<script src="${asset('/hp/promo.js')}" defer></script>` : ''}
 ${js.map((k) => `<script src="${asset(`/hp/pages/${k}.js`)}" defer></script>`).join('\n')}
 </body>

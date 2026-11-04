@@ -109,6 +109,8 @@
     f.querySelector('[name="interest"]').value = String(p.title || '').slice(0, 200);
     wrap.appendChild(f);
     if (window.GHLead && window.GHLead.bind && origin === location.origin) { window.GHLead.bind(f, { onDone: onDone }); return wrap; }
+    // off-site (WHMCS client area): load the website's form check, which is empty unless Turnstile is switched on (Admin > Security)
+    if (!window.GHTs && !document.querySelector('script[data-gh-ts]')) document.head.appendChild(el('script', '', { src: origin + '/api/security/turnstile', defer: '', 'data-gh-ts': '' }));
     var t = f.querySelector('[name="t"]');
     f.addEventListener('focusin', function () { if (!t.value) t.value = String(Date.now()); });
     f.addEventListener('submit', function (e) {

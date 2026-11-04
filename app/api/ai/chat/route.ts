@@ -11,6 +11,7 @@ import { publicTools, type ShopCtx } from '@/lib/ai/tools/public';
 import { createHandoff } from '@/lib/ai/handoff';
 import { json, offline, sameSite } from '@/lib/ai/http';
 import { CANNED, langOf } from '@/lib/ai/gate';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -26,6 +27,7 @@ async function turnstileOk(secret: string, token: unknown, ip: string) {
 }
 
 export async function POST(req: Request) {
+  { const blocked = await guard(req, 'ai'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const started = Date.now();
   if (!sameSite(req)) return json({ error: 'forbidden' }, 403);
   const s = await aiSettings();

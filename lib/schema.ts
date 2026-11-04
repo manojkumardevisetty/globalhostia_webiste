@@ -830,3 +830,48 @@ export const cxUpgrades = pgTable('cx_upgrades', {
   error: text('error').notNull().default(''),
   createdAt: now('created_at'),
 }, (t) => [index('cx_upgrades_client_idx').on(t.clientId, t.createdAt)]);
+
+// ---- Admin security (lib/security/*, patch 040-security). Separate tables, never columns on admin_users: if the patch has
+// not run yet (database unreachable during a build), sign-in keeps working without two-factor and session tracking.
+// Two-factor per admin: sealed TOTP secret (AES-256-GCM), HMAC-hashed one-time recovery codes, last used time step (replay guard).
+export const adminMfa = pgTable('admin_mfa', {
+  userId: text('user_id').primaryKey(),
+  secret: text('secret').notNull().default(''),
+  pendingSecret: text('pending_secret').notNull().default(''),
+  enabled: boolean('enabled').notNull().default(false),
+  required: boolean('required').notNull().default(false),
+  recovery: jsonb('recovery').notNull().default([]),
+  lastStep: integer('last_step').notNull().default(0),
+  epoch: integer('epoch').notNull().default(0),
+  enabledAt: timestamp('enabled_at', { withTimezone: true }),
+  updatedAt: now('updated_at'),
+});
+// One row per admin sign-in: the session cookie carries its id (sid). Revoked, idle-expired or signed-out rows stop the cookie.
+export const adminSessions = pgTable('admin_sessions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  email: text('email').notNull().default(''),
+  ip: text('ip').notNull().default(''),
+  country: text('country').notNull().default(''),
+  ua: text('ua').notNull().default(''),
+  deviceId: text('device_id').notNull().default(''),
+  mfa: text('mfa').notNull().default('none'), // none | totp | recovery | remembered | env-disabled
+  createdAt: now('created_at'),
+  lastSeenAt: now('last_seen_at'),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  revokedReason: text('revoked_reason').notNull().default(''),
+}, (t) => [index('admin_sessions_user_idx').on(t.userId, t.createdAt), index('admin_sessions_device_idx').on(t.userId, t.deviceId)]);
+// Aggregated CSP violation reports (/api/csp-report): one row per directive + blocked origin + page + disposition.
+export const cspReports = pgTable('csp_reports', {
+  key: text('key').primaryKey(),
+  directive: text('directive').notNull(),
+  blocked: text('blocked').notNull(),
+  page: text('page').notNull().default(''),
+  source: text('source').notNull().default(''),
+  disposition: text('disposition').notNull().default('enforce'),
+  sample: text('sample').notNull().default(''),
+  count: integer('count').notNull().default(1),
+  firstSeen: now('first_seen'),
+  lastSeen: now('last_seen'),
+}, (t) => [index('csp_reports_last_idx').on(t.lastSeen)]);

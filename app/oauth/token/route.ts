@@ -7,11 +7,13 @@ import { OAuthError, authenticateClient, findClient, redeemCode, refreshTokens }
 import { baseUrl, basicAuth, formBody, noStore, oauthError, preflight } from '@/lib/oauth/http';
 import { connectorConfig } from '@/lib/connector/config';
 import { clientIp, limiter } from '@/lib/agents/http';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 const tokenLimit = limiter(300, 60_000);
 
 export async function POST(req: Request) {
+  { const blocked = await guard(req, 'oauth'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const wait = tokenLimit(clientIp(req));
   if (wait) return oauthError('slow_down', `Too many requests; retry in ${wait}s`, 429, { 'retry-after': String(wait) });
   const b = await formBody(req);

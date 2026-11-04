@@ -7,12 +7,14 @@ import { openTicket } from '@/lib/portal/api';
 import { cors } from '@/lib/hosting/context';
 import { burst } from '@/lib/ai/server';
 import { db, schema } from '@/lib/db';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 
 export function OPTIONS(req: NextRequest) { return new Response(null, { status: 204, headers: cors(req) }); }
 
 export async function POST(req: NextRequest) {
+  { const blocked = await guard(req, 'ai'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const a = await assistAuth(req);
   if (!a.ok) return a.res;
   const H = a.who.headers;

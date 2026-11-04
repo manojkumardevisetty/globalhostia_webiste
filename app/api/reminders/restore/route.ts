@@ -8,10 +8,12 @@ import { verifyRestore, productLink, domainLink } from '@/lib/reminders/core';
 import { getCart, linkSecret, loadConfig } from '@/lib/reminders/store';
 import { getSettings } from '@/lib/settings';
 import { whmcsBase } from '@/lib/theme/data';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  { const blocked = await guard(req, 'reminders'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const s = await getSettings().catch(() => ({} as any));
   const base = whmcsBase(s);
   const tok = req.nextUrl.searchParams.get('t');

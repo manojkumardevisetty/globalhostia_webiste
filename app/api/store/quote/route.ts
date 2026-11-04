@@ -13,6 +13,8 @@ import { getCatalog } from '@/lib/theme/data';
 import { storeView } from '@/lib/store/view';
 import { checkQuote, entryPath, QUOTE_SOURCE } from '@/lib/store/config';
 import { normPhone, parseUtmCookie, UTM_COOKIE } from '@/lib/leads';
+import { limit } from '@/lib/security/ratelimit';
+import { checkTurnstile, TOKEN_FIELD, TS_MESSAGE } from '@/lib/security/turnstile';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,6 +71,9 @@ export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown';
   const ipHash = createHash('sha256').update(`${ip}|${process.env.AUTH_SECRET || 'gh'}`).digest('hex').slice(0, 24);
   if (memLimited(ipHash)) return reply(429, { ok: false, error: 'Too many requests from your connection. Please wait a few minutes, or contact us on WhatsApp.' });
+  // central limiter (lib/security/ratelimit.ts) per IP and per email, then Cloudflare Turnstile when switched on (Admin > Security)
+  { const g = await limit('form', ip, String(data.email || '').trim().toLowerCase() || null); if (!g.ok) return reply(429, { ok: false, error: g.message }); }
+  { const t = await checkTurnstile('quote', data[TOKEN_FIELD], ip); if (!t.ok) return reply(400, { ok: false, error: TS_MESSAGE }); }
   try {
     const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.leads)
       .where(and(eq(schema.leads.ipHash, ipHash), gt(schema.leads.createdAt, new Date(Date.now() - 3600_000)), sql`${schema.leads.source} like 'quote:%'`));

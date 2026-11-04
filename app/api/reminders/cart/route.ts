@@ -12,6 +12,7 @@ import { verifyCart, verifyRestore, cartFingerprint, EMAIL_RE } from '@/lib/remi
 import { hookSecret, linkSecret, loadConfig, upsertCart, getCart, prefsFor, setPrefs, patchState } from '@/lib/reminders/store';
 import { canEmailGuests } from '@/lib/reminders/send';
 import { auditClient } from '@/lib/portal/session';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -25,6 +26,7 @@ const ipOf = (req: Request) => (req.headers.get('x-real-ip') || req.headers.get(
 export function OPTIONS(req: Request) { return new Response(null, { status: 204, headers: cors(req) }); }
 
 export async function POST(req: NextRequest) {
+  { const blocked = await guard(req, 'reminders'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const origin = req.headers.get('origin');
   if (!origin || !ALLOWED_ORIGINS.includes(origin)) return out(req, { error: 'origin' }, 403);
   const ip = ipOf(req);
@@ -71,6 +73,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  { const blocked = await guard(req, 'reminders'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const origin = req.headers.get('origin');
   if (origin && !ALLOWED_ORIGINS.includes(origin)) return out(req, { error: 'origin' }, 403);
   if (ipLimit(ipOf(req))) return out(req, { error: 'rate_limited' }, 429);

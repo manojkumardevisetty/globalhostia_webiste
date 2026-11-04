@@ -15,6 +15,7 @@ import { publicTools } from '@/lib/ai/tools/public';
 import { assistAuth } from '@/lib/ai/assist-auth';
 import { cors } from '@/lib/hosting/context';
 import { hashKey } from '@/lib/ai/server';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -24,6 +25,7 @@ const SHOP = ['recommend_plan', 'browse_category', 'get_product', 'check_domain'
 export function OPTIONS(req: NextRequest) { return new Response(null, { status: 204, headers: cors(req) }); }
 
 export async function POST(req: NextRequest) {
+  { const blocked = await guard(req, 'ai'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   const a = await assistAuth(req);
   if (!a.ok) return a.res;
   const { who } = a;

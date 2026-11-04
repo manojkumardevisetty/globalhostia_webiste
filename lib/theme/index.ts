@@ -22,6 +22,7 @@ const MODULES: Record<string, () => Promise<{ default: PageFn }>> = {
   product: () => import('./pages/product'),
   auth: () => import('./pages/auth'),
   contact: () => import('./pages/contact'),
+  security: () => import('./pages/security'),
   content: () => import('./pages/content'),
   servers: () => import('./pages/servers'),
   blog: () => import('./pages/blog'),

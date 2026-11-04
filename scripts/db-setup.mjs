@@ -714,6 +714,23 @@ try {
         created_at timestamptz not null default now())`;
       await tx`create index if not exists cx_upgrades_client_idx on cx_upgrades (client_id, created_at)`;
     },
+    // 40. admin security (lib/security/*): two-factor per admin, tracked admin sessions (list / revoke / idle timeout),
+    // aggregated CSP violation reports. Own tables, so sign-in never depends on this patch having run.
+    '040-security': async (tx) => {
+      await tx`create table if not exists admin_mfa (user_id text primary key, secret text not null default '', pending_secret text not null default '',
+        enabled boolean not null default false, required boolean not null default false, recovery jsonb not null default '[]'::jsonb,
+        last_step integer not null default 0, epoch integer not null default 0, enabled_at timestamptz, updated_at timestamptz not null default now())`;
+      await tx`create table if not exists admin_sessions (id text primary key, user_id text not null, email text not null default '',
+        ip text not null default '', country text not null default '', ua text not null default '', device_id text not null default '',
+        mfa text not null default 'none', created_at timestamptz not null default now(), last_seen_at timestamptz not null default now(),
+        expires_at timestamptz not null, revoked_at timestamptz, revoked_reason text not null default '')`;
+      await tx`create index if not exists admin_sessions_user_idx on admin_sessions (user_id, created_at)`;
+      await tx`create index if not exists admin_sessions_device_idx on admin_sessions (user_id, device_id)`;
+      await tx`create table if not exists csp_reports (key text primary key, directive text not null, blocked text not null,
+        page text not null default '', source text not null default '', disposition text not null default 'enforce', sample text not null default '',
+        count integer not null default 1, first_seen timestamptz not null default now(), last_seen timestamptz not null default now())`;
+      await tx`create index if not exists csp_reports_last_idx on csp_reports (last_seen)`;
+    },
   };
   for (const [key, fn] of Object.entries(PATCHES)) {
     if (applied.has(key)) continue;

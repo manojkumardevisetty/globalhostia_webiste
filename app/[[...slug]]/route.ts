@@ -9,7 +9,8 @@ import { THEME_ONLY, dynamicRoute } from '@/lib/theme/routes';
 import { PSEO_REDIRECTS, categoryRedirect } from '@/lib/theme/pseo';
 import { getCatalog } from '@/lib/theme/data';
 import { getSettings } from '@/lib/settings';
-import { verifySession, COOKIE } from '@/lib/auth';
+import { COOKIE } from '@/lib/auth';
+import { liveSession } from '@/lib/security/sessions';
 import { pageMarkdown, mdPath } from '@/lib/agents/markdown';
 import { GET as aiPage } from '../ai/route';
 import { onDeploy } from '@/lib/indexnow';
@@ -106,7 +107,7 @@ async function render(req: NextRequest, ctx: { params: Promise<{ slug?: string[]
   }
   if (/\.html?$/i.test(path)) return NextResponse.redirect(new URL(path.replace(/\/?index\.html?$/i, '/').replace(/\.html?$/i, ''), req.url), 301);
 
-  const session = await verifySession(req.cookies.get(COOKIE)?.value);
+  const session = await liveSession(req.cookies.get(COOKIE)?.value);
   const preview = !!session && req.nextUrl.searchParams.has('preview');
   const s = await getSettings();
   if (s.maintenance && !session) {

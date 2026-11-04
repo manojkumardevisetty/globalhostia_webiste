@@ -1,12 +1,13 @@
 // Admin-only diagnostics: raw read-only WHMCS API responses (Get* actions only), secrets never included.
 import { NextRequest, NextResponse } from 'next/server';
-import { verifySession, COOKIE, can } from '@/lib/auth';
+import { COOKIE, can } from '@/lib/auth';
+import { liveSession } from '@/lib/security/sessions';
 import { whmcs } from '@/lib/whmcs';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const s = await verifySession(req.cookies.get(COOKIE)?.value);
+  const s = await liveSession(req.cookies.get(COOKIE)?.value);
   if (!s || !can(s, 'integration')) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   const q = req.nextUrl.searchParams;
   const action = q.get('action') || '';

@@ -3,10 +3,12 @@ import { aiSettings, ipSubject } from '@/lib/ai/server';
 import { cleanHistory } from '@/lib/ai/run';
 import { createHandoff } from '@/lib/ai/handoff';
 import { json, sameSite } from '@/lib/ai/http';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
+  { const blocked = await guard(req, 'ai'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   if (!sameSite(req)) return json({ error: 'forbidden' }, 403);
   let b: any;
   try { const raw = await req.text(); if (raw.length > 64_000) return json({ error: 'too_large' }, 413); b = JSON.parse(raw); } catch { return json({ error: 'bad_request' }, 400); }

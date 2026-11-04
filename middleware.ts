@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, type NextFetchEvent } from 'next/server';
+import { buildCsp, cspHeaderName, effectiveMode, reportingEndpoints } from './lib/security/csp-policy.mjs';
 import { verifySession, COOKIE } from './lib/auth';
 import { COUNTRY_CURRENCY, CUR_COOKIE, isCode } from './lib/currency';
 import { wantsMarkdown, mdPath } from './lib/agents/markdown';
@@ -15,7 +16,35 @@ function currency(req: NextRequest) {
   return { cur: COUNTRY_CURRENCY[country] || 'USD', set: false };
 }
 
-export async function middleware(req: NextRequest) {
+// Content-Security-Policy for every page middleware sees (public pages + admin). Mode: the least strict of env CSP_MODE
+// and Admin > Security (read from /api/security/csp, remembered 60s per instance, refreshed in the background).
+// next.config.mjs sends the same policy for /account, /oauth and /mcp (not routed through middleware), from env only.
+let cspRt: { at: number; mode: string; extra: Record<string, string[]>; busy?: boolean } = { at: 0, mode: 'enforce', extra: {} };
+async function refreshCsp(req: NextRequest) {
+  if (cspRt.busy) return;
+  cspRt.busy = true;
+  try {
+    const r = await fetch(new URL('/api/security/csp', req.url), { signal: AbortSignal.timeout(1500), headers: { accept: 'application/json' } });
+    if (r.ok) { const j = await r.json(); cspRt = { at: Date.now(), mode: String(j.mode || 'enforce'), extra: j.extra || {} }; } else cspRt = { ...cspRt, at: Date.now() };
+  } catch { cspRt = { ...cspRt, at: Date.now() }; } finally { cspRt.busy = false; }
+}
+async function withCsp(req: NextRequest, ev: NextFetchEvent | undefined, res: NextResponse) {
+  if (!cspRt.at) await refreshCsp(req);
+  else if (Date.now() - cspRt.at > 60_000) { const p = refreshCsp(req); if (ev) ev.waitUntil(p); }
+  const mode = effectiveMode(process.env.CSP_MODE, cspRt.mode);
+  const name = cspHeaderName(mode);
+  if (name) {
+    res.headers.set(name, buildCsp({ dev: process.env.NODE_ENV === 'development', extra: cspRt.extra }));
+    res.headers.set('Reporting-Endpoints', reportingEndpoints());
+  }
+  return res;
+}
+
+export async function middleware(req: NextRequest, ev?: NextFetchEvent) {
+  return withCsp(req, ev, await handle(req));
+}
+
+async function handle(req: NextRequest): Promise<NextResponse> {
   const { pathname } = req.nextUrl;
   if (pathname === '/ask') return NextResponse.next(); // NLWeb API: ?currency= is an API parameter, not the site picker
   if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/admin')) {
@@ -51,7 +80,7 @@ export async function middleware(req: NextRequest) {
     for (const c of ab?.cookies || []) res.cookies.set(c.name, c.value, { path: '/', maxAge: AB_COOKIE_MAX_AGE, sameSite: 'lax', secure: req.nextUrl.protocol === 'https:', httpOnly: c.httpOnly, ...(c.domain ? { domain: c.domain } : {}) });
     return res;
   }
-  if (pathname === '/admin/login') return NextResponse.next();
+  if (pathname === '/admin/login' || pathname.startsWith('/admin/login/')) return NextResponse.next();
   const s = await verifySession(req.cookies.get(COOKIE)?.value);
   if (!s) {
     if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });

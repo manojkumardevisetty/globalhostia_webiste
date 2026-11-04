@@ -4,14 +4,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cdnCache } from '@/lib/lkg';
 import { renderLanding } from '@/lib/theme/pages/landing';
 import { getSettings } from '@/lib/settings';
-import { verifySession, COOKIE } from '@/lib/auth';
+import { COOKIE } from '@/lib/auth';
+import { liveSession } from '@/lib/security/sessions';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ slug: string }> }) {
   const { slug } = await ctx.params;
   const s = await getSettings();
-  const session = await verifySession(req.cookies.get(COOKIE)?.value);
+  const session = await liveSession(req.cookies.get(COOKIE)?.value);
   if (s.maintenance && !session) return new NextResponse('We will be right back.', { status: 503, headers: { 'content-type': 'text/plain; charset=utf-8' } });
   const preview = !!session && req.nextUrl.searchParams.has('preview');
   const clean = slug.toLowerCase();

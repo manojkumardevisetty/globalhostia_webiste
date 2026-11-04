@@ -1,13 +1,15 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { COOKIE, verifySession, can, type Session } from './auth';
+import { COOKIE, can, type Session } from './auth';
+import { liveSession } from './security/sessions';
 import { sql } from 'drizzle-orm';
 import { db, schema } from './db';
 import { dbDown, markDbDown } from './lkg';
 
+/** Signed cookie + tracked session row (revoked / idle-expired sessions end here: lib/security/sessions.ts). */
 export async function getSession() {
-  return verifySession((await cookies()).get(COOKIE)?.value);
+  return liveSession((await cookies()).get(COOKIE)?.value);
 }
 
 /** Use in admin pages and server actions. Redirects to login / throws on missing permission. */

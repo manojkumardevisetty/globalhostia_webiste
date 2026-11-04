@@ -17,6 +17,7 @@ import { auditClient, clientIp, csrfFor, csrfOk, readClient, sameOrigin } from '
 import { frame } from '@/lib/portal/views/frame';
 import { withLocale, parseLang, parseDigits, LANG_COOKIE, DIGITS_COOKIE } from '@/lib/portal/i18n';
 import { t } from '@/lib/portal/views/kit';
+import { guard } from '@/lib/security/ratelimit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -80,6 +81,7 @@ async function check(req: NextRequest, q: URLSearchParams, base: string): Promis
 }
 
 export async function GET(req: NextRequest) {
+  { const blocked = await guard(req, 'oauth'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   return withLocale(localeOf(req), async () => {
     const base = baseUrl(req);
     const q = req.nextUrl.searchParams;
@@ -116,6 +118,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  { const blocked = await guard(req, 'oauth'); if (blocked) return blocked; } // central limiter (lib/security/ratelimit.ts)
   return withLocale(localeOf(req), async () => {
     const base = baseUrl(req);
     let fd: FormData;
