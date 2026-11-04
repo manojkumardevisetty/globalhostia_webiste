@@ -39,7 +39,7 @@ export default async function HelpVideos({ searchParams }: { searchParams: Promi
             <td className="whitespace-nowrap text-right">
               <form action={setHelpHidden} className="inline"><input type="hidden" name="slug" value={t.slug} /><input type="hidden" name="hide" value={t.hidden ? '0' : '1'} /><button className="btn btn-secondary">{t.hidden ? 'Show' : 'Hide'}</button></form>{' '}
               <a href={`#edit-${t.slug}`} className="btn btn-secondary">Edit</a></td></tr>))}</tbody></table></div>
-        <p className="mt-2 text-xs text-slate-400">Hidden topics answer 404 and leave the sitemaps, the Help Center grid and the site search. The recorder that re-makes the videos is in scripts/help-videos/.</p>
+        <p className="mt-2 text-xs text-slate-400">Hidden topics answer 404 and leave the sitemaps, the Help Center grid and the site search. The recorder that re-makes the videos is in scripts/help-videos/. The same topics are in the WHMCS knowledgebase (my.globalhostia.com/knowledgebase, "How-to videos"): after changing topics, re-run scripts/gen-kb-sql.mjs and import docs/whmcs/kb-help-videos.sql in phpMyAdmin (edits saved here are not included).</p>
       </Card>
 
       <div className="space-y-6">{list.map((t) => {

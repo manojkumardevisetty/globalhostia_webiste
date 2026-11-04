@@ -99,6 +99,9 @@ export default {
       { source: '/hp/:path*', has: [{ type: 'query', key: 'v' }], headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
       // The WHMCS hook versions its skin by date (?v=YYYYMMDD), not by build: never cache those for a year.
       { source: '/hp/:file(whmcs.js|whmcs-i18n.js|whmcs.css|promo.js|promo.css|ai-assist.js|ai-assist.css|whmcs.min.js|whmcs-i18n.min.js|whmcs.min.css|promo.min.js|promo.min.css|ai-assist.min.js|ai-assist.min.css)', headers: [{ key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=3600' }] },
+      // help videos, posters, captions and walkthrough frames are embedded in the WHMCS knowledgebase
+      // (docs/whmcs/kb-help-videos.sql, <video crossorigin>): cross-origin <track> captions need CORS
+      { source: '/help/:dir(videos|frames)/:path*', headers: [{ key: 'Access-Control-Allow-Origin', value: 'https://my.globalhostia.com' }] },
       { source: '/hp/img/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' }] },
       // font files never change under the same name (new @fontsource versions get new files via the build script)
       { source: '/hp/fonts/:path*.woff2', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
