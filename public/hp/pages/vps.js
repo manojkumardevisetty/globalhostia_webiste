@@ -36,10 +36,11 @@
       var plans; try{plans=JSON.parse($("[data-plans]",box).textContent)}catch(e){return}
       var cpu=$("#vx-cpu",box), ram=$("#vx-ram",box), disk=$("#vx-disk",box), os=$(".vx-os",box), match=$(".vx-match",box);
       var R=function(k){return $('[data-r="'+k+'"]',match)};
+      if(!plans.length) return;
       var cur=plans[0].os, lastSlug=null;
       function steps(inp){return inp.getAttribute("data-steps").split(",").map(Number)}
       function val(inp){return inp?steps(inp)[+inp.value]:0}
-      function paint(inp){ if(!inp) return; var v=val(inp)+(inp.getAttribute("data-unit")||""); inp.style.setProperty("--p",(inp.value/inp.max*100)+"%"); inp.setAttribute("aria-valuetext",v); var o=$('[data-out="'+inp.id+'"]',box); if(o) o.textContent=v }
+      function paint(inp){ if(!inp) return; var v=val(inp)+(inp.getAttribute("data-unit")||""); inp.style.setProperty("--p",(+inp.max>+inp.min ? (inp.value-inp.min)/(inp.max-inp.min)*100 : 0)+"%"); inp.setAttribute("aria-valuetext",v); var o=$('[data-out="'+inp.id+'"]',box); if(o) o.textContent=v }
       function setTo(inp,v){ if(!inp) return; var s=steps(inp), b=0; s.forEach(function(x,k){ if(Math.abs(x-v)<Math.abs(s[b]-v)) b=k }); inp.value=b; paint(inp) }
       function pick(){
         var want={cpu:val(cpu),ram:val(ram),disk:val(disk)};
@@ -52,17 +53,17 @@
         var changed=p.slug!==lastSlug; lastSlug=p.slug;
         R("name").textContent=p.name; R("cpu").textContent=p.cpu; R("ram").textContent=p.ram+"GB"; R("os").textContent=p.os;
         R("price").textContent=p.price||"Price shown in the order form";
-        var a=R("href"); a.href=p.href; a.textContent=p.price?"Order this plan":"See price and order"; a.setAttribute("aria-label",(p.price?"Order ":"See price and order: ")+p.name);
+        var a=R("href"); a.href=p.href; a.textContent=p.price?"Order this plan":"See price and order"; a.setAttribute("aria-label",(p.price?"Order this plan: ":"See price and order: ")+p.name);
         R("details").setAttribute("href","/p/"+p.slug+(location.search.indexOf("theme=hostpen")>-1?"?theme=hostpen":""));
-        var short=[]; if(val(cpu)>p.cpu) short.push((val(cpu)-p.cpu)+" fewer vCPU"); if(val(ram)>p.ram) short.push((val(ram)-p.ram)+"GB less RAM");
+        var short=[]; if(disk && val(disk)>p.disk) short.push(p.disk ? (val(disk)-p.disk)+"GB less storage" : "storage capacity not specified"); if(val(cpu)>p.cpu) short.push((val(cpu)-p.cpu)+" fewer vCPU"); if(val(ram)>p.ram) short.push((val(ram)-p.ram)+"GB less RAM");
         var fit=R("fit"); fit.classList.toggle("is-short",!!short.length);
-        fit.textContent = short.length ? "Closest available: "+short.join(" and ")+" than you selected. Talk to us if you need more." : (p.cpu===val(cpu)&&p.ram===val(ram) ? "An exact match for what you selected." : "Meets or exceeds what you selected, with room to grow.");
+        fit.textContent = short.length ? "Closest available: "+short.join(" and ")+" than you selected. Talk to us if you need more." : (p.cpu===val(cpu)&&p.ram===val(ram)&&(!disk||p.disk===val(disk)) ? "An exact match for what you selected." : "Meets or exceeds what you selected, with room to grow.");
         $$(".vx-chips",box).forEach(function(l){ l.hidden = l.getAttribute("data-os-list")!==cur });
         $$(".vx-chip",box).forEach(function(b){ var on=b.getAttribute("data-slug")===p.slug; b.classList.toggle("is-on",on); b.setAttribute("aria-pressed",on) });
         if(changed && !reduce && !force){ match.classList.remove("is-swap"); void match.offsetWidth; match.classList.add("is-swap") }
       }
       function update(){ $$(".vx-preset",box).forEach(function(b){ b.setAttribute("aria-pressed", +b.getAttribute("data-cpu")===val(cpu) && +b.getAttribute("data-ram")===val(ram)) }); show(pick()) }
-      [cpu,ram,disk].forEach(function(inp){ if(!inp) return; paint(inp); inp.addEventListener("input",update) });
+      [cpu,ram,disk].forEach(function(inp){ if(!inp) return; paint(inp); inp.addEventListener("input",function(){ paint(inp); update() }) });
       $$(".vx-preset",box).forEach(function(b){ b.addEventListener("click",function(){ setTo(cpu,+b.getAttribute("data-cpu")); setTo(ram,+b.getAttribute("data-ram")); update() }) });
       if(os){
         var btns=$$("button",os), thumb=$(".hp-seg__thumb",os);

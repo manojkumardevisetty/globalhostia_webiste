@@ -118,7 +118,7 @@
       var id=b.dataset.menu;
       b.addEventListener("mouseenter",function(){clearTimeout(openT);clearTimeout(closeT);openT=setTimeout(function(){openMenu(id)},openId?0:120)});
       b.addEventListener("mouseleave",function(){clearTimeout(openT);closeT=setTimeout(closeMenus,180)});
-      b.addEventListener("click",function(e){ if(e.detail===0) return; openId===id?closeMenus():openMenu(id) });
+      b.addEventListener("click",function(){ openId===id?closeMenus():openMenu(id) });
       b.addEventListener("keydown",function(e){
         if(e.key==="Enter"||e.key===" "){e.preventDefault(); if(openId===id) closeMenus(); else {openMenu(id);focusFirst(id)}}
         else if(e.key==="ArrowDown"){e.preventDefault();openMenu(id);focusFirst(id)}

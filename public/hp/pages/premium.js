@@ -105,7 +105,7 @@
           if (!q && many && !o.popular && o.v && !shownSep) { var sep = document.createElement("li"); sep.className = "pd-dd__sep"; sep.setAttribute("role", "presentation"); sep.textContent = "All extensions"; list.appendChild(sep); shownSep = true; }
           var li = document.createElement("li"); li.setAttribute("role", "option"); li.className = "pd-dd__opt"; li.textContent = o.t; li.dataset.v = o.v;
           li.setAttribute("aria-selected", String(sel.value === o.v)); li.id = id + "-" + items.length;
-          li.addEventListener("mousedown", function (e) { e.preventDefault(); choose(o.v); });
+          li.addEventListener("click", function () { choose(o.v); });
           list.appendChild(li); items.push(li);
         });
         if (!items.length) { var none = document.createElement("li"); none.className = "pd-dd__none"; none.textContent = "No match"; list.appendChild(none); }
@@ -119,7 +119,7 @@
       var choose = function (v) { if (sel.value !== v) { sel.value = v; sel.dispatchEvent(new Event("change", { bubbles: true })); } label(); close(true); };
       var key = function (e) {
         if (e.key === "ArrowDown") { e.preventDefault(); if (pop.hidden) return open(); act = Math.min(items.length - 1, act + 1); mark(); }
-        else if (e.key === "ArrowUp") { e.preventDefault(); act = Math.max(0, act - 1); mark(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); if (pop.hidden) return open(); act = Math.max(0, act - 1); mark(); }
         else if (e.key === "Enter") { if (!pop.hidden && items[act]) { e.preventDefault(); choose(items[act].dataset.v); } }
         else if (e.key === "Escape") { if (!pop.hidden) { e.preventDefault(); close(true); } }
         else if (e.key === "Tab") close(false);
