@@ -9,7 +9,7 @@ import { getCatalog, pricedTlds, currencyPrefix, domainCartUrl, type Catalog, ty
 import { page } from '../shell';
 import { breadcrumbs, breadcrumbJsonLd, domainSearch, sectionHead, faq, faqJsonLd, ctaBand, icon, hexIcon, link, ld, pageHero, VAT_NOTE } from '../ui';
 import { trustStrip } from '../growth';
-import { tldInfo, TLD_EXISTING, isCountryTld, tldPageList, tldFromSlug, tldHref, tldRow, tldSlug, siteOf, type TldInfo } from '../pseo';
+import { tldInfo, tldIndexable, TLD_EXISTING, isCountryTld, tldPageList, tldFromSlug, tldHref, tldRow, tldSlug, siteOf, type TldInfo } from '../pseo';
 
 const pct = (a: number, b: number) => Math.round(((a - b) / b) * 100);
 
@@ -175,7 +175,7 @@ async function renderTld(ctx: PageCtx, cat: Catalog, tld: string) {
 
   return page({
     ctx: { ...ctx, route: { ...ctx.route, title: visible, description: desc, seoTitle: title, meta: desc } }, catalog: cat, path, title: visible, description: desc,
-    css: ['pseo'], ogKicker: 'Domains',
+    css: ['pseo'], ogKicker: 'Domains', noindex: !tldIndexable(cat, tld) || undefined, // template-only pages: noindex,follow
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(faqs), offer].filter(Boolean),
     body: [hero, search, trustStrip(s), about, relSec, faqSec, next, cta].join('\n'),
   });

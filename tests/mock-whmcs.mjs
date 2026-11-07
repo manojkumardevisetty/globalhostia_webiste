@@ -332,7 +332,7 @@ const handlers = {
   GetTLDPricing: () => ({ currency: { code: 'USD' }, pricing: {
     com: { register: { 1: '13.65' }, transfer: { 1: '13.65' }, renew: { 1: '13.99' } }, net: { register: { 1: '8.29' }, transfer: { 1: '11.29' }, renew: { 1: '11.29' } },
     org: { register: { 1: '8.65' }, transfer: { 1: '8.65' }, renew: { 1: '12.65' } }, shop: { register: { 1: '1.20' }, transfer: { 1: '25.00' }, renew: { 1: '29.00' } },
-    ae: { register: { 1: '35.00' }, transfer: { 1: '35.00' }, renew: { 1: '35.00' } }, io: { register: { 1: '49.00' }, transfer: { 1: '49.00' }, renew: { 1: '49.00' } } } }),
+    ae: { register: { 1: '35.00' }, transfer: { 1: '35.00' }, renew: { 1: '35.00' } }, abogado: { register: { 1: '32.36' }, transfer: { 1: '32.36' }, renew: { 1: '32.36' } }, io: { register: { 1: '49.00' }, transfer: { 1: '49.00' }, renew: { 1: '49.00' } } } }),
   DomainWhois: (p) => ({ status: /google|globalhostia/.test(p.domain) ? 'unavailable' : 'available' }),
   GetStats: () => ({ income_today: '$120.00', income_thismonth: '$4,210.00', orders_pending: 3, orders_today_total: 5, tickets_open: 2, tickets_awaitingreply: 1 }),
   GetOrders: (p) => { const list = p.id ? orders.filter((o) => o.id === Number(p.id)) : p.userid ? orders.filter((o) => o.userid === Number(p.userid)) : orders.filter((o) => o.userid === 7); return { totalresults: list.length, orders: { order: list } }; },

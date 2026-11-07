@@ -101,3 +101,89 @@ add_hook('ClientAreaHeadOutput', 1, function ($vars) {
     }
     return $out . '</script>';
 });
+
+/**
+ * Search engines on my.globalhostia.com: one canonical URL per page, and no index for private / transactional pages.
+ * Google Search Console listed many duplicate copies such as /knowledgebase/12/x.html?language=turkish,
+ * /store/vps?currency=2 or /cart.php?a=add&pid=7&language=german ("Crawled / Discovered, currently not indexed",
+ * "Duplicate without user-selected canonical"). This prints, in <head> of every client-area page:
+ *   <link rel="canonical" href="https://my.globalhostia.com<path>[?essential params]">
+ *   language, currency, carttpl, e, utm_* and every other parameter are dropped; only parameters that select the page
+ *   itself are kept (rp for non-rewritten friendly URLs, action/id/catid on knowledgebase.php and announcements.php,
+ *   gid/pid on the store/cart, page for pagination).
+ *   <meta name="robots" content="noindex,follow"> on the cart and checkout, sign-in / sign-up / password reset, the
+ *   client area, invoices, tickets, downloads, the "older announcements" archive, and on any ?language= other than
+ *   english / arabic (the two languages globalhostia.com links to).
+ * Upload with the rest of this file (includes/hooks/). Pair it with docs/whmcs/robots-my.txt.
+ */
+const GH_SEO_BASE = 'https://my.globalhostia.com';
+const GH_SEO_KEEP = ['rp', 'action', 'id', 'catid', 'gid', 'pid', 'page'];
+
+function gh_seo_route()
+{
+    $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+    $path = (string) parse_url($uri, PHP_URL_PATH);
+    if ($path === '' || $path[0] !== '/') {
+        $path = '/';
+    }
+    // the client area used to live at globalhostia.com/secure; canonical URLs are on my.globalhostia.com without it
+    $path = preg_replace('#^/secure(?=/|$)#i', '', $path);
+    if ($path === '') {
+        $path = '/';
+    }
+    // friendly URLs without URL rewriting: index.php?rp=/knowledgebase/12/x.html
+    $rp = isset($_GET['rp']) && is_string($_GET['rp']) ? $_GET['rp'] : '';
+    return [$path, $rp];
+}
+
+add_hook('ClientAreaHeadOutput', 2, function ($vars) {
+    list($path, $rp) = gh_seo_route();
+    $route = strtolower(rtrim(($rp !== '' ? $rp : $path), '/'));
+    $file = strtolower(basename($path));
+
+    // canonical: path + only the parameters that define the page
+    $keep = [];
+    foreach (GH_SEO_KEEP as $k) {
+        if (!isset($_GET[$k]) || !is_string($_GET[$k]) || $_GET[$k] === '') {
+            continue;
+        }
+        $v = $_GET[$k];
+        if ($k === 'rp') {
+            if (!preg_match('#^/[A-Za-z0-9/._-]{0,200}$#', $v)) {
+                continue;
+            }
+        } elseif (!preg_match('/^[A-Za-z0-9_-]{1,40}$/', $v)) {
+            continue;
+        }
+        if ($k === 'page' && $v === '1') {
+            continue;
+        }
+        $keep[$k] = $v;
+    }
+    $safePath = preg_match('#^/[A-Za-z0-9/._~%-]*$#', $path) ? $path : '/';
+    $canonical = GH_SEO_BASE . $safePath . ($keep ? '?' . str_replace('%2F', '/', http_build_query($keep, '', '&', PHP_QUERY_RFC3986)) : '');
+
+    // noindex: transactional, private and duplicate-language pages
+    $noindex = false;
+    $files = ['cart.php', 'register.php', 'pwreset.php', 'submitticket.php', 'login.php', 'dologin.php', 'logout.php',
+        'clientarea.php', 'viewinvoice.php', 'viewquote.php', 'viewticket.php', 'supporttickets.php', 'dl.php', 'creditcard.php'];
+    if (in_array($file, $files, true)) {
+        $noindex = true;
+    }
+    if (preg_match('#^(/index\.php)?/(cart|checkout|register|login|logout|password|user|account|clientarea|store/order|announcements/view/older)(/|$)#', $route)) {
+        $noindex = true;
+    }
+    if (preg_match('#/announcements/view/older#', $route)) {
+        $noindex = true;
+    }
+    $lang = isset($_GET['language']) && is_string($_GET['language']) ? strtolower($_GET['language']) : '';
+    if ($lang !== '' && !in_array($lang, ['english', 'arabic'], true)) {
+        $noindex = true;
+    }
+
+    $out = '<link rel="canonical" href="' . htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8') . '">';
+    if ($noindex) {
+        $out .= '<meta name="robots" content="noindex,follow">';
+    }
+    return $out;
+});

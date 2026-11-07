@@ -1,0 +1,29 @@
+# robots.txt for https://my.globalhostia.com (the WHMCS client area)
+#
+# Upload: save this file as "robots.txt" (without "-my") in the WHMCS root, which is
+#   domains/globalhostia.com/public_html/secure/robots.txt
+# (the folder my.globalhostia.com serves; it holds configuration.php, cart.php, clientarea.php ...).
+# Replace any robots.txt already there. Check afterwards: https://my.globalhostia.com/robots.txt
+#
+# Only private and transactional pages are blocked. Knowledgebase, announcements and store pages stay crawlable so
+# search engines can read their canonical / noindex tags (includes/hooks/globalhostia_hosting_hook.php).
+# No Sitemap line: the sitemap for search engines is https://globalhostia.com/sitemap.xml.
+
+User-agent: *
+Disallow: /cart.php
+Disallow: /cart
+Disallow: /checkout
+Disallow: /index.php?rp=/cart
+Disallow: /register.php
+Disallow: /register
+Disallow: /index.php?rp=/register
+Disallow: /pwreset.php
+Disallow: /password/
+Disallow: /index.php?rp=/password
+Disallow: /clientarea.php
+Disallow: /viewinvoice.php
+Disallow: /viewquote.php
+Disallow: /dl.php
+Disallow: /dologin.php
+Disallow: /logout.php
+Disallow: /creditcard.php

@@ -32,7 +32,9 @@ const EXTRA = [
 ];
 // legacy .html URLs that must 301 to their clean URL
 const LEGACY = [['/index.html', '/'], ['/web-hosting.html', '/web-hosting'], ['/vps-hosting.html', '/vps-hosting'], ['/contact.html', '/contact'],
-  ['/dedicated-servers.html', '/dedicated-servers'], ['/ssl-certificate.html', '/ssl-certificate']];
+  ['/dedicated-servers.html', '/dedicated-servers'], ['/ssl-certificate.html', '/ssl-certificate'],
+  // one hop straight to the final page (no /aws-pro-wordpress chain, no 404 at /index1)
+  ['/aws-pro-wordpress.html', '/wordpress-hosting'], ['/index1.html', '/'], ['/web-hosting1.html', '/web-hosting'], ['/blog-single.html', '/blog']];
 // never crawled: admin, account (except the probes above), APIs, WHMCS, assets, Markdown copies
 const SKIP = /^\/(admin|api|secure|account|oauth|mcp|_next|hp|image|assets|og|feeds|template-part|cgi-bin|cart|checkout|ask|v2)(\/|$)|\.(md|txt|xml|json|png|jpe?g|webp|svg|gif|ico|css|js|pdf|mp4|woff2?|zip)$/i;
 

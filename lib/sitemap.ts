@@ -9,7 +9,7 @@ import { getPosts, blogCategories, COLLECTIONS, translationOf, postPath } from '
 import { SITEMAP_EXCLUDE, NOINDEX_SLUGS } from './seo';
 import { ROUTES, THEME_ONLY } from './theme/routes';
 import { getCatalog, productsFor, type Catalog } from './theme/data';
-import { pseoPaths } from './theme/pseo';
+import { pseoSitemapPaths } from './theme/pseo';
 import { storePaths } from './store/view';
 import { ALIAS_SLUGS } from './aliases.mjs';
 import { isHiddenVs } from './compare/competitors';
@@ -106,17 +106,20 @@ export async function sitemapEntries(): Promise<SitemapEntry[]> {
       add(`/${slug}`, themeMod);
     }
   }
-  // programmatic SEO pages (domains A–Z, locations, use cases): derived from the cached catalog
-  const pseo = cat ? pseoPaths(cat) : [];
+  // programmatic SEO pages (domains A–Z, locations, use cases): derived from the cached catalog; TLD pages without a
+  // live price and editorial facts are noindex template pages and stay out (lib/theme/pseo.ts tldIndexable)
+  const pseo = cat ? pseoSitemapPaths(cat) : [];
   for (const p of pseo) if (!have.has(p.slice(1))) add(p, p.startsWith('/domains/') ? maxDate(tldMod, catalogMod) : catalogMod);
   // Business services shop: only while published, and only pages with something to order or quote (lib/store/view.ts)
   for (const p of cat ? storePaths(cat) : []) if (!have.has(p.slice(1))) add(p, maxDate(catalogMod, s.business_services_at) || catalogMod);
   // help centre how-to topics (lib/help): hidden ones answer 404
   for (const t of helpTopics(s)) add(helpPath(t.slug), maxDate(t.media.uploadDate, themeMod) || themeMod);
-  // premium domain detail pages (lib/premium): listed names only, while the page is live
+  // premium domain detail pages (lib/premium): only our own / seller listings with a real description, while the page is
+  // live; marketplace feed names are noindex,follow (lib/premium/core.ts premiumIndexable)
   try {
     const { premiumItems, premiumConfig } = await import('./premium/store');
-    if ((await premiumConfig()).enabled) for (const i of await premiumItems()) add(`/premium-domains/${i.domain}`, i.updatedAt || themeMod);
+    const { premiumIndexable } = await import('./premium/core');
+    if ((await premiumConfig()).enabled) for (const i of (await premiumItems()).filter(premiumIndexable)) add(`/premium-domains/${i.domain}`, i.updatedAt || themeMod);
   } catch { /* tables not created yet */ }
   // hreflang pairs: both versions listed (so both answer 200 and are indexable) → each gets en, ar and x-default
   for (const d of AR_DEFS) {

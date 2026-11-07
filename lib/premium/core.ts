@@ -309,6 +309,14 @@ export function feedItem(r: FeedRow, p: PremiumConfig['pricing']): PItem | null 
     description: '', listingId: r.listingId, updatedAt: r.fetchedAt ? new Date(r.fetchedAt).toISOString() : undefined,
   };
 }
+/**
+ * A premium detail page is indexable only for a listing of our own or a customer's ("Sell your domain") with a real,
+ * unique description. Marketplace feed names (Dynadot) and bare listings share one template (and the feed carries spam
+ * names): those render as noindex,follow and stay out of the sitemap. The /premium-domains hub stays indexable.
+ */
+export const PREMIUM_INDEX_MIN_DESC = 80;
+export const premiumIndexable = (i: Pick<PItem, 'source' | 'description'>) => i.source === 'own' && (i.description || '').trim().length >= PREMIUM_INDEX_MIN_DESC;
+
 /** Own listings first (they win over a feed row of the same name), visible statuses only, then the feed up to maxCount. */
 export function mergeItems(own: OwnRow[], feed: FeedRow[], cfg: PremiumConfig): PItem[] {
   const out: PItem[] = [];

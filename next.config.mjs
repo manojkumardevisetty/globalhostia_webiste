@@ -32,6 +32,8 @@ export default {
   // WHMCS moved from globalhostia.com/secure to my.globalhostia.com: 308 keeps the method, so payment
   // callbacks and form posts to old URLs still reach the client area.
   async redirects() {
+    /** legacy *.html pages of the old static site that have no current page of their own -> closest current page */
+    const LEGACY_PAGES = { index1: '/', index111111: '/', 'web-hosting1': '/web-hosting', 'blog-2': '/blog', 'blog-3': '/blog', 'blog-single': '/blog', 'blog-single-2': '/blog' };
     return [
       { source: '/secure', destination: 'https://my.globalhostia.com/', permanent: true },
       { source: '/secure/:path*', destination: 'https://my.globalhostia.com/:path*', permanent: true },
@@ -39,6 +41,10 @@ export default {
       // the old home page /index.html -> / (not /index)
       { source: '/index.html', destination: '/', statusCode: 301 },
       { source: '/index', destination: '/', statusCode: 301 },
+      // legacy template pages with no page of their own (old home/blog copies) and the aliases below: one hop straight to
+      // the final page, before the generic /x.html -> /x rule (that would 404 for /index1 or chain through /aws-pro-*)
+      ...Object.entries({ ...LEGACY_PAGES, ...ALIAS_REDIRECTS }).map(([slug, to]) => ({ source: `/${slug}.html`, destination: to, statusCode: 301 })),
+      ...Object.entries(LEGACY_PAGES).map(([slug, to]) => ({ source: `/${slug}`, destination: to, statusCode: 301 })),
       { source: '/:slug((?!google)[a-zA-Z0-9-]+)\\.html', destination: '/:slug', statusCode: 301 },
       // duplicate legacy template URLs -> their canonical page (one URL per page; query strings are kept)
       ...Object.entries(ALIAS_REDIRECTS).map(([slug, to]) => ({ source: `/${slug}`, destination: to, statusCode: 301 })),

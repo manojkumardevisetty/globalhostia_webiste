@@ -12,7 +12,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { createHmac } from 'node:crypto';
 import {
   normalizePremium, DEFAULT_PREMIUM, parsePrice, priceFor, registryPrice, parseListings, parseSearch, parseOwnDomains, unwrap, DynadotApiError,
-  feedAllows, mergeItems, applyFilter, readFilter, layoutFor, categoriesOf, marqueePicks, parseCsv, searchPremium, cleanDomain, splitDomain,
+  feedAllows, mergeItems, premiumIndexable, applyFilter, readFilter, layoutFor, categoriesOf, marqueePicks, parseCsv, searchPremium, cleanDomain, splitDomain,
   call, getListings, getListingItem, searchPrices, ownDomains, proxyPayload, PROXY_COMMANDS, fmtMoney, type OwnRow, type FeedRow, type Transport,
 } from '../lib/premium/core.ts';
 
@@ -216,4 +216,12 @@ test('WHMCS proxy (php): signed read-only requests pass through, the key never l
     assert.equal((await fetch(url)).status, 405);
     assert.ok(!m.seen.some((x) => x.command === 'register'), 'no write command ever reached Dynadot');
   } finally { php.kill(); m.close(); fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('premiumIndexable: only own / seller listings with a real description are indexable', () => {
+  const desc = 'A short, brandable name for an Arabic-language crypto news site, owned by GlobalHostia and ready to transfer.';
+  assert.equal(premiumIndexable({ source: 'own', description: desc }), true);
+  assert.equal(premiumIndexable({ source: 'own', description: '' }), false, 'bare own listing: template copy only');
+  assert.equal(premiumIndexable({ source: 'own', description: 'Great name.' }), false, 'too short to be unique');
+  assert.equal(premiumIndexable({ source: 'dynadot', description: desc }), false, 'marketplace feed names never');
 });

@@ -148,6 +148,17 @@ export function tldFromSlug(cat: Catalog, slug: string) {
 export const tldRow = (cat: Catalog, tld: string): TTld | null =>
   cat.tlds.find((t) => t.tld.toLowerCase() === tld && (t.currency || 'USD') === cat.currency && t.register !== null) || null;
 
+/**
+ * A /domains/<tld> page is worth indexing only with a live price in the site currency AND editorial facts (built-in
+ * TLD_INFO or an Admin → Site links blurb). Every other TLD page is the same template with a different price (Search
+ * Console: "Crawled, currently not indexed"): it still renders, as noindex,follow, and stays out of the sitemap.
+ * Adding a blurb in Admin → Site links makes that extension's page indexable.
+ */
+export function tldIndexable(cat: Catalog, tld: string): boolean {
+  const info = tldInfo(cat, tld);
+  return !!tldRow(cat, tld) && !!info && !!info.forWho && info.facts.length > 0;
+}
+
 /* ------------------------------------------------------------------ locations */
 export type LocInfo = {
   slug: string; name: string; the: string; region: string; syn: string[];
@@ -579,7 +590,13 @@ export function categoryRedirect(cat: Catalog, slug: string): string {
   return c ? coveredBy(cat, slug) || '' : '';
 }
 
-/** Every programmatic URL path (for the sitemap and the crawl check). */
+/** The programmatic paths that are indexable (sitemap): template-only TLD pages are left out (tldIndexable). */
+export function pseoSitemapPaths(cat: Catalog): string[] {
+  const bySlug = new Map(tldPageList(cat).map((t) => [`/domains/${tldSlug(t)}`, t]));
+  return pseoPaths(cat).filter((p) => { const t = bySlug.get(p); return !t || tldIndexable(cat, t); });
+}
+
+/** Every programmatic URL path (the crawl check and Admin → Site links; the sitemap uses pseoSitemapPaths). */
 export function pseoPaths(cat: Catalog): string[] {
   const groups = locationGroups(cat);
   const uc = useCasePages(cat);

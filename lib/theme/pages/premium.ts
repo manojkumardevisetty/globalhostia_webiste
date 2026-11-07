@@ -15,7 +15,7 @@ import { brokerConfig } from '../../broker';
 import { premiumItems, premiumConfig, feedStale, refreshFeed } from '../../premium/store';
 import { formToken } from '../../premium/token';
 import {
-  PREMIUM_PATH, LENGTHS, SORTS, SORT_LABEL, applyFilter, categoriesOf, layoutFor, readFilter, cleanDomain, fmtMoney, type PItem, type PremiumConfig,
+  PREMIUM_PATH, LENGTHS, SORTS, SORT_LABEL, applyFilter, premiumIndexable, categoriesOf, layoutFor, readFilter, cleanDomain, fmtMoney, type PItem, type PremiumConfig,
 } from '../../premium/core';
 import { card, domainHtml, itemHref, priceText, sourceLabel } from '../../premium/view';
 import { sellBand } from './sell';
@@ -223,7 +223,7 @@ async function detail(ctx: PageCtx, cat: Cat, items: PItem[], cfg: PremiumConfig
   return page({
     ctx, catalog: cat, path: itemHref(i), title: `${i.domain} is for sale`,
     description: `${i.domain} premium domain for sale${i.price !== null ? ` at ${fmtMoney(i.price, i.currency)}` : ', offers welcome'}. Request it, we confirm, you pay a secure invoice and we transfer it to your account.`,
-    css: ['pdm', 'premium'], js: ['premium'], noindex: !!(ref || err), canonical: `${site}${itemHref(i)}`, ogKicker: 'Premium domain',
+    css: ['pdm', 'premium'], js: ['premium'], noindex: !!(ref || err) || !premiumIndexable(i), canonical: `${site}${itemHref(i)}`, ogKicker: 'Premium domain',
     jsonLd: [breadcrumbJsonLd(crumbs, site), faqJsonLd(fq), product],
     body: [hero, reqSec, howSec(), more, brokerBand(b, i.domain), faqSec].join('\n'),
   });
