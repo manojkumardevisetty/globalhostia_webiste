@@ -3317,3 +3317,60 @@
   }
   if (document.readyState !== 'loading') kbVideos(); else document.addEventListener('DOMContentLoaded', kbVideos);
 })();
+
+/* Standalone WHMCS registration: keep its native form, validation and country/phone widgets. */
+(function () {
+  function signup() {
+    if (!/\/(?:register\.php)\/?$/.test(location.pathname)) return;
+    var form = document.querySelector('form#frmCheckout[action*="register.php"]');
+    var row = form && form.closest('.main-signup-row');
+    if (!row || row.classList.contains('gh-signup')) return;
+    var panel = row.querySelector(':scope > .col-lg-8'), card = form.closest('.white-bg');
+    if (!panel || !card) return;
+    row.classList.add('gh-signup'); panel.classList.add('gh-signup__panel'); card.classList.add('gh-signup__card');
+    document.body.classList.add('gh-signup-page');
+    var ar = /^ar/i.test(document.documentElement.lang || '') || document.documentElement.dir === 'rtl';
+    var text = function (en, arabic) { return ar ? arabic : en; };
+    var brand = row.querySelector('.brand-logo');
+    if (brand) {
+      var logo = brand.querySelector('a'), img = brand.querySelector('img');
+      if (logo) { logo.href = 'https://globalhostia.com'; logo.setAttribute('aria-label', 'GlobalHostia'); }
+      if (img) img.alt = 'GlobalHostia';
+      var home = document.createElement('a'); home.className = 'gh-signup__back'; home.href = 'https://globalhostia.com';
+      home.textContent = text('Back to website', 'العودة إلى الموقع'); brand.appendChild(home);
+    }
+    var aside = document.createElement('aside'); aside.className = 'gh-signup__intro';
+    aside.innerHTML = '<span class="gh-signup__eyebrow">GLOBALHOSTIA</span><h2>' + text('Your next chapter starts here.', 'خطوتك التالية تبدأ هنا.') + '</h2><p>' + text('One account for your domains, hosting and the support behind them.', 'حساب واحد لنطاقاتك واستضافتك والدعم الذي تحتاجه.') + '</p><ul><li>' + text('Manage your services in one place', 'إدارة خدماتك من مكان واحد') + '</li><li>' + text('Keep track of invoices and renewals', 'متابعة الفواتير والتجديدات') + '</li><li>' + text('Get help from the GlobalHostia team', 'الحصول على مساعدة فريق GlobalHostia') + '</li></ul><div class="gh-signup__help">' + text('Have a question before you join?', 'هل لديك سؤال قبل التسجيل؟') + '<a href="https://globalhostia.com/contact">' + text('Talk to our team', 'تواصل مع فريقنا') + ' <span aria-hidden="true">↗</span></a></div>';
+    row.insertBefore(aside, panel);
+    var title = card.querySelector('.form-title .title'), sub = card.querySelector('.form-title .sub-title');
+    if (title) { var h1 = document.createElement('h1'); h1.className = title.className; h1.textContent = text('Create your account', 'إنشاء حسابك'); title.replaceWith(h1); }
+    if (sub) { sub.textContent = text('Already have an account? ', 'لديك حساب بالفعل؟ '); var login = document.createElement('a'); login.href = 'https://globalhostia.com/account/login'; login.textContent = text('Sign in', 'تسجيل الدخول'); sub.appendChild(login); }
+    var first = document.createElement('div'); first.className = 'gh-signup__section'; first.setAttribute('role', 'heading'); first.setAttribute('aria-level', '2'); first.textContent = text('Personal details', 'البيانات الشخصية');
+    var details = form.querySelector('#containerNewUserSignup'); if (details) details.prepend(first);
+    form.querySelectorAll('.separte-or').forEach(function (heading) { heading.setAttribute('role', 'heading'); heading.setAttribute('aria-level', '2'); });
+    var marketing = form.querySelector('input[name=marketingoptin]');
+    if (marketing) marketing.setAttribute('aria-label', text('Join our mailing list', 'الاشتراك في قائمتنا البريدية'));
+    var privacy = document.querySelector('#popuppfirsttime .privacy-btn');
+    if (privacy) privacy.href = 'https://globalhostia.com/privacy-policy';
+    var fields = {
+      firstname: ['given-name'], lastname: ['family-name'], email: ['email'], phonenumber: ['tel'], companyname: ['organization'],
+      address1: ['address-line1'], address2: ['address-line2'], city: ['address-level2'], state: ['address-level1'], postcode: ['postal-code'],
+      country: ['country', text('Country', 'الدولة')], tax_id: ['', text('VAT number (optional)', 'الرقم الضريبي (اختياري)')],
+      currency: ['', text('Account currency', 'عملة الحساب')], password: ['new-password'], password2: ['new-password']
+    };
+    function labels() {
+      form.querySelectorAll('.form-group input:not([type=hidden]):not([type=checkbox]), .form-group select').forEach(function (input) {
+        var spec = fields[input.name], group = input.closest('.form-group');
+        if (!spec || !input.id || !group) return;
+        if (spec[0]) input.autocomplete = spec[0];
+        var label = group.querySelector('.gh-signup__label');
+        if (!label && !form.querySelector('label[for="' + input.id + '"]')) { label = document.createElement('label'); label.className = 'gh-signup__label'; label.textContent = spec[1] || input.placeholder || input.name; group.prepend(label); }
+        if (label) label.htmlFor = input.id;
+      });
+    }
+    labels();
+    // WHMCS replaces the state input when the country changes; keep its visible label associated.
+    if (window.MutationObserver) new MutationObserver(labels).observe(form, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', signup); else signup();
+})();

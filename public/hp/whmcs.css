@@ -2345,3 +2345,108 @@ html.gh-inv-on .gh-inv-back { display: none; }
   .gh-inv__foot { padding: 14px 0 0; }
   .gh-inv a { color: inherit !important; text-decoration: none !important; }
 }
+
+/* Standalone registration, scoped away from checkout and the signed-in client area. */
+body.gh-signup-page { background: var(--gh-tint) !important; }
+.gh-signup-page > .container { width: 100% !important; max-width: 1200px !important; padding: 0 28px 64px !important; }
+.gh-signup { display: grid !important; grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 0 40px; margin: 0 !important; align-items: start; }
+.gh-signup > .brand-logo { grid-column: 1 / -1; display: flex !important; justify-content: space-between !important; align-items: center; padding: 28px 0 !important; margin: 0 !important; min-width: 0; }
+.gh-signup .brand-logo img { width: 158px; max-width: 100%; height: auto; }
+.gh-signup__back { color: var(--gh-muted) !important; font-size: 13px; font-weight: 600; }
+.gh-signup__intro { position: sticky; top: 28px; padding: 40px 30px; border-radius: 16px; background: var(--gh-deep); color: #d6dee5; overflow: hidden; }
+.gh-signup__eyebrow { display: block; color: var(--gh-gold); font: 700 11px/1.5 Inter, sans-serif; letter-spacing: .16em; margin-bottom: 24px; }
+.gh-signup__intro h2 { color: #fff !important; font: 800 clamp(28px, 3vw, 40px)/1.15 Manrope, Inter, sans-serif !important; margin: 0 0 20px; letter-spacing: -.035em; }
+.gh-signup__intro p { color: #d6dee5 !important; font-size: 15px; line-height: 1.75; margin: 0; }
+.gh-signup__intro ul { list-style: none; padding: 28px 0; margin: 28px 0; border-block: 1px solid #ffffff26; display: grid; gap: 20px; }
+.gh-signup__intro li { display: flex; gap: 12px; font-size: 13px; line-height: 1.6; }
+.gh-signup__intro li::before { content: '✓'; color: var(--gh-gold); font-weight: 700; }
+.gh-signup__help { font-size: 13px; line-height: 1.7; }
+.gh-signup__help a { display: block; color: #fff !important; font-weight: 600; margin-top: 8px; text-decoration: underline; text-underline-offset: 4px; }
+.gh-signup__panel { padding: 0 !important; width: 100% !important; max-width: none !important; min-width: 0; }
+.gh-signup .main-signup-block { display: block !important; }
+.gh-signup__card { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 32px !important; border: 1px solid var(--gh-line) !important; border-radius: 16px !important; background: #fff !important; box-shadow: var(--gh-shadow); }
+.gh-signup .form-holder { padding: 0 !important; }
+.gh-signup .form-title { text-align: start !important; }
+.gh-signup .form-title .title { font: 800 clamp(24px, 2.4vw, 30px)/1.25 Manrope, Inter, sans-serif !important; margin: 0 0 10px !important; }
+.gh-signup .form-title .sub-title { margin: 0 0 28px !important; color: var(--gh-muted) !important; font-size: 14px !important; line-height: 1.7; }
+.gh-signup .form-title a { color: var(--gh-brand-d) !important; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+html body .gh-signup .login-form, html body .gh-signup form.using-password-strength { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+.gh-signup #containerNewUserSignup, .gh-signup #containerPassword { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
+.gh-signup #containerNewUserSignup > .social-login-group:empty { display: none; }
+.gh-signup #containerNewUserSignup > .row, .gh-signup .social-login-group, .gh-signup .separte-or, .gh-signup__section, .gh-signup #passwdFeedback, .gh-signup .password-strength-meter { grid-column: 1 / -1; }
+.gh-signup #containerNewUserSignup > .row { margin: 0 !important; display: block; }
+.gh-signup #containerNewUserSignup > .row > [class*=col-] { padding: 0 !important; }
+.gh-signup .form-group { margin: 0 !important; min-width: 0; padding: 0 !important; }
+.gh-signup__label { display: block; color: var(--gh-ink) !important; font: 600 13px/1.5 Inter, sans-serif !important; margin: 0 0 7px !important; }
+.gh-signup .form-control, .gh-signup select.form-control { width: 100% !important; max-width: 100%; min-width: 0; height: 48px !important; min-height: 48px !important; padding: 10px 13px !important; border: 1px solid #cdd4de !important; border-radius: 8px !important; background: #fff !important; color: var(--gh-ink) !important; font-size: 16px !important; line-height: 1.5 !important; box-shadow: none !important; }
+.gh-signup .form-control:focus { border-color: var(--gh-brand) !important; outline: 3px solid #c5386f26 !important; outline-offset: 1px; }
+.gh-signup .iti, .gh-signup .intl-tel-input { width: 100%; }
+.gh-signup input[type=tel].form-control { padding-inline-start: 92px !important; }
+.gh-signup .nice-select { width: 100% !important; height: 48px !important; line-height: 46px !important; font-size: 16px !important; }
+.gh-signup .nice-select .list { max-height: 260px; overflow-y: auto; max-width: 100%; }
+.gh-signup .separte-or, .gh-signup__section { position: static !important; text-align: start !important; height: auto !important; padding: 0 !important; margin: 12px 0 0 !important; border: 0 !important; background: transparent !important; font: 700 16px/1.5 Manrope, Inter, sans-serif !important; color: var(--gh-ink) !important; }
+.gh-signup .separte-or::before, .gh-signup .separte-or::after { display: none !important; }
+.gh-signup .separte-or span { position: static !important; padding: 0 !important; background: transparent !important; text-transform: none !important; }
+.gh-signup #containerNewUserSecurity { margin-top: 24px; }
+.gh-signup #containerNewUserSecurity > .separte-or { margin-bottom: 16px !important; }
+.gh-signup .password-strength-meter { margin: 0 !important; }
+.gh-signup #passwordStrengthTextLabel { margin: 6px 0 0; font-size: 12px; }
+.gh-signup form > .alert { padding: 18px !important; margin: 24px 0 20px !important; background: var(--gh-tint) !important; border: 1px solid var(--gh-line) !important; border-radius: 10px !important; box-shadow: none !important; }
+.gh-signup form > .alert p { font-size: 13px !important; line-height: 1.7; }
+.gh-signup form > p { margin: 20px 0 !important; justify-content: flex-start !important; }
+.gh-signup .coodiv-check-input { align-items: flex-start !important; white-space: normal; line-height: 1.7; }
+.gh-signup .coodiv-check-input .checkbox { flex-shrink: 0; margin-inline-end: 10px !important; }
+.gh-signup .button-block { margin: 20px 0 0 !important; }
+.gh-signup input[type=submit] { min-height: 48px; height: auto !important; border-radius: 8px !important; background: var(--gh-brand) !important; border: 1px solid var(--gh-brand) !important; color: #fff !important; font: 600 15px/1.5 Inter, sans-serif !important; padding: 12px 16px !important; }
+.gh-signup input[type=submit]:hover { background: var(--gh-brand-d) !important; transform: none !important; }
+.gh-signup a:focus-visible, .gh-signup input[type=submit]:focus-visible { outline: 3px solid var(--gh-brand); outline-offset: 4px; }
+@media (max-width: 900px) {
+  .gh-signup-page > .container { padding: 0 20px 40px !important; max-width: 740px !important; }
+  .gh-signup { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .gh-signup > .brand-logo { padding: 22px 0 0 !important; }
+  .gh-signup__intro { position: static; padding: 24px; }
+  .gh-signup__eyebrow { margin-bottom: 12px; }
+  .gh-signup__intro h2 { font-size: 26px !important; margin-bottom: 12px; }
+  .gh-signup__intro ul, .gh-signup__help { display: none; }
+  .gh-signup__intro p { font-size: 14px; }
+}
+@media (max-width: 540px) {
+  .gh-signup-page > .container { padding: 0 16px 32px !important; }
+  .gh-signup { gap: 16px; }
+  .gh-signup .brand-logo img { width: 140px; }
+  .gh-signup__back { font-size: 12px; }
+  .gh-signup__intro { padding: 22px; border-radius: 12px; }
+  .gh-signup__card { padding: 22px 18px !important; border-radius: 12px !important; }
+  .gh-signup #containerNewUserSignup, .gh-signup #containerPassword { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+}
+/* Native selects retain keyboard, touch and screen-reader support; WHMCS still handles their change events. */
+html body .gh-signup select.form-control { display: block !important; }
+html body .gh-signup .nice-select { display: none !important; }
+/* Keep the existing cookie controls usable without the old illustration covering the form. */
+html body.gh-signup-page #popuppfirsttime { width: 330px !important; max-width: calc(100vw - 32px) !important; padding: 18px !important; inset: auto auto 16px 16px !important; border: 1px solid var(--gh-line) !important; border-radius: 12px !important; background: #fff !important; box-shadow: var(--gh-shadow) !important; }
+.gh-signup-page #popuppfirsttime .gbpr-badge-logo { display: none !important; }
+.gh-signup-page #popuppfirsttime .text { padding: 0 !important; text-align: start !important; }
+.gh-signup-page #popuppfirsttime h5 { font-size: 16px !important; line-height: 1.4 !important; }
+.gh-signup-page #popuppfirsttime p { font-size: 13px !important; line-height: 1.6 !important; margin: 6px 0 12px !important; }
+.gh-signup-page #popuppfirsttime .btns-container { display: flex !important; gap: 12px; align-items: center; margin: 0 !important; padding: 0 !important; }
+.gh-signup-page #popuppfirsttime .gbpr-badge-version-two-footer-btns { width: auto !important; float: none !important; min-height: 44px; padding: 10px 14px !important; font-size: 13px !important; border-radius: 8px !important; }
+.gh-signup-page #popuppfirsttime .ok-btn { margin-inline-start: auto; background: var(--gh-brand) !important; color: #fff !important; }
+@media (max-width: 540px) { body.gh-signup-page:has(#popuppfirsttime.show) { padding-bottom: 180px !important; } }
+/* The legacy template places billing fields beside, rather than inside, the personal-details container. */
+.gh-signup form#frmCheckout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
+.gh-signup form#frmCheckout > * { grid-column: 1 / -1; }
+.gh-signup form#frmCheckout > .form-group:not(.button-block) { grid-column: auto; }
+.gh-signup form#frmCheckout > .form-group:has(#inputCompanyName),
+.gh-signup form#frmCheckout > .form-group:has(#inputAddress1),
+.gh-signup form#frmCheckout > .form-group:has(#inputAddress2),
+.gh-signup form#frmCheckout > .form-group:has(#inputTaxId) { grid-column: 1 / -1; }
+.gh-signup form#frmCheckout > .row { margin: 0 !important; }
+.gh-signup form#frmCheckout > .row > [class*=col-] { padding: 0 !important; }
+.gh-signup form#frmCheckout > .row .separte-or { margin-bottom: 16px !important; }
+@media (max-width: 540px) { .gh-signup form#frmCheckout { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+.gh-signup .form-bottom { display: none; }
+html body .gh-signup input.accepttos { display: inline-block !important; position: static !important; opacity: 1 !important; width: 18px !important; height: 18px !important; min-height: 18px !important; margin: 4px 10px 0 0 !important; flex-shrink: 0; accent-color: var(--gh-brand); }
+.gh-signup input.accepttos + .checkbox { display: none !important; }
+.gh-signup input.accepttos:focus-visible { outline: 3px solid var(--gh-brand); outline-offset: 3px; }
+.gh-signup .coodiv-check-input a { margin-inline-start: .25em; }
+.gh-signup .bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-success { background: var(--gh-brand) !important; }
