@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     // This existing table has a unique primary key. INSERT ... ON CONFLICT gives an atomic, cross-instance
     // replay guard; the prefix separates these assertions from OAuth client assertions. No schema change.
     const A = schema.oauthAssertions;
-    const [fresh] = await db.insert(A).values({ key: `whmcs-admin:${claims.jti}`, clientId: 'whmcs-admin-portal', expiresAt: new Date(claims.exp * 1000) })
+    const [fresh] = await db.insert(A).values({ key: `whmcs-admin:${claims.jti}`, clientId: 'whmcs-admin-portal', expiresAt: new Date((claims.exp + 120) * 1000) })
       .onConflictDoNothing().returning({ key: A.key });
     if (!fresh) return fail();
     const client = await getClientsDetails(claims.cid);
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     res.cookies.set(CLIENT_COOKIE, session, { ...cookieOpts, maxAge: 15 * 60 });
     res.cookies.set('gh_in', '1', { ...cookieOpts, httpOnly: false, maxAge: 15 * 60 });
     await auditClient('client_admin_handoff', String(client.email), clientIp(req), { clientId: claims.cid, whmcsAdminId: claims.admin });
-    // Expired replay records cannot authenticate and are safe to prune. Never log the assertion or cookie.
+    // Keep markers beyond assertion expiry so a request already in flight cannot race cleanup. Never log the assertion or cookie.
     await db.delete(A).where(lt(A.expiresAt, new Date())).catch(() => {});
     return res;
   } catch {

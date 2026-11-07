@@ -19,6 +19,7 @@ test('actual handoff handlers bind the browser, replace the correct client, reje
   const name = '__gh_handoff_test_' + Date.now();
   (globalThis as any)[name] = {
     insert: (table: any) => ({ values: (v: any) => !table.key ? Promise.resolve([]) : ({ onConflictDoNothing: () => ({ returning: async () => {
+      assert.ok(v.expiresAt.getTime() > Date.now() + 120000, 'replay markers outlive valid assertions and in-flight requests');
       if (databaseDown) throw new Error('unavailable');
       if (seen.has(v.key)) return []; seen.add(v.key); return [{ key: v.key }];
     } }) }) }),
