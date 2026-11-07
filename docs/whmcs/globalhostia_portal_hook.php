@@ -41,9 +41,40 @@ add_hook('ClientAreaPageHome', 1, function ($vars) {
         $assertion = $body . '.' . gh_portal_encode(hash_hmac('sha256', $aud . ':' . $body, $secret, true));
         $nonce = gh_portal_encode(random_bytes(24));
         header('Content-Type: text/html; charset=utf-8');
-        header("Content-Security-Policy: default-src 'none'; script-src 'nonce-" . $nonce . "'; form-action https://globalhostia.com; base-uri 'none'; frame-ancestors 'none'");
+        header("Content-Security-Policy: default-src 'none'; script-src 'nonce-" . $nonce . "'; style-src 'nonce-" . $nonce . "'; form-action https://globalhostia.com; base-uri 'none'; frame-ancestors 'none'");
         // POST rather than a query string: assertions stay out of URLs, referrers and normal access logs.
-        echo '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Opening your GlobalHostia account</title><body><p>Opening your GlobalHostia account…</p><form method="post" action="https://globalhostia.com/account/whmcs/callback"><input type="hidden" name="assertion" value="' . htmlspecialchars($assertion, ENT_QUOTES, 'UTF-8') . '"><button type="submit">Continue to your account</button></form><script nonce="' . $nonce . '">document.forms[0].submit();</script></body></html>';
+        $safeAssertion = htmlspecialchars($assertion, ENT_QUOTES, 'UTF-8');
+        echo <<<HTML
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GlobalHostia</title>
+<style nonce="{$nonce}">
+html{background:#f6f7f9;color:#23313d;font:16px/1.6 system-ui,-apple-system,sans-serif}body{margin:0}main{max-width:400px;margin:12vh auto;padding:32px;background:#fff;border:1px solid #e6e9ee;border-radius:16px;text-align:center}main[hidden]{display:none}.brand{font-size:20px;font-weight:750;letter-spacing:-.5px}h1{font-size:22px;line-height:1.3;margin:24px 0 12px}p{color:#5a6774}button{font:600 16px/1.5 system-ui;color:#fff;background:#c5386f;border:0;border-radius:8px;min-height:48px;padding:12px 20px;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #a6225f;outline-offset:4px}a{color:#a6225f}small{display:block;margin-top:20px}@media(max-width:480px){main{margin:32px 16px;padding:24px}}
+</style>
+<noscript><style nonce="{$nonce}">#gh-handoff[hidden]{display:block}</style></noscript>
+</head>
+<body>
+<form hidden id="gh-handoff-form" method="post" action="https://globalhostia.com/account/whmcs/callback"><input type="hidden" name="assertion" value="{$safeAssertion}"></form>
+<main hidden id="gh-handoff" aria-labelledby="gh-handoff-title">
+<div class="brand">GlobalHostia</div>
+<h1 id="gh-handoff-title">Continue to your account</h1>
+<p>If your account has not opened yet, use the button below to continue.</p>
+<button type="submit" form="gh-handoff-form">Open my account</button>
+<small><a href="https://globalhostia.com/contact">Need help? Contact our team</a></small>
+</main>
+<script nonce="{$nonce}">
+(function(){
+  // Do not paint an intermediate form or leave the temporary challenge in the visible URL.
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  setTimeout(function(){ document.getElementById('gh-handoff').hidden=false; },4000);
+  HTMLFormElement.prototype.submit.call(document.getElementById('gh-handoff-form'));
+})();
+</script>
+</body></html>
+HTML;
+
         exit;
     } catch (\Throwable $e) {
         // Fail closed: retain WHMCS's already-authenticated page if configuration or runtime support is missing.

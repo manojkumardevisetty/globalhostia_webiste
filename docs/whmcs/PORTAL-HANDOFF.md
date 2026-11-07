@@ -6,8 +6,9 @@ The new dashboard has its own secure session. Redirecting `clientarea.php` to `/
 
 1. Upload **globalhostia_portal_hook.php** as a new file to the WHMCS installation's **includes/hooks/** folder. Keep the existing hosting hook intact.
 2. It uses `GH_HOSTING_SECRET` from the already-installed `globalhostia_hosting_hook.php`, which must match the website's existing hosting-hook secret in GlobalHostia Admin → Hosting. If that hook is not configured, configure the shared secret directly on the server/admin page; never paste it into chat or a public file. Alternatively the WHMCS server can supply `HOSTING_HMAC_SECRET` as an environment variable.
-3. In WHMCS admin, open a client and select **Login as Owner** (Login as Client). The WHMCS homepage now starts a browser-bound handoff and opens **https://globalhostia.com/account** as that client.
-4. Verify with a second client in the same browser: the dashboard must switch to the second client. The website audit log records `client_admin_handoff` with the WHMCS admin id and client id.
+3. If updating an earlier version, replace only `globalhostia_portal_hook.php`. Normal handoffs now keep the intermediate form hidden and continue automatically; a branded recovery button appears only if navigation is delayed or JavaScript is unavailable.
+4. In WHMCS admin, open a client and select **Login as Owner** (Login as Client). The WHMCS homepage now starts a browser-bound handoff and opens **https://globalhostia.com/account** as that client.
+5. Verify with a second client in the same browser: the dashboard must switch to the second client. The website audit log records `client_admin_handoff` with the WHMCS admin id and client id.
 
 The website routes are deployed through main/Vercel. The PHP hook requires this separate upload to the WHMCS server; committing it to GitHub does not install it there.
 
