@@ -20,10 +20,10 @@ const secret = () => {
 };
 const key = () => new TextEncoder().encode(secret());
 
-export async function signClient(s: Omit<ClientSession, 'jti'>) {
+export async function signClient(s: Omit<ClientSession, 'jti'>, ttl = TTL_S) {
   const jti = randomUUID();
   const token = await new SignJWT({ cid: s.clientId, uid: s.userId, email: s.email, name: s.name, cur: s.cur })
-    .setProtectedHeader({ alg: 'HS256' }).setAudience(AUD).setJti(jti).setIssuedAt().setExpirationTime(`${TTL_S}s`).sign(key());
+    .setProtectedHeader({ alg: 'HS256' }).setAudience(AUD).setJti(jti).setIssuedAt().setExpirationTime(`${Math.max(1, Math.min(TTL_S, ttl))}s`).sign(key());
   return { token, jti };
 }
 

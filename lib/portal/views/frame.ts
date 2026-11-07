@@ -163,7 +163,6 @@ export async function frame(o: {
           <button role="menuitem" type="button" data-ac-install hidden>${icon('download')}${esc(t('Install app'))}</button>
           ${langSwitch(v, o.path)}
           <form method="post" action="/account/sso"><input type="hidden" name="csrf" value="${esc(v.csrf)}"><input type="hidden" name="to" value="password"><button role="menuitem" type="submit">${icon('key')}${esc(t('Change password'))}</button></form>
-          <form method="post" action="/account/sso"><input type="hidden" name="csrf" value="${esc(v.csrf)}"><input type="hidden" name="to" value="home"><button role="menuitem" type="submit">${icon('settings')}${esc(t('Advanced settings'))}</button></form>
           <form method="post" action="/account/logout" data-ac-logout><input type="hidden" name="csrf" value="${esc(v.csrf)}"><button role="menuitem" type="submit" class="ac-dd__out">${icon('logout')}${esc(t('Sign out'))}</button></form>
         </div></details>
     </div>
